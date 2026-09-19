@@ -1,0 +1,1336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Secured Checkout | RiceFlow</title>
+  <link rel="stylesheet" href="src/styles/index.css">
+</head>
+<body class="bg-[#F5F5F7] min-h-screen font-sans">
+
+  <!-- Dynamic Header Bar -->
+  <div id="navbar-container"></div>
+
+  <!-- MAIN WRAPPER -->
+  <main class="py-8 max-w-[1240px] mx-auto px-4 sm:px-6 lg:px-8 min-h-screen">
+    
+    <!-- SUBMISSION CONFIRMATION SPLASH -->
+    <div id="success-splash" class="hidden max-w-2xl mx-auto bg-white rounded-[24px] p-12 text-center border border-gray-100 shadow-2xl animate-in fade-in zoom-in-95 duration-300">
+      <div class="h-20 w-20 bg-[#E2F9E5] text-[#1E6C02] rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" class="w-10 h-10"><polyline points="20 6 9 17 4 12"></polyline></svg>
+      </div>
+      <h2 class="text-3xl font-black text-[#222222] mb-3 tracking-tight">Order Submitted Successfully!</h2>
+      <p class="text-gray-500 font-semibold text-sm mb-8 leading-relaxed max-w-sm mx-auto">
+        Your order has been received and is now waiting for processing.
+      </p>
+      <div class="flex flex-col sm:flex-row gap-4 justify-center">
+        <a href="products.html" class="px-6 h-12 flex items-center justify-center border border-gray-200 text-gray-700 font-bold rounded-2xl hover:bg-gray-50 transition-all cursor-pointer">Continue Shopping</a>
+        <a href="profile.html" class="px-6 h-12 flex items-center justify-center bg-[#1E6C02] text-white font-bold rounded-2xl hover:bg-[#145001] transition-all shadow-lg hover:shadow-xl cursor-pointer">View My Orders</a>
+      </div>
+    </div>
+
+    <!-- MAIN FORM BODY -->
+    <div id="checkout-form-container" class="animate-in fade-in duration-300">
+      
+      <!-- Back Header -->
+      <div class="mb-6 flex items-center gap-3">
+        <a id="back-link" href="cart.html" class="text-[#1E6C02] hover:text-[#145001] transition-all p-1 flex items-center justify-center focus:outline-none">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+        </a>
+        <h1 class="text-2xl sm:text-3xl font-black text-[#222222] tracking-tight" id="checkout-title">Checkout</h1>
+      </div>
+
+      <form id="order-form" onsubmit="return false;">
+        <div class="grid lg:grid-cols-3 gap-8">
+          
+          <!-- Column 1 & 2: Form Details -->
+          <div class="lg:col-span-2 space-y-6">
+            
+            <!-- Items Overview Card (Shopee Style Product Cards) -->
+            <div class="space-y-4" id="items-preview-box">
+              <!-- Dynamically rendered -->
+            </div>
+
+            <!-- Delivery Method Card -->
+            <div class="bg-white dark:bg-slate-900 rounded-[24px] p-6 border border-gray-100 dark:border-slate-800 shadow-sm space-y-5">
+              <div class="flex items-center gap-2 pb-1 border-b border-gray-50 dark:border-slate-800">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-5 h-5 text-gray-500 dark:text-gray-400"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
+                <h3 class="text-base font-bold text-gray-900 dark:text-gray-100">Delivery Method</h3>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <!-- Option 1: Delivery -->
+                <div id="div-del" class="flex items-center space-x-3 rounded-2xl p-4 border border-[#1E6C02] cursor-pointer bg-[#F8FAF8] dark:bg-emerald-950/40 transition-all">
+                  <input type="radio" value="delivery" name="delivery-radio" id="rad-delivery" checked class="h-4 w-4 text-[#1E6C02] focus:ring-[#1E6C02]" />
+                  <label for="rad-delivery" class="font-bold text-gray-800 dark:text-gray-200 flex items-center gap-2 cursor-pointer flex-1 text-sm select-none">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-4 h-4 text-[#1E6C02]"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
+                    <span>Delivery (₱80)</span>
+                  </label>
+                </div>
+
+                <!-- Option 2: Store Pickup -->
+                <div id="div-pic" class="flex items-center space-x-3 rounded-2xl p-4 border border-gray-200 dark:border-slate-700 cursor-pointer bg-white dark:bg-slate-800 transition-all hover:bg-gray-50 dark:hover:bg-slate-700">
+                  <input type="radio" value="pickup" name="delivery-radio" id="rad-pickup" class="h-4 w-4 text-[#1E6C02] focus:ring-[#1E6C02]" />
+                  <label for="rad-pickup" class="font-bold text-gray-800 dark:text-gray-200 flex items-center gap-2 cursor-pointer flex-1 text-sm select-none">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-4 h-4 text-gray-400"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                    <span>Store Pickup (Free)</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <!-- Delivery Information Card -->
+            <div class="bg-white dark:bg-slate-900 rounded-[24px] p-6 border border-gray-100 dark:border-slate-800 shadow-sm space-y-5">
+              <div class="flex items-center gap-2 pb-1 border-b border-gray-50 dark:border-slate-800">
+                <span class="text-base">📍</span>
+                <h3 class="text-base font-bold text-gray-900 dark:text-gray-100" id="info-header">Delivery Information</h3>
+              </div>
+
+              <!-- Inputs area -->
+              <div class="grid sm:grid-cols-2 gap-4">
+                <div class="space-y-1.5 text-left">
+                  <div class="flex items-center justify-between">
+                    <label class="text-xs font-bold text-gray-950 dark:text-gray-200">Full Name</label>
+                    <span class="bg-[#E2F9E5] text-[#1E6C02] dark:bg-emerald-950/60 dark:text-emerald-300 text-[9px] font-black px-1.5 py-0.5 rounded-md tracking-wider">SAVED INFO</span>
+                  </div>
+                  <input required type="text" name="fullName" id="inp-fullName" class="w-full bg-[#F8F9FA] dark:bg-slate-800 border-0 dark:border dark:border-slate-700 text-sm font-medium text-[#222222] dark:text-gray-100 px-4 h-12 rounded-2xl outline-none focus:bg-white dark:focus:bg-slate-700 focus:ring-1 focus:ring-[#1E6C02] transition-all placeholder-gray-400 dark:placeholder-gray-500 shadow-none" />
+                </div>
+
+                <div class="space-y-1.5 text-left">
+                  <div class="flex items-center justify-between">
+                    <label class="text-xs font-bold text-gray-950 dark:text-gray-200">Contact Number</label>
+                    <span class="bg-[#E2F9E5] text-[#1E6C02] dark:bg-emerald-950/60 dark:text-emerald-300 text-[9px] font-black px-1.5 py-0.5 rounded-md tracking-wider">SAVED INFO</span>
+                  </div>
+                  <input required type="tel" name="phone" id="inp-phone" class="w-full bg-[#F8F9FA] dark:bg-slate-800 border-0 dark:border dark:border-slate-700 text-sm font-medium text-[#222222] dark:text-gray-100 px-4 h-12 rounded-2xl outline-none focus:bg-white dark:focus:bg-slate-700 focus:ring-1 focus:ring-[#1E6C02] transition-all placeholder-gray-400 dark:placeholder-gray-500 shadow-none" />
+                </div>
+              </div>
+
+              <!-- Address Block -->
+              <div id="address-container" class="space-y-1.5 text-left">
+                <label class="text-xs font-bold text-gray-950 dark:text-gray-200">Delivery Address</label>
+                <textarea required name="address" id="inp-address" rows="3" placeholder="House No., Street name, Barangay, Aurora, Zamboanga del Sur" class="w-full bg-[#F8F9FA] dark:bg-slate-800 border-0 dark:border dark:border-slate-700 text-sm font-medium text-[#222222] dark:text-gray-100 p-4 rounded-2xl outline-none focus:bg-white dark:focus:bg-slate-700 focus:ring-1 focus:ring-[#1E6C02] transition-all placeholder-gray-400 dark:placeholder-gray-500 shadow-none resize-none"></textarea>
+              </div>
+
+              <!-- Additional notes -->
+              <div class="space-y-1.5 text-left">
+                <label class="text-xs font-semibold text-gray-600 dark:text-gray-400">Delivery Notes (Optional)</label>
+                <input type="text" id="inp-notes" placeholder="Any special instructions for delivery" class="w-full bg-[#F8F9FA] dark:bg-slate-800 border-0 dark:border dark:border-slate-700 text-sm font-medium text-[#222222] dark:text-gray-100 px-4 h-12 rounded-2xl outline-none focus:bg-white dark:focus:bg-slate-700 focus:ring-1 focus:ring-[#1E6C02] transition-all placeholder-gray-400 dark:placeholder-gray-500 shadow-none" />
+              </div>
+
+              <!-- Pickup Instructions Block (Hidden initially) -->
+              <div id="pickup-container" class="hidden bg-[#F0F6FF] dark:bg-slate-800 border border-[#BFDBFE] dark:border-slate-700 rounded-[20px] p-6 space-y-4">
+                <p class="font-black text-[#1E3A8A] dark:text-blue-300 flex items-center gap-2 text-base">
+                  <span>🏪</span> Store Pick-Up Location
+                </p>
+                <div class="text-sm text-gray-700 dark:text-gray-300 font-semibold leading-relaxed pl-7 space-y-2">
+                  <div class="font-black text-gray-900 dark:text-gray-100 text-base">RiceFlow Local Grains Warehouse</div>
+                  <div>Main Street, Aurora, Zamboanga del Sur.</div>
+                  <div class="pt-1 text-gray-650 dark:text-gray-400">
+                    Contact Number: <span class="font-bold text-gray-900 dark:text-gray-100 text-base">+63 912 345 6789</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Payment Method Card -->
+            <div class="bg-white dark:bg-slate-900 rounded-[24px] p-6 border border-gray-100 dark:border-slate-800 shadow-sm space-y-5">
+              <div class="flex items-center justify-between pb-2 border-b border-gray-100 dark:border-slate-800">
+                <div class="flex items-center gap-2">
+                  <span class="text-base">💰</span>
+                  <h3 class="text-base sm:text-lg font-bold text-black dark:text-gray-100">Payment Method</h3>
+                </div>
+                <!-- Information (ⓘ) Icon with Tooltip and Navigation -->
+                <div class="relative inline-flex items-center group">
+                  <a 
+                    href="payment-guide.html?from=checkout" 
+                    id="payment-guide-info-link"
+                    class="text-[#1E6C02] hover:text-[#145001] dark:text-emerald-400 p-1.5 rounded-full hover:bg-emerald-50 dark:hover:bg-slate-800 transition-all flex items-center justify-center cursor-pointer"
+                    aria-label="Payment Methods Guide"
+                  >
+                    <!-- Green circular info icon matching user uploaded image information.png -->
+                    <svg class="w-6 h-6 text-[#1E6C02] dark:text-emerald-400 transition-transform group-hover:scale-110" viewBox="0 0 512 512" fill="currentColor">
+                      <path d="M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zm0-464a208 208 0 1 1 0 416 208 208 0 1 1 0-416zm0 104a32 32 0 1 1 0 64 32 32 0 1 1 0-64zm-24 120h48c13.3 0 24 10.7 24 24v128c0 13.3-10.7 24-24 24h-48c-13.3 0-24-10.7-24-24V296c0-13.3 10.7-24 24-24z"/>
+                    </svg>
+                  </a>
+                  <!-- Tooltip -->
+                  <div class="absolute right-0 bottom-full mb-2 hidden group-hover:flex items-center px-3 py-1.5 bg-gray-900 dark:bg-slate-800 text-white text-xs font-normal rounded-xl shadow-xl whitespace-nowrap z-30 pointer-events-none transition-opacity">
+                    <span>Learn more about our payment methods</span>
+                    <div class="absolute top-full right-3 border-4 border-transparent border-t-gray-900 dark:border-t-slate-800"></div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="space-y-3">
+                <label class="text-xs font-bold text-gray-500 dark:text-gray-400 block">Choose Payment Option:</label>
+                
+                <div class="space-y-3">
+                  <!-- option gcash -->
+                  <div id="div-pm-gcash" class="flex items-center space-x-3 rounded-2xl p-4 border border-[#1E6C02] cursor-pointer bg-[#F8FAF8] dark:bg-emerald-950/40 transition-all">
+                    <input type="radio" value="gcash" name="payment-radio" id="rad-pm-gcash" checked class="h-4 w-4 text-[#1E6C02] focus:ring-[#1E6C02]" />
+                    <label for="rad-pm-gcash" class="font-bold text-gray-800 dark:text-gray-200 flex items-center justify-between cursor-pointer flex-1 text-sm select-none">
+                      <span class="flex items-center gap-2">📱 GCash</span>
+                      <span class="text-[10px] text-[#1E6C02] dark:text-emerald-400 font-black uppercase tracking-wider">Full Payment Required</span>
+                    </label>
+                  </div>
+
+                  <!-- option cash on delivery -->
+                  <div id="div-pm-cash" class="flex items-center space-x-3 rounded-2xl p-4 border border-gray-200 dark:border-slate-700 cursor-pointer bg-white dark:bg-slate-800 transition-all hover:bg-gray-50 dark:hover:bg-slate-700">
+                    <input type="radio" value="cash" name="payment-radio" id="rad-pm-cash" class="h-4 w-4 text-[#1E6C02] focus:ring-[#1E6C02]" />
+                    <label for="rad-pm-cash" class="font-bold text-gray-800 dark:text-gray-200 flex items-center justify-between cursor-pointer flex-1 text-sm select-none">
+                      <span class="flex items-center gap-2">💵 Cash on Pickup/Delivery</span>
+                      <span class="text-[10px] text-amber-600 dark:text-amber-400 font-extrabold uppercase tracking-wider">30% Down Payment Required</span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              <!-- GCash visual information and instructions block -->
+              <div class="bg-white dark:bg-slate-900 rounded-[24px] border border-gray-150 dark:border-slate-800 p-5 space-y-5">
+                <!-- Checkmark notification -->
+                <div class="flex gap-2 items-start bg-[#E2F9E5] dark:bg-emerald-950/50 border border-[#C6EFCE] dark:border-emerald-800/60 rounded-xl p-3 text-[#1E6C02] dark:text-emerald-300">
+                  <span class="text-sm select-none">✅</span>
+                  <div class="text-xs font-bold leading-relaxed">
+                    <span id="payment-req-title">Full Payment Required</span>
+                    <p class="text-gray-600 dark:text-gray-300 font-medium mt-0.5" id="payment-req-desc">Please send the FULL payment amount via GCash and upload your screenshot for verification.</p>
+                  </div>
+                </div>
+
+                <!-- GCash Information Card -->
+                <div class="bg-[#F8F9FA] dark:bg-slate-800 rounded-[20px] p-5 border border-gray-100 dark:border-slate-700 max-w-[340px] mx-auto text-center shadow-xs">
+                  <div class="w-36 h-36 bg-white dark:bg-slate-700 border border-gray-150 dark:border-slate-600 rounded-xl mx-auto mb-3 overflow-hidden p-1.5 flex items-center justify-center">
+                    <img 
+                      id="gcash-qr-img"
+                      src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=09123456789" 
+                      alt="GCash QR Code" 
+                      class="w-full h-full object-contain"
+                    />
+                  </div>
+                  <h5 class="text-sm font-bold text-gray-500 dark:text-gray-400">Account Name: <span class="text-gray-900 dark:text-gray-100 font-extrabold" id="gcash-account-name">Aurora Local Rice</span></h5>
+                  <p class="text-xs text-gray-500 dark:text-gray-400 font-bold mt-1">GCash Number: <span class="text-[#1E6C02] dark:text-emerald-400 font-black" id="gcash-number-lbl">0912 345 6789</span></p>
+                  
+                  <div class="mt-4 bg-[#E2F9E5] dark:bg-emerald-950/60 border border-[#C6EFCE] dark:border-emerald-800/60 py-2 px-4 rounded-xl inline-block">
+                    <span class="text-xs font-extrabold text-[#1E6C02] dark:text-emerald-300" id="lbl-pay-amount">Amount to Pay: ₱1,400.00</span>
+                  </div>
+                </div>
+
+                <!-- Screenshot Dropbox Interface -->
+                <div class="space-y-2">
+                  <label class="text-xs font-bold text-gray-900 dark:text-gray-200 block flex items-center gap-1.5">
+                    <span>📎</span> Upload Payment Screenshot
+                  </label>
+                  
+                  <label 
+                    for="inp-screenshot" 
+                    id="dropzone"
+                    class="flex flex-col items-center justify-center w-full h-44 border-2 border-dashed border-[#C6EFCE] dark:border-slate-700 bg-white dark:bg-slate-800/90 rounded-2xl cursor-pointer hover:bg-emerald-50/10 dark:hover:bg-slate-700 transition-all text-center p-4 group"
+                  >
+                    <div class="w-10 h-10 rounded-full bg-gray-50 dark:bg-slate-700 flex items-center justify-center mb-2 text-gray-400 dark:text-gray-300 group-hover:scale-105 transition-transform border border-gray-100 dark:border-slate-600">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-5 h-5 text-gray-500 dark:text-gray-300"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                    </div>
+                    <p class="text-sm font-bold text-gray-800 dark:text-gray-200">Upload payment screenshot here</p>
+                    <p class="text-xs text-gray-400 dark:text-gray-400 mt-1">JPEG, PNG, and PDF formats, up to 10MB</p>
+                    <span class="mt-3 inline-block px-4 py-2 border border-gray-200 dark:border-slate-600 text-xs font-bold text-[#222222] dark:text-gray-100 bg-white dark:bg-slate-700 rounded-xl shadow-xs group-hover:bg-gray-50 dark:group-hover:bg-slate-600 transition-colors">Browse File</span>
+                    <input required type="file" accept="image/*" name="screenshot" id="inp-screenshot" class="hidden" />
+                  </label>
+
+                  <!-- Image / File Preview area -->
+                  <div id="screenshot-success" class="hidden flex items-center gap-3 bg-[#E2F9E5] dark:bg-emerald-950/60 text-[#1E6C02] dark:text-emerald-300 px-4 py-3 rounded-2xl border border-[#C6EFCE] dark:border-emerald-800/60 animate-in fade-in">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" class="w-5 h-5 text-[#1E6C02] dark:text-emerald-300 flex-shrink-0"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    <div class="flex-1 truncate">
+                      <span class="text-xs font-bold truncate block" id="screenshot-success-fn">screenshot.jpg</span>
+                      <p class="text-[10px] text-[#1D931D] dark:text-emerald-400 font-semibold mt-0.5">Reference attached successfully</p>
+                    </div>
+                    <div id="screenshot-preview-container" class="w-10 h-10 rounded-lg overflow-hidden border border-emerald-200 dark:border-emerald-800 select-none bg-white dark:bg-slate-800">
+                      <img id="screenshot-mini-preview" class="w-full h-full object-cover" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Column 3: Sticky Order Summary Card -->
+          <div class="lg:col-span-1">
+            <div class="bg-white dark:bg-slate-900 rounded-[24px] border border-gray-100 dark:border-slate-800 p-6 sticky top-24 shadow-sm space-y-6 text-left">
+              <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100 pb-3 border-b border-gray-50 dark:border-slate-800 tracking-tight" id="sidebar-sum-title">Order Summary</h3>
+              
+              <!-- Selected products review rows -->
+              <div class="space-y-4 max-h-[220px] overflow-y-auto pr-1" id="selected-items-review">
+                <!-- Dynamically populated -->
+              </div>
+
+              <!-- Cost breakdown invoices -->
+              <div class="border-t border-gray-150 pt-4 space-y-4 text-sm">
+                <div class="flex justify-between text-gray-500 font-medium">
+                  <span>Subtotal</span>
+                  <span class="font-bold text-gray-950" id="subtotal-val">₱0.00</span>
+                </div>
+                <div class="flex justify-between text-gray-500 font-medium">
+                  <span>Delivery Fee</span>
+                  <span class="font-bold text-gray-950" id="delivery-val">₱0.00</span>
+                </div>
+                <div class="border-t border-gray-100 pt-3 flex justify-between font-black text-[#222222] text-lg select-none">
+                  <span>Total</span>
+                  <span class="text-[#1E6C02]" id="total-val">₱0.00</span>
+                </div>
+                <div class="flex justify-between text-gray-500 font-medium">
+                  <span>Paid Amount</span>
+                  <span class="font-bold text-gray-950" id="paid-val">₱0.00</span>
+                </div>
+                <div class="flex justify-between text-gray-500 font-medium">
+                  <span>Remaining Balance</span>
+                  <span class="font-bold text-gray-950" id="remaining-val">₱0.00</span>
+                </div>
+
+                <!-- Blue Accent Details Payment Due Box -->
+                <div class="bg-[#EBF3FF] border border-[#C5DFFF] p-4 rounded-2xl flex flex-col justify-center">
+                  <p class="text-[10px] font-extrabold text-[#3B82F6] uppercase tracking-wider" id="lbl-send-amount-desc">FULL PAYMENT:</p>
+                  <p class="text-2xl font-black text-[#1E3A8A] mt-1 select-none" id="lbl-send-amount">₱0.00</p>
+                </div>
+              </div>
+
+              <button 
+                type="submit"
+                class="w-full h-14 bg-[#1E6C02] hover:bg-[#145001] text-white font-extrabold rounded-2xl transition-all shadow-md text-base cursor-pointer tracking-wide flex items-center justify-center shadow-green-950/5"
+                id="btn-submit-order"
+              >
+                Submit Order
+              </button>
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+  </main>
+
+  <!-- STANDALONE TERM BLOCKER AGREEMENT DIALOG -->
+  <div id="reservation-blocker-dialog" class="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white dark:bg-slate-900 rounded-[24px] max-w-md w-full shadow-2xl p-6 sm:p-8 border border-gray-100 dark:border-slate-800 animate-in fade-in zoom-in-95 duration-200 space-y-5">
+      <div class="flex items-center gap-2 pb-3 border-b dark:border-slate-800 text-left">
+        <span class="text-orange-500 text-lg">⚠️</span>
+        <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100 tracking-tight">Terms Blocked Reservation</h3>
+      </div>
+      <p class="text-sm font-semibold text-gray-500 dark:text-gray-400 leading-relaxed text-left">
+        Your current checking basket lists unavailable items that will be logged in pre-order restocking queue priority queues. Select the acknowledgment terms to submit.
+      </p>
+      
+      <div class="bg-[#FFF9E6] dark:bg-amber-950/40 border border-[#FFEAA7] dark:border-amber-800/50 rounded-2xl p-4 text-xs font-semibold text-[#B27D11] dark:text-amber-300 leading-relaxed text-left">
+        <p class="font-bold mb-1">Queue Fulfilments:</p>
+        <p>Restocking loads will prioritize certified validated deposits in chronological order.</p>
+      </div>
+
+      <div class="bg-gray-50 dark:bg-slate-800 rounded-2xl p-4 flex items-start gap-3 text-left border border-gray-150 dark:border-slate-700">
+        <input 
+          type="checkbox" 
+          id="blocker-terms-check" 
+          class="mt-1.5 h-4 w-4 text-[#1E6C02] rounded border-gray-300 focus:ring-[#1E6C02]"
+        />
+        <label for="blocker-terms-check" class="text-xs text-gray-650 dark:text-gray-300 block leading-relaxed pointer-events-auto font-bold cursor-pointer select-none">
+          I understand these bags represent upcoming restocking cycles.
+        </label>
+      </div>
+
+      <div class="flex gap-3 pt-3 border-t border-gray-100 dark:border-slate-800 text-sm">
+        <button id="blocker-close-btn" class="flex-1 h-12 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-2xl font-bold transition-all bg-white dark:bg-slate-800">Go Back</button>
+        <button id="blocker-submit-btn" disabled class="flex-1 h-12 bg-gray-200 dark:bg-slate-800 text-gray-400 dark:text-gray-500 rounded-xl font-bold cursor-not-allowed transition-all">Submit Anyway</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Confirm Order Modal Dialog -->
+  <div id="confirm-order-modal" class="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white dark:bg-slate-900 rounded-[24px] max-w-md w-full p-8 shadow-2xl border border-gray-100 dark:border-slate-800 animate-in fade-in zoom-in-95 duration-200 text-center">
+      <div class="h-16 w-16 bg-emerald-50 dark:bg-emerald-950/60 text-[#1E6C02] dark:text-emerald-400 rounded-full flex items-center justify-center mb-6 mx-auto border border-emerald-100 dark:border-emerald-800/60">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-8 h-8"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
+      </div>
+      <h3 class="text-xl font-black text-gray-900 dark:text-gray-100 mb-2">Confirm Order</h3>
+      <p class="text-sm font-semibold text-gray-500 dark:text-gray-400 leading-relaxed mb-8">
+        Are you sure you want to place this order?
+      </p>
+      <div class="flex gap-4">
+        <button id="btn-cancel-confirm" class="flex-1 h-12 border border-gray-200 dark:border-slate-700 text-gray-700 dark:text-gray-200 bg-white dark:bg-slate-800 font-bold rounded-2xl hover:bg-gray-50 dark:hover:bg-slate-700 transition-all cursor-pointer">Cancel</button>
+        <button id="btn-submit-confirm" class="flex-1 h-12 bg-[#1E6C02] text-white font-bold rounded-2xl hover:bg-[#145001] transition-all cursor-pointer shadow-lg shadow-green-900/10">Confirm Order</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Exit Confirmation Modal Dialog -->
+  <div id="exit-confirm-modal" class="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white dark:bg-slate-900 rounded-[24px] max-w-md w-full p-8 shadow-2xl border border-gray-100 dark:border-slate-800 animate-in fade-in zoom-in-95 duration-200 text-center">
+      <div class="h-16 w-16 bg-red-50 dark:bg-red-950/60 text-red-650 dark:text-red-400 rounded-full flex items-center justify-center mb-6 mx-auto border border-red-100 dark:border-red-800/60">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-8 h-8"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+      </div>
+      <h3 class="text-xl font-black text-gray-900 dark:text-gray-100 mb-2">Unsaved Information</h3>
+      <p class="text-sm font-semibold text-gray-500 dark:text-gray-400 leading-relaxed mb-8">
+        You have unsaved information on the checkout form. If you leave now, your changes will be lost.
+      </p>
+      <div class="flex gap-4">
+        <button id="btn-stay-checkout" class="flex-1 h-12 border border-gray-200 dark:border-slate-700 text-gray-700 dark:text-gray-200 bg-white dark:bg-slate-800 font-bold rounded-2xl hover:bg-gray-50 dark:hover:bg-slate-700 transition-all cursor-pointer">Stay on Checkout</button>
+        <button id="btn-leave-page" class="flex-1 h-12 bg-red-600 text-white font-bold rounded-2xl hover:bg-red-700 transition-all cursor-pointer shadow-lg shadow-red-900/10">Leave Page</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PHONE VERIFICATION MODAL DIALOG (Firebase Phone Auth OTP) -->
+  <div id="phone-otp-modal" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white dark:bg-slate-900 rounded-[28px] max-w-md w-full p-6 sm:p-8 shadow-2xl border border-gray-100 dark:border-slate-800 animate-in fade-in zoom-in-95 duration-200 text-center relative">
+      
+      <!-- Close / Dismiss button -->
+      <button type="button" id="btn-close-phone-modal" class="absolute top-5 right-5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors p-1">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-5 h-5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+      </button>
+
+      <!-- Security Icon Header -->
+      <div class="h-16 w-16 bg-emerald-50 dark:bg-emerald-950/60 text-[#1E6C02] dark:text-emerald-400 rounded-full flex items-center justify-center mb-5 mx-auto border border-emerald-100 dark:border-emerald-800/60 shadow-xs">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-8 h-8"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>
+      </div>
+
+      <h3 class="text-xl font-black text-gray-900 dark:text-gray-100 mb-2 tracking-tight">Verify Your Contact Number</h3>
+      <p class="text-xs sm:text-sm font-semibold text-gray-500 dark:text-gray-400 leading-relaxed mb-5">
+        To secure your order and prevent duplicate reservations, please verify your mobile number with a one-time SMS verification code.
+      </p>
+
+      <!-- Target Phone Display Badge -->
+      <div class="bg-[#F8FAF8] dark:bg-emerald-950/40 border border-emerald-100 dark:border-emerald-900/60 rounded-2xl p-3.5 mb-5 flex items-center justify-between text-left">
+        <div class="space-y-0.5">
+          <span class="text-[10px] font-extrabold uppercase tracking-wider text-emerald-800 dark:text-emerald-300">Sending SMS to:</span>
+          <p class="text-sm font-black text-gray-900 dark:text-white" id="otp-phone-display">+63 9XX XXX XXXX</p>
+        </div>
+        <button type="button" id="btn-otp-change-phone" class="text-xs font-bold text-[#1E6C02] dark:text-emerald-400 hover:underline cursor-pointer">
+          Change
+        </button>
+      </div>
+
+      <!-- Invisible reCAPTCHA container -->
+      <div id="recaptcha-container"></div>
+
+      <!-- Step 1: Send Code State -->
+      <div id="otp-step-send" class="space-y-3">
+        <button 
+          type="button" 
+          id="btn-send-otp"
+          class="w-full h-12 bg-[#1E6C02] hover:bg-[#145001] text-white font-extrabold rounded-2xl transition-all shadow-md text-sm cursor-pointer flex items-center justify-center gap-2"
+        >
+          <span id="btn-send-otp-text">Send Verification Code (SMS)</span>
+          <svg id="btn-send-otp-spinner" class="hidden animate-spin w-4 h-4 text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
+        </button>
+      </div>
+
+      <!-- Step 2: Enter OTP Code State -->
+      <div id="otp-step-verify" class="hidden space-y-4 text-left">
+        <div class="space-y-1.5">
+          <div class="flex justify-between items-center">
+            <label for="inp-otp-code" class="text-xs font-bold text-gray-950 dark:text-gray-200">Enter 6-Digit SMS Code</label>
+            <span id="otp-timer-display" class="text-[11px] font-semibold text-gray-500 dark:text-gray-400">Resend in <span class="font-bold text-[#1E6C02]" id="otp-countdown">60</span>s</span>
+          </div>
+          <input 
+            type="text" 
+            id="inp-otp-code" 
+            maxlength="6" 
+            inputmode="numeric" 
+            autocomplete="one-time-code" 
+            placeholder="• • • • • •" 
+            class="w-full bg-[#F8F9FA] dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-center tracking-[0.5em] text-xl font-black text-[#222222] dark:text-white px-4 h-14 rounded-2xl outline-none focus:bg-white dark:focus:bg-slate-700 focus:ring-2 focus:ring-[#1E6C02] transition-all placeholder-gray-300"
+          />
+        </div>
+
+        <div id="otp-error-msg" class="hidden text-xs font-bold text-red-600 bg-red-50 dark:bg-red-950/50 p-2.5 rounded-xl border border-red-100 dark:border-red-900/50 text-center">
+          Invalid verification code. Please check and try again.
+        </div>
+
+        <div class="flex gap-3 pt-2">
+          <button 
+            type="button" 
+            id="btn-resend-otp" 
+            disabled 
+            class="flex-1 h-12 border border-gray-200 dark:border-slate-700 text-gray-400 dark:text-gray-500 bg-gray-50 dark:bg-slate-800 font-bold rounded-2xl transition-all text-xs cursor-not-allowed"
+          >
+            Resend Code
+          </button>
+          <button 
+            type="button" 
+            id="btn-verify-otp" 
+            class="flex-1 h-12 bg-[#1E6C02] hover:bg-[#145001] text-white font-extrabold rounded-2xl transition-all shadow-md text-xs cursor-pointer flex items-center justify-center gap-1.5"
+          >
+            <span id="btn-verify-otp-text">Verify & Submit</span>
+            <svg id="btn-verify-otp-spinner" class="hidden animate-spin w-4 h-4 text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Dynamic Footer Bar -->
+  <div id="footer-container"></div>
+
+  <!-- Shared database, layout helper -->
+  <script type="module" src="src/app/shared.js"></script>
+
+  <!-- Secured Checkout interactive JS -->
+  <script type="module">
+    import { 
+      getCart, 
+      clearCartItems, 
+      addOrder, 
+      getCurrentUser, 
+      showToast, 
+      getProductById, 
+      getProducts, 
+      getReservationQueuePosition,
+      normalizePhilippinePhone,
+      checkPhoneExists,
+      updateUserPhoneVerified,
+      getEstimatedArrivalDate
+    } from './src/app/shared.js';
+    import { 
+      sendFirebasePhoneVerification, 
+      verifyAndLinkPhoneCredential 
+    } from './src/lib/firebase.js';
+
+    document.addEventListener('DOMContentLoaded', () => {
+      // 1. Authorization check
+      let user = getCurrentUser();
+      if (!user) {
+        showToast('Login is required to checkout bags', 'error');
+        setTimeout(() => {
+          window.location.href = 'login.html';
+        }, 1200);
+        return;
+      }
+
+      // Prepopulate form values
+      const inpFullName = document.getElementById('inp-fullName');
+      const inpPhone = document.getElementById('inp-phone');
+      const inpAddress = document.getElementById('inp-address');
+      if (inpFullName) inpFullName.value = user.fullName || 'Demo User';
+      if (inpPhone) inpPhone.value = user.phone || '09123456789';
+      if (inpAddress) {
+        inpAddress.value = user.address || '';
+      }
+
+      // 2. Filter Checkout items from URL queries
+      const urlParams = new URLSearchParams(window.location.search);
+      const queryOnly = urlParams.get('only');
+      const querySelection = urlParams.get('selection');
+      const directProductId = urlParams.get('productId');
+      const directQty = parseInt(urlParams.get('quantity')) || 1;
+
+      // Update back-link dynamically based on previous source page
+      if (directProductId) {
+        document.getElementById('back-link').href = `product-details.html?id=${directProductId}`;
+      } else {
+        document.getElementById('back-link').href = `cart.html`;
+      }
+
+      let cart = getCart();
+      let checkoutItems = [];
+
+      if (directProductId) {
+        const product = getProductById(directProductId);
+        if (product) {
+          checkoutItems = [{
+            product: product,
+            quantity: directQty,
+            isReservation: false
+          }];
+        }
+      } else if (queryOnly) {
+        checkoutItems = cart.filter(item => item.product.id === queryOnly);
+      } else if (querySelection) {
+        const ids = querySelection.split(',');
+        checkoutItems = cart.filter(item => ids.includes(item.product.id));
+      } else {
+        // Fallback checks out entire cart
+        checkoutItems = cart;
+      }
+
+      if (checkoutItems.length === 0) {
+        showToast('Error: Basket is empty', 'error');
+        setTimeout(() => {
+          window.location.href = 'cart.html';
+        }, 1000);
+        return;
+      }
+
+      const hasReservations = checkoutItems.some(i => i.isReservation);
+      if (hasReservations) {
+        document.getElementById('checkout-title').textContent = "Rice Reservation Checkout";
+        document.getElementById('sidebar-sum-title').textContent = "Reservation Summary";
+        document.getElementById('btn-submit-order').textContent = "Submit Reservation Request";
+      }
+
+      // 3. Elements tracking
+      const divDel = document.getElementById('div-del');
+      const divPic = document.getElementById('div-pic');
+      const radDel = document.getElementById('rad-delivery');
+      const radPic = document.getElementById('rad-pickup');
+      const infoHeader = document.getElementById('info-header');
+      const addressCont = document.getElementById('address-container');
+      const pickupCont = document.getElementById('pickup-container');
+      const addressInput = document.getElementById('inp-address');
+
+      const radGcash = document.getElementById('rad-pm-gcash');
+      const radCash = document.getElementById('rad-pm-cash');
+      const divPmGcash = document.getElementById('div-pm-gcash');
+      const divPmCash = document.getElementById('div-pm-cash');
+      const payReqTitle = document.getElementById('payment-req-title');
+      const payReqDesc = document.getElementById('payment-req-desc');
+      const lblPayAmount = document.getElementById('lbl-pay-amount');
+
+      const screenshotSuccess = document.getElementById('screenshot-success');
+      const screenshotFn = document.getElementById('screenshot-success-fn');
+      const screenshotInput = document.getElementById('inp-screenshot');
+      const screenshotMiniPreview = document.getElementById('screenshot-mini-preview');
+
+      // Summary elements
+      const previewBox = document.getElementById('items-preview-box');
+      const selectedItemsCont = document.getElementById('selected-items-review');
+      const subtotalVal = document.getElementById('subtotal-val');
+      const deliveryVal = document.getElementById('delivery-val');
+      const totalVal = document.getElementById('total-val');
+      const lblSendAmount = document.getElementById('lbl-send-amount');
+      const lblSendAmountDesc = document.getElementById('lbl-send-amount-desc');
+
+      // Terms blockers pointers
+      const blockerDialog = document.getElementById('reservation-blocker-dialog');
+      const blockerCheck = document.getElementById('blocker-terms-check');
+      const blockerSubmit = document.getElementById('blocker-submit-btn');
+
+      // State tracks
+      let deliveryOption = 'delivery'; // 'delivery' or 'pickup'
+      let paymentMethod = 'gcash'; // 'gcash' or 'cash'
+      let paymentProofFile = null;
+
+      function getItemStockBreakdown(item) {
+        if (item.isReservation) {
+          return { availQty: 0, reservedQty: Number(item.quantity || 0), availStock: 0, product: item.product };
+        }
+        const allProds = getProducts();
+        const pid = item.product?.id || item.productId;
+        const p = allProds.find(pr => String(pr.id) === String(pid)) || item.product;
+        
+        const availStock = Number(
+          p
+            ? (p.availableStock !== undefined
+                ? p.availableStock
+                : (p.stock !== undefined ? p.stock : 0))
+            : 0
+        );
+        
+        const requestedQty = Number(item.quantity || 0);
+        const availQty = Math.min(
+          requestedQty,
+          Math.max(0, availStock)
+        );
+        const reservedQty = Math.max(
+          0,
+          requestedQty - availQty
+        );
+        return { availQty, reservedQty, availStock, product: p };
+      }
+
+      // 4. Render items in checkout
+      previewBox.innerHTML = checkoutItems.map(item => {
+        const prodImg = item.product?.image || 'rice_logo.jpg';
+        const prodName = item.product?.name || 'Rice Product';
+        const prodWeight = item.product?.weight || '25 kg';
+        const prodPrice = Number(item.product?.price || 0);
+        const itemQty = Number(item.quantity || 0);
+        const { availQty, reservedQty } = getItemStockBreakdown(item);
+
+        return `
+        <div class="bg-white rounded-[24px] p-5 sm:p-6 border border-gray-100 shadow-sm flex flex-col gap-3">
+          <div class="flex items-center justify-between gap-4">
+            <div class="flex items-center gap-4">
+              <div class="w-20 h-20 bg-[#F8F9FA] rounded-[20px] overflow-hidden border border-gray-150 p-1.5 shrink-0 flex items-center justify-center">
+                <img src="${prodImg}" class="w-full h-full object-cover rounded-xl" />
+              </div>
+              <div class="text-left">
+                <h4 class="font-extrabold text-sm sm:text-base text-[#222222] leading-tight">${prodName}</h4>
+                <p class="text-xs text-gray-400 font-semibold mt-1">${prodWeight}</p>
+                <div class="mt-2.5">
+                  <span class="text-[#1E6C02] font-black underline decoration-2 underline-offset-4 text-base">
+                    ₱${prodPrice.toLocaleString()}.00
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div class="text-right">
+              <span class="text-sm font-bold text-gray-500">Total: x${itemQty}</span>
+            </div>
+          </div>
+          ${reservedQty > 0 ? `
+            <div class="bg-amber-50 border border-amber-200 rounded-xl p-3 text-xs text-amber-900 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+              <div>
+                <span class="font-bold">📦 Available Stock Order:</span> ${availQty} sacks (₱${(availQty * prodPrice).toLocaleString()}.00)
+              </div>
+              <div>
+                <span class="font-bold">⏳ Reservation Queue:</span> ${reservedQty} sacks <span class="text-blue-700 font-extrabold">(No Payment Required Now - ₱0.00)</span>
+              </div>
+            </div>
+          ` : ''}
+        </div>
+      `;}).join('');
+
+      selectedItemsCont.innerHTML = checkoutItems.map(item => {
+        const prodName = item.product?.name || 'Rice Product';
+        const prodPrice = Number(item.product?.price || 0);
+        const { availQty, reservedQty } = getItemStockBreakdown(item);
+        const availTotal = prodPrice * availQty;
+        return `
+        <div class="flex flex-col gap-1 text-xs font-semibold pb-2 border-b border-gray-100 last:border-0">
+          <div class="flex justify-between items-center">
+            <span class="text-gray-700 font-bold">${prodName} × ${availQty} (Available)</span>
+            <span class="font-bold text-[#1E6C02]">₱${availTotal.toLocaleString()}.00</span>
+          </div>
+          ${reservedQty > 0 ? `
+            <div class="flex justify-between items-center text-amber-800 font-medium text-[11px]">
+              <span>⏳ ${prodName} × ${reservedQty} (Reservation Queue)</span>
+              <span class="font-bold text-blue-700">₱0.00 (No Pay)</span>
+            </div>
+          ` : ''}
+        </div>
+      `;}).join('');
+
+      // Calculations execution
+      function executePricing() {
+        const subtotal = checkoutItems.reduce((acc, item) => {
+          const { availQty } = getItemStockBreakdown(item);
+          return acc + Number(item.product?.price || 0) * availQty;
+        }, 0);
+
+        const deliveryFee = deliveryOption === 'delivery' ? 80 : 0;
+        const total = subtotal + deliveryFee;
+
+        // GCash versus cash percentages sums
+        const amountToPay = paymentMethod === 'gcash' ? total : total * 0.3; // 30% Downpayment required for cash
+
+        subtotalVal.textContent = `₱${Number(subtotal).toLocaleString()}.00`;
+        deliveryVal.textContent = `₱${Number(deliveryFee).toLocaleString()}.00`;
+        totalVal.textContent = `₱${Number(total).toLocaleString()}.00`;
+
+        const remainingBalance = Math.max(0, total - amountToPay);
+        document.getElementById('paid-val').textContent = `₱${Number(amountToPay).toLocaleString()}.00`;
+        document.getElementById('remaining-val').textContent = `₱${Number(remainingBalance).toLocaleString()}.00`;
+
+        // Direct payments cues
+        lblPayAmount.textContent = subtotal === 0 ? `Amount to Pay: ₱0.00 (No Payment Required Now)` : `Amount to Pay: ₱${Number(amountToPay).toLocaleString()}.00`;
+        lblSendAmount.textContent = `₱${Number(amountToPay).toLocaleString()}.00`;
+
+        if (paymentMethod === 'gcash') {
+          lblSendAmountDesc.textContent = subtotal === 0 ? "NO PAYMENT REQUIRED NOW:" : "FULL PAYMENT (AVAILABLE STOCK ONLY):";
+        } else {
+          lblSendAmountDesc.textContent = subtotal === 0 ? "NO PAYMENT REQUIRED NOW:" : "30% DEPOSIT DUE VIA GCASH (AVAILABLE STOCK ONLY):";
+        }
+      }
+
+      executePricing();
+
+      // 5. Switches toggle interactions
+      // Fulfillment preferences
+      divDel.addEventListener('click', () => {
+        deliveryOption = 'delivery';
+        radDel.checked = true;
+        divDel.className = "flex items-center space-x-3 rounded-2xl p-4 border border-[#1E6C02] cursor-pointer bg-[#F8FAF8] transition-all";
+        divPic.className = "flex items-center space-x-3 rounded-2xl p-4 border border-gray-200 cursor-pointer bg-white transition-all hover:bg-gray-50";
+        
+        infoHeader.textContent = "Delivery Information";
+        addressCont.classList.remove('hidden');
+        pickupCont.classList.add('hidden');
+        addressInput.required = true;
+
+        executePricing();
+      });
+
+      divPic.addEventListener('click', () => {
+        deliveryOption = 'pickup';
+        radPic.checked = true;
+        divPic.className = "flex items-center space-x-3 rounded-2xl p-4 border border-[#1E6C02] cursor-pointer bg-[#F8FAF8] transition-all";
+        divDel.className = "flex items-center space-x-3 rounded-2xl p-4 border border-gray-200 cursor-pointer bg-white transition-all hover:bg-gray-50";
+        
+        infoHeader.textContent = "Pick-Up Operations Contact";
+        addressCont.classList.add('hidden');
+        pickupCont.classList.remove('hidden');
+        addressInput.required = false;
+
+        executePricing();
+      });
+
+      // Payment Preferences switches
+      divPmGcash.addEventListener('click', () => {
+        paymentMethod = 'gcash';
+        radGcash.checked = true;
+        divPmGcash.className = "flex items-center space-x-3 rounded-2xl p-4 border border-[#1E6C02] cursor-pointer bg-[#F8FAF8] transition-all";
+        divPmCash.className = "flex items-center space-x-3 rounded-2xl p-4 border border-gray-200 cursor-pointer bg-white transition-all hover:bg-gray-50";
+
+        payReqTitle.textContent = "Full Payment Required";
+        payReqDesc.textContent = "Please send the FULL payment amount via GCash and upload your screenshot for verification.";
+
+        executePricing();
+      });
+
+      divPmCash.addEventListener('click', () => {
+        paymentMethod = 'cash';
+        radCash.checked = true;
+        divPmCash.className = "flex items-center space-x-3 rounded-2xl p-4 border border-[#1E6C02] cursor-pointer bg-[#F8FAF8] transition-all";
+        divPmGcash.className = "flex items-center space-x-3 rounded-2xl p-4 border border-gray-200 cursor-pointer bg-white transition-all hover:bg-gray-50";
+
+        payReqTitle.textContent = "30% Down Payment Required";
+        payReqDesc.textContent = "Secures your allocation in our delivery systems. Please pay the 30% deposit via GCash and upload the receipt verification screenshot.";
+
+        executePricing();
+      });
+
+      let paymentProofBase64 = null;
+
+      function processAndCompressImage(file, callback) {
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+          const img = new Image();
+          img.onload = function() {
+            const canvas = document.createElement('canvas');
+            let width = img.width;
+            let height = img.height;
+            const maxDim = 600;
+            if (width > maxDim || height > maxDim) {
+              if (width > height) {
+                height = Math.round((height * maxDim) / width);
+                width = maxDim;
+              } else {
+                width = Math.round((width * maxDim) / height);
+                height = maxDim;
+              }
+            }
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, width, height);
+            const compressed = canvas.toDataURL('image/jpeg', 0.7);
+            callback(compressed);
+          };
+          img.src = evt.target.result;
+        };
+        reader.readAsDataURL(file);
+      }
+
+      // File Screenshots input with visual preview
+      screenshotInput.addEventListener('change', (e) => {
+        if (e.target.files && e.target.files[0]) {
+          paymentProofFile = e.target.files[0];
+          screenshotFn.textContent = paymentProofFile.name;
+          
+          processAndCompressImage(paymentProofFile, (compressed) => {
+            screenshotMiniPreview.src = compressed;
+            paymentProofBase64 = compressed;
+            screenshotSuccess.classList.remove('hidden');
+            showToast('Payment screenshot attached!');
+          });
+        }
+      });
+
+      // Dropzone Drag Events
+      const dropzone = document.getElementById('dropzone');
+      dropzone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropzone.classList.add('border-[#1E6C02]', 'bg-emerald-50/10');
+      });
+      dropzone.addEventListener('dragleave', () => {
+        dropzone.classList.remove('border-[#1E6C02]', 'bg-emerald-50/10');
+      });
+      dropzone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropzone.classList.remove('border-[#1E6C02]', 'bg-emerald-50/10');
+        if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+          paymentProofFile = e.dataTransfer.files[0];
+          screenshotFn.textContent = paymentProofFile.name;
+          
+          processAndCompressImage(paymentProofFile, (compressed) => {
+            screenshotMiniPreview.src = compressed;
+            paymentProofBase64 = compressed;
+            screenshotSuccess.classList.remove('hidden');
+            showToast('Payment screenshot dropped!');
+          });
+        }
+      });
+
+      // 6. Submit ordering forms
+      let orderSubmitted = false;
+      let pendingNavigationUrl = null;
+
+      const confirmOrderModal = document.getElementById('confirm-order-modal');
+      const btnCancelConfirm = document.getElementById('btn-cancel-confirm');
+      const btnSubmitConfirm = document.getElementById('btn-submit-confirm');
+
+      let pendingPartialSplit = null;
+
+      function triggerOrderConfirmation() {
+        let partialNoticeMsg = null;
+        pendingPartialSplit = null;
+
+        if (checkoutItems && checkoutItems.length > 0) {
+          const allProds = getProducts();
+          for (const item of checkoutItems) {
+            const pid = item.product?.id || item.productId;
+            const p = allProds.find(pr => String(pr.id) === String(pid)) || item.product;
+            if (p) {
+              const availStock = Number(p.availableStock !== undefined ? p.availableStock : (p.stock !== undefined ? p.stock : 0));
+              const requestedQty = Number(item.quantity || 0);
+              if (requestedQty > availStock) {
+                const avail = Math.max(0, availStock);
+                const reserved = requestedQty - avail;
+                pendingPartialSplit = { item, avail, reserved, requestedQty, product: p };
+                
+                if (avail > 0) {
+                  partialNoticeMsg = `${avail} sacks are currently available.\n\nThe remaining ${reserved} sacks are currently out of stock.\n\nThose ${reserved} sacks can be placed into the Reservation Queue.\n\nNo payment is required yet for the reservation.\n\nYou will only be notified once stocks become available.\n\nWould you like to continue?`;
+                } else {
+                  partialNoticeMsg = `0 sacks are currently available in stock.\n\nAll ${requestedQty} sacks can be placed into the Reservation Queue.\n\nNo payment is required yet for the reservation.\n\nYou will only be notified once stocks become available.\n\nWould you like to continue?`;
+                }
+                break;
+              }
+            }
+          }
+        }
+
+        const confirmTextPara = document.querySelector('#confirm-order-modal p');
+        const confirmTitle = document.querySelector('#confirm-order-modal h3');
+        if (confirmTextPara) {
+          if (partialNoticeMsg) {
+            if (confirmTitle) confirmTitle.textContent = 'Stock Availability Notice';
+            confirmTextPara.innerHTML = `<span class="block bg-amber-50 border border-amber-200 text-amber-900 p-4 rounded-2xl text-xs font-bold mb-2 text-left leading-relaxed whitespace-pre-line">${partialNoticeMsg}</span>`;
+            if (btnCancelConfirm) btnCancelConfirm.textContent = 'Cancel Reservation';
+            if (btnSubmitConfirm) btnSubmitConfirm.textContent = 'Continue Reservation';
+          } else {
+            if (confirmTitle) confirmTitle.textContent = 'Confirm Order';
+            confirmTextPara.textContent = 'Are you sure you want to place this order?';
+            if (btnCancelConfirm) btnCancelConfirm.textContent = 'Cancel';
+            if (btnSubmitConfirm) btnSubmitConfirm.textContent = 'Confirm Order';
+          }
+        }
+
+        confirmOrderModal.classList.remove('hidden');
+      }
+
+      btnCancelConfirm.addEventListener('click', () => {
+        confirmOrderModal.classList.add('hidden');
+        if (pendingPartialSplit) {
+          // Cancel ONLY the reserved portion! Proceed with available stock order!
+          if (pendingPartialSplit.avail > 0) {
+            pendingPartialSplit.item.quantity = pendingPartialSplit.avail;
+            showToast(`Reservation portion cancelled. Proceeding with order for ${pendingPartialSplit.avail} available sacks.`, 'info');
+            submitOrderToDB({ skipReservation: true });
+          } else {
+            showToast('All items were out of stock and reservation was cancelled.', 'info');
+          }
+          pendingPartialSplit = null;
+        }
+      });
+
+      btnSubmitConfirm.addEventListener('click', () => {
+        confirmOrderModal.classList.add('hidden');
+        submitOrderToDB({ skipReservation: false });
+        pendingPartialSplit = null;
+      });
+
+      function hasUnsavedChanges() {
+        if (orderSubmitted) return false;
+        
+        if (paymentProofFile) return true;
+        
+        const fullName = document.getElementById('inp-fullName').value;
+        if (fullName !== (user.fullName || '')) return true;
+        
+        const phone = document.getElementById('inp-phone').value;
+        if (phone !== (user.phone || '')) return true;
+        
+        if (deliveryOption === 'delivery') {
+          const address = addressInput.value;
+          if (address && address !== (user.address || '')) return true;
+        } else if (deliveryOption === 'pickup') {
+          const notes = document.getElementById('inp-notes').value;
+          if (notes) return true;
+        }
+        
+        return false;
+      }
+
+      // Exit Confirmation Modal wiring
+      document.body.addEventListener('click', (e) => {
+        const anchor = e.target.closest('a');
+        if (anchor) {
+          const href = anchor.getAttribute('href');
+          const target = anchor.getAttribute('target');
+          
+          if (!href || href.startsWith('#') || href.startsWith('javascript:') || target === '_blank') {
+            return;
+          }
+          
+          if (hasUnsavedChanges()) {
+            e.preventDefault();
+            pendingNavigationUrl = href;
+            document.getElementById('exit-confirm-modal').classList.remove('hidden');
+          }
+        }
+      });
+
+      document.getElementById('btn-stay-checkout').addEventListener('click', () => {
+        document.getElementById('exit-confirm-modal').classList.add('hidden');
+        pendingNavigationUrl = null;
+      });
+
+      document.getElementById('btn-leave-page').addEventListener('click', () => {
+        if (pendingNavigationUrl) {
+          window.location.href = pendingNavigationUrl;
+        }
+      });
+
+      // Browser event handler for leaving tab or reloading
+      window.addEventListener('beforeunload', (e) => {
+        if (hasUnsavedChanges()) {
+          e.preventDefault();
+          e.returnValue = 'You have unsaved changes. Are you sure you want to leave?';
+          return e.returnValue;
+        }
+      });
+
+      const btnSubmit = document.getElementById('btn-submit-order');
+
+      // Phone Verification OTP Modal elements
+      const phoneOtpModal = document.getElementById('phone-otp-modal');
+      const btnClosePhoneModal = document.getElementById('btn-close-phone-modal');
+      const otpPhoneDisplay = document.getElementById('otp-phone-display');
+      const btnOtpChangePhone = document.getElementById('btn-otp-change-phone');
+      const otpStepSend = document.getElementById('otp-step-send');
+      const btnSendOtp = document.getElementById('btn-send-otp');
+      const btnSendOtpText = document.getElementById('btn-send-otp-text');
+      const btnSendOtpSpinner = document.getElementById('btn-send-otp-spinner');
+      const otpStepVerify = document.getElementById('otp-step-verify');
+      const inpOtpCode = document.getElementById('inp-otp-code');
+      const otpErrorMsg = document.getElementById('otp-error-msg');
+      const btnResendOtp = document.getElementById('btn-resend-otp');
+      const btnVerifyOtp = document.getElementById('btn-verify-otp');
+      const btnVerifyOtpText = document.getElementById('btn-verify-otp-text');
+      const btnVerifyOtpSpinner = document.getElementById('btn-verify-otp-spinner');
+      const otpCountdown = document.getElementById('otp-countdown');
+
+      let currentConfirmationResult = null;
+      let resendTimerInterval = null;
+      let pendingNormPhone = null;
+
+      function startOtpCountdown(seconds = 60) {
+        if (resendTimerInterval) clearInterval(resendTimerInterval);
+        btnResendOtp.disabled = true;
+        btnResendOtp.className = "flex-1 h-12 border border-gray-200 dark:border-slate-700 text-gray-400 dark:text-gray-500 bg-gray-50 dark:bg-slate-800 font-bold rounded-2xl transition-all text-xs cursor-not-allowed";
+        
+        let remaining = seconds;
+        otpCountdown.textContent = remaining;
+        
+        resendTimerInterval = setInterval(() => {
+          remaining--;
+          if (remaining <= 0) {
+            clearInterval(resendTimerInterval);
+            resendTimerInterval = null;
+            otpCountdown.textContent = '0';
+            btnResendOtp.disabled = false;
+            btnResendOtp.className = "flex-1 h-12 border border-[#1E6C02] text-[#1E6C02] dark:text-emerald-400 bg-emerald-50/50 dark:bg-emerald-950/40 font-bold rounded-2xl transition-all text-xs cursor-pointer hover:bg-emerald-100/50";
+          } else {
+            otpCountdown.textContent = remaining;
+          }
+        }, 1000);
+      }
+
+      function openPhoneVerification(normPhone) {
+        pendingNormPhone = normPhone;
+        otpPhoneDisplay.textContent = `${normPhone.canonical} (${normPhone.e164})`;
+        otpErrorMsg.classList.add('hidden');
+        inpOtpCode.value = '';
+        
+        // Show send step
+        otpStepSend.classList.remove('hidden');
+        otpStepVerify.classList.add('hidden');
+        phoneOtpModal.classList.remove('hidden');
+      }
+
+      function closePhoneVerification() {
+        phoneOtpModal.classList.add('hidden');
+        if (resendTimerInterval) {
+          clearInterval(resendTimerInterval);
+          resendTimerInterval = null;
+        }
+      }
+
+      if (btnClosePhoneModal) {
+        btnClosePhoneModal.addEventListener('click', closePhoneVerification);
+      }
+
+      if (btnOtpChangePhone) {
+        btnOtpChangePhone.addEventListener('click', () => {
+          closePhoneVerification();
+          inpPhone.focus();
+          inpPhone.select();
+        });
+      }
+
+      async function triggerSendOtp() {
+        if (!pendingNormPhone || !pendingNormPhone.isValid) {
+          showToast('Invalid phone number.', 'error');
+          return;
+        }
+
+        btnSendOtp.disabled = true;
+        btnSendOtpText.textContent = 'Sending SMS Code...';
+        btnSendOtpSpinner.classList.remove('hidden');
+        otpErrorMsg.classList.add('hidden');
+
+        try {
+          currentConfirmationResult = await sendFirebasePhoneVerification(pendingNormPhone.e164, 'recaptcha-container');
+          showToast(`Verification code sent to ${pendingNormPhone.canonical}!`, 'success');
+          
+          otpStepSend.classList.add('hidden');
+          otpStepVerify.classList.remove('hidden');
+          inpOtpCode.value = '';
+          inpOtpCode.focus();
+          startOtpCountdown(60);
+        } catch (err) {
+          console.error('[PHONE AUTH ERROR]', err);
+          showToast(err.message || 'Failed to send SMS code. Please check the number and try again.', 'error');
+          otpErrorMsg.textContent = err.message || 'Failed to send SMS code. Please try again.';
+          otpErrorMsg.classList.remove('hidden');
+        } finally {
+          btnSendOtp.disabled = false;
+          btnSendOtpText.textContent = 'Send Verification Code (SMS)';
+          btnSendOtpSpinner.classList.add('hidden');
+        }
+      }
+
+      if (btnSendOtp) {
+        btnSendOtp.addEventListener('click', triggerSendOtp);
+      }
+
+      if (btnResendOtp) {
+        btnResendOtp.addEventListener('click', async () => {
+          if (btnResendOtp.disabled) return;
+          btnResendOtp.disabled = true;
+          await triggerSendOtp();
+        });
+      }
+
+      if (btnVerifyOtp) {
+        btnVerifyOtp.addEventListener('click', async () => {
+          const code = inpOtpCode.value.trim();
+          if (!code || code.length !== 6) {
+            otpErrorMsg.textContent = 'Please enter the full 6-digit verification code.';
+            otpErrorMsg.classList.remove('hidden');
+            inpOtpCode.focus();
+            return;
+          }
+
+          if (!currentConfirmationResult) {
+            otpErrorMsg.textContent = 'Verification session expired. Please request a new code.';
+            otpErrorMsg.classList.remove('hidden');
+            return;
+          }
+
+          btnVerifyOtp.disabled = true;
+          btnVerifyOtpText.textContent = 'Verifying...';
+          btnVerifyOtpSpinner.classList.remove('hidden');
+          otpErrorMsg.classList.add('hidden');
+
+          try {
+            await verifyAndLinkPhoneCredential(currentConfirmationResult, code, pendingNormPhone.e164);
+            
+            // Mark user verified in local database, session, and cloud
+            const updated = updateUserPhoneVerified(user.id || user.email, pendingNormPhone);
+            if (updated) {
+              user = updated;
+            } else {
+              user.phone = pendingNormPhone.canonical;
+              user.phoneE164 = pendingNormPhone.e164;
+              user.phoneVerified = true;
+            }
+
+            showToast('Phone number verified successfully!', 'success');
+            closePhoneVerification();
+
+            // Proceed automatically to order confirmation
+            triggerOrderConfirmation();
+          } catch (err) {
+            console.error('[PHONE VERIFY ERROR]', err);
+            otpErrorMsg.textContent = 'Invalid verification code. Please check the SMS and try again.';
+            otpErrorMsg.classList.remove('hidden');
+            showToast('Invalid verification code. Please try again.', 'error');
+          } finally {
+            btnVerifyOtp.disabled = false;
+            btnVerifyOtpText.textContent = 'Verify & Submit';
+            btnVerifyOtpSpinner.classList.add('hidden');
+          }
+        });
+      }
+
+      // Auto-format OTP digits input
+      if (inpOtpCode) {
+        inpOtpCode.addEventListener('input', (e) => {
+          e.target.value = e.target.value.replace(/[^0-9]/g, '').slice(0, 6);
+          if (e.target.value.length === 6) {
+            btnVerifyOtp.click();
+          }
+        });
+      }
+
+      function validateOrderAndProceed() {
+        if (deliveryOption === 'delivery' && !addressInput.value.trim()) {
+          showToast('Please type your delivery address!', 'error');
+          return;
+        }
+
+        if (hasReservations && !blockerCheck.checked) {
+          blockerDialog.classList.remove('hidden');
+          return;
+        }
+
+        if (!paymentProofFile) {
+          showToast('Please attach your GCash payment confirmation screenshot!', 'error');
+          return;
+        }
+
+        const phoneVal = inpPhone.value.trim();
+        const normPhone = normalizePhilippinePhone(phoneVal);
+        if (!normPhone.isValid) {
+          showToast('Please enter a valid Philippine contact number (e.g. 09XXXXXXXXX or +639XXXXXXXXX).', 'error');
+          inpPhone.focus();
+          return;
+        }
+
+        const isDuplicate = checkPhoneExists(normPhone.canonical, user.id || user.email);
+        if (isDuplicate) {
+          showToast('This contact number is already registered to another account. Please use a different number.', 'error');
+          inpPhone.focus();
+          return;
+        }
+
+        triggerOrderConfirmation();
+      }
+
+      btnSubmit.addEventListener('click', (e) => {
+        e.preventDefault();
+        validateOrderAndProceed();
+      });
+
+      // Blocker Terms handlers
+      blockerCheck.addEventListener('change', () => {
+        if (blockerCheck.checked) {
+          blockerSubmit.disabled = false;
+          blockerSubmit.className = "flex-1 h-12 bg-[#1E6C02] text-white rounded-2xl font-bold cursor-pointer transition-all";
+        } else {
+          blockerSubmit.disabled = true;
+          blockerSubmit.className = "flex-1 h-12 bg-gray-200 text-gray-400 rounded-2xl font-bold cursor-not-allowed transition-all";
+        }
+      });
+
+      document.getElementById('blocker-close-btn').addEventListener('click', () => {
+        blockerDialog.classList.add('hidden');
+      });
+
+      blockerSubmit.addEventListener('click', () => {
+        if (!blockerCheck.checked) return;
+        blockerDialog.classList.add('hidden');
+        validateOrderAndProceed();
+      });
+
+      function submitOrderToDB(options = {}) {
+        orderSubmitted = true;
+        // Construct final payloads
+        const fullName = document.getElementById('inp-fullName').value;
+        const phone = document.getElementById('inp-phone').value;
+        const address = deliveryOption === 'delivery' ? addressInput.value : undefined;
+        const pickupNotes = deliveryOption === 'pickup' ? document.getElementById('inp-notes').value : undefined;
+
+        // Calculate subtotal ONLY for available stock
+        const subtotal = checkoutItems.reduce((acc, item) => {
+          const { availQty } = getItemStockBreakdown(item);
+          return acc + (item.product?.price || item.price || 0) * availQty;
+        }, 0);
+
+        const deliveryFee = deliveryOption === 'delivery' ? 80 : 0;
+        const total = subtotal + deliveryFee;
+
+        const amountPaid = paymentMethod === 'gcash' ? total : total * 0.3;
+        const remainingAmount = Math.max(0, total - amountPaid);
+
+        const res = addOrder({
+          items: checkoutItems,
+          total,
+          status: 'to-pay',
+          paymentMethod,
+          paymentType: paymentMethod === 'gcash' ? 'full' : 'deposit',
+          amountPaid,
+          remainingAmount,
+          paymentProof: paymentProofFile ? paymentProofFile.name : 'screenshot.png',
+          paymentProofDataUrl: paymentProofBase64 || '',
+          paymentVerified: false,
+          fullName,
+          phone,
+          deliveryOption,
+          address,
+          pickupNotes,
+          isPreOrder: false,
+          skipReservation: options.skipReservation || false
+        });
+
+        const createdRes = res ? (res.createdReservation || ((res.isPreOrder || res.items?.some(i => i.isReservation)) ? res : null)) : null;
+
+        // Slice checked out elements from storage cart
+        const outIds = checkoutItems.map(i => i.product.id);
+        clearCartItems(outIds);
+
+        // Transition Splash
+        document.getElementById('checkout-form-container').classList.add('hidden');
+        const splash = document.getElementById('success-splash');
+
+        if (createdRes) {
+          const resQty = createdRes.items ? createdRes.items.reduce((acc, it) => acc + (it.quantity || 0), 0) : 0;
+          const actualPos = getReservationQueuePosition(createdRes) || createdRes.queuePosition || 1;
+          const isSplit = res && res.createdReservation;
+          splash.innerHTML = `
+            <div class="h-20 w-20 bg-[#E2F9E5] text-[#1E6C02] rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner dark:bg-emerald-950/60 dark:text-emerald-400">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" class="w-10 h-10"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            </div>
+            <h2 class="text-2xl sm:text-3xl font-black text-[#222222] dark:text-gray-100 mb-2 tracking-tight">${isSplit ? 'Order & Reservation Submitted Successfully!' : 'Reservation Submitted Successfully!'}</h2>
+            <p class="text-gray-500 dark:text-gray-400 font-semibold text-xs sm:text-sm mb-6 leading-relaxed max-w-md mx-auto">
+              ${isSplit ? 'Your available order has been placed successfully, and a reservation has been created for the remaining stock.' : 'Your reservation request has been received and queued until restock.'}
+            </p>
+
+            <div class="bg-amber-50/80 border border-amber-200 rounded-2xl p-5 mb-8 text-left space-y-3 dark:bg-amber-950/30 dark:border-amber-800/50">
+              <div class="flex items-center justify-between border-b border-amber-200/60 dark:border-amber-800/40 pb-2">
+                <span class="font-extrabold text-amber-950 dark:text-amber-200 text-sm">📌 Reservation Created Successfully</span>
+                <span class="px-2.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/60 text-amber-800 dark:text-amber-300 text-[11px] font-black uppercase">Ticket #${createdRes.id}</span>
+              </div>
+              <div class="grid grid-cols-2 gap-y-2 text-xs sm:text-sm text-amber-900 dark:text-amber-200">
+                <span class="font-bold">Reserved Quantity:</span>
+                <span class="text-right font-black text-gray-950 dark:text-white">${resQty} sacks</span>
+
+                <span class="font-bold">Reservation Queue Position:</span>
+                <span class="text-right font-black text-[#1E6C02] dark:text-emerald-400">Queue Position #${actualPos}</span>
+
+                <span class="font-bold">Reservation Status:</span>
+                <span class="text-right font-black text-orange-700 dark:text-orange-400 uppercase">Waiting for Restock</span>
+
+                <span class="font-bold">${createdRes.deliveryOption === 'pickup' ? 'Estimated Pickup' : 'Estimated Delivery'}:</span>
+                <span class="text-right font-black text-gray-900 dark:text-gray-100">${getEstimatedArrivalDate(createdRes) || 'Waiting for Restock'}</span>
+              </div>
+            </div>
+
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+              <a href="products.html" class="px-6 h-12 flex items-center justify-center border border-gray-200 dark:border-slate-700 text-gray-700 dark:text-gray-200 font-bold rounded-2xl hover:bg-gray-50 dark:hover:bg-slate-800 transition-all cursor-pointer">Continue Shopping</a>
+              <a href="profile.html" class="px-6 h-12 flex items-center justify-center bg-[#1E6C02] text-white font-bold rounded-2xl hover:bg-[#145001] transition-all shadow-lg hover:shadow-xl cursor-pointer">View My Orders</a>
+            </div>
+          `;
+        }
+
+        splash.classList.remove('hidden');
+        showToast('Order submitted successfully!');
+      }
+    });
+  </script>
+</body>
+</html>

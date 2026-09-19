@@ -1,0 +1,1117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard | RiceFlow</title>
+  <link rel="stylesheet" href="../src/styles/index.css">
+</head>
+<body class="bg-[#F5F5F5] min-h-screen">
+
+  <!-- ADMIN LAYOUT WRAPPER -->
+  <div id="admin-layout-container">
+    <!-- Rendered dynamically by shared JS -->
+  </div>
+
+  <!-- Shared database, admin headers render utilities -->
+  <script type="module" src="../src/app/shared.js"></script>
+
+  <!-- Interactive script -->
+  <script type="module">
+    import { renderAdminLayout, getAllOrders, getLogs, showToast, getProducts, getVerifiedCustomerPaymentInfo, isReservationOrder, isCancelledOrRejectedOrder } from '../src/app/shared.js';
+
+    document.addEventListener('DOMContentLoaded', () => {
+      // 1. Core verification and Sidebar rendering
+      renderAdminLayout('dashboard');
+
+      const targetSpace = document.getElementById('admin-main-content');
+      if (!targetSpace) return;
+
+      // State filters
+      let timeRange = '1month';
+      let productFilter = 'all';
+
+      // Draw central workspace container structure
+      const logs = getLogs();
+      const initialOrders = getAllOrders();
+
+      targetSpace.innerHTML = `
+        <div class="space-y-6">
+          
+          <!-- Stat summary rows -->
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
+            <!-- Box 1 -->
+            <div class="bg-white border border-gray-200/80 rounded-2xl p-5 shadow-xs flex items-center gap-4">
+              <div class="bg-blue-50 text-blue-600 p-3 rounded-xl border border-blue-100">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-6 h-6"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+              </div>
+              <div class="min-w-0">
+                <p class="text-[10px] text-black font-extrabold uppercase tracking-wider">Total Orders</p>
+                <p id="dash-total-registered" class="text-2xl font-black text-gray-950 mt-0.5">0 Orders</p>
+              </div>
+            </div>
+
+            <!-- Box 2 -->
+            <div class="bg-white border border-gray-200/80 rounded-2xl p-5 shadow-xs flex items-center gap-4">
+              <div class="bg-green-50 text-[#1E6C02] p-3 rounded-xl border border-green-100">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-6 h-6">
+                    <path d="M7 20V4h5.5a4.5 4.5 0 0 1 0 9H7"></path>
+                    <path d="M5 8h10"></path>
+                    <path d="M5 11h10"></path>
+                  </svg>
+              </div>
+              <div class="min-w-0">
+                <p class="text-[10px] text-black font-extrabold uppercase tracking-wider">Total Sales</p>
+                <p id="dash-validated-revenue" class="text-2xl font-black text-gray-950 mt-0.5">₱0.00</p>
+              </div>
+            </div>
+
+            <!-- Box 3 -->
+            <div class="bg-white border border-gray-200/80 rounded-2xl p-5 shadow-xs flex items-center gap-4">
+              <div class="bg-purple-50 text-purple-600 p-3 rounded-xl border border-purple-100">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-6 h-6"><path d="M12 2L2 7l10 5 10-5-10-5z"></path><path d="M2 17l10 5 10-5"></path><path d="M2 12l10 5 10-5"></path></svg>
+              </div>
+              <div class="min-w-0">
+                <p class="text-[10px] text-black font-extrabold uppercase tracking-wider">Top Rice Product</p>
+                <p id="dash-top-product-name" class="text-base font-black text-gray-950 mt-0.5 truncate leading-tight">N/A</p>
+                <p id="dash-top-product-vol" class="text-[10px] text-black font-semibold mt-1">0 sacks sold</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Charts rows -->
+          <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
+            
+            <!-- Bar chart workspace (span 3) -->
+            <div class="lg:col-span-3 bg-white p-6 rounded-2xl border border-gray-200/80 shadow-xs flex flex-col justify-between">
+              <div>
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-gray-100 gap-4 mb-4">
+                  <div>
+                    <h4 class="font-black text-gray-900 text-sm">Sales Overview</h4>
+                    <p class="text-[10px] text-black font-semibold mt-0.5">Completed sales breakdown and volume trends</p>
+                  </div>
+
+                  <div class="flex items-center gap-2">
+                    <!-- Range Select -->
+                    <select id="sel-chart-range" class="bg-gray-50 border border-gray-200 text-xs font-bold text-black px-2.5 py-1.5 rounded-xl outline-none cursor-pointer">
+                      <option value="1week">1 Week</option>
+                      <option value="1month" selected>1 Month</option>
+                      <option value="3months">3 Months</option>
+                      <option value="6months">6 Months</option>
+                      <option value="1year">1 Year</option>
+                    </select>
+
+                    <!-- Product Select -->
+                    <select id="sel-chart-product" class="bg-gray-50 border border-gray-200 text-xs font-bold text-black px-2.5 py-1.5 rounded-xl outline-none cursor-pointer">
+                      <option value="all">All Grains</option>
+                    </select>
+                  </div>
+                </div>
+
+                <!-- BarChart injection point -->
+                <div id="sales-barchart-inner" class="min-h-48"></div>
+              </div>
+
+              <!-- Bottom 4 Summary Cards -->
+              <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4 pt-4 border-t border-gray-100 dark:border-slate-700">
+                <div class="bg-gray-50 dark:bg-slate-800/80 p-3 rounded-xl border border-gray-200/80 dark:border-slate-700">
+                  <p class="text-[9px] font-black uppercase text-gray-500 dark:text-gray-400 tracking-wider">Time Range</p>
+                  <p id="card-time-range" class="text-xs font-black text-gray-900 dark:text-white mt-0.5">1 Month</p>
+                </div>
+                <div class="bg-gray-50 dark:bg-slate-800/80 p-3 rounded-xl border border-gray-200/80 dark:border-slate-700">
+                  <p class="text-[9px] font-black uppercase text-gray-500 dark:text-gray-400 tracking-wider">Completed Sales</p>
+                  <p id="card-completed-sales" class="text-xs font-black text-gray-900 dark:text-white mt-0.5">0 Orders</p>
+                </div>
+                <div class="bg-gray-50 dark:bg-slate-800/80 p-3 rounded-xl border border-gray-200/80 dark:border-slate-700">
+                  <p class="text-[9px] font-black uppercase text-gray-500 dark:text-gray-400 tracking-wider">Active Variety</p>
+                  <p id="card-active-variety" class="text-xs font-black text-gray-900 dark:text-white mt-0.5 truncate" title="All Grains">All Grains</p>
+                </div>
+                <div class="bg-gray-50 dark:bg-slate-800/80 p-3 rounded-xl border border-gray-200/80 dark:border-slate-700">
+                  <p class="text-[9px] font-black uppercase text-gray-500 dark:text-gray-400 tracking-wider">Timeframe Sacks</p>
+                  <p id="card-timeframe-sacks" class="text-xs font-black text-gray-900 dark:text-white mt-0.5">0 Sacks</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Order status breakdown piechart (span 2) -->
+            <div class="lg:col-span-2 bg-white p-6 rounded-2xl border border-gray-200/80 shadow-xs flex flex-col justify-between gap-5">
+              <div>
+                <h4 class="font-black text-gray-900 text-sm">Order Summary</h4>
+                <p class="text-[10px] text-black font-semibold mt-0.5">Distribution across primary order statuses</p>
+              </div>
+
+              <!-- Draw circles chart inner -->
+              <div id="piechart-container-inner" class="flex flex-col items-center gap-5 py-2">
+                <!-- Dynamically written -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Recent activities & inventory health grid status -->
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            <!-- Recent Activities (span 2) -->
+            <div class="lg:col-span-2 bg-white p-6 rounded-2xl border border-gray-200/80 shadow-xs space-y-4">
+              <div class="flex justify-between items-center pb-3 border-b border-gray-100">
+                <div>
+                  <h4 class="font-bold text-gray-900 text-base">Recent Activities</h4>
+                </div>
+                <a href="activities.html" class="px-3.5 py-1.5 hover:bg-gray-50 text-xs font-bold uppercase tracking-wider text-[#1E6C02] border border-gray-200 rounded-xl transition-colors">See Detailed Logs</a>
+              </div>
+
+              <div id="dash-recent-activities-list" class="space-y-3">
+                <!-- Written dynamically -->
+              </div>
+            </div>
+
+            <!-- Health statistics & operations calendar (span 1) -->
+            <div class="space-y-6">
+              
+              <!-- Inventory Health -->
+              <div class="bg-white p-6 rounded-2xl border border-gray-200/80 shadow-xs space-y-4">
+                <div>
+                  <h4 class="font-bold text-gray-900 text-sm">Inventory Health</h4>
+                  <p class="text-[10px] text-gray-500 font-normal mt-0.5">Overview of warehouse stock status</p>
+                </div>
+
+                <div class="space-y-3">
+                  <!-- Clickable Low Stock Card -->
+                  <a href="products.html?filter=low" id="dash-low-stock-btn" class="block group p-3.5 rounded-xl bg-amber-50 hover:bg-amber-100/80 border border-amber-200/80 transition-all cursor-pointer">
+                    <div class="flex justify-between items-center text-xs font-semibold text-amber-900">
+                      <span class="font-bold flex items-center gap-1.5 text-amber-900">⚠️ Low Stock Items</span>
+                      <span id="dash-low-stock-count" class="text-amber-900 dark:text-amber-300 bg-amber-100 dark:bg-amber-950/60 border border-amber-200/80 dark:border-amber-500/30 px-2.5 py-1 rounded-lg font-bold text-xs">0 Items</span>
+                    </div>
+                  </a>
+                  
+                  <!-- Clickable Out of Stock Card -->
+                  <a href="products.html?filter=out" id="dash-out-stock-btn" class="block group p-3.5 rounded-xl bg-red-50 hover:bg-red-100/80 border border-red-200/80 transition-all cursor-pointer">
+                    <div class="flex justify-between items-center text-xs font-semibold text-red-900">
+                      <span class="font-bold flex items-center gap-1.5 text-red-900">🚫 Out of Stock</span>
+                      <span id="dash-out-stock-count" class="text-red-900 dark:text-red-300 bg-red-100 dark:bg-red-950/60 border border-red-200/80 dark:border-red-500/30 px-2.5 py-1 rounded-lg font-bold text-xs">0 Item(s)</span>
+                    </div>
+                  </a>
+
+                  <!-- Inventory Status Percentage -->
+                  <div class="p-3.5 rounded-xl bg-green-50/80 dark:bg-slate-800/80 border border-green-200/80 dark:border-slate-700 space-y-1">
+                    <p class="text-xs font-bold text-green-950 dark:text-emerald-400">Inventory Status</p>
+                    <p class="text-xs font-normal text-gray-700 dark:text-gray-300 leading-relaxed"><span id="dash-health-pct" class="font-semibold text-gray-900 dark:text-white">0%</span> of inventory is currently healthy and in-stock.</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Interactive Operations Calendar -->
+              <div class="bg-white p-6 rounded-2xl border border-gray-200/80 shadow-xs space-y-4">
+                <div class="flex justify-between items-center pb-2 border-b border-gray-100">
+                  <div>
+                    <h4 class="font-black text-gray-900 text-sm">Store Operations Calendar</h4>
+                    <p class="text-[10px] text-black font-semibold mt-0.5">Calculations and active scheduler</p>
+                  </div>
+                </div>
+                
+                <div class="space-y-3">
+                  <!-- Navigation -->
+                  <div class="flex justify-between items-center">
+                    <button id="btn-cal-prev" class="p-1.5 hover:bg-gray-100 rounded-lg text-black text-xs font-bold cursor-pointer transition-colors">◀</button>
+                    <span id="cal-month-year" class="text-xs font-black text-black tracking-tight"></span>
+                    <button id="btn-cal-next" class="p-1.5 hover:bg-gray-100 rounded-lg text-black text-xs font-bold cursor-pointer transition-colors">▶</button>
+                  </div>
+                  
+                  <!-- Grid headers -->
+                  <div class="grid grid-cols-7 gap-1 text-center text-[10px] font-extrabold text-black uppercase tracking-wider">
+                    <span>Su</span><span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span>
+                  </div>
+                  
+                  <!-- Grid days -->
+                  <div id="cal-days-grid" class="grid grid-cols-7 gap-1 text-center text-xs font-bold text-black"></div>
+                  
+                  <!-- Selected indicator -->
+                  <div id="cal-selected-status" class="text-[10px] text-black dark:text-white font-bold bg-gray-50 dark:bg-slate-800/80 p-2 rounded-xl text-center border border-gray-200/80 dark:border-slate-700 leading-relaxed">
+                    No active date selected
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Recent Orders interactive tables list -->
+          <div class="bg-white rounded-2xl border border-gray-200/80 p-6 shadow-xs">
+            <div class="flex justify-between items-center pb-4 border-b border-gray-100 mb-4">
+              <div>
+                <h4 class="font-bold text-gray-900 text-base">Recent Orders</h4>
+              </div>
+              <a href="orders.html" class="px-3.5 py-1.5 border border-gray-200 rounded-xl text-xs font-bold uppercase tracking-wider text-[#1E6C02] hover:bg-gray-50 transition-colors">View All Orders</a>
+            </div>
+
+            <div class="overflow-x-auto overflow-y-visible">
+              <table class="w-full text-left text-sm font-normal text-gray-900 min-w-[700px]">
+                <thead>
+                  <tr class="border-b border-gray-200 text-gray-900 font-bold text-xs uppercase tracking-wider">
+                    <th class="py-3.5 px-3">Order ID</th>
+                    <th class="py-3.5 px-3">Customer Name</th>
+                    <th class="py-3.5 px-3">Items</th>
+                    <th class="py-3.5 px-3">Amount</th>
+                    <th class="py-3.5 px-3 text-right">Status</th>
+                  </tr>
+                </thead>
+                <tbody id="dash-pipeline-tbody" class="divide-y divide-gray-100">
+                  <!-- Written dynamically -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      `;
+
+      // Order completion date helper - strictly for orders that reached completed status
+      function getOrderCompletionDate(order) {
+        if (!order) return new Date(0);
+        const s = (order.status || '').toLowerCase().replace(/_/g, '-');
+        if (s !== 'completed') {
+          return new Date(0);
+        }
+        if (order.completedAt) {
+          const d = new Date(order.completedAt);
+          if (!isNaN(d.getTime())) return d;
+        }
+        if (order.completedDate) {
+          const d = new Date(order.completedDate);
+          if (!isNaN(d.getTime())) return d;
+        }
+        if (order.statusHistory && Array.isArray(order.statusHistory)) {
+          const compHist = order.statusHistory.slice().reverse().find(h => {
+            const hs = (h.status || '').toLowerCase().replace(/_/g, '-');
+            return hs === 'completed';
+          });
+          if (compHist && compHist.changedAt) {
+            const d = new Date(compHist.changedAt);
+            if (!isNaN(d.getTime())) return d;
+          }
+        }
+        if (order.deliveredDate) {
+          const timeStr = order.deliveredTime || '00:00';
+          const d = new Date(`${order.deliveredDate} ${timeStr}`);
+          if (!isNaN(d.getTime())) return d;
+          const d2 = new Date(order.deliveredDate);
+          if (!isNaN(d2.getTime())) return d2;
+        }
+        if (order.deliveryVerificationDate) {
+          const d = new Date(order.deliveryVerificationDate);
+          if (!isNaN(d.getTime())) return d;
+        }
+        if (order.createdAt) {
+          const d = new Date(order.createdAt);
+          if (!isNaN(d.getTime())) return d;
+        }
+        if (order.dateCreated) {
+          const d = new Date(order.dateCreated);
+          if (!isNaN(d.getTime())) return d;
+        }
+        if (order.date) {
+          const d = new Date(order.date);
+          if (!isNaN(d.getTime())) return d;
+        }
+        return new Date(0);
+      }
+
+      function populateProductDropdown() {
+        const selProduct = document.getElementById('sel-chart-product');
+        if (!selProduct) return;
+        const productsList = typeof getProducts === 'function' ? getProducts() : [];
+        const activeProducts = productsList.filter(p => !p.isArchived);
+        
+        const currentVal = selProduct.value || 'all';
+        let html = `<option value="all">All Grains</option>`;
+        activeProducts.forEach(p => {
+          html += `<option value="${p.id}">${p.name}</option>`;
+        });
+        selProduct.innerHTML = html;
+        selProduct.value = currentVal;
+      }
+
+      // Draw performance charts & live statistics
+      function drawPerformanceCharts() {
+        const productsList = typeof getProducts === 'function' ? getProducts() : [];
+        const liveOrders = typeof getAllOrders === 'function' ? getAllOrders() : [];
+
+        const filterRangeEl = document.getElementById('sel-chart-range');
+        const filterProdEl = document.getElementById('sel-chart-product');
+        const currentRange = filterRangeEl ? filterRangeEl.value : (timeRange || '1month');
+        const currentProd = filterProdEl ? filterProdEl.value : (productFilter || 'all');
+
+        const now = new Date();
+
+        let rangeMs = 30 * 24 * 60 * 60 * 1000;
+        let rangeLabel = '1 Month';
+        if (currentRange === '1week') {
+          rangeMs = 7 * 24 * 60 * 60 * 1000;
+          rangeLabel = '1 Week';
+        } else if (currentRange === '1month') {
+          rangeMs = 30 * 24 * 60 * 60 * 1000;
+          rangeLabel = '1 Month';
+        } else if (currentRange === '3months') {
+          rangeMs = 90 * 24 * 60 * 60 * 1000;
+          rangeLabel = '3 Months';
+        } else if (currentRange === '6months') {
+          rangeMs = 180 * 24 * 60 * 60 * 1000;
+          rangeLabel = '6 Months';
+        } else if (currentRange === '1year') {
+          rangeMs = 365 * 24 * 60 * 60 * 1000;
+          rangeLabel = '1 Year';
+        }
+
+        const rangeStart = new Date(now.getTime() - rangeMs);
+
+        // Filter actual completed sales orders within range
+        const completedSalesOrders = liveOrders.filter(o => {
+          const s = (o.status || '').toLowerCase().replace(/_/g, '-');
+          if (s !== 'completed' && s !== 'delivered') return false;
+          if (o.isReplacement) return false;
+          
+          const compDate = getOrderCompletionDate(o);
+          return compDate >= rangeStart && compDate <= now;
+        });
+
+        // Apply product filter if specific product selected
+        let matchingOrders = completedSalesOrders;
+        if (currentProd !== 'all') {
+          matchingOrders = completedSalesOrders.filter(o => {
+            return (o.items || []).some(item => {
+              const pId = String(item.product?.id || item.productId || '');
+              const pName = item.product?.name || item.name || item.productName || '';
+              return pId === String(currentProd) || pName === String(currentProd);
+            });
+          });
+        }
+
+        // Calculate sacks sold in matching orders
+        let timeframeSacksSum = 0;
+        matchingOrders.forEach(o => {
+          (o.items || []).forEach(item => {
+            if (item.isReservation) return;
+            const pId = String(item.product?.id || item.productId || '');
+            const pName = item.product?.name || item.name || item.productName || '';
+            if (currentProd === 'all' || pId === String(currentProd) || pName === String(currentProd)) {
+              timeframeSacksSum += Number(item.quantity || 0);
+            }
+          });
+        });
+
+        // Active variety label
+        let activeVarietyLabel = 'All Grains';
+        if (currentProd !== 'all') {
+          const matchedProdObj = productsList.find(p => String(p.id) === String(currentProd));
+          if (matchedProdObj) {
+            activeVarietyLabel = matchedProdObj.name;
+          } else {
+            activeVarietyLabel = currentProd;
+          }
+        }
+
+        // Update bottom 4 summary cards
+        const cardRange = document.getElementById('card-time-range');
+        const cardSales = document.getElementById('card-completed-sales');
+        const cardVariety = document.getElementById('card-active-variety');
+        const cardSacks = document.getElementById('card-timeframe-sacks');
+
+        if (cardRange) cardRange.textContent = rangeLabel;
+        if (cardSales) cardSales.textContent = `${matchingOrders.length} Order${matchingOrders.length !== 1 ? 's' : ''}`;
+        if (cardVariety) {
+          cardVariety.textContent = activeVarietyLabel;
+          cardVariety.title = activeVarietyLabel;
+        }
+        if (cardSacks) cardSacks.textContent = `${timeframeSacksSum} Sack${timeframeSacksSum !== 1 ? 's' : ''}`;
+
+        // Build time buckets for Sales Overview Bar Chart
+        let numBuckets = 6;
+        if (currentRange === '1week') numBuckets = 7;
+        else if (currentRange === '1month') numBuckets = 5;
+        else if (currentRange === '3months') numBuckets = 3;
+        else if (currentRange === '6months') numBuckets = 6;
+        else if (currentRange === '1year') numBuckets = 12;
+
+        const bucketMs = rangeMs / numBuckets;
+        const buckets = [];
+
+        for (let i = 0; i < numBuckets; i++) {
+          const bStart = new Date(rangeStart.getTime() + i * bucketMs);
+          const bEnd = new Date(rangeStart.getTime() + (i + 1) * bucketMs);
+          
+          let label = '';
+          if (currentRange === '1week') {
+            label = bStart.toLocaleDateString('en-US', { weekday: 'short', month: 'numeric', day: 'numeric' });
+          } else if (currentRange === '1month') {
+            label = `Wk ${i + 1}`;
+          } else {
+            label = bStart.toLocaleDateString('en-US', { month: 'short' });
+          }
+
+          let sacksInBucket = 0;
+          let ordersInBucket = 0;
+
+          matchingOrders.forEach(o => {
+            const cDate = getOrderCompletionDate(o);
+            if (cDate >= bStart && (i === numBuckets - 1 ? cDate <= bEnd : cDate < bEnd)) {
+              ordersInBucket++;
+              (o.items || []).forEach(item => {
+                if (item.isReservation) return;
+                const pId = String(item.product?.id || item.productId || '');
+                const pName = item.product?.name || item.name || item.productName || '';
+                if (currentProd === 'all' || pId === String(currentProd) || pName === String(currentProd)) {
+                  sacksInBucket += Number(item.quantity || 0);
+                }
+              });
+            }
+          });
+
+          buckets.push({
+            label,
+            sacks: sacksInBucket,
+            orders: ordersInBucket
+          });
+        }
+
+        const maxVal = Math.max(...buckets.map(b => b.sacks), 10);
+
+        // Render Bar Chart
+        const barChartContainer = document.getElementById('sales-barchart-inner');
+        if (barChartContainer) {
+          barChartContainer.innerHTML = `
+            <div class="h-48 flex items-end gap-2 sm:gap-4 pt-6 pb-2 border-b border-gray-150 relative">
+              <!-- Grid Lines -->
+              <div class="absolute inset-x-0 top-0 border-t border-gray-100 border-dashed text-[9px] text-gray-400 font-bold flex justify-between pt-1">
+                <span>${maxVal} sacks</span>
+              </div>
+              <div class="absolute inset-x-0 top-1/2 border-t border-gray-100 border-dashed text-[9px] text-gray-400 font-bold flex justify-between pt-1">
+                <span>${Math.floor(maxVal/2)} sacks</span>
+              </div>
+
+              <!-- Dynamic bars -->
+              ${buckets.map(b => {
+                const heightPercent = Math.min((b.sacks / maxVal) * 100, 100);
+                return `
+                  <div class="flex-grow flex flex-col items-center group relative h-full justify-end cursor-pointer">
+                    <!-- Tooltip -->
+                    <div class="absolute bottom-full mb-1 bg-gray-900 text-white font-black text-[9px] py-1 px-2 rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-all z-20 whitespace-nowrap shadow-md">
+                      ${b.label}: ${b.sacks} Sacks (${b.orders} Completed Orders)
+                    </div>
+                    <!-- Bar item -->
+                    <div class="bg-[#1E6C02] hover:bg-[#145001] rounded-t-lg transition-all w-full max-w-[40px]" style="height: ${heightPercent}%;"></div>
+                    <span class="text-[9px] text-gray-700 font-extrabold mt-2 truncate w-full text-center" title="${b.label}">${b.label}</span>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          `;
+        }
+
+        // B. Order Summary Pie Chart
+        const statusCategories = [
+          { key: 'to-pay', label: 'To Pay', color: '#F59E0B' },
+          { key: 'processing', label: 'Processing', color: '#3B82F6' },
+          { key: 'to-ship', label: 'To Ship', color: '#8B5CF6' },
+          { key: 'to-receive', label: 'To Receive', color: '#0EA5E9' },
+          { key: 'delivered', label: 'Delivered', color: '#14B8A6' },
+          { key: 'issue-reported', label: 'Issue Reported', color: '#EF4444' },
+          { key: 'completed', label: 'Completed', color: '#1E6C02' },
+          { key: 'cancelled', label: 'Cancelled', color: '#6B7280' }
+        ];
+
+        const categoryCounts = {
+          'to-pay': 0,
+          'processing': 0,
+          'to-ship': 0,
+          'to-receive': 0,
+          'delivered': 0,
+          'issue-reported': 0,
+          'completed': 0,
+          'cancelled': 0
+        };
+
+        const regularOrders = liveOrders.filter(o => !o.isPreOrder && !(o.items && o.items.some(i => i.isReservation)));
+
+        regularOrders.forEach(o => {
+          const s = (o.status || '').toLowerCase().replace(/_/g, '-');
+          if (s === 'to-pay' || s === 'unpaid' || s === 'pending-payment') {
+            categoryCounts['to-pay']++;
+          } else if (s === 'processing' || s === 'pre-order' || s === 'reserved' || s === 'waiting' || s === 'ready' || s === 'ready_for_processing') {
+            categoryCounts['processing']++;
+          } else if (s === 'to-ship' || s === 'preparing') {
+            categoryCounts['to-ship']++;
+          } else if (s === 'to-receive' || s === 'shipped' || s === 'in-transit') {
+            categoryCounts['to-receive']++;
+          } else if (s === 'delivered') {
+            categoryCounts['delivered']++;
+          } else if (s === 'issue-reported' || s === 'issue') {
+            categoryCounts['issue-reported']++;
+          } else if (s === 'completed' || s === 'fulfilled') {
+            categoryCounts['completed']++;
+          } else if (s === 'cancelled' || s === 'rejected' || s === 'expired') {
+            categoryCounts['cancelled']++;
+          } else {
+            categoryCounts['to-pay']++;
+          }
+        });
+
+        const totalCountedOrders = regularOrders.length;
+
+        // Build SVG Donut slices
+        let accumulatedPercent = 0;
+        const svgSlices = [];
+
+        statusCategories.forEach(cat => {
+          const count = categoryCounts[cat.key] || 0;
+          const pct = totalCountedOrders > 0 ? (count / totalCountedOrders) : 0;
+          
+          if (pct > 0) {
+            const startAngle = accumulatedPercent * 2 * Math.PI - Math.PI / 2;
+            accumulatedPercent += pct;
+            const endAngle = accumulatedPercent * 2 * Math.PI - Math.PI / 2;
+
+            const rOuter = 42;
+            const rInner = 26;
+            let angleDiff = endAngle - startAngle;
+            let effectiveEndAngle = endAngle;
+            if (angleDiff >= 2 * Math.PI - 0.0001) {
+              effectiveEndAngle = startAngle + 2 * Math.PI - 0.0001;
+            }
+
+            const x1_out = (rOuter * Math.cos(startAngle)).toFixed(2);
+            const y1_out = (rOuter * Math.sin(startAngle)).toFixed(2);
+            const x2_out = (rOuter * Math.cos(effectiveEndAngle)).toFixed(2);
+            const y2_out = (rOuter * Math.sin(effectiveEndAngle)).toFixed(2);
+
+            const x1_in = (rInner * Math.cos(effectiveEndAngle)).toFixed(2);
+            const y1_in = (rInner * Math.sin(effectiveEndAngle)).toFixed(2);
+            const x2_in = (rInner * Math.cos(startAngle)).toFixed(2);
+            const y2_in = (rInner * Math.sin(startAngle)).toFixed(2);
+
+            const largeArc = angleDiff > Math.PI ? 1 : 0;
+            const pathData = `M ${x1_out} ${y1_out} A ${rOuter} ${rOuter} 0 ${largeArc} 1 ${x2_out} ${y2_out} L ${x1_in} ${y1_in} A ${rInner} ${rInner} 0 ${largeArc} 0 ${x2_in} ${y2_in} Z`;
+
+            const pctDisplay = (pct * 100) % 1 === 0 ? (pct * 100).toFixed(0) : (pct * 100).toFixed(1);
+            svgSlices.push(`
+              <path d="${pathData}" fill="${cat.color}" class="transition-all hover:opacity-80 cursor-pointer">
+                <title>${cat.label}: ${count} Orders (${pctDisplay}%)</title>
+              </path>
+            `);
+          }
+        });
+
+        const pieChartContainer = document.getElementById('piechart-container-inner');
+        if (pieChartContainer) {
+          pieChartContainer.innerHTML = `
+            <!-- Visual SVG Donut chart -->
+            <div class="relative flex items-center justify-center">
+              <svg viewBox="-50 -50 100 100" class="w-40 h-40 transform -rotate-90">
+                ${totalCountedOrders === 0 ? `
+                  <circle cx="0" cy="0" r="34" fill="none" stroke="#E5E7EB" stroke-width="14" />
+                ` : svgSlices.join('')}
+              </svg>
+              <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none text-center">
+                <p class="text-xl font-black text-gray-900 leading-none">${totalCountedOrders}</p>
+                <p class="text-[8px] font-extrabold text-gray-500 uppercase tracking-tight mt-1">Total Orders</p>
+              </div>
+            </div>
+
+            <!-- Order Status Legend -->
+            <div class="grid grid-cols-2 gap-x-4 gap-y-2 w-full text-xs pt-2 border-t border-gray-100">
+              ${statusCategories.map(cat => {
+                const count = categoryCounts[cat.key] || 0;
+                const pct = totalCountedOrders > 0 ? (count / totalCountedOrders) * 100 : 0;
+                const pctStr = pct % 1 === 0 ? pct.toFixed(0) : pct.toFixed(1);
+                return `
+                  <div class="flex items-center justify-between gap-1.5 p-1 rounded-lg hover:bg-gray-100/80 dark:hover:bg-slate-800/80 transition-colors">
+                    <div class="flex items-center gap-1.5 min-w-0">
+                      <span class="w-2.5 h-2.5 rounded-full shrink-0" style="background-color: ${cat.color};"></span>
+                      <span class="font-bold text-gray-800 dark:text-gray-200 text-[11px] truncate" title="${cat.label}">${cat.label}</span>
+                    </div>
+                    <span class="font-extrabold text-gray-900 dark:text-white text-[11px] shrink-0 ml-1">${count} <span class="text-gray-400 dark:text-gray-400 font-semibold">(${pctStr}%)</span></span>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          `;
+        }
+      }
+
+      function refreshDashboard() {
+        populateProductDropdown();
+        const liveOrders = getAllOrders ? getAllOrders() : [];
+        
+        // 1. Total Regular Orders (excluding reservations, cancelled, rejected, and replacement orders)
+        const regularOrders = liveOrders.filter(o => !isReservationOrder(o) && !isCancelledOrRejectedOrder(o) && !o.isReplacement);
+
+        // 2. Total Sales: Sum of verified customer order/reservation totals
+        const totalSalesSum = liveOrders
+          .filter(o => getVerifiedCustomerPaymentInfo(o).isVerified)
+          .reduce((sum, o) => sum + getVerifiedCustomerPaymentInfo(o).amount, 0);
+
+        // 3. Top Rice Product based strictly on verified sales
+        const completedProductCounts = {};
+        liveOrders.forEach(o => {
+          const info = getVerifiedCustomerPaymentInfo(o);
+          if (info.isVerified && !info.isReservation) {
+            (o.items || []).forEach(item => {
+              const pName = item.product?.name || item.name || item.productName;
+              if (pName && !item.isReservation) {
+                completedProductCounts[pName] = (completedProductCounts[pName] || 0) + Number(item.quantity || 0);
+              }
+            });
+          }
+        });
+
+        const sortedProducts = Object.entries(completedProductCounts).sort((a,b) => b[1] - a[1]);
+        const topProductName = sortedProducts[0]?.[0] || 'N/A';
+        const topProductVolume = sortedProducts[0]?.[1] || 0;
+
+        // Update top summary cards
+        const regEl = document.getElementById('dash-total-registered');
+        if (regEl) regEl.textContent = `${regularOrders.length} Order${regularOrders.length !== 1 ? 's' : ''}`;
+
+        const revEl = document.getElementById('dash-validated-revenue');
+        if (revEl) revEl.textContent = `₱${totalSalesSum.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+        const topNameEl = document.getElementById('dash-top-product-name');
+        if (topNameEl) topNameEl.textContent = topProductName;
+
+        const topVolEl = document.getElementById('dash-top-product-vol');
+        if (topVolEl) topVolEl.textContent = `${topProductVolume} sacks sold`;
+
+        // Update Recent Orders table
+        const tbody = document.getElementById('dash-pipeline-tbody');
+        if (tbody) {
+          const sortedOrders = regularOrders.slice().sort((a, b) => {
+            const tA = new Date(a.createdAt || a.dateCreated || a.date || 0).getTime();
+            const tB = new Date(b.createdAt || b.dateCreated || b.date || 0).getTime();
+            return tB - tA;
+          });
+
+          const recentOrders = sortedOrders.slice(0, 6);
+
+          if (recentOrders.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="5" class="py-6 text-center text-gray-500 font-normal text-xs">No recent orders found</td></tr>`;
+          } else {
+            tbody.innerHTML = recentOrders.map(order => {
+              const itemsText = (order.items || [])
+                .filter(i => !i.isReservation)
+                .map(i => `${i.product?.name || i.name || i.productName || 'Rice Product'} (${i.quantity || 1})`)
+                .join(', ');
+              const customerName = order.fullName || order.customerName || order.userName || 'Customer';
+              const formattedTotal = Number(order.total || order.amountPaid || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+              return `
+                <tr class="hover:bg-gray-50/50 transition-colors">
+                  <td class="py-3.5 px-3 font-normal text-gray-900 font-mono">#${order.id}</td>
+                  <td class="py-3.5 px-3 font-normal text-gray-900">${customerName}</td>
+                  <td class="py-3.5 px-3 font-normal text-gray-900 truncate max-w-[200px]">${itemsText || 'N/A'}</td>
+                  <td class="py-3.5 px-3 font-normal text-gray-900">₱${formattedTotal}</td>
+                  <td class="py-3.5 px-3 text-right">
+                    <span class="px-2.5 py-1 rounded-full font-semibold text-xs tracking-wide ${getStatusBadgeClass(order.status)}">${getStatusLabel(order.status)}</span>
+                  </td>
+                </tr>
+              `;
+            }).join('');
+          }
+        }
+
+        renderRecentActivities();
+        drawPerformanceCharts();
+        updateInventoryHealth();
+        drawDashboardCalendar();
+      }
+
+      function getStatusBadgeClass(status) {
+        const s = (status || '').toLowerCase().replace(/_/g, '-');
+        if (s === 'to-pay' || s === 'unpaid' || s === 'pending-payment') return 'bg-amber-50 text-amber-800 border border-amber-200';
+        if (s === 'processing' || s === 'pre-order' || s === 'reserved') return 'bg-blue-50 text-blue-800 border border-blue-200';
+        if (s === 'to-ship' || s === 'preparing') return 'bg-purple-50 text-purple-800 border border-purple-200';
+        if (s === 'to-receive' || s === 'shipped' || s === 'in-transit') return 'bg-sky-50 text-sky-800 border border-sky-200';
+        if (s === 'delivered') return 'bg-teal-50 text-teal-800 border border-teal-200';
+        if (s === 'issue-reported' || s === 'issue') return 'bg-red-50 text-red-700 border border-red-200';
+        if (s === 'completed' || s === 'fulfilled') return 'bg-green-50 text-green-800 border border-green-200';
+        if (s === 'cancelled' || s === 'rejected' || s === 'expired') return 'bg-gray-100 text-gray-700 border border-gray-200';
+        return 'bg-gray-100 text-gray-800 border border-gray-200';
+      }
+
+      function getStatusLabel(status) {
+        const s = (status || '').toLowerCase().replace(/_/g, '-');
+        if (s === 'to-pay') return 'To Pay';
+        if (s === 'processing') return 'Processing';
+        if (s === 'to-ship') return 'To Ship';
+        if (s === 'to-receive') return 'To Receive';
+        if (s === 'delivered') return 'Delivered';
+        if (s === 'completed') return 'Completed';
+        if (s === 'cancelled') return 'Cancelled';
+        if (s === 'issue-reported') return 'Issue Reported';
+        return status || 'Pending';
+      }
+
+      function formatActivityTimestamp(ts) {
+        if (!ts) return 'N/A';
+        const d = new Date(ts);
+        if (isNaN(d.getTime())) return String(ts);
+        const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+        const monthStr = months[d.getMonth()];
+        const day = d.getDate();
+        const year = d.getFullYear();
+        let hours = d.getHours();
+        const minutes = String(d.getMinutes()).padStart(2, '0');
+        const ampm = hours >= 12 ? 'PM' : 'AM';
+        hours = hours % 12;
+        hours = hours ? hours : 12;
+        return `${monthStr} ${day}, ${year} at ${hours}:${minutes} ${ampm}`;
+      }
+
+      function renderRecentActivities() {
+        const container = document.getElementById('dash-recent-activities-list');
+        if (!container) return;
+
+        const logs = typeof getLogs === 'function' ? getLogs() : [];
+        const sortedLogs = logs.slice().sort((a, b) => {
+          const tA = new Date(a.timestamp || 0).getTime();
+          const tB = new Date(b.timestamp || 0).getTime();
+          return tB - tA;
+        });
+
+        const recentLogs = sortedLogs.slice(0, 5);
+
+        if (recentLogs.length === 0) {
+          container.innerHTML = `<p class="text-center py-6 text-gray-500 text-xs font-normal">No recent activities recorded yet</p>`;
+          return;
+        }
+
+        container.innerHTML = recentLogs.map(log => {
+          const userName = log.userName || 'Admin User';
+          const userRole = log.userRole || 'admin';
+          const action = log.action || 'Performed action';
+          const category = log.category || 'System';
+          const formattedDate = formatActivityTimestamp(log.timestamp);
+
+          return `
+            <div class="p-3.5 rounded-xl bg-gray-50 border border-gray-200/60 hover:bg-gray-100/50 text-xs font-normal text-gray-900 space-y-1 transition-colors">
+              <p class="text-sm font-normal text-gray-900">${userName} (${userRole}) ${action}</p>
+              <p class="text-xs font-normal text-gray-500">${formattedDate}</p>
+              <p class="text-xs font-normal text-gray-500">${category}</p>
+            </div>
+          `;
+        }).join('');
+      }
+
+      function updateInventoryHealth() {
+        const productsList = typeof getProducts === 'function' ? getProducts() : [];
+        const activeProducts = productsList.filter(p => !p.isArchived);
+
+        const lowStockItems = activeProducts.filter(p => {
+          const stock = p.availableStock !== undefined ? p.availableStock : (p.currentStock !== undefined ? p.currentStock : p.stock);
+          return stock >= 1 && stock <= 20;
+        });
+
+        const outOfStockItems = activeProducts.filter(p => {
+          const stock = p.availableStock !== undefined ? p.availableStock : (p.currentStock !== undefined ? p.currentStock : p.stock);
+          return stock === 0;
+        });
+
+        const healthyItems = activeProducts.filter(p => {
+          const stock = p.availableStock !== undefined ? p.availableStock : (p.currentStock !== undefined ? p.currentStock : p.stock);
+          return stock > 20;
+        });
+
+        const lowCount = lowStockItems.length;
+        const outCount = outOfStockItems.length;
+        const totalActive = activeProducts.length;
+        const healthPct = totalActive > 0 ? Math.round((healthyItems.length / totalActive) * 100) : 0;
+
+        const lowEl = document.getElementById('dash-low-stock-count');
+        if (lowEl) lowEl.textContent = `${lowCount} Item${lowCount !== 1 ? 's' : ''}`;
+
+        const outEl = document.getElementById('dash-out-stock-count');
+        if (outEl) outEl.textContent = `${outCount} Item(s)`;
+
+        const pctEl = document.getElementById('dash-health-pct');
+        if (pctEl) pctEl.textContent = `${healthPct}%`;
+      }
+
+      // Calendar states and dynamic bindings
+      let currentCalDate = new Date();
+      let selectedCalDate = new Date();
+
+      function drawDashboardCalendar() {
+        const year = currentCalDate.getFullYear();
+        const month = currentCalDate.getMonth();
+
+        const calMonthYear = document.getElementById('cal-month-year');
+        const calDaysGrid = document.getElementById('cal-days-grid');
+        const calSelectedStatus = document.getElementById('cal-selected-status');
+        if (!calMonthYear || !calDaysGrid) return;
+
+        const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+        calMonthYear.textContent = `${months[month]} ${year}`;
+
+        const firstDayIndex = new Date(year, month, 1).getDay();
+        const totalDays = new Date(year, month + 1, 0).getDate();
+        const prevTotalDays = new Date(year, month, 0).getDate();
+
+        // Retrieve real orders data from existing RiceFlow database
+        const allOrders = typeof getAllOrders === 'function' ? getAllOrders() : [];
+
+        let daysHtml = '';
+
+        // Filler days
+        for (let i = firstDayIndex; i > 0; i--) {
+          daysHtml += `<div class="p-1.5 text-black/40 font-medium select-none text-[11px]">${prevTotalDays - i + 1}</div>`;
+        }
+
+        // Active days
+        const today = new Date();
+        for (let day = 1; day <= totalDays; day++) {
+          const isToday = today.getDate() === day && today.getMonth() === month && today.getFullYear() === year;
+          const isSelected = selectedCalDate && selectedCalDate.getDate() === day && selectedCalDate.getMonth() === month && selectedCalDate.getFullYear() === year;
+
+          // Compute real operations for each day cell
+          const dayOrders = allOrders.filter(o => {
+            if (o.isReplacement || isCancelledOrRejectedOrder(o) || isReservationOrder(o)) return false;
+            const dateVal = o.createdAt || o.dateCreated || o.date || o.timestamp;
+            if (!dateVal) return false;
+            const d = new Date(dateVal);
+            return !isNaN(d.getTime()) && d.getFullYear() === year && d.getMonth() === month && d.getDate() === day;
+          });
+
+          const dayReservations = allOrders.filter(o => {
+            if (!isReservationOrder(o) || isCancelledOrRejectedOrder(o)) return false;
+            const dateVal = o.reservedDate || o.createdAt || o.dateCreated || o.date;
+            if (!dateVal) return false;
+            const d = new Date(dateVal);
+            return !isNaN(d.getTime()) && d.getFullYear() === year && d.getMonth() === month && d.getDate() === day;
+          });
+
+          const dayDeliveries = allOrders.filter(o => {
+            if (o.deliveryOption !== 'delivery' && !o.deliveredDate && !o.deliveryDate && !o.deliveryVerificationDate && !o.deliveredAt) {
+              return false;
+            }
+            let dateVal = o.deliveredDate || o.deliveryDate || o.deliveryVerificationDate || o.deliveredAt;
+            if (!dateVal && (o.status === 'delivered' || o.status === 'to-receive' || o.status === 'shipped')) {
+              dateVal = o.createdAt || o.dateCreated;
+            }
+            if (!dateVal) return false;
+            const d = new Date(dateVal);
+            return !isNaN(d.getTime()) && d.getFullYear() === year && d.getMonth() === month && d.getDate() === day;
+          });
+
+          const dayCompletedSales = allOrders.filter(o => {
+            if (isReservationOrder(o) || isCancelledOrRejectedOrder(o)) return false;
+            const s = (o.status || '').toLowerCase().replace(/_/g, '-');
+            if (s !== 'completed') return false;
+            const info = getVerifiedCustomerPaymentInfo(o);
+            if (!info.isVerified) return false;
+            const compDate = getOrderCompletionDate(o);
+            return compDate && !isNaN(compDate.getTime()) && compDate.getTime() > 0 && compDate.getFullYear() === year && compDate.getMonth() === month && compDate.getDate() === day;
+          });
+
+          const hasOps = (dayOrders.length + dayReservations.length + dayDeliveries.length + dayCompletedSales.length) > 0;
+
+          let cellClass = "p-1.5 rounded-lg cursor-pointer hover:bg-gray-150 text-black transition-colors select-none text-[11px] relative flex flex-col items-center justify-center min-h-[34px]";
+          if (isToday) {
+            cellClass = "p-1.5 rounded-lg cursor-pointer bg-green-50 text-[#1E6C02] font-black border border-green-200/60 hover:bg-green-100 transition-colors select-none text-[11px] relative flex flex-col items-center justify-center min-h-[34px]";
+          }
+          if (isSelected) {
+            cellClass = "p-1.5 rounded-lg cursor-pointer bg-[#1E6C02] text-white font-black hover:bg-[#145001] transition-colors select-none text-[11px] relative flex flex-col items-center justify-center min-h-[34px] shadow-xs";
+          }
+
+          const dotHTML = hasOps ? `<span class="w-1.5 h-1.5 ${isSelected ? 'bg-white' : 'bg-[#1E6C02]'} rounded-full mt-0.5 shrink-0"></span>` : '';
+
+          daysHtml += `<div class="${cellClass}" data-day="${day}"><span>${day}</span>${dotHTML}</div>`;
+        }
+
+        calDaysGrid.innerHTML = daysHtml;
+
+        // Render selected date operational summary
+        if (selectedCalDate) {
+          const selYear = selectedCalDate.getFullYear();
+          const selMonth = selectedCalDate.getMonth();
+          const selDay = selectedCalDate.getDate();
+
+          const ordersOnDate = allOrders.filter(o => {
+            if (o.isReplacement || isCancelledOrRejectedOrder(o) || isReservationOrder(o)) return false;
+            const dateVal = o.createdAt || o.dateCreated || o.date || o.timestamp;
+            if (!dateVal) return false;
+            const d = new Date(dateVal);
+            return !isNaN(d.getTime()) && d.getFullYear() === selYear && d.getMonth() === selMonth && d.getDate() === selDay;
+          });
+
+          const reservationsOnDate = allOrders.filter(o => {
+            if (!isReservationOrder(o) || isCancelledOrRejectedOrder(o)) return false;
+            const dateVal = o.reservedDate || o.createdAt || o.dateCreated || o.date;
+            if (!dateVal) return false;
+            const d = new Date(dateVal);
+            return !isNaN(d.getTime()) && d.getFullYear() === selYear && d.getMonth() === selMonth && d.getDate() === selDay;
+          });
+
+          const deliveriesOnDate = allOrders.filter(o => {
+            if (o.deliveryOption !== 'delivery' && !o.deliveredDate && !o.deliveryDate && !o.deliveryVerificationDate && !o.deliveredAt) {
+              return false;
+            }
+            let dateVal = o.deliveredDate || o.deliveryDate || o.deliveryVerificationDate || o.deliveredAt;
+            if (!dateVal && (o.status === 'delivered' || o.status === 'to-receive' || o.status === 'shipped')) {
+              dateVal = o.createdAt || o.dateCreated;
+            }
+            if (!dateVal) return false;
+            const d = new Date(dateVal);
+            return !isNaN(d.getTime()) && d.getFullYear() === selYear && d.getMonth() === selMonth && d.getDate() === selDay;
+          });
+
+          const completedSalesOnDate = allOrders.filter(o => {
+            if (isReservationOrder(o) || isCancelledOrRejectedOrder(o)) return false;
+            const s = (o.status || '').toLowerCase().replace(/_/g, '-');
+            if (s !== 'completed') return false;
+            const info = getVerifiedCustomerPaymentInfo(o);
+            if (!info.isVerified) return false;
+            const compDate = getOrderCompletionDate(o);
+            return compDate && !isNaN(compDate.getTime()) && compDate.getTime() > 0 && compDate.getFullYear() === selYear && compDate.getMonth() === selMonth && compDate.getDate() === selDay;
+          });
+
+          const completedSalesAmount = completedSalesOnDate.reduce((sum, o) => {
+            return sum + getVerifiedCustomerPaymentInfo(o).amount;
+          }, 0);
+
+          const totalOpsCount = ordersOnDate.length + reservationsOnDate.length + deliveriesOnDate.length + completedSalesOnDate.length;
+          const formattedSelectedDateStr = `${months[selMonth]} ${selDay}, ${selYear}`;
+          const formattedDateParam = `${selYear}-${String(selMonth + 1).padStart(2, '0')}-${String(selDay).padStart(2, '0')}`;
+
+          if (totalOpsCount === 0) {
+            calSelectedStatus.innerHTML = `
+              <div class="space-y-1.5 text-center py-1">
+                <p class="text-[10px] font-extrabold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Operations Window</p>
+                <p class="text-xs font-black text-gray-900 dark:text-white">${formattedSelectedDateStr}</p>
+                <a href="activities.html?date=${formattedDateParam}" class="inline-flex items-center gap-1 text-[10px] font-extrabold px-2.5 py-1 bg-green-50 dark:bg-emerald-950/60 text-[#1E6C02] dark:text-emerald-300 border border-green-200 dark:border-emerald-800/80 rounded-full hover:bg-green-100 dark:hover:bg-emerald-900/80 transition-all cursor-pointer shadow-2xs">
+                  0 Total Activity
+                </a>
+                <p class="text-xs font-medium text-gray-500 dark:text-gray-400 mt-0.5">No scheduled operations for this date.</p>
+              </div>
+            `;
+          } else {
+            // Optional details list
+            let detailsListHTML = '';
+            const detailsItems = [];
+
+            if (ordersOnDate.length > 0) {
+              const ids = ordersOnDate.map(o => `#${o.id}`).slice(0, 3).join(', ');
+              const moreStr = ordersOnDate.length > 3 ? ` +${ordersOnDate.length - 3} more` : '';
+              detailsItems.push(`<p class="text-[11px] font-medium text-gray-700 dark:text-gray-300"><span class="font-bold text-gray-900 dark:text-white">Orders:</span> ${ids}${moreStr}</p>`);
+            }
+            if (reservationsOnDate.length > 0) {
+              const ids = reservationsOnDate.map(o => `#${o.id}`).slice(0, 3).join(', ');
+              const moreStr = reservationsOnDate.length > 3 ? ` +${reservationsOnDate.length - 3} more` : '';
+              detailsItems.push(`<p class="text-[11px] font-medium text-gray-700 dark:text-gray-300"><span class="font-bold text-gray-900 dark:text-white">Reservations:</span> ${ids}${moreStr}</p>`);
+            }
+            if (deliveriesOnDate.length > 0) {
+              const ids = deliveriesOnDate.map(o => `#${o.id}`).slice(0, 3).join(', ');
+              const moreStr = deliveriesOnDate.length > 3 ? ` +${deliveriesOnDate.length - 3} more` : '';
+              detailsItems.push(`<p class="text-[11px] font-medium text-gray-700 dark:text-gray-300"><span class="font-bold text-gray-900 dark:text-white">Deliveries:</span> ${ids}${moreStr}</p>`);
+            }
+
+            if (detailsItems.length > 0) {
+              detailsListHTML = `
+                <div class="pt-2 border-t border-gray-200/60 dark:border-slate-700 mt-2 space-y-1">
+                  ${detailsItems.join('')}
+                </div>
+              `;
+            }
+
+            calSelectedStatus.innerHTML = `
+              <div class="space-y-2.5 text-left p-0.5">
+                <div class="flex items-center justify-between pb-2 border-b border-gray-200/80 dark:border-slate-700">
+                  <div>
+                    <span class="text-[9px] font-extrabold text-gray-500 dark:text-gray-400 uppercase tracking-wider block">Operations Window</span>
+                    <span class="text-xs font-black text-gray-950 dark:text-white">${formattedSelectedDateStr}</span>
+                  </div>
+                  <a href="activities.html?date=${formattedDateParam}" class="text-[10px] font-extrabold px-2.5 py-1 bg-green-50 dark:bg-emerald-950/60 text-[#1E6C02] dark:text-emerald-300 border border-green-200 dark:border-emerald-800/80 rounded-full hover:bg-green-100 dark:hover:bg-emerald-900/80 transition-all cursor-pointer inline-flex items-center gap-1 shadow-2xs">
+                    ${totalOpsCount} Total Activity
+                  </a>
+                </div>
+
+                <div class="grid grid-cols-2 gap-2">
+                  <div class="bg-white dark:bg-slate-800/80 p-2 rounded-xl border border-gray-200/80 dark:border-slate-700 shadow-2xs">
+                    <span class="text-[9px] font-black text-gray-500 dark:text-gray-400 uppercase tracking-wider block">Orders</span>
+                    <span class="text-sm font-black text-gray-900 dark:text-white mt-0.5 block">${ordersOnDate.length}</span>
+                  </div>
+                  <div class="bg-white dark:bg-slate-800/80 p-2 rounded-xl border border-gray-200/80 dark:border-slate-700 shadow-2xs">
+                    <span class="text-[9px] font-black text-gray-500 dark:text-gray-400 uppercase tracking-wider block">Reservations</span>
+                    <span class="text-sm font-black text-gray-900 dark:text-white mt-0.5 block">${reservationsOnDate.length}</span>
+                  </div>
+                  <div class="bg-white dark:bg-slate-800/80 p-2 rounded-xl border border-gray-200/80 dark:border-slate-700 shadow-2xs">
+                    <span class="text-[9px] font-black text-gray-500 dark:text-gray-400 uppercase tracking-wider block">Deliveries</span>
+                    <span class="text-sm font-black text-gray-900 dark:text-white mt-0.5 block">${deliveriesOnDate.length}</span>
+                  </div>
+                  <div class="bg-white dark:bg-slate-800/80 p-2 rounded-xl border border-gray-200/80 dark:border-slate-700 shadow-2xs">
+                    <span class="text-[9px] font-black text-gray-500 dark:text-gray-400 uppercase tracking-wider block">Completed Sales</span>
+                    <span class="text-sm font-black text-[#1E6C02] dark:text-emerald-400 mt-0.5 block">₱${completedSalesAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                  </div>
+                </div>
+
+                ${detailsListHTML}
+              </div>
+            `;
+          }
+        } else {
+          calSelectedStatus.textContent = 'No active date selected';
+        }
+
+        // Cell listeners
+        calDaysGrid.querySelectorAll('[data-day]').forEach(cell => {
+          cell.addEventListener('click', (e) => {
+            const dayTarget = e.currentTarget;
+            const clickedDay = parseInt(dayTarget.getAttribute('data-day'));
+            selectedCalDate = new Date(year, month, clickedDay);
+            drawDashboardCalendar();
+            showToast(`Operations date set to ${months[month]} ${clickedDay}, ${year}!`);
+          });
+        });
+      }
+
+      function bindCalendarControls() {
+        const prevBtn = document.getElementById('btn-cal-prev');
+        const nextBtn = document.getElementById('btn-cal-next');
+
+        if (prevBtn) {
+          prevBtn.addEventListener('click', () => {
+            currentCalDate.setMonth(currentCalDate.getMonth() - 1);
+            drawDashboardCalendar();
+          });
+        }
+        if (nextBtn) {
+          nextBtn.addEventListener('click', () => {
+            currentCalDate.setMonth(currentCalDate.getMonth() + 1);
+            drawDashboardCalendar();
+          });
+        }
+      }
+
+      // Render calendar immediately
+      drawDashboardCalendar();
+      bindCalendarControls();
+
+      // Bind chart filters
+      const filterRange = document.getElementById('sel-chart-range');
+      const filterProduct = document.getElementById('sel-chart-product');
+
+      filterRange.addEventListener('change', () => {
+        timeRange = filterRange.value;
+        drawPerformanceCharts();
+      });
+
+      filterProduct.addEventListener('change', () => {
+        productFilter = filterProduct.value;
+        drawPerformanceCharts();
+      });
+
+      // Initial dashboard layout render and sync setup
+      refreshDashboard();
+
+      window.addEventListener('aurora-sync-event', refreshDashboard);
+      window.addEventListener('aurora-orders-updated', refreshDashboard);
+      window.addEventListener('storage', refreshDashboard);
+    });
+  </script>
+</body>
+</html>

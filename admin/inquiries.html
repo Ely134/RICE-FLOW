@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Customer Inquiries | RiceFlow</title>
+  <link rel="stylesheet" href="../src/styles/index.css">
+  <style>
+    #inquiries-table-scroll::-webkit-scrollbar {
+      height: 8px;
+    }
+    #inquiries-table-scroll::-webkit-scrollbar-track {
+      background: #EAECEF;
+      border-radius: 9999px;
+    }
+    #inquiries-table-scroll::-webkit-scrollbar-thumb {
+      background: #1E6C02;
+      border-radius: 9999px;
+      border: 1px solid #EAECEF;
+    }
+    #inquiries-table-scroll::-webkit-scrollbar-thumb:hover {
+      background: #145001;
+    }
+  </style>
+</head>
+<body class="bg-[#F5F5F5] min-h-screen">
+
+  <div id="admin-layout-container"></div>
+
+  <!-- VIEW INQUIRY DETAILS DIALOG -->
+  <div id="inquiry-detail-modal" class="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center p-4 sm:p-6 hidden">
+    <div class="bg-white dark:bg-gray-900 rounded-2xl max-w-2xl w-full shadow-2xl p-6 sm:p-8 border border-gray-200 dark:border-gray-800 max-h-[90vh] overflow-y-auto animate-in fade-in zoom-in duration-200 text-gray-900 dark:text-gray-100 flex flex-col justify-between">
+      
+      <div>
+        <!-- Modal Header -->
+        <div class="flex justify-between items-start pb-4 border-b border-gray-200 dark:border-gray-800">
+          <div>
+            <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100" id="modal-inquiry-subject">Inquiry Subject</h3>
+            <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 mt-1" id="modal-inquiry-date">Submitted on --</p>
+          </div>
+          <button id="close-inquiry-modal" class="text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100 p-1.5 rounded-lg transition-colors cursor-pointer" title="Close">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-5 h-5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          </button>
+        </div>
+
+        <!-- Status Bar -->
+        <div class="mt-4 p-4 rounded-xl bg-gray-50 dark:bg-gray-800/70 border border-gray-200 dark:border-gray-700 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div class="flex items-center gap-2.5">
+            <span class="text-xs font-bold uppercase tracking-wider text-gray-600 dark:text-gray-300">Current Status:</span>
+            <div id="modal-status-badge-container"></div>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="text-xs font-semibold text-gray-500 dark:text-gray-400">Change Status:</span>
+            <select id="modal-status-select" class="text-xs font-bold px-3 py-1.5 rounded-lg bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 outline-none cursor-pointer focus:border-[#1E6C02]">
+              <option value="Unread">Unread</option>
+              <option value="In Progress">In Progress</option>
+              <option value="Resolved">Resolved</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Customer Information Section -->
+        <div class="mt-6 space-y-4">
+          <h4 class="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-gray-800 pb-1.5">Customer Information</h4>
+          
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+            <div>
+              <span class="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 block mb-0.5">Full Name</span>
+              <span id="modal-customer-name" class="font-bold text-gray-900 dark:text-white text-base">--</span>
+            </div>
+            <div>
+              <span class="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 block mb-0.5">Email Address</span>
+              <a id="modal-customer-email" href="#" class="font-semibold text-[#1E6C02] dark:text-emerald-400 hover:underline">--</a>
+            </div>
+            <div>
+              <span class="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 block mb-0.5">Contact Number</span>
+              <span id="modal-customer-phone" class="font-medium text-gray-800 dark:text-gray-200">Not provided</span>
+            </div>
+            <div>
+              <span class="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 block mb-0.5">Account Reference</span>
+              <span id="modal-customer-userref" class="font-mono text-xs text-gray-600 dark:text-gray-400">Guest</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Full Message Section -->
+        <div class="mt-6 space-y-2">
+          <h4 class="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-gray-800 pb-1.5">Full Message</h4>
+          <div id="modal-inquiry-message" class="p-4 rounded-xl bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 text-sm leading-relaxed text-gray-800 dark:text-gray-200 whitespace-pre-wrap font-sans">
+            --
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="flex items-center justify-between pt-6 border-t border-gray-200 dark:border-gray-800 mt-6">
+        <a id="modal-btn-reply-email" href="#" class="inline-flex items-center gap-2 px-4 py-2 bg-[#1E6C02] hover:bg-[#154E01] text-white text-xs font-bold uppercase tracking-wider rounded-xl transition-colors cursor-pointer">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-4 h-4"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+          Reply via Email
+        </a>
+        <button id="btn-inquiry-close-footer" class="px-5 py-2 bg-gray-200 hover:bg-gray-300 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200 text-xs font-bold uppercase tracking-wider rounded-xl cursor-pointer transition-colors">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="../src/app/shared.js"></script>
+
+  <script type="module">
+    import { renderAdminLayout, getAllContactMessages, updateInquiryStatus, showToast } from '../src/app/shared.js';
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      // 1. Render Admin / Staff layout (available to both Admin and Staff)
+      renderAdminLayout('inquiries');
+
+      const targetSpace = document.getElementById('admin-main-content');
+      if (!targetSpace) return;
+
+      // Filter and search states
+      let searchQuery = '';
+      let statusFilter = 'all'; // 'all', 'unread', 'in progress', 'resolved'
+      let cachedInquiries = [];
+      let activeInquiry = null;
+
+      const modal = document.getElementById('inquiry-detail-modal');
+      const closeBtn = document.getElementById('close-inquiry-modal');
+      const closeFooterBtn = document.getElementById('btn-inquiry-close-footer');
+      const modalStatusSelect = document.getElementById('modal-status-select');
+
+      function closeModal() {
+        modal.classList.add('hidden');
+        activeInquiry = null;
+      }
+
+      closeBtn.addEventListener('click', closeModal);
+      closeFooterBtn.addEventListener('click', closeModal);
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+      });
+
+      // Format date helper
+      function formatDate(isoString) {
+        if (!isoString) return '--';
+        try {
+          const d = new Date(isoString);
+          if (isNaN(d.getTime())) return String(isoString);
+          return d.toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+          });
+        } catch (e) {
+          return String(isoString);
+        }
+      }
+
+      // Normalize status string
+      function normalizeStatus(st) {
+        const lower = String(st || '').trim().toLowerCase();
+        if (lower === 'resolved') return 'Resolved';
+        if (lower === 'in progress' || lower === 'in_progress' || lower === 'inprogress') return 'In Progress';
+        return 'Unread';
+      }
+
+      // Render status badge HTML
+      function renderStatusBadge(status) {
+        const norm = normalizeStatus(status);
+        if (norm === 'Unread') {
+          return `<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800"><span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>Unread</span>`;
+        }
+        if (norm === 'In Progress') {
+          return `<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800"><span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>In Progress</span>`;
+        }
+        return `<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>Resolved</span>`;
+      }
+
+      // Open detail modal for an inquiry
+      async function openInquiryDetail(inquiry) {
+        if (!inquiry) return;
+        activeInquiry = inquiry;
+
+        const currentNorm = normalizeStatus(inquiry.status);
+
+        // Requirement: When Admin/Staff opens an unread inquiry, automatically change it to In Progress (unless already Resolved)
+        if (currentNorm === 'Unread') {
+          inquiry.status = 'In Progress';
+          await updateInquiryStatus(inquiry.id, 'In Progress');
+          showToast('Inquiry status set to In Progress');
+        }
+
+        // Populate modal data
+        document.getElementById('modal-inquiry-subject').textContent = inquiry.subject || 'No Subject';
+        document.getElementById('modal-inquiry-date').textContent = `Submitted on ${formatDate(inquiry.createdAt)}`;
+        document.getElementById('modal-customer-name').textContent = inquiry.name || 'Anonymous';
+        
+        const emailEl = document.getElementById('modal-customer-email');
+        emailEl.textContent = inquiry.email || 'No email provided';
+        emailEl.href = inquiry.email ? `mailto:${encodeURIComponent(inquiry.email)}?subject=${encodeURIComponent('Re: ' + (inquiry.subject || 'RiceFlow Inquiry'))}` : '#';
+
+        const replyBtn = document.getElementById('modal-btn-reply-email');
+        replyBtn.href = inquiry.email ? `mailto:${encodeURIComponent(inquiry.email)}?subject=${encodeURIComponent('Re: ' + (inquiry.subject || 'RiceFlow Inquiry'))}` : '#';
+
+        document.getElementById('modal-customer-phone').textContent = inquiry.phone || 'Not provided';
+        document.getElementById('modal-customer-userref').textContent = inquiry.userId && inquiry.userId !== 'guest' ? `User ID: ${inquiry.userId}` : 'Guest Submission';
+        document.getElementById('modal-inquiry-message').textContent = inquiry.message || '';
+
+        // Status badge & select
+        const finalStatus = normalizeStatus(inquiry.status);
+        document.getElementById('modal-status-badge-container').innerHTML = renderStatusBadge(finalStatus);
+        modalStatusSelect.value = finalStatus;
+
+        modal.classList.remove('hidden');
+        renderTable();
+      }
+
+      // Listen to status select changes inside modal
+      modalStatusSelect.addEventListener('change', async (e) => {
+        if (!activeInquiry) return;
+        const newStatus = e.target.value;
+        activeInquiry.status = newStatus;
+        await updateInquiryStatus(activeInquiry.id, newStatus);
+        document.getElementById('modal-status-badge-container').innerHTML = renderStatusBadge(newStatus);
+        showToast(`Inquiry marked as ${newStatus}`);
+        renderTable();
+      });
+
+      // Filter and render table
+      function renderTable() {
+        const q = String(searchQuery || '').toLowerCase().trim();
+
+        const filtered = cachedInquiries.filter(item => {
+          // Search match
+          const nameMatch = String(item.name || '').toLowerCase().includes(q);
+          const emailMatch = String(item.email || '').toLowerCase().includes(q);
+          const subjectMatch = String(item.subject || '').toLowerCase().includes(q);
+          const msgMatch = String(item.message || '').toLowerCase().includes(q);
+          const matchesSearch = !q || (nameMatch || emailMatch || subjectMatch || msgMatch);
+
+          // Status filter match
+          const itemStatus = normalizeStatus(item.status).toLowerCase();
+          let matchesStatus = true;
+          if (statusFilter === 'unread') matchesStatus = itemStatus === 'unread';
+          else if (statusFilter === 'in progress') matchesStatus = itemStatus === 'in progress';
+          else if (statusFilter === 'resolved') matchesStatus = itemStatus === 'resolved';
+
+          return matchesSearch && matchesStatus;
+        });
+
+        // Status counts
+        const unreadCount = cachedInquiries.filter(i => normalizeStatus(i.status) === 'Unread').length;
+        const inProgressCount = cachedInquiries.filter(i => normalizeStatus(i.status) === 'In Progress').length;
+        const resolvedCount = cachedInquiries.filter(i => normalizeStatus(i.status) === 'Resolved').length;
+
+        targetSpace.innerHTML = `
+          <div class="space-y-6 w-full">
+            
+            <!-- Summary Stats Header Cards -->
+            <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
+              <div class="bg-white dark:bg-gray-900 border border-gray-200/80 dark:border-gray-800 rounded-2xl p-4.5 shadow-xs">
+                <span class="text-[10px] text-gray-500 dark:text-gray-400 font-bold uppercase tracking-wider block">Total Inquiries</span>
+                <span class="text-2xl font-black text-gray-950 dark:text-white mt-1 block">${cachedInquiries.length}</span>
+              </div>
+              <div class="bg-white dark:bg-gray-900 border border-gray-200/80 dark:border-gray-800 rounded-2xl p-4.5 shadow-xs">
+                <span class="text-[10px] text-amber-600 dark:text-amber-400 font-bold uppercase tracking-wider block">Unread Inquiries</span>
+                <span class="text-2xl font-black text-amber-600 dark:text-amber-400 mt-1 block">${unreadCount}</span>
+              </div>
+              <div class="bg-white dark:bg-gray-900 border border-gray-200/80 dark:border-gray-800 rounded-2xl p-4.5 shadow-xs">
+                <span class="text-[10px] text-blue-600 dark:text-blue-400 font-bold uppercase tracking-wider block">In Progress</span>
+                <span class="text-2xl font-black text-blue-600 dark:text-blue-400 mt-1 block">${inProgressCount}</span>
+              </div>
+              <div class="bg-white dark:bg-gray-900 border border-gray-200/80 dark:border-gray-800 rounded-2xl p-4.5 shadow-xs">
+                <span class="text-[10px] text-[#1E6C02] dark:text-emerald-400 font-bold uppercase tracking-wider block">Resolved</span>
+                <span class="text-2xl font-black text-[#1E6C02] dark:text-emerald-400 mt-1 block">${resolvedCount}</span>
+              </div>
+            </div>
+
+            <!-- Top Toolbar -->
+            <div class="bg-white dark:bg-gray-900 rounded-2xl p-4 sm:p-5 border border-gray-200/80 dark:border-gray-800 shadow-xs flex flex-wrap items-center justify-between gap-4 w-full">
+              <!-- Search Input -->
+              <div class="relative w-full sm:w-80">
+                <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-4 h-4"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                </span>
+                <input 
+                  type="text" 
+                  id="inp-search-inquiries" 
+                  placeholder="Search name, email, subject, message..." 
+                  value="${searchQuery}"
+                  class="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-sm font-semibold text-gray-900 dark:text-gray-100 pl-10 pr-4 py-2.5 rounded-xl focus:border-[#1E6C02] outline-none transition-all"
+                />
+              </div>
+
+              <!-- Filter Selector & Refresh -->
+              <div class="flex items-center gap-2.5 flex-wrap">
+                <div class="flex items-center gap-1.5 bg-gray-100 dark:bg-gray-800 p-1 rounded-xl">
+                  <button data-filter="all" class="btn-filter-tab px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${statusFilter === 'all' ? 'bg-white dark:bg-gray-900 text-gray-950 dark:text-white shadow-xs' : 'text-gray-600 dark:text-gray-400 hover:text-gray-900'}">All (${cachedInquiries.length})</button>
+                  <button data-filter="unread" class="btn-filter-tab px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${statusFilter === 'unread' ? 'bg-white dark:bg-gray-900 text-amber-600 dark:text-amber-400 shadow-xs' : 'text-gray-600 dark:text-gray-400 hover:text-gray-900'}">Unread (${unreadCount})</button>
+                  <button data-filter="in progress" class="btn-filter-tab px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${statusFilter === 'in progress' ? 'bg-white dark:bg-gray-900 text-blue-600 dark:text-blue-400 shadow-xs' : 'text-gray-600 dark:text-gray-400 hover:text-gray-900'}">In Progress (${inProgressCount})</button>
+                  <button data-filter="resolved" class="btn-filter-tab px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${statusFilter === 'resolved' ? 'bg-white dark:bg-gray-900 text-[#1E6C02] dark:text-emerald-400 shadow-xs' : 'text-gray-600 dark:text-gray-400 hover:text-gray-900'}">Resolved (${resolvedCount})</button>
+                </div>
+
+                <button id="btn-refresh-inquiries" class="p-2.5 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-700 rounded-xl text-gray-600 dark:text-gray-300 cursor-pointer transition-colors" title="Reload from Firestore">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-4 h-4"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+                </button>
+              </div>
+            </div>
+
+            <!-- Inquiries Data Table -->
+            <div class="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200/80 dark:border-gray-800 shadow-xs overflow-hidden">
+              <div id="inquiries-table-scroll" class="overflow-x-auto w-full">
+                <table class="w-full text-left border-collapse min-w-[700px]">
+                  <thead>
+                    <tr class="border-b border-gray-200 dark:border-gray-800 bg-gray-50/75 dark:bg-gray-800/50 text-[11px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                      <th class="py-3.5 px-5">Customer</th>
+                      <th class="py-3.5 px-5">Email</th>
+                      <th class="py-3.5 px-5">Subject</th>
+                      <th class="py-3.5 px-5">Date</th>
+                      <th class="py-3.5 px-5 text-center">Status</th>
+                      <th class="py-3.5 px-5 text-right">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-gray-100 dark:divide-gray-800 text-sm">
+                    ${filtered.length === 0 ? `
+                      <tr>
+                        <td colspan="6" class="py-12 px-5 text-center text-gray-500 dark:text-gray-400">
+                          <div class="flex flex-col items-center justify-center gap-2">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="w-10 h-10 text-gray-300 dark:text-gray-600"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                            <p class="font-bold text-gray-700 dark:text-gray-300">No customer inquiries found</p>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">${q || statusFilter !== 'all' ? 'Try adjusting your search query or filter.' : 'Inquiries submitted through the Contact Us page will appear here.'}</p>
+                          </div>
+                        </td>
+                      </tr>
+                    ` : filtered.map(inq => {
+                      const isUnread = normalizeStatus(inq.status) === 'Unread';
+                      return `
+                        <tr class="hover:bg-gray-50/80 dark:hover:bg-gray-800/40 transition-colors ${isUnread ? 'bg-amber-50/30 dark:bg-amber-950/10 font-semibold' : ''}" data-row-id="${inq.id}">
+                          <td class="py-4 px-5">
+                            <div class="flex items-center gap-2.5">
+                              ${isUnread ? `<span class="w-2 h-2 rounded-full bg-amber-500 shrink-0"></span>` : `<span class="w-2 h-2 rounded-full bg-transparent shrink-0"></span>`}
+                              <span class="text-gray-900 dark:text-white font-bold">${inq.name || 'Anonymous'}</span>
+                            </div>
+                          </td>
+                          <td class="py-4 px-5">
+                            <a href="mailto:${inq.email}" class="text-gray-700 dark:text-gray-300 hover:text-[#1E6C02] dark:hover:text-emerald-400 hover:underline text-xs font-medium">${inq.email || '--'}</a>
+                          </td>
+                          <td class="py-4 px-5">
+                            <span class="text-gray-900 dark:text-white line-clamp-1 max-w-[240px]">${inq.subject || 'No Subject'}</span>
+                          </td>
+                          <td class="py-4 px-5 whitespace-nowrap text-xs text-gray-600 dark:text-gray-400">
+                            ${formatDate(inq.createdAt)}
+                          </td>
+                          <td class="py-4 px-5 text-center whitespace-nowrap">
+                            ${renderStatusBadge(inq.status)}
+                          </td>
+                          <td class="py-4 px-5 text-right whitespace-nowrap">
+                            <button class="btn-view-inquiry px-3.5 py-1.5 bg-[#1E6C02] hover:bg-[#154E01] text-white text-xs font-bold rounded-xl transition-all cursor-pointer inline-flex items-center gap-1.5 shadow-xs" data-id="${inq.id}">
+                              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-3.5 h-3.5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                              View
+                            </button>
+                          </td>
+                        </tr>
+                      `;
+                    }).join('')}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+          </div>
+        `;
+
+        // Wire search input
+        const searchInput = document.getElementById('inp-search-inquiries');
+        if (searchInput) {
+          searchInput.addEventListener('input', (e) => {
+            searchQuery = e.target.value;
+            renderTable();
+          });
+          // Restore focus cursor position
+          if (q) {
+            searchInput.focus();
+            searchInput.setSelectionRange(q.length, q.length);
+          }
+        }
+
+        // Wire filter buttons
+        document.querySelectorAll('.btn-filter-tab').forEach(btn => {
+          btn.addEventListener('click', () => {
+            statusFilter = btn.getAttribute('data-filter');
+            renderTable();
+          });
+        });
+
+        // Wire refresh button
+        const refreshBtn = document.getElementById('btn-refresh-inquiries');
+        if (refreshBtn) {
+          refreshBtn.addEventListener('click', async () => {
+            refreshBtn.classList.add('animate-spin');
+            cachedInquiries = await getAllContactMessages();
+            refreshBtn.classList.remove('animate-spin');
+            renderTable();
+            showToast('Inquiries refreshed from Firestore');
+          });
+        }
+
+        // Wire view buttons
+        document.querySelectorAll('.btn-view-inquiry').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const id = btn.getAttribute('data-id');
+            const found = cachedInquiries.find(i => String(i.id) === String(id));
+            if (found) {
+              openInquiryDetail(found);
+            }
+          });
+        });
+      }
+
+      // Initial data fetch from Firebase Firestore as primary source of truth
+      cachedInquiries = await getAllContactMessages();
+      renderTable();
+
+      // Deep linking: check if navigated from notification or URL param
+      const urlParams = new URLSearchParams(window.location.search);
+      const targetId = urlParams.get('targetId') || urlParams.get('id');
+      if (targetId) {
+        const found = cachedInquiries.find(i => String(i.id) === String(targetId));
+        if (found) {
+          openInquiryDetail(found);
+        }
+      }
+
+      // Reactive real-time synchronization listener
+      window.addEventListener('aurora-sync-event', async (e) => {
+        if (!e.detail || e.detail.key === 'aurora-messages') {
+          cachedInquiries = await getAllContactMessages();
+          renderTable();
+        }
+      });
+    });
+  </script>
+</body>
+</html>

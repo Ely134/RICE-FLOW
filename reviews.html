@@ -1,0 +1,1132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Customer Reviews | RiceFlow</title>
+  <link rel="stylesheet" href="src/styles/index.css">
+</head>
+<body class="bg-[#F5F5F5] min-h-screen text-[#222222]">
+
+  <!-- Dynamic Header Bar -->
+  <div id="navbar-container"></div>
+
+  <!-- Main reviews container -->
+  <main class="py-8 lg:py-12 max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 min-h-screen animate-in fade-in duration-300">
+    
+    <!-- Title & Action Header -->
+    <div class="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
+      <div>
+        <h1 class="text-3xl sm:text-4xl lg:text-5xl font-black text-[#222222] mb-2 tracking-tight">Customer Reviews</h1>
+        <p class="text-sm sm:text-base text-gray-600 font-medium">Authentic feedback from verified RiceFlow customers</p>
+      </div>
+
+      <div id="header-action-container" class="flex items-center gap-3">
+        <!-- Injected dynamically: 'Write a Review' button or login prompt -->
+      </div>
+    </div>
+
+    <!-- Review Form Container (Triggered via ?orderId= or when customer selects an order to review) -->
+    <div id="review-submission-section" class="hidden mb-10">
+      <!-- Populated dynamically with product and ordering experience review form -->
+    </div>
+
+    <!-- Main Section Grid layout -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      
+      <!-- Left column: Rating Summary Info (Span 1) -->
+      <div class="lg:col-span-1 space-y-6">
+        
+        <!-- CARD 1: Overall Rice Products Rating -->
+        <div class="bg-white rounded-[28px] border border-gray-150 p-6 sm:p-8 shadow-sm text-center flex flex-col items-center">
+          <div class="flex items-center gap-2 mb-4">
+            <span class="text-lg">🌾</span>
+            <h2 class="text-xs font-black text-gray-800 uppercase tracking-widest">Rice Products Rating</h2>
+          </div>
+          
+          <!-- Rating numerical score -->
+          <span class="text-6xl sm:text-7xl font-black text-[#1E6C02] tracking-tight mb-2 select-none" id="product-overall-score">0.0</span>
+          
+          <!-- Stars presentation -->
+          <div class="flex items-center gap-1 mb-2 select-none" id="product-overall-stars">
+            <!-- Rendered by controller -->
+          </div>
+          
+          <p class="text-xs text-gray-500 font-bold select-none" id="product-overall-count">Based on 0 product reviews</p>
+
+          <!-- Divider line decoration -->
+          <div class="w-full h-px bg-gray-100 my-6"></div>
+
+          <!-- Rating distribution detail lines -->
+          <div class="space-y-3 w-full" id="product-breakdown-container">
+            <!-- Rendered dynamically by script -->
+          </div>
+        </div>
+
+        <!-- CARD 2: Ordering Experience Rating -->
+        <div class="bg-white rounded-[28px] border border-gray-150 p-6 sm:p-8 shadow-sm text-center flex flex-col items-center">
+          <div class="flex items-center gap-2 mb-4">
+            <span class="text-lg">🛒</span>
+            <h2 class="text-xs font-black text-gray-800 uppercase tracking-widest">Ordering Experience Rating</h2>
+          </div>
+          
+          <!-- Rating numerical score -->
+          <span class="text-5xl sm:text-6xl font-black text-[#1E6C02] tracking-tight mb-2 select-none" id="experience-overall-score">0.0</span>
+          
+          <!-- Stars presentation -->
+          <div class="flex items-center gap-1 mb-2 select-none" id="experience-overall-stars">
+            <!-- Rendered by controller -->
+          </div>
+          
+          <p class="text-xs text-gray-500 font-bold select-none" id="experience-overall-count">No ordering experience ratings yet</p>
+          <p class="text-[11px] text-gray-400 mt-2">Evaluates checkout, customer service, and delivery reliability</p>
+        </div>
+
+      </div>
+
+      <!-- Right column: Controls & Interactive Reviews Lists (Span 2) -->
+      <div class="lg:col-span-2 space-y-6">
+        
+        <!-- Search input & Category Tabs & Sorting control filter header -->
+        <div class="bg-white rounded-[24px] border border-gray-150 p-5 shadow-sm space-y-4">
+          <div class="flex flex-col sm:flex-row gap-4 items-center justify-between">
+            <!-- Search box -->
+            <div class="relative w-full sm:flex-1">
+              <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none select-none">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+              </span>
+              <input 
+                type="text" 
+                id="search-reviews-input"
+                placeholder="Search by customer, variety, or feedback..." 
+                class="w-full h-11 pl-10 pr-4 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-[#1E6C02]/10 focus:border-[#1E6C02] transition-all text-xs sm:text-sm font-semibold text-[#222222]"
+              />
+            </div>
+
+            <!-- Sorting menu -->
+            <div class="relative w-full sm:w-48">
+              <select 
+                id="sort-reviews-select"
+                class="w-full h-11 bg-gray-50 appearance-none border border-gray-200 text-xs sm:text-sm font-bold text-gray-700 px-4 pr-9 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-[#1E6C02]/10 focus:border-[#1E6C02] transition-all cursor-pointer"
+              >
+                <option value="recent">Most Recent</option>
+                <option value="highest">Highest Rating</option>
+                <option value="lowest">Lowest Rating</option>
+              </select>
+              <span class="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none select-none">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
+              </span>
+            </div>
+          </div>
+
+          <!-- Category Filter Tabs -->
+          <div class="flex items-center gap-2 pt-2 border-t border-gray-100 flex-wrap text-xs font-bold">
+            <button 
+              data-filter="all"
+              class="review-tab-btn active px-3.5 py-1.5 rounded-lg bg-[#1E6C02] text-white border border-[#1E6C02] transition-all cursor-pointer"
+            >
+              All Reviews (<span id="tab-count-all">0</span>)
+            </button>
+            <button 
+              data-filter="product"
+              class="review-tab-btn px-3.5 py-1.5 rounded-lg bg-gray-50 hover:bg-gray-100 text-gray-600 border border-gray-200 transition-all cursor-pointer"
+            >
+              Product Reviews (<span id="tab-count-product">0</span>)
+            </button>
+            <button 
+              data-filter="experience"
+              class="review-tab-btn px-3.5 py-1.5 rounded-lg bg-gray-50 hover:bg-gray-100 text-gray-600 border border-gray-200 transition-all cursor-pointer"
+            >
+              Ordering Experience (<span id="tab-count-experience">0</span>)
+            </button>
+          </div>
+        </div>
+
+        <!-- Scrollable dynamic review entries cards layout stack -->
+        <div class="space-y-4" id="reviews-list">
+          <!-- Populated dynamically via JS module logic -->
+        </div>
+
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Image Lightbox Modal for Review Photos -->
+  <div id="image-lightbox-modal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-xs flex items-center justify-center p-4 hidden">
+    <div class="relative max-w-3xl w-full flex flex-col items-center">
+      <button id="btn-close-lightbox" class="absolute -top-12 right-0 text-white hover:text-gray-300 font-black text-2xl p-2 cursor-pointer outline-none">
+        ✕ Close
+      </button>
+      <img id="lightbox-img" src="" alt="Review Photo Fullscreen" class="max-h-[85vh] max-w-full rounded-2xl object-contain shadow-2xl border border-white/10" />
+    </div>
+  </div>
+
+  <!-- Dynamic Footer Bar -->
+  <div id="footer-container"></div>
+
+  <!-- Shared vanilla platform runtime engine -->
+  <script type="module" src="src/app/shared.js"></script>
+
+  <!-- Embedded page controller logic -->
+  <script type="module">
+    import { 
+      getReviews, 
+      getCurrentUser, 
+      getOrders, 
+      isCustomerOrderOwner,
+      isOrderDeliveredOrCompleted,
+      isOrderEligibleForReview, 
+      submitProductReview, 
+      submitOrderingExperienceReview, 
+      showToast, 
+      compressImageFile 
+    } from './src/app/shared.js';
+
+    // SVG graphics templates to construct stars cleanly
+    const starYellowSvg = `<svg class="w-5 h-5 text-yellow-400 fill-yellow-400 stroke-yellow-400" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>`;
+    const starGraySvg = `<svg class="w-5 h-5 text-gray-250 fill-gray-200 stroke-gray-250" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>`;
+
+    function renderStarsHtml(rating) {
+      let html = '';
+      const r = Math.round(Number(rating) || 0);
+      for (let i = 1; i <= 5; i++) {
+        if (i <= r) {
+          html += starYellowSvg;
+        } else {
+          html += starGraySvg;
+        }
+      }
+      return html;
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const searchInp = document.getElementById('search-reviews-input');
+      const sortSelect = document.getElementById('sort-reviews-select');
+      const listContainer = document.getElementById('reviews-list');
+      
+      const productScore = document.getElementById('product-overall-score');
+      const productStars = document.getElementById('product-overall-stars');
+      const productCount = document.getElementById('product-overall-count');
+      const productBreakdown = document.getElementById('product-breakdown-container');
+
+      const expScore = document.getElementById('experience-overall-score');
+      const expStars = document.getElementById('experience-overall-stars');
+      const expCount = document.getElementById('experience-overall-count');
+
+      const tabCountAll = document.getElementById('tab-count-all');
+      const tabCountProduct = document.getElementById('tab-count-product');
+      const tabCountExp = document.getElementById('tab-count-experience');
+
+      const tabBtns = document.querySelectorAll('.review-tab-btn');
+      let activeCategoryFilter = 'all'; // 'all', 'product', 'experience'
+
+      // Lightbox elements
+      const lightboxModal = document.getElementById('image-lightbox-modal');
+      const lightboxImg = document.getElementById('lightbox-img');
+      const btnCloseLightbox = document.getElementById('btn-close-lightbox');
+
+      if (btnCloseLightbox) {
+        btnCloseLightbox.addEventListener('click', () => {
+          lightboxModal.classList.add('hidden');
+        });
+      }
+      if (lightboxModal) {
+        lightboxModal.addEventListener('click', (e) => {
+          if (e.target === lightboxModal) {
+            lightboxModal.classList.add('hidden');
+          }
+        });
+      }
+
+      window.openReviewPhotoModal = (imgUrl) => {
+        if (!imgUrl || !lightboxModal || !lightboxImg) return;
+        lightboxImg.src = imgUrl;
+        lightboxModal.classList.remove('hidden');
+      };
+
+      // Tab Buttons Listener
+      tabBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          tabBtns.forEach(b => {
+            b.classList.remove('bg-[#1E6C02]', 'text-white', 'border-[#1E6C02]');
+            b.classList.add('bg-gray-50', 'text-gray-600', 'border-gray-200');
+          });
+          btn.classList.remove('bg-gray-50', 'text-gray-600', 'border-gray-200');
+          btn.classList.add('bg-[#1E6C02]', 'text-white', 'border-[#1E6C02]');
+          activeCategoryFilter = btn.getAttribute('data-filter') || 'all';
+          filterAndRenderReviews();
+        });
+      });
+
+      // Calculate separate stats
+      function calculateAndRenderStats(allReviews) {
+        // 1. Separate Product Reviews vs Ordering Experience Reviews
+        const productReviews = allReviews.filter(r => r.type !== 'ordering_experience' && r.type !== 'experience');
+        const expReviews = allReviews.filter(r => r.type === 'ordering_experience' || r.type === 'experience');
+
+        // Update Tab Counts
+        if (tabCountAll) tabCountAll.textContent = allReviews.length;
+        if (tabCountProduct) tabCountProduct.textContent = productReviews.length;
+        if (tabCountExp) tabCountExp.textContent = expReviews.length;
+
+        // --- PRODUCT REVIEWS STATS ---
+        const pTotal = productReviews.length;
+        let pAvgRating = '0.0';
+        let pCounts = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
+
+        if (pTotal > 0) {
+          let sum = 0;
+          productReviews.forEach(r => {
+            const num = parseFloat(r.rating) || 0;
+            sum += num;
+            const rInt = Math.min(5, Math.max(1, Math.round(num)));
+            if (pCounts[rInt] !== undefined) {
+              pCounts[rInt]++;
+            }
+          });
+          pAvgRating = (sum / pTotal).toFixed(1);
+        }
+
+        if (productScore) productScore.textContent = pAvgRating;
+        if (productStars) productStars.innerHTML = renderStarsHtml(Math.round(Number(pAvgRating)));
+        if (productCount) {
+          productCount.textContent = pTotal === 0 
+            ? 'Based on 0 product reviews' 
+            : `Based on ${pTotal} product review${pTotal === 1 ? '' : 's'}`;
+        }
+
+        if (productBreakdown) {
+          let breakdownHtml = '';
+          [5, 4, 3, 2, 1].forEach(stars => {
+            const count = pCounts[stars] || 0;
+            const percentage = pTotal > 0 ? (count / pTotal) * 100 : 0;
+            breakdownHtml += `
+              <div class="flex items-center gap-3 text-xs font-bold text-gray-600 w-full">
+                <span class="w-8 select-none text-right">${stars} ★</span>
+                <div class="flex-grow h-2 bg-gray-100 rounded-full overflow-hidden">
+                  <div class="h-full bg-[#1E6C02] rounded-full transition-all duration-500" style="width: ${percentage}%"></div>
+                </div>
+                <span class="w-4 select-none text-left font-black text-gray-400">${count}</span>
+              </div>
+            `;
+          });
+          productBreakdown.innerHTML = breakdownHtml;
+        }
+
+        // --- ORDERING EXPERIENCE STATS ---
+        const expTotal = expReviews.length;
+        let expAvgRating = '0.0';
+
+        if (expTotal > 0) {
+          let sum = 0;
+          expReviews.forEach(r => {
+            const num = parseFloat(r.rating) || 0;
+            sum += num;
+          });
+          expAvgRating = (sum / expTotal).toFixed(1);
+        }
+
+        if (expScore) expScore.textContent = expAvgRating;
+        if (expStars) expStars.innerHTML = renderStarsHtml(Math.round(Number(expAvgRating)));
+        if (expCount) {
+          expCount.textContent = expTotal === 0 
+            ? 'No ordering experience ratings yet' 
+            : `Based on ${expTotal} rating${expTotal === 1 ? '' : 's'}`;
+        }
+      }
+
+      function filterAndRenderReviews() {
+        let reviews = getReviews();
+
+        // 1. Calculate stats dynamically
+        calculateAndRenderStats(reviews);
+
+        // 2. Filter by Category
+        if (activeCategoryFilter === 'product') {
+          reviews = reviews.filter(r => r.type !== 'ordering_experience' && r.type !== 'experience');
+        } else if (activeCategoryFilter === 'experience') {
+          reviews = reviews.filter(r => r.type === 'ordering_experience' || r.type === 'experience');
+        }
+
+        // 3. Filter by Search
+        const searchVal = (searchInp && searchInp.value ? searchInp.value : '').trim().toLowerCase();
+        if (searchVal) {
+          reviews = reviews.filter(r => 
+            (r.name || '').toLowerCase().includes(searchVal) || 
+            (r.title && (r.title || '').toLowerCase().includes(searchVal)) ||
+            (r.comment && (r.comment || '').toLowerCase().includes(searchVal)) ||
+            (r.productName && (r.productName || '').toLowerCase().includes(searchVal))
+          );
+        }
+
+        // 4. Sort
+        const sortVal = sortSelect.value;
+        if (sortVal === 'highest') {
+          reviews.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+        } else if (sortVal === 'lowest') {
+          reviews.sort((a, b) => (a.rating || 0) - (b.rating || 0));
+        } else {
+          reviews.sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
+        }
+
+        // 5. Empty State
+        if (reviews.length === 0) {
+          const isSearching = Boolean(searchVal);
+          listContainer.innerHTML = `
+            <div class="p-12 text-center bg-white rounded-[24px] border border-gray-150 select-none">
+              <div class="w-16 h-16 rounded-full bg-emerald-50 text-[#1E6C02] flex items-center justify-center mx-auto mb-4 border border-emerald-100">
+                <span class="text-2xl">${isSearching ? '🔍' : '🌾'}</span>
+              </div>
+              <h3 class="text-base font-black text-gray-900 mb-1">
+                ${isSearching ? 'No reviews matched your search' : 'No customer reviews yet.'}
+              </h3>
+              <p class="text-xs text-gray-500 font-semibold max-w-md mx-auto">
+                ${isSearching 
+                  ? 'Try searching with different keywords, rice varieties, or customer names.' 
+                  : 'Customer reviews will appear here once verified orders are completed and reviewed.'}
+              </p>
+            </div>
+          `;
+          return;
+        }
+
+        // 6. Render Cards
+        listContainer.innerHTML = reviews.map(review => {
+          const isExpReview = review.type === 'ordering_experience' || review.type === 'experience';
+          const initialLetter = review.name ? review.name[0].toUpperCase() : 'U';
+          const starsCode = renderStarsHtml(review.rating);
+          
+          let formattedDate = review.date;
+          try {
+            const dateObj = new Date(review.date);
+            if (!isNaN(dateObj)) {
+              formattedDate = dateObj.toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+              });
+            }
+          } catch(e) {}
+
+          // Photos gallery if available
+          let photosHtml = '';
+          if (Array.isArray(review.photos) && review.photos.length > 0) {
+            photosHtml = `
+              <div class="mt-4 flex flex-wrap gap-2.5 items-center">
+                ${review.photos.map((pUrl, idx) => `
+                  <button 
+                    type="button"
+                    class="relative group rounded-xl overflow-hidden border border-gray-200 hover:border-[#1E6C02] transition-all cursor-pointer shadow-3xs"
+                    onclick="window.openReviewPhotoModal('${pUrl}')"
+                    title="Click to preview photo"
+                  >
+                    <img src="${pUrl}" alt="Review photo ${idx + 1}" class="w-16 h-16 sm:w-20 sm:h-20 object-cover group-hover:scale-105 transition-all duration-300" />
+                    <div class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all flex items-center justify-center">
+                      <span class="text-white opacity-0 group-hover:opacity-100 text-xs font-bold">🔍</span>
+                    </div>
+                  </button>
+                `).join('')}
+              </div>
+            `;
+          }
+
+          if (isExpReview) {
+            return `
+              <div class="bg-white rounded-[24px] border border-gray-150 p-6 sm:p-7 hover:shadow-md transition-all duration-300">
+                <div class="flex items-start justify-between mb-4 flex-wrap gap-2">
+                  <div class="flex items-center gap-3.5">
+                    <div class="w-11 h-11 rounded-full bg-blue-50 text-blue-700 border border-blue-100 flex items-center justify-center font-black text-sm shadow-xs select-none uppercase">
+                      ${initialLetter}
+                    </div>
+                    <div>
+                      <div class="flex items-center gap-2">
+                        <h4 class="font-extrabold text-gray-900 text-sm leading-tight">${review.name || 'Verified Customer'}</h4>
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-blue-50 text-blue-700 border border-blue-200">
+                          Ordering Experience
+                        </span>
+                      </div>
+                      <div class="flex items-center gap-1 mt-1">
+                        ${starsCode}
+                      </div>
+                    </div>
+                  </div>
+                  <span class="text-xs text-gray-400 font-bold select-none whitespace-nowrap">${formattedDate}</span>
+                </div>
+
+                <div class="mt-3">
+                  <p class="text-xs sm:text-sm font-medium text-gray-600 leading-relaxed italic">
+                    "${review.comment}"
+                  </p>
+                </div>
+
+                <div class="mt-5 pt-3 border-t border-gray-100 flex items-center justify-between text-xs">
+                  <span class="text-gray-400 font-bold">RiceFlow Service & Checkout Feedback</span>
+                  <span class="text-blue-700 bg-blue-50 border border-blue-100 px-2.5 py-1 rounded-lg font-bold flex items-center gap-1">
+                    <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>Verified Order
+                  </span>
+                </div>
+              </div>
+            `;
+          }
+
+          // Product Review Card
+          return `
+            <div class="bg-white rounded-[24px] border border-gray-150 p-6 sm:p-7 hover:shadow-md transition-all duration-300">
+              <div class="flex items-start justify-between mb-4 flex-wrap gap-2">
+                <div class="flex items-center gap-3.5">
+                  <div class="w-11 h-11 rounded-full bg-green-50 text-[#1E6C02] border border-green-100 flex items-center justify-center font-black text-sm shadow-xs select-none uppercase">
+                    ${initialLetter}
+                  </div>
+                  <div>
+                    <h4 class="font-extrabold text-gray-900 text-sm leading-tight">${review.name || 'Verified Customer'}</h4>
+                    <div class="flex items-center gap-1 mt-1">
+                      ${starsCode}
+                    </div>
+                  </div>
+                </div>
+                <span class="text-xs text-gray-400 font-bold select-none whitespace-nowrap">${formattedDate}</span>
+              </div>
+
+              <div class="mt-3">
+                <h5 class="text-sm sm:text-base font-black text-gray-900 mb-1 leading-snug">${review.title || 'Quality Rice'}</h5>
+                <p class="text-xs sm:text-sm font-medium text-gray-600 leading-relaxed italic">
+                  "${review.comment}"
+                </p>
+              </div>
+
+              ${photosHtml}
+
+              <div class="mt-5 pt-3.5 border-t border-gray-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-xs">
+                <span class="text-gray-500 font-bold">
+                  Rice Product: <span class="text-[#1E6C02] font-black">${review.productName || 'Rice Variety'}</span>
+                </span>
+                <span class="text-emerald-700 bg-emerald-50 border border-emerald-100 max-w-fit px-2.5 py-1 rounded-lg font-bold flex items-center gap-1">
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>Verified Purchase
+                </span>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+
+      // -------------------------------------------------------------
+      // INTERACTIVE REVIEW SUBMISSION FORM LOGIC
+      // -------------------------------------------------------------
+      const submissionSection = document.getElementById('review-submission-section');
+      const headerActionContainer = document.getElementById('header-action-container');
+
+      function setupReviewFormFlow() {
+        const user = getCurrentUser();
+        const urlParams = new URLSearchParams(window.location.search);
+        const targetOrderId = urlParams.get('orderId');
+
+        // Check if user is logged in
+        if (!user) {
+          if (headerActionContainer) {
+            headerActionContainer.innerHTML = `
+              <a href="login.html?redirect=reviews.html" class="px-4 py-2 bg-white hover:bg-gray-50 text-gray-800 border border-gray-200 rounded-xl text-xs sm:text-sm font-bold transition-all shadow-xs flex items-center gap-1.5">
+                <span>🔐</span> Log In to Review
+              </a>
+            `;
+          }
+          if (targetOrderId && submissionSection) {
+            submissionSection.classList.remove('hidden');
+            submissionSection.innerHTML = `
+              <div class="bg-amber-50 border border-amber-200 rounded-2xl p-6 text-center space-y-2">
+                <h3 class="text-sm font-black text-amber-900">Please Log In to Leave a Review</h3>
+                <p class="text-xs text-amber-700 font-medium">You must be logged into your RiceFlow customer account to review your delivered purchase.</p>
+                <a href="login.html?redirect=${encodeURIComponent(window.location.href)}" class="inline-block mt-2 px-5 py-2 bg-[#1E6C02] text-white font-bold text-xs rounded-xl shadow-xs">
+                  Log In Now
+                </a>
+              </div>
+            `;
+          }
+          return;
+        }
+
+        // User is logged in: Check completed orders
+        const allOrders = getOrders();
+        const myOrders = allOrders.filter(o => isCustomerOrderOwner(o, user));
+        const eligibleOrders = myOrders.filter(o => isOrderEligibleForReview(o, user));
+
+        if (headerActionContainer) {
+          if (eligibleOrders.length > 0) {
+            headerActionContainer.innerHTML = `
+              <button id="btn-toggle-write-review" class="px-4 py-2 bg-[#1E6C02] hover:bg-[#145001] text-white rounded-xl text-xs sm:text-sm font-extrabold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer">
+                <span>★</span> Write a Review
+              </button>
+            `;
+            document.getElementById('btn-toggle-write-review').addEventListener('click', () => {
+              if (submissionSection.classList.contains('hidden')) {
+                const defaultOrder = targetOrderId ? eligibleOrders.find(o => String(o.id) === String(targetOrderId)) || eligibleOrders[0] : eligibleOrders[0];
+                renderOrderReviewForm(defaultOrder.id, eligibleOrders);
+              } else {
+                submissionSection.classList.add('hidden');
+              }
+            });
+          } else {
+            headerActionContainer.innerHTML = `
+              <span class="text-xs text-gray-400 font-bold bg-white px-3.5 py-2 rounded-xl border border-gray-150 select-none">
+                Delivered orders can be reviewed in Profile
+              </span>
+            `;
+          }
+        }
+
+        // If targetOrderId is specified in URL
+        if (targetOrderId) {
+          const matchedOrder = allOrders.find(o => String(o.id).trim().toLowerCase() === String(targetOrderId).trim().toLowerCase());
+          if (!matchedOrder) {
+            submissionSection.classList.remove('hidden');
+            submissionSection.innerHTML = `
+              <div class="bg-red-50 border border-red-200 rounded-2xl p-6 text-center space-y-2">
+                <h3 class="text-sm font-black text-red-900">Order Not Found</h3>
+                <p class="text-xs text-red-700 font-medium">The requested order #${targetOrderId} could not be located in our system.</p>
+              </div>
+            `;
+            return;
+          }
+
+          // Strict ownership & status check
+          const isEligible = isOrderEligibleForReview(matchedOrder, user);
+          if (!isEligible) {
+            submissionSection.classList.remove('hidden');
+            submissionSection.innerHTML = `
+              <div class="bg-red-50 border border-red-200 rounded-2xl p-6 text-center space-y-2">
+                <div class="w-10 h-10 rounded-full bg-red-100 text-red-700 flex items-center justify-center mx-auto mb-1">
+                  <span class="text-lg">🚫</span>
+                </div>
+                <h3 class="text-sm font-black text-red-900">Review Unauthorized</h3>
+                <p class="text-xs text-red-700 font-semibold max-w-md mx-auto leading-relaxed">
+                  You can only review your own delivered or completed orders. This order is either not assigned to your account or has not yet completed delivery.
+                </p>
+                <div class="pt-2">
+                  <a href="profile.html?tab=purchases" class="text-xs font-extrabold text-[#1E6C02] underline">
+                    Return to My Purchases
+                  </a>
+                </div>
+              </div>
+            `;
+            return;
+          }
+
+          if (!eligibleOrders.some(eo => String(eo.id) === String(matchedOrder.id))) {
+            eligibleOrders.push(matchedOrder);
+          }
+
+          renderOrderReviewForm(matchedOrder.id, eligibleOrders);
+        }
+      }
+
+      function renderOrderReviewForm(orderId, eligibleOrders) {
+        if (!submissionSection) return;
+        submissionSection.classList.remove('hidden');
+
+        const allOrders = getOrders();
+        const order = allOrders.find(o => String(o.id) === String(orderId));
+        if (!order) return;
+
+        const allReviews = getReviews();
+
+        // Determine items
+        const orderItems = order.items && order.items.length > 0 ? order.items : [{
+          product: { id: order.productId, name: order.productName || 'Rice Variety', image: order.productImage || 'src/assets/rice-bag.png' },
+          quantity: order.quantity || 1
+        }];
+
+        // Ordering experience review check
+        const existingExpReview = allReviews.find(r => 
+          String(r.orderId || '') === String(order.id) &&
+          (r.reviewType === 'ordering-experience' || r.type === 'ordering_experience' || r.type === 'experience')
+        );
+
+        // Order selector dropdown if multiple eligible orders
+        let orderSelectorHtml = '';
+        if (eligibleOrders && eligibleOrders.length > 1) {
+          orderSelectorHtml = `
+            <div class="mb-4 flex items-center gap-2 text-xs font-bold text-gray-700 flex-wrap">
+              <span>Switch Completed Order:</span>
+              <select id="review-order-switcher" class="bg-gray-50 border border-gray-250 rounded-lg px-2.5 py-1 text-xs font-extrabold cursor-pointer outline-none">
+                ${eligibleOrders.map(eo => `
+                  <option value="${eo.id}" ${String(eo.id) === String(order.id) ? 'selected' : ''}>
+                    Order #${eo.id} (Delivered ${new Date(eo.createdAt).toLocaleDateString()})
+                  </option>
+                `).join('')}
+              </select>
+            </div>
+          `;
+        }
+
+        submissionSection.innerHTML = `
+          <div class="bg-white rounded-[28px] border-2 border-emerald-200 p-6 sm:p-8 shadow-sm space-y-6 text-left animate-in fade-in">
+            <div class="flex items-center justify-between border-b border-gray-100 pb-4 flex-wrap gap-2">
+              <div>
+                <div class="flex items-center gap-2">
+                  <span class="px-2.5 py-0.5 rounded-full text-[11px] font-black uppercase tracking-wider bg-emerald-50 text-[#1E6C02] border border-emerald-200">
+                    Verified Purchase Review
+                  </span>
+                  <span class="text-xs text-gray-400 font-bold">Order #${order.id}</span>
+                </div>
+                <h3 class="text-xl font-black text-gray-900 mt-1">Leave Customer Review</h3>
+                <p class="text-xs text-gray-500 font-medium">Rate the rice varieties you purchased and your overall RiceFlow ordering experience.</p>
+              </div>
+
+              <button id="btn-close-review-form" class="text-gray-400 hover:text-gray-600 font-bold text-xs p-1.5 cursor-pointer">
+                ✕ Close
+              </button>
+            </div>
+
+            ${orderSelectorHtml}
+
+            <!-- PART 1: PRODUCTS IN THIS ORDER -->
+            <div class="space-y-6">
+              <h4 class="text-xs font-black text-gray-400 uppercase tracking-widest">1. Purchased Rice Varieties</h4>
+              
+              <div class="space-y-6">
+                ${orderItems.map((item, idx) => {
+                  const pId = String(item.product?.id || item.productId || item.id || '');
+                  const pName = item.product?.name || item.name || 'Rice Variety';
+                  const pImg = item.product?.image || item.image || 'src/assets/rice-bag.png';
+
+                  const existingPReview = allReviews.find(r => 
+                    String(r.orderId || '') === String(order.id) &&
+                    (String(r.productId || '') === pId || (r.productName && String(r.productName).toLowerCase() === pName.toLowerCase())) &&
+                    r.reviewType !== 'ordering-experience' &&
+                    r.type !== 'ordering_experience' &&
+                    r.type !== 'experience'
+                  );
+
+                  if (existingPReview) {
+                    return `
+                      <div class="p-5 bg-emerald-50/50 rounded-2xl border border-emerald-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <div class="flex items-center gap-4">
+                          <img src="${pImg}" alt="${pName}" class="w-14 h-14 object-cover rounded-xl border border-emerald-150" />
+                          <div>
+                            <span class="px-2 py-0.5 rounded text-[10px] font-black bg-emerald-100 text-emerald-800 uppercase tracking-wider">✔ Already Reviewed</span>
+                            <h5 class="text-sm font-black text-gray-900 mt-1">${pName}</h5>
+                            <div class="flex items-center gap-1 text-amber-500 text-xs mt-0.5">
+                              <span>${'★'.repeat(Math.round(existingPReview.rating || 5))}</span>
+                              <span class="text-gray-500 text-xs font-bold">(${existingPReview.rating}/5)</span>
+                            </div>
+                            <p class="text-xs text-gray-600 italic mt-1">"${existingPReview.comment}"</p>
+                          </div>
+                        </div>
+                      </div>
+                    `;
+                  }
+
+                  // Unreviewed product form
+                  return `
+                    <div class="p-6 bg-gray-50 rounded-2xl border border-gray-200 space-y-4 text-left" id="product-review-box-${idx}">
+                      <div class="flex items-center gap-4 pb-3 border-b border-gray-200/70">
+                        <img src="${pImg}" alt="${pName}" class="w-12 h-12 object-cover rounded-xl border border-gray-200" />
+                        <div>
+                          <h5 class="text-sm font-black text-gray-900">${pName}</h5>
+                          <span class="text-[11px] text-gray-400 font-bold">Share your product rating & quality assessment</span>
+                        </div>
+                      </div>
+
+                      <!-- Interactive Star Rating -->
+                      <div>
+                        <label class="block text-xs font-black text-gray-700 uppercase tracking-wider mb-1.5">Rating Score (1-5 Stars)*</label>
+                        <div class="flex items-center gap-1.5 text-2xl cursor-pointer select-none star-rating-picker" data-target-input="rating-input-${idx}" role="radiogroup" aria-label="Rating score from 1 to 5 stars">
+                          ${[1, 2, 3, 4, 5].map(starNum => `
+                            <button type="button" class="star-item text-gray-300 hover:text-yellow-400 focus:outline-none transition-transform active:scale-95 cursor-pointer bg-transparent border-0 p-0 text-2xl leading-none select-none" data-value="${starNum}" aria-label="${starNum} star${starNum > 1 ? 's' : ''}" role="radio" aria-checked="false">☆</button>
+                          `).join('')}
+                        </div>
+                        <input type="hidden" id="rating-input-${idx}" value="" />
+                      </div>
+
+                      <!-- Review Title -->
+                      <div>
+                        <label class="block text-xs font-black text-gray-700 uppercase tracking-wider mb-1.5">Review Headline / Title*</label>
+                        <input 
+                          type="text" 
+                          id="title-input-${idx}" 
+                          placeholder="e.g. Excellent grain quality and great fragrance!" 
+                          class="w-full h-11 px-4 bg-white border border-gray-200 rounded-xl text-xs sm:text-sm font-semibold outline-none focus:ring-2 focus:ring-[#1E6C02]/10 focus:border-[#1E6C02]"
+                        />
+                      </div>
+
+                      <!-- Review Comments -->
+                      <div>
+                        <label class="block text-xs font-black text-gray-700 uppercase tracking-wider mb-1.5">Review Details & Experience*</label>
+                        <textarea 
+                          id="comment-input-${idx}" 
+                          rows="3" 
+                          placeholder="Describe the rice texture, cooking quality, freshness, or packaging..."
+                          class="w-full p-4 bg-white border border-gray-200 rounded-xl text-xs sm:text-sm font-semibold outline-none focus:ring-2 focus:ring-[#1E6C02]/10 focus:border-[#1E6C02] resize-none"
+                        ></textarea>
+                      </div>
+
+                      <!-- Photo Upload (Up to 5) -->
+                      <div>
+                        <div class="flex items-center justify-between mb-1.5">
+                          <label class="text-xs font-black text-gray-700 uppercase tracking-wider">Attach Photos (Optional, Max 5)</label>
+                          <span class="text-[11px] text-gray-400 font-bold" id="photo-count-label-${idx}">0 / 5 photos</span>
+                        </div>
+                        
+                        <div class="flex flex-wrap gap-3 items-center">
+                          <div id="photo-previews-${idx}" class="flex flex-wrap gap-2.5"></div>
+                          
+                          <label id="upload-label-${idx}" class="w-20 h-20 rounded-xl border-2 border-dashed border-gray-300 hover:border-[#1E6C02] flex flex-col items-center justify-center cursor-pointer bg-white text-gray-400 hover:text-[#1E6C02] transition-all">
+                            <input type="file" id="photo-file-input-${idx}" accept="image/*" multiple class="hidden" />
+                            <span class="text-xl">+</span>
+                            <span class="text-[9px] font-black uppercase mt-0.5">Add Photo</span>
+                          </label>
+                        </div>
+                      </div>
+
+                      <div class="pt-2">
+                        <button 
+                          type="button" 
+                          class="btn-submit-p-review px-5 py-2.5 bg-[#1E6C02] hover:bg-[#145001] text-white font-extrabold rounded-xl text-xs transition-all shadow-xs cursor-pointer flex items-center gap-1.5"
+                          data-product-id="${pId}"
+                          data-product-name="${pName}"
+                          data-idx="${idx}"
+                        >
+                          Submit Product Review
+                        </button>
+                      </div>
+                    </div>
+                  `;
+                }).join('')}
+              </div>
+            </div>
+
+            <!-- PART 2: ORDERING EXPERIENCE REVIEW -->
+            <div class="pt-6 border-t border-gray-100 space-y-4">
+              <h4 class="text-xs font-black text-gray-400 uppercase tracking-widest">2. Ordering Experience (Store, Checkout & Delivery)</h4>
+              
+              ${existingExpReview ? `
+                <div class="p-5 bg-blue-50/60 rounded-2xl border border-blue-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-left">
+                  <div>
+                    <span class="px-2 py-0.5 rounded text-[10px] font-black bg-blue-100 text-blue-800 uppercase tracking-wider">✔ Experience Already Rated</span>
+                    <h5 class="text-sm font-black text-gray-900 mt-1">RiceFlow Store & Service Rating</h5>
+                    <div class="flex items-center gap-1 text-amber-500 text-xs mt-0.5">
+                      <span>${'★'.repeat(Math.round(existingExpReview.rating || 5))}</span>
+                      <span class="text-gray-500 text-xs font-bold">(${existingExpReview.rating}/5)</span>
+                    </div>
+                    <p class="text-xs text-gray-600 italic mt-1">"${existingExpReview.comment}"</p>
+                  </div>
+                </div>
+              ` : `
+                <div class="p-6 bg-gray-50 rounded-2xl border border-gray-200 space-y-4 text-left" id="experience-review-box">
+                  <!-- Interactive Star Rating -->
+                  <div>
+                    <label class="block text-xs font-black text-gray-700 uppercase tracking-wider mb-1.5">Service & Experience Rating (1-5 Stars)*</label>
+                    <div class="flex items-center gap-1.5 text-2xl cursor-pointer select-none star-rating-picker" data-target-input="rating-input-exp" role="radiogroup" aria-label="Service and experience rating from 1 to 5 stars">
+                      ${[1, 2, 3, 4, 5].map(starNum => `
+                        <button type="button" class="star-item text-gray-300 hover:text-yellow-400 focus:outline-none transition-transform active:scale-95 cursor-pointer bg-transparent border-0 p-0 text-2xl leading-none select-none" data-value="${starNum}" aria-label="${starNum} star${starNum > 1 ? 's' : ''}" role="radio" aria-checked="false">☆</button>
+                      `).join('')}
+                    </div>
+                    <input type="hidden" id="rating-input-exp" value="" />
+                  </div>
+
+                  <!-- Comments -->
+                  <div>
+                    <label class="block text-xs font-black text-gray-700 uppercase tracking-wider mb-1.5">Feedback & Comments (Optional)</label>
+                    <textarea 
+                      id="comment-input-exp" 
+                      rows="3" 
+                      placeholder="How was the website checkout, stock reservation updates, GCash verification, and delivery?"
+                      class="w-full p-4 bg-white border border-gray-200 rounded-xl text-xs sm:text-sm font-semibold outline-none focus:ring-2 focus:ring-[#1E6C02]/10 focus:border-[#1E6C02] resize-none"
+                    ></textarea>
+                  </div>
+
+                  <div class="pt-2">
+                    <button 
+                      type="button" 
+                      id="btn-submit-exp-review"
+                      class="px-5 py-2.5 bg-[#1E6C02] hover:bg-[#145001] text-white font-extrabold rounded-xl text-xs transition-all shadow-xs cursor-pointer flex items-center gap-1.5"
+                    >
+                      Submit Ordering Experience Review
+                    </button>
+                  </div>
+                </div>
+              `}
+            </div>
+
+          </div>
+        `;
+
+        // Bind interactive elements
+        // 1. Close button
+        const btnClose = document.getElementById('btn-close-review-form');
+        if (btnClose) {
+          btnClose.addEventListener('click', () => {
+            submissionSection.classList.add('hidden');
+          });
+        }
+
+        // 2. Order switcher
+        const switcher = document.getElementById('review-order-switcher');
+        if (switcher) {
+          switcher.addEventListener('change', (e) => {
+            renderOrderReviewForm(e.target.value, eligibleOrders);
+          });
+        }
+
+        // 3. Star rating pickers
+        document.querySelectorAll('.star-rating-picker').forEach(picker => {
+          const targetInputId = picker.getAttribute('data-target-input');
+          const hiddenInput = document.getElementById(targetInputId);
+          if (!hiddenInput) return;
+          const stars = picker.querySelectorAll('.star-item');
+
+          function updateStarsUI(rating) {
+            const count = parseInt(rating, 10) || 0;
+            stars.forEach((s, idx) => {
+              if (idx < count) {
+                s.textContent = '★';
+                s.classList.remove('text-gray-300');
+                s.classList.add('text-yellow-400');
+                s.setAttribute('aria-checked', 'true');
+              } else {
+                s.textContent = '☆';
+                s.classList.remove('text-yellow-400');
+                s.classList.add('text-gray-300');
+                s.setAttribute('aria-checked', 'false');
+              }
+            });
+          }
+
+          // Initial paint - empty state (all stars unselected)
+          updateStarsUI(hiddenInput.value ? parseInt(hiddenInput.value, 10) : 0);
+
+          stars.forEach(s => {
+            const val = parseInt(s.getAttribute('data-value'), 10) || 1;
+
+            s.addEventListener('click', (e) => {
+              e.preventDefault();
+              hiddenInput.value = String(val);
+              updateStarsUI(val);
+            });
+
+            s.addEventListener('mouseenter', () => {
+              updateStarsUI(val);
+            });
+
+            s.addEventListener('focus', () => {
+              updateStarsUI(val);
+            });
+          });
+
+          picker.addEventListener('mouseleave', () => {
+            const selectedVal = hiddenInput.value ? parseInt(hiddenInput.value, 10) : 0;
+            updateStarsUI(selectedVal);
+          });
+        });
+
+        // 4. Product Review Photo Attachments (up to 5 per product review)
+        const photoStores = {};
+
+        orderItems.forEach((_, idx) => {
+          photoStores[idx] = [];
+          const fileInp = document.getElementById(`photo-file-input-${idx}`);
+          const previewContainer = document.getElementById(`photo-previews-${idx}`);
+          const countLabel = document.getElementById(`photo-count-label-${idx}`);
+          const uploadLabel = document.getElementById(`upload-label-${idx}`);
+
+          function renderPhotos() {
+            if (!previewContainer) return;
+            previewContainer.innerHTML = photoStores[idx].map((photoData, pIdx) => `
+              <div class="relative w-20 h-20 rounded-xl overflow-hidden border border-gray-200 group">
+                <img src="${photoData}" class="w-full h-full object-cover" />
+                <button 
+                  type="button" 
+                  data-idx="${idx}" 
+                  data-photo-idx="${pIdx}"
+                  class="btn-remove-photo absolute top-1 right-1 w-5 h-5 bg-red-600 text-white rounded-full flex items-center justify-center text-[10px] font-bold shadow-xs hover:bg-red-700 cursor-pointer"
+                  title="Remove photo"
+                >
+                  ✕
+                </button>
+              </div>
+            `).join('');
+
+            if (countLabel) {
+              countLabel.textContent = `${photoStores[idx].length} / 5 photos`;
+            }
+
+            if (uploadLabel) {
+              if (photoStores[idx].length >= 5) {
+                uploadLabel.classList.add('hidden');
+              } else {
+                uploadLabel.classList.remove('hidden');
+              }
+            }
+
+            // Remove photo handler
+            previewContainer.querySelectorAll('.btn-remove-photo').forEach(btn => {
+              btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const pIdx = Number(btn.getAttribute('data-photo-idx'));
+                photoStores[idx].splice(pIdx, 1);
+                renderPhotos();
+              });
+            });
+          }
+
+          if (fileInp) {
+            fileInp.addEventListener('change', async (e) => {
+              const files = Array.from(e.target.files || []);
+              if (!files.length) return;
+
+              if (photoStores[idx].length + files.length > 5) {
+                showToast('Maximum 5 photos allowed per product review.', 'error');
+              }
+
+              for (const file of files) {
+                if (photoStores[idx].length >= 5) break;
+                try {
+                  const compressed = await compressImageFile(file, 900, 0.75);
+                  photoStores[idx].push(compressed);
+                } catch (err) {
+                  const reader = new FileReader();
+                  reader.onload = (re) => {
+                    if (photoStores[idx].length < 5) {
+                      photoStores[idx].push(re.target.result);
+                      renderPhotos();
+                    }
+                  };
+                  reader.readAsDataURL(file);
+                }
+              }
+              renderPhotos();
+              fileInp.value = '';
+            });
+          }
+        });
+
+        // 5. Submit Product Reviews
+        document.querySelectorAll('.btn-submit-p-review').forEach(btn => {
+          btn.addEventListener('click', async () => {
+            const idx = btn.getAttribute('data-idx');
+            const pId = btn.getAttribute('data-product-id');
+            const pName = btn.getAttribute('data-product-name');
+
+            const ratingVal = document.getElementById(`rating-input-${idx}`)?.value;
+            const rating = parseInt(ratingVal, 10);
+            const title = (document.getElementById(`title-input-${idx}`).value || '').trim();
+            const comment = (document.getElementById(`comment-input-${idx}`).value || '').trim();
+            const photos = photoStores[idx] || [];
+
+            if (!ratingVal || isNaN(rating) || rating < 1 || rating > 5) {
+              showToast('Please select a star rating (1-5 stars).', 'error');
+              return;
+            }
+
+            if (!title) {
+              showToast('Please enter a review headline/title.', 'error');
+              return;
+            }
+            if (!comment) {
+              showToast('Please enter your review details.', 'error');
+              return;
+            }
+
+            btn.disabled = true;
+            btn.textContent = 'Submitting...';
+
+            try {
+              const res = await submitProductReview({
+                orderId: order.id,
+                productId: pId,
+                productName: pName,
+                rating,
+                title,
+                comment,
+                photos
+              });
+
+              if (res && res.success) {
+                showToast('✔ Product review submitted successfully!', 'success');
+                renderOrderReviewForm(order.id, eligibleOrders);
+                filterAndRenderReviews();
+              } else {
+                showToast(res?.error || 'Failed to submit review.', 'error');
+                btn.disabled = false;
+                btn.textContent = 'Submit Product Review';
+              }
+            } catch (err) {
+              showToast('Error submitting review. Please try again.', 'error');
+              btn.disabled = false;
+              btn.textContent = 'Submit Product Review';
+            }
+          });
+        });
+
+        // 6. Submit Experience Review
+        const btnExpSubmit = document.getElementById('btn-submit-exp-review');
+        if (btnExpSubmit) {
+          btnExpSubmit.addEventListener('click', async () => {
+            const ratingVal = document.getElementById('rating-input-exp')?.value;
+            const rating = parseInt(ratingVal, 10);
+            const comment = (document.getElementById('comment-input-exp').value || '').trim();
+
+            if (!ratingVal || isNaN(rating) || rating < 1 || rating > 5) {
+              showToast('Please select a service & experience rating (1-5 stars).', 'error');
+              return;
+            }
+
+            btnExpSubmit.disabled = true;
+            btnExpSubmit.textContent = 'Submitting...';
+
+            try {
+              const res = await submitOrderingExperienceReview({
+                orderId: order.id,
+                rating,
+                comment: comment || 'Smooth ordering, timely delivery, and verified transactions.'
+              });
+
+              if (res && res.success) {
+                showToast('✔ Ordering experience review submitted! Thank you.', 'success');
+                renderOrderReviewForm(order.id, eligibleOrders);
+                filterAndRenderReviews();
+              } else {
+                showToast(res?.error || 'Failed to submit review.', 'error');
+                btnExpSubmit.disabled = false;
+                btnExpSubmit.textContent = 'Submit Ordering Experience Review';
+              }
+            } catch (err) {
+              showToast('Error submitting review. Please try again.', 'error');
+              btnExpSubmit.disabled = false;
+              btnExpSubmit.textContent = 'Submit Ordering Experience Review';
+            }
+          });
+        }
+      }
+
+      // Event registers
+      searchInp.addEventListener('input', filterAndRenderReviews);
+      sortSelect.addEventListener('change', filterAndRenderReviews);
+
+      window.addEventListener('aurora-sync-event', (e) => {
+        if (!e.detail || !e.detail.key || e.detail.key === 'aurora-reviews') {
+          filterAndRenderReviews();
+        }
+        if (e.detail && e.detail.key === 'aurora-orders') {
+          setupReviewFormFlow();
+        }
+      });
+      window.addEventListener('aurora-reviews-updated', () => {
+        filterAndRenderReviews();
+      });
+
+      // Initialize
+      setupReviewFormFlow();
+      filterAndRenderReviews();
+
+      // Hydrate authoritative reviews from Firestore on every visit / device
+      if (window.RiceFlow && window.RiceFlow.syncReviewsFromFirestore) {
+        window.RiceFlow.syncReviewsFromFirestore().then(() => {
+          filterAndRenderReviews();
+          setupReviewFormFlow();
+        }).catch(() => {});
+      }
+    });
+  </script>
+</body>
+</html>

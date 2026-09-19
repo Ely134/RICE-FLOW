@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Payment Methods & Reservation Guide | RiceFlow</title>
+  <link rel="stylesheet" href="src/styles/index.css">
+</head>
+<body class="bg-[#F5F5F7] min-h-screen font-sans text-gray-800">
+
+  <!-- Dynamic Header Bar -->
+  <div id="navbar-container"></div>
+
+  <!-- MAIN WRAPPER -->
+  <main class="py-8 max-w-[1240px] mx-auto px-4 sm:px-6 lg:px-8 min-h-screen">
+    
+    <!-- Top Navigation / Breadcrumb -->
+    <div class="mb-6 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <a id="btn-back-nav" href="checkout.html" class="inline-flex items-center gap-1.5 px-3.5 py-2 bg-white hover:bg-gray-100 border border-gray-200 text-gray-700 text-xs font-bold rounded-xl transition-all shadow-2xs">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-4 h-4 text-[#1E6C02]"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+          <span>Back</span>
+        </a>
+        <span class="text-xs font-bold text-gray-400">/</span>
+        <span class="text-xs font-bold text-gray-500 uppercase tracking-wider">Payment Guide</span>
+      </div>
+      <a href="products.html" class="text-xs font-bold text-[#1E6C02] hover:underline">
+        Browse Grains Catalog →
+      </a>
+    </div>
+
+    <!-- Hero Banner Card -->
+    <div class="bg-gradient-to-br from-[#1E6C02] to-[#145001] rounded-[28px] p-8 sm:p-10 text-white shadow-xl mb-10 relative overflow-hidden">
+      <!-- Decorative Background Circles -->
+      <div class="absolute -right-16 -top-16 w-64 h-64 rounded-full bg-white/10 blur-2xl pointer-events-none"></div>
+      <div class="absolute right-32 -bottom-20 w-80 h-80 rounded-full bg-emerald-400/10 blur-3xl pointer-events-none"></div>
+      
+      <div class="relative z-10 max-w-2xl space-y-3">
+        <div class="inline-flex items-center gap-2 px-3 py-1 bg-white/15 backdrop-blur-md rounded-full text-xs font-extrabold uppercase tracking-wider text-emerald-100 border border-white/20">
+          <span>🌾</span> Official Payment & Queue Guide
+        </div>
+        <h1 class="text-3xl sm:text-4xl font-black tracking-tight leading-tight">
+          Transparent, Secure & Flexible Payment Options
+        </h1>
+        <p class="text-emerald-100 text-sm sm:text-base font-medium leading-relaxed">
+          Learn how payments, down-payment deposits, and zero-risk reservation queues work at RiceFlow Aurora.
+        </p>
+      </div>
+    </div>
+
+    <!-- 3 Core Payment & Reservation Methods Grid -->
+    <div class="grid md:grid-cols-3 gap-6 mb-12">
+      
+      <!-- Option 1: GCash Full Payment -->
+      <div class="bg-white rounded-[24px] border border-gray-150 p-6 sm:p-7 shadow-xs hover:shadow-md transition-all flex flex-col justify-between space-y-6">
+        <div class="space-y-4">
+          <div class="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center text-2xl border border-blue-100">
+            📱
+          </div>
+          <div>
+            <div class="flex items-center justify-between gap-2 mb-1">
+              <h2 class="text-xl font-extrabold text-black tracking-tight">GCash Full Payment</h2>
+              <span class="bg-blue-50 text-blue-700 text-[10px] font-black uppercase px-2 py-0.5 rounded-md border border-blue-200">Instant</span>
+            </div>
+            <p class="text-xs text-gray-500 font-medium">Recommended for available stock orders & fastest dispatch.</p>
+          </div>
+
+          <div class="bg-gray-50 rounded-2xl p-4 space-y-2.5 text-xs text-gray-700 font-medium border border-gray-100">
+            <div class="flex items-start gap-2">
+              <span class="text-emerald-600 font-bold">✔</span>
+              <span><strong>100% Full Payment:</strong> Pay the total order and delivery fee upfront via GCash.</span>
+            </div>
+            <div class="flex items-start gap-2">
+              <span class="text-emerald-600 font-bold">✔</span>
+              <span><strong>Instant Verification:</strong> Staff verifies your attached screenshot within minutes.</span>
+            </div>
+            <div class="flex items-start gap-2">
+              <span class="text-emerald-600 font-bold">✔</span>
+              <span><strong>Priority Packing:</strong> Dispatched immediately for delivery or store pickup.</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="pt-4 border-t border-gray-100 text-xs text-gray-500 font-semibold flex items-center gap-2">
+          <span>💡</span> Requires GCash Reference Screenshot
+        </div>
+      </div>
+
+      <!-- Option 2: Cash on Delivery / Store Pickup (30% Down Payment) -->
+      <div class="bg-white rounded-[24px] border border-gray-150 p-6 sm:p-7 shadow-xs hover:shadow-md transition-all flex flex-col justify-between space-y-6">
+        <div class="space-y-4">
+          <div class="w-12 h-12 rounded-2xl bg-emerald-50 text-[#1E6C02] flex items-center justify-center text-2xl border border-emerald-100">
+            💵
+          </div>
+          <div>
+            <div class="flex items-center justify-between gap-2 mb-1">
+              <h2 class="text-xl font-extrabold text-black tracking-tight">Cash on Delivery / Pickup</h2>
+              <span class="bg-emerald-50 text-[#1E6C02] text-[10px] font-black uppercase px-2 py-0.5 rounded-md border border-emerald-200">30% Deposit</span>
+            </div>
+            <p class="text-xs text-gray-500 font-medium">Secures allocation with remaining 70% paid in cash.</p>
+          </div>
+
+          <div class="bg-gray-50 rounded-2xl p-4 space-y-2.5 text-xs text-gray-700 font-medium border border-gray-100">
+            <div class="flex items-start gap-2">
+              <span class="text-[#1E6C02] font-bold">✔</span>
+              <span><strong>30% Down Payment:</strong> Paid via GCash during checkout to reserve physical sacks.</span>
+            </div>
+            <div class="flex items-start gap-2">
+              <span class="text-[#1E6C02] font-bold">✔</span>
+              <span><strong>70% Remaining Balance:</strong> Paid in cash directly to delivery rider or warehouse cashier.</span>
+            </div>
+            <div class="flex items-start gap-2">
+              <span class="text-[#1E6C02] font-bold">✔</span>
+              <span><strong>Delivery Safety:</strong> Protects logistics dispatch and guarantees rice stock availability.</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="pt-4 border-t border-gray-100 text-xs text-gray-500 font-semibold flex items-center gap-2">
+          <span>💡</span> Cash turnover receipt issued on delivery
+        </div>
+      </div>
+
+      <!-- Option 3: Zero-Payment Reservation Queue -->
+      <div class="bg-white rounded-[24px] border border-gray-150 p-6 sm:p-7 shadow-xs hover:shadow-md transition-all flex flex-col justify-between space-y-6">
+        <div class="space-y-4">
+          <div class="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center text-2xl border border-amber-100">
+            ⏳
+          </div>
+          <div>
+            <div class="flex items-center justify-between gap-2 mb-1">
+              <h2 class="text-xl font-extrabold text-black tracking-tight">Pre-Order Reservation</h2>
+              <span class="bg-amber-50 text-amber-700 text-[10px] font-black uppercase px-2 py-0.5 rounded-md border border-amber-200">Zero Payment Now</span>
+            </div>
+            <p class="text-xs text-gray-500 font-medium">For out-of-stock varieties awaiting warehouse restock.</p>
+          </div>
+
+          <div class="bg-gray-50 rounded-2xl p-4 space-y-2.5 text-xs text-gray-700 font-medium border border-gray-100">
+            <div class="flex items-start gap-2">
+              <span class="text-amber-600 font-bold">✔</span>
+              <span><strong>₱0.00 Upfront:</strong> No payment required while items are out of stock.</span>
+            </div>
+            <div class="flex items-start gap-2">
+              <span class="text-amber-600 font-bold">✔</span>
+              <span><strong>FIFO Priority Queue:</strong> Your position is locked chronologically in our system.</span>
+            </div>
+            <div class="flex items-start gap-2">
+              <span class="text-amber-600 font-bold">✔</span>
+              <span><strong>48h Payment Grace Period:</strong> You only pay once restock arrives and is allocated to you.</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="pt-4 border-t border-gray-100 text-xs text-gray-500 font-semibold flex items-center gap-2">
+          <span>💡</span> Real-time queue tracker on User Profile
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Detailed Step-by-Step Payment Instructions -->
+    <div class="bg-white rounded-[28px] border border-gray-150 p-8 sm:p-10 shadow-xs mb-12 space-y-8">
+      <div class="border-b border-gray-100 pb-4">
+        <h2 class="text-2xl font-black text-black tracking-tight">How to Send Payment via GCash</h2>
+        <p class="text-gray-500 text-xs font-semibold mt-1">Follow these 4 simple steps to complete payment verification</p>
+      </div>
+
+      <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        
+        <div class="bg-gray-50 rounded-2xl p-5 border border-gray-100 space-y-3">
+          <div class="w-8 h-8 rounded-full bg-[#1E6C02] text-white font-black flex items-center justify-center text-xs">1</div>
+          <h3 class="font-extrabold text-black text-sm">Scan QR or Copy Number</h3>
+          <p class="text-xs text-gray-650 font-medium leading-relaxed">Open your GCash app and scan the RiceFlow QR code or enter our official mobile number: <strong>0912 345 6789</strong>.</p>
+        </div>
+
+        <div class="bg-gray-50 rounded-2xl p-5 border border-gray-100 space-y-3">
+          <div class="w-8 h-8 rounded-full bg-[#1E6C02] text-white font-black flex items-center justify-center text-xs">2</div>
+          <h3 class="font-extrabold text-black text-sm">Enter Due Amount</h3>
+          <p class="text-xs text-gray-650 font-medium leading-relaxed">Enter the exact amount indicated on the checkout summary (100% for full payment or 30% for down payment deposit).</p>
+        </div>
+
+        <div class="bg-gray-50 rounded-2xl p-5 border border-gray-100 space-y-3">
+          <div class="w-8 h-8 rounded-full bg-[#1E6C02] text-white font-black flex items-center justify-center text-xs">3</div>
+          <h3 class="font-extrabold text-black text-sm">Take a Screenshot</h3>
+          <p class="text-xs text-gray-650 font-medium leading-relaxed">Save the GCash confirmation receipt screen showing the transaction reference number, date, and amount.</p>
+        </div>
+
+        <div class="bg-gray-50 rounded-2xl p-5 border border-gray-100 space-y-3">
+          <div class="w-8 h-8 rounded-full bg-[#1E6C02] text-white font-black flex items-center justify-center text-xs">4</div>
+          <h3 class="font-extrabold text-black text-sm">Upload & Submit</h3>
+          <p class="text-xs text-gray-650 font-medium leading-relaxed">Attach the screenshot into the checkout upload box. Our admin staff validates the proof against our ledger.</p>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Frequently Asked Questions -->
+    <div class="bg-white rounded-[28px] border border-gray-150 p-8 sm:p-10 shadow-xs mb-12 space-y-6">
+      <div class="border-b border-gray-100 pb-4">
+        <h2 class="text-2xl font-black text-black tracking-tight">Frequently Asked Questions</h2>
+        <p class="text-gray-500 text-xs font-semibold mt-1">Common queries regarding orders, payments, and cancellations</p>
+      </div>
+
+      <div class="space-y-4">
+        
+        <div class="bg-gray-50 rounded-2xl p-5 border border-gray-100 space-y-2">
+          <h3 class="font-bold text-black text-sm">What happens if my GCash payment screenshot fails verification?</h3>
+          <p class="text-xs text-gray-650 font-medium leading-relaxed">If the uploaded screenshot is blurry, missing a reference number, or contains an incorrect amount, our staff will mark the order as requiring resubmission. You will receive an SMS and in-app notification to upload a clear proof within your User Profile.</p>
+        </div>
+
+        <div class="bg-gray-50 rounded-2xl p-5 border border-gray-100 space-y-2">
+          <h3 class="font-bold text-black text-sm">When do I pay for my out-of-stock Rice Reservation?</h3>
+          <p class="text-xs text-gray-650 font-medium leading-relaxed">You do NOT need to pay anything upfront when creating a reservation. Once fresh harvest stock arrives at our warehouse and your position in the FIFO queue is reached, you will receive a notification giving you 48 hours to complete your payment.</p>
+        </div>
+
+        <div class="bg-gray-50 rounded-2xl p-5 border border-gray-100 space-y-2">
+          <h3 class="font-bold text-black text-sm">Why is a 30% down-payment required for Cash on Delivery / Store Pickup?</h3>
+          <p class="text-xs text-gray-650 font-medium leading-relaxed">The 30% down payment deposit guarantees that physical sacks are held exclusively for your delivery schedule, preventing fraudulent bookings and ensuring our local warehouse logistics run smoothly.</p>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Back to Checkout Action Callout -->
+    <div class="text-center py-6">
+      <a href="checkout.html" class="inline-flex items-center gap-2 px-8 h-14 bg-[#1E6C02] hover:bg-[#145001] text-white font-extrabold rounded-2xl transition-all shadow-md text-base cursor-pointer">
+        <span>Proceed to Checkout</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-5 h-5"><polyline points="9 18 15 12 9 6"></polyline></svg>
+      </a>
+    </div>
+
+  </main>
+
+  <!-- Dynamic Footer Bar -->
+  <div id="footer-container"></div>
+
+  <!-- Shared platform initialization -->
+  <script type="module" src="src/app/shared.js"></script>
+
+  <script type="module">
+    document.addEventListener('DOMContentLoaded', () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const from = urlParams.get('from');
+      const backNav = document.getElementById('btn-back-nav');
+      if (backNav) {
+        if (from === 'reservation') {
+          backNav.href = 'reservation.html';
+        } else if (from === 'cart') {
+          backNav.href = 'cart.html';
+        } else {
+          backNav.href = 'checkout.html';
+        }
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Action Logs | RiceFlow</title>
+  <link rel="stylesheet" href="../src/styles/index.css">
+  <style>
+    .custom-scrollbar {
+      scrollbar-width: auto;
+      scrollbar-color: #64748b transparent;
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      height: 12px;
+      width: 10px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #64748b;
+      border-radius: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: #475569;
+    }
+    .hide-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .hide-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+  </style>
+</head>
+<body class="bg-[#F5F5F5] min-h-screen text-black">
+
+  <div id="admin-layout-container"></div>
+
+  <script type="module" src="../src/app/shared.js"></script>
+
+  <!-- Redesigned Activity Monitoring Scripting Engine -->
+  <script type="module">
+    import { renderAdminLayout, getLogs, syncActivityLogsFromFirestore } from '../src/app/shared.js';
+
+    document.addEventListener('DOMContentLoaded', () => {
+      renderAdminLayout('activities');
+
+      const targetSpace = document.getElementById('admin-main-content');
+      if (!targetSpace) return;
+
+      // Local State trackers
+      const urlParams = new URLSearchParams(window.location.search);
+      let filterDateParam = urlParams.get('date') || ''; // e.g. "2026-08-05"
+
+      let searchQuery = '';
+      let categoryFilter = 'all';
+      let timeFilter = filterDateParam ? 'custom_date' : 'all';
+      let currentPage = 1;
+      const itemsPerPage = 10;
+
+      // Load icons for visual categories
+      const categoryEmoji = {
+        'Inventory': '📦',
+        'Orders': '🛍️',
+        'Reservations': '⏳',
+        'Payments': '💳',
+        'Users': '👥',
+        'User Management': '👥',
+        'Delivery': '🚛',
+        'Authentication': '🔑',
+        'Settings': '⚙️'
+      };
+
+      const categoryColors = {
+        'Authentication': 'bg-blue-50 text-blue-700 border-blue-200',
+        'Inventory': 'bg-green-50 text-green-700 border-green-200',
+        'Orders': 'bg-orange-50 text-orange-700 border-orange-200',
+        'Reservations': 'bg-amber-50 text-amber-700 border-amber-200',
+        'Payments': 'bg-purple-50 text-purple-700 border-purple-200',
+        'Delivery': 'bg-teal-50 text-teal-700 border-teal-200',
+        'User Management': 'bg-red-50 text-red-700 border-red-200',
+        'System': 'bg-gray-50 text-gray-700 border-gray-200',
+        'Users': 'bg-red-50 text-red-700 border-red-200',
+        'Settings': 'bg-gray-50 text-gray-700 border-gray-200'
+      };
+
+      function formatTimestamp(ts) {
+        try {
+          const date = new Date(ts);
+          if (isNaN(date.getTime())) return ts; // fallback
+          
+          const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+          const month = months[date.getMonth()];
+          const day = date.getDate();
+          const year = date.getFullYear();
+          
+          let hours = date.getHours();
+          const minutes = String(date.getMinutes()).padStart(2, '0');
+          const ampm = hours >= 12 ? 'PM' : 'AM';
+          hours = hours % 12;
+          hours = hours ? hours : 12; // the hour '0' should be '12'
+          
+          return `${month} ${day}, ${year} – ${hours}:${minutes} ${ampm}`;
+        } catch (e) {
+          return ts;
+        }
+      }
+
+      function generatePaginationButtons(current, total) {
+        if (total <= 1) {
+          return `<button class="w-9 h-9 rounded-xl border border-[#1E6C02] bg-[#1E6C02] text-white font-extrabold text-sm shadow-xs cursor-default">1</button>`;
+        }
+
+        let pages = [];
+        if (total <= 7) {
+          for (let i = 1; i <= total; i++) pages.push(i);
+        } else {
+          if (current <= 4) {
+            pages = [1, 2, 3, 4, 5, '...', total];
+          } else if (current >= total - 3) {
+            pages = [1, '...', total - 4, total - 3, total - 2, total - 1, total];
+          } else {
+            pages = [1, '...', current - 1, current, current + 1, '...', total];
+          }
+        }
+
+        return pages.map(p => {
+          if (p === '...') {
+            return `<span class="px-2 text-gray-400 font-bold select-none">...</span>`;
+          }
+          const isActive = p === current;
+          return `
+            <button 
+              data-page="${p}" 
+              class="btn-page-num w-9 h-9 rounded-xl border text-sm transition-all ${
+                isActive 
+                  ? 'border-[#1E6C02] bg-[#1E6C02] text-white font-extrabold shadow-xs' 
+                  : 'border-gray-200 bg-white text-black font-semibold hover:bg-gray-50'
+              }">
+              ${p}
+            </button>
+          `;
+        }).join('');
+      }
+
+      function renderLogsDashboard() {
+        const logs = getLogs();
+
+        // 1. Filter logs array first based on active search, category, and time period filters
+        const filtered = logs.filter(l => {
+          const name = String(l.userName || '').toLowerCase();
+          const action = String(l.action || '').toLowerCase();
+          const target = String(l.target || '').toLowerCase();
+          const query = String(searchQuery || '').toLowerCase().trim();
+
+          const matchesSearch = !query || name.includes(query) || action.includes(query) || target.includes(query);
+          
+          let matchesCategory = false;
+          if (categoryFilter === 'all') {
+            matchesCategory = true;
+          } else if (categoryFilter === 'User Management') {
+            matchesCategory = (l.category === 'Users' || l.category === 'User Management');
+          } else if (categoryFilter === 'Authentication') {
+            matchesCategory = (l.category === 'Authentication');
+          } else if (categoryFilter === 'System') {
+            matchesCategory = (l.category === 'System' || l.category === 'Settings');
+          } else {
+            matchesCategory = (l.category === categoryFilter);
+          }
+
+          // Time filter checks
+          if (!matchesSearch || !matchesCategory) return false;
+
+          // Exact date filter from dashboard Operations Window if active
+          if (filterDateParam) {
+            if (!l.timestamp) return false;
+            const lDate = new Date(l.timestamp);
+            if (isNaN(lDate.getTime())) return false;
+
+            const parts = filterDateParam.split('-');
+            if (parts.length === 3) {
+              const targetYear = parseInt(parts[0], 10);
+              const targetMonth = parseInt(parts[1], 10) - 1;
+              const targetDay = parseInt(parts[2], 10);
+
+              if (lDate.getFullYear() !== targetYear || lDate.getMonth() !== targetMonth || lDate.getDate() !== targetDay) {
+                return false;
+              }
+            }
+            return true;
+          }
+
+          if (timeFilter === 'all') return true;
+
+          if (!l.timestamp) return false;
+          const lDate = new Date(l.timestamp);
+          const now = new Date();
+
+          if (timeFilter === 'today') {
+            return lDate.toDateString() === now.toDateString();
+          }
+          if (timeFilter === 'week') {
+            const weekAgo = new Date(now.getTime() - 7 * 24 * 3600 * 1000);
+            return lDate >= weekAgo;
+          }
+          if (timeFilter === 'month') {
+            const monthAgo = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
+            return lDate >= monthAgo;
+          }
+          if (timeFilter === 'year') {
+            const yearAgo = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
+            return lDate >= yearAgo;
+          }
+
+          return true;
+        });
+
+        // 2. Calculate pagination metrics
+        const totalLogs = filtered.length;
+        const totalPages = Math.ceil(totalLogs / itemsPerPage) || 1;
+
+        if (currentPage > totalPages) currentPage = totalPages;
+        if (currentPage < 1) currentPage = 1;
+
+        const startIdx = totalLogs === 0 ? 0 : (currentPage - 1) * itemsPerPage;
+        const endIdx = Math.min(startIdx + itemsPerPage, totalLogs);
+        const paginatedLogs = totalLogs === 0 ? [] : filtered.slice(startIdx, endIdx);
+
+        const counterText = totalLogs === 0 
+          ? 'Showing 0 to 0 of 0 entries' 
+          : `Showing ${startIdx + 1} to ${endIdx} of ${totalLogs} entries`;
+
+        // Format nice date filter label if filterDateParam is present
+        let dateFilterLabel = '';
+        if (filterDateParam) {
+          const parts = filterDateParam.split('-');
+          if (parts.length === 3) {
+            const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+            const y = parseInt(parts[0], 10);
+            const m = parseInt(parts[1], 10) - 1;
+            const d = parseInt(parts[2], 10);
+            if (months[m]) {
+              dateFilterLabel = `${months[m]} ${d}, ${y}`;
+            }
+          }
+        }
+
+        // 3. Calculate summary cards counters from the exact same filtered dataset
+        const totalLogsCount = filtered.length;
+        const todayCount = filtered.filter(l => {
+          if (!l.timestamp) return false;
+          const lDate = new Date(l.timestamp);
+          return lDate.toDateString() === new Date().toDateString();
+        }).length;
+        const inventoryCount = filtered.filter(l => l.category === 'Inventory').length;
+        const ordersCount = filtered.filter(l => l.category === 'Orders').length;
+
+        // 4. Main layout content wrapper HTML
+        targetSpace.innerHTML = `
+          <div class="space-y-6">
+            
+            <!-- Filters workspace card -->
+            <div class="bg-white rounded-3xl p-6 border border-gray-200 shadow-sm flex flex-col space-y-4">
+              <div class="flex flex-col md:flex-row items-end gap-6">
+                <!-- Search text input -->
+                <div class="w-full md:flex-1 relative">
+                  <span class="absolute left-4 top-1/2 -translate-y-1/2 text-black">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                  </span>
+                  <input 
+                    type="text" 
+                    id="inp-search-logs" 
+                    value="${searchQuery}" 
+                    placeholder="Search by user, action, or target..." 
+                    class="w-full bg-[#F3F4F6] border border-transparent text-[16px] font-normal text-black pl-12 pr-4 py-3.5 rounded-2xl outline-none focus:border-[#1E6C02] focus:bg-white transition-all placeholder-gray-500"
+                  />
+                </div>
+
+                <!-- Category select -->
+                <div class="w-full md:w-64 flex flex-col gap-2">
+                  <span class="text-xs font-bold text-black uppercase tracking-wider">Category</span>
+                  <div class="relative">
+                    <select id="sel-logs-category" class="w-full bg-white border border-gray-300 text-[16px] font-normal text-black pl-4 pr-10 py-3.5 rounded-2xl outline-none cursor-pointer focus:border-[#1E6C02] transition-all appearance-none">
+                      <option value="all" ${categoryFilter === 'all' ? 'selected' : ''}>All Categories</option>
+                      <option value="Inventory" ${categoryFilter === 'Inventory' ? 'selected' : ''}>Inventory</option>
+                      <option value="Orders" ${categoryFilter === 'Orders' ? 'selected' : ''}>Orders</option>
+                      <option value="Reservations" ${categoryFilter === 'Reservations' ? 'selected' : ''}>Reservations</option>
+                      <option value="Payments" ${categoryFilter === 'Payments' ? 'selected' : ''}>Payments</option>
+                      <option value="User Management" ${categoryFilter === 'User Management' ? 'selected' : ''}>User Management</option>
+                      <option value="Delivery" ${categoryFilter === 'Delivery' ? 'selected' : ''}>Delivery</option>
+                      <option value="Authentication" ${categoryFilter === 'Authentication' ? 'selected' : ''}>Authentication</option>
+                      <option value="System" ${categoryFilter === 'System' ? 'selected' : ''}>System</option>
+                    </select>
+                    <div class="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none text-black">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"></path></svg>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Time Period select -->
+                <div class="w-full md:w-64 flex flex-col gap-2">
+                  <span class="text-xs font-bold text-black uppercase tracking-wider">Time Period</span>
+                  <div class="relative">
+                    <select id="sel-logs-period" class="w-full bg-white border border-gray-300 text-[16px] font-normal text-black pl-4 pr-10 py-3.5 rounded-2xl outline-none cursor-pointer focus:border-[#1E6C02] transition-all appearance-none">
+                      <option value="all" ${timeFilter === 'all' ? 'selected' : ''}>All Time</option>
+                      <option value="today" ${timeFilter === 'today' ? 'selected' : ''}>Today</option>
+                      <option value="week" ${timeFilter === 'week' ? 'selected' : ''}>This Week</option>
+                      <option value="month" ${timeFilter === 'month' ? 'selected' : ''}>This Month</option>
+                      <option value="year" ${timeFilter === 'year' ? 'selected' : ''}>This Year</option>
+                      ${filterDateParam ? `<option value="custom_date" selected>Date: ${dateFilterLabel || filterDateParam}</option>` : ''}
+                    </select>
+                    <div class="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none text-black">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"></path></svg>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              ${filterDateParam ? `
+                <div class="flex items-center gap-2 pt-2 border-t border-gray-100">
+                  <span class="inline-flex items-center gap-2 px-3 py-1 bg-green-50 text-[#1E6C02] border border-green-200 rounded-xl font-bold text-xs">
+                    <span>📅 Filtered by Date: ${dateFilterLabel || filterDateParam}</span>
+                    <button id="btn-clear-date-filter" type="button" title="Clear date filter" class="hover:text-red-600 font-extrabold cursor-pointer ml-1">✕</button>
+                  </span>
+                </div>
+              ` : ''}
+            </div>
+
+            <!-- Stats indicators grids (Summary Cards) -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              <!-- Today's Actions -->
+              <div class="bg-white border border-gray-200 rounded-[20px] p-5 flex items-center gap-4.5 shadow-sm hover:shadow-md transition-all duration-300">
+                <div class="bg-blue-50 text-blue-600 w-14 h-14 flex items-center justify-center rounded-[16px] border border-blue-100 shrink-0">
+                  <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                  </svg>
+                </div>
+                <div class="flex flex-col text-left">
+                  <span class="text-[15px] font-bold text-black leading-tight">Today's Actions</span>
+                  <span class="text-[28px] font-normal text-black mt-1 leading-none">${todayCount}</span>
+                </div>
+              </div>
+
+              <!-- Inventory Updates -->
+              <div class="bg-white border border-gray-200 rounded-[20px] p-5 flex items-center gap-4.5 shadow-sm hover:shadow-md transition-all duration-300">
+                <div class="bg-orange-50 text-orange-600 w-14 h-14 flex items-center justify-center rounded-[16px] border border-orange-100 shrink-0">
+                  <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                  </svg>
+                </div>
+                <div class="flex flex-col text-left">
+                  <span class="text-[15px] font-bold text-black leading-tight">Inventory Updates</span>
+                  <span class="text-[28px] font-normal text-black mt-1 leading-none">${inventoryCount}</span>
+                </div>
+              </div>
+
+              <!-- Order Processing -->
+              <div class="bg-white border border-gray-200 rounded-[20px] p-5 flex items-center gap-4.5 shadow-sm hover:shadow-md transition-all duration-300">
+                <div class="bg-emerald-50 text-emerald-600 w-14 h-14 flex items-center justify-center rounded-[16px] border border-emerald-100 shrink-0">
+                  <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
+                  </svg>
+                </div>
+                <div class="flex flex-col text-left">
+                  <span class="text-[15px] font-bold text-black leading-tight">Order Processing</span>
+                  <span class="text-[28px] font-normal text-black mt-1 leading-none">${ordersCount}</span>
+                </div>
+              </div>
+
+              <!-- Total Logs -->
+              <div class="bg-white border border-gray-200 rounded-[20px] p-5 flex items-center gap-4.5 shadow-sm hover:shadow-md transition-all duration-300">
+                <div class="bg-gray-50 text-gray-600 w-14 h-14 flex items-center justify-center rounded-[16px] border border-gray-200 shrink-0">
+                  <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                  </svg>
+                </div>
+                <div class="flex flex-col text-left">
+                  <span class="text-[15px] font-bold text-black leading-tight">Total Logs</span>
+                  <span class="text-[28px] font-normal text-black mt-1 leading-none">${totalLogsCount}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Active Records visual board -->
+            <div class="bg-white rounded-3xl border border-gray-200 p-8 shadow-sm space-y-6">
+              <div class="flex justify-between items-center pb-4 border-b border-gray-100">
+                <h3 class="text-xl font-bold text-black tracking-tight">Recent Activity Logs</h3>
+                <span class="text-[16px] text-black font-normal" id="logs-counter-text">${counterText}</span>
+              </div>
+
+              <div class="relative">
+                <div id="table-scroll-container" class="overflow-x-auto hide-scrollbar rounded-2xl border border-gray-200/80">
+                  <table id="activity-logs-table" class="w-full border-collapse min-w-[950px]">
+                    <thead>
+                      <tr class="border-b-2 border-gray-300 text-black font-extrabold uppercase text-[15px] tracking-wider bg-gray-50/80">
+                        <th class="py-4 px-5 text-left select-none text-black whitespace-nowrap min-w-[190px]">Date & Time</th>
+                        <th class="py-4 px-5 text-center select-none text-black whitespace-nowrap min-w-[160px]">User</th>
+                        <th class="py-4 px-5 text-center select-none text-black whitespace-nowrap min-w-[160px]">Category</th>
+                        <th class="py-4 px-5 text-center select-none text-black min-w-[340px]">Action</th>
+                        <th class="py-4 px-5 text-center select-none text-black whitespace-nowrap min-w-[160px]">Target</th>
+                      </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100">
+                      ${paginatedLogs.map(log => {
+                        // Retrieve values with complete fallbacks to prevent undefined or broken data
+                        let userName = String(log.userName || 'Admin User').trim();
+                        let userRole = String(log.userRole || 'admin').trim();
+                        let category = String(log.category || 'System').trim();
+                        let action = String(log.action || '').trim();
+                        let target = String(log.target || '').trim();
+
+                        // Map Legacy 'Users' to 'User Management' for elegant look
+                        if (category === 'Users') category = 'User Management';
+                        if (category === 'Settings') category = 'System';
+
+                        // Clean up corrupt objects or undefined if any
+                        if (userName === '[object Object]' || userName === 'undefined' || !userName) userName = 'Admin User';
+                        if (userRole === '[object Object]' || userRole === 'undefined' || !userRole) userRole = 'admin';
+                        if (category === '[object Object]' || category === 'undefined' || !category) category = 'System';
+                        if (action === '[object Object]' || action === 'undefined' || !action) action = 'Performed system action';
+                        if (target === '[object Object]' || target === 'undefined') target = '';
+
+                        const badgeClass = categoryColors[category] || 'bg-gray-50 text-gray-700 border-gray-200';
+
+                        return `
+                          <tr class="hover:bg-gray-50/50 transition-colors">
+                            <!-- Date & Time -->
+                            <td class="py-4.5 px-5 text-left align-middle text-black font-normal text-[15px] whitespace-nowrap">
+                              <div class="inline-flex items-center gap-2">
+                                <svg class="w-4.5 h-4.5 text-black shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                <span>${formatTimestamp(log.timestamp)}</span>
+                              </div>
+                            </td>
+                            
+                            <!-- User -->
+                            <td class="py-4.5 px-5 text-center align-middle whitespace-nowrap">
+                              <div class="inline-flex flex-col items-center">
+                                <p class="font-bold text-black text-[15px] leading-tight">${userName}</p>
+                                <span class="mt-1.5 px-3 py-0.5 rounded text-[11px] font-bold uppercase tracking-wider ${String(userRole || '').toLowerCase() === 'admin' ? 'bg-purple-100 text-black border border-purple-300' : 'bg-blue-100 text-black border border-blue-300'}">
+                                  ${userRole}
+                                </span>
+                              </div>
+                            </td>
+                            
+                            <!-- Category -->
+                            <td class="py-4.5 px-5 text-center align-middle whitespace-nowrap">
+                              <span class="inline-block px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider border ${badgeClass}">
+                                ${category}
+                              </span>
+                            </td>
+                            
+                            <!-- Action -->
+                            <td class="py-4.5 px-5 text-center align-middle text-black font-normal text-[15px] leading-relaxed max-w-[400px] break-words">${action}</td>
+                            
+                            <!-- Target -->
+                            <td class="py-4.5 px-5 text-center align-middle text-black font-normal text-[15px] whitespace-nowrap">
+                              ${target ? `
+                                <span class="px-3 py-1.5 rounded-lg bg-gray-100 text-black border border-gray-300 font-mono text-xs font-semibold">${target}</span>
+                              ` : `<span class="text-black font-bold">—</span>`}
+                            </td>
+                          </tr>
+                        `;
+                      }).join('')}
+
+                      ${paginatedLogs.length === 0 ? `
+                        <tr>
+                          <td colSpan="5" class="py-12 text-center text-black font-bold text-[16px]">
+                            No records match selected filters.
+                          </td>
+                        </tr>
+                      ` : ''}
+                    </tbody>
+                  </table>
+                </div>
+
+                <!-- Sticky Bottom Horizontal Scrollbar Container -->
+                <div id="sticky-scroll-container" class="sticky bottom-0 z-20 overflow-x-auto custom-scrollbar h-[12px] -mt-[12px] pointer-events-auto leading-none" style="display: none;">
+                  <div id="sticky-scroll-inner" class="h-px"></div>
+                </div>
+              </div>
+
+              <!-- Pagination controls container -->
+              <div class="flex flex-col sm:flex-row items-center justify-between gap-4 pt-6 border-t border-gray-100">
+                <div class="text-sm font-semibold text-black">
+                  ${counterText}
+                </div>
+                <div class="flex items-center gap-1.5 flex-wrap justify-center">
+                  <button 
+                    id="btn-prev-page" 
+                    ${currentPage <= 1 ? 'disabled' : ''} 
+                    class="px-3.5 py-2 rounded-xl border border-gray-200 text-sm font-bold text-black bg-white hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center gap-1">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"></path></svg>
+                    Previous
+                  </button>
+
+                  ${generatePaginationButtons(currentPage, totalPages)}
+
+                  <button 
+                    id="btn-next-page" 
+                    ${currentPage >= totalPages || totalLogs === 0 ? 'disabled' : ''} 
+                    class="px-3.5 py-2 rounded-xl border border-gray-200 text-sm font-bold text-black bg-white hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center gap-1">
+                    Next
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"></path></svg>
+                  </button>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        `;
+
+        // Bind filter & pagination event change listeners
+        bindAuditEvents(totalPages);
+
+        // Initialize sticky horizontal scrollbar synchronization
+        setupStickyScrollbar();
+      }
+
+      function setupStickyScrollbar() {
+        const tableContainer = document.getElementById('table-scroll-container');
+        const stickyContainer = document.getElementById('sticky-scroll-container');
+        const stickyInner = document.getElementById('sticky-scroll-inner');
+        const table = document.getElementById('activity-logs-table');
+
+        if (!tableContainer || !stickyContainer || !stickyInner || !table) return;
+
+        function updateWidth() {
+          const tableWidth = table.scrollWidth;
+          const containerWidth = tableContainer.clientWidth;
+
+          if (tableWidth > containerWidth + 2) {
+            stickyInner.style.width = tableWidth + 'px';
+            stickyContainer.style.display = 'block';
+          } else {
+            stickyContainer.style.display = 'none';
+          }
+        }
+
+        let isSyncingTable = false;
+        let isSyncingSticky = false;
+
+        tableContainer.addEventListener('scroll', () => {
+          if (isSyncingTable) {
+            isSyncingTable = false;
+            return;
+          }
+          isSyncingSticky = true;
+          stickyContainer.scrollLeft = tableContainer.scrollLeft;
+        });
+
+        stickyContainer.addEventListener('scroll', () => {
+          if (isSyncingSticky) {
+            isSyncingSticky = false;
+            return;
+          }
+          isSyncingTable = true;
+          tableContainer.scrollLeft = stickyContainer.scrollLeft;
+        });
+
+        updateWidth();
+
+        if (window.ResizeObserver) {
+          const observer = new ResizeObserver(() => updateWidth());
+          observer.observe(tableContainer);
+          if (table) observer.observe(table);
+        } else {
+          window.addEventListener('resize', updateWidth);
+        }
+      }
+
+      function bindAuditEvents(totalPages) {
+        const inp = document.getElementById('inp-search-logs');
+        const cat = document.getElementById('sel-logs-category');
+        const per = document.getElementById('sel-logs-period');
+        const btnClearDate = document.getElementById('btn-clear-date-filter');
+
+        if (btnClearDate) {
+          btnClearDate.addEventListener('click', () => {
+            filterDateParam = '';
+            timeFilter = 'all';
+            currentPage = 1;
+            renderLogsDashboard();
+          });
+        }
+
+        // Text Search
+        inp.addEventListener('input', () => {
+          searchQuery = inp.value;
+        });
+        inp.addEventListener('change', () => {
+          currentPage = 1;
+          renderLogsDashboard();
+        });
+        inp.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') {
+            currentPage = 1;
+            renderLogsDashboard();
+          }
+        });
+
+        // Category selection
+        cat.addEventListener('change', () => {
+          categoryFilter = cat.value;
+          currentPage = 1;
+          renderLogsDashboard();
+        });
+
+        // Period range selection
+        per.addEventListener('change', () => {
+          if (per.value !== 'custom_date') {
+            filterDateParam = '';
+          }
+          timeFilter = per.value;
+          currentPage = 1;
+          renderLogsDashboard();
+        });
+
+        // Pagination controls
+        const btnPrev = document.getElementById('btn-prev-page');
+        const btnNext = document.getElementById('btn-next-page');
+
+        if (btnPrev) {
+          btnPrev.addEventListener('click', () => {
+            if (currentPage > 1) {
+              currentPage--;
+              renderLogsDashboard();
+            }
+          });
+        }
+
+        if (btnNext) {
+          btnNext.addEventListener('click', () => {
+            if (currentPage < totalPages) {
+              currentPage++;
+              renderLogsDashboard();
+            }
+          });
+        }
+
+        document.querySelectorAll('.btn-page-num').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const p = parseInt(btn.getAttribute('data-page') || '1');
+            if (p && p !== currentPage) {
+              currentPage = p;
+              renderLogsDashboard();
+            }
+          });
+        });
+      }
+
+      // Initial loading
+      renderLogsDashboard();
+
+      // Cloud Firestore synchronization & real-time reactive updates
+      if (typeof syncActivityLogsFromFirestore === 'function') {
+        syncActivityLogsFromFirestore().then(() => {
+          renderLogsDashboard();
+        }).catch(err => {
+          console.warn('[ACTIVITY LOGS] Firestore initial sync notice:', err);
+        });
+      }
+
+      window.addEventListener('aurora-logs-updated', () => {
+        renderLogsDashboard();
+      });
+
+      window.addEventListener('aurora-sync-event', (e) => {
+        if (!e.detail || !e.detail.key || e.detail.key === 'aurora-activity-logs') {
+          renderLogsDashboard();
+        }
+      });
+    });
+  </script>
+</body>
+</html>

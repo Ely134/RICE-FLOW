@@ -1,0 +1,1309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Staff Database | RiceFlow</title>
+  <link rel="stylesheet" href="../src/styles/index.css">
+</head>
+<body class="bg-[#F5F5F5] min-h-screen">
+
+  <div id="admin-layout-container"></div>
+
+  <!-- REUSABLE MODALS -->
+
+  <!-- ADD OR EDIT STAFF MODAL DIALOG -->
+  <div id="staff-modal" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-[80] flex items-center justify-center p-4 hidden transition-opacity duration-300">
+    <div class="bg-white rounded-3xl max-w-lg w-full shadow-2xl overflow-hidden border border-gray-150 relative transform scale-95 opacity-0 transition-all duration-300" id="staff-modal-panel">
+      <!-- Fixed Header -->
+      <div class="flex justify-between items-start p-6 pb-4 border-b border-gray-100 bg-white">
+        <div>
+          <h3 class="text-2xl font-bold text-[#1E6C02] tracking-tight" id="staff-modal-title">Add Staff Member</h3>
+          <p class="text-sm text-black font-medium mt-1" id="staff-modal-subtitle">Create a new staff account for your team member.</p>
+        </div>
+        <button id="close-staff-modal" class="text-black hover:text-gray-900 transition-colors cursor-pointer text-xl font-bold p-1 select-none">
+          ✕
+        </button>
+      </div>
+
+      <!-- Scrollable Form Container -->
+      <form id="staff-form" class="flex flex-col max-h-[75vh]">
+        <div class="p-6 space-y-5 overflow-y-auto max-h-[60vh] pr-4">
+          <!-- Profile Photo Section -->
+          <div class="space-y-2">
+            <label class="text-sm font-semibold text-gray-900 block">Profile Picture</label>
+            <div id="photo-upload-zone" class="flex items-center gap-4 cursor-pointer select-none">
+              <input type="file" id="staff-inp-photo" class="hidden" accept="image/png, image/jpeg, image/gif" />
+              
+              <!-- Left: Circle Image / Placeholder -->
+              <div class="w-16 h-16 rounded-full bg-[#EAECEF] border border-gray-200 flex items-center justify-center overflow-hidden shrink-0 shadow-inner relative group">
+                <!-- Default Placeholder Icon -->
+                <div id="photo-placeholder" class="text-gray-400 flex items-center justify-center">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-6 h-6"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                </div>
+                <!-- Loaded Image Preview inside the circle -->
+                <img id="photo-preview-img" class="w-full h-full object-cover hidden" src="" alt="Preview" />
+              </div>
+
+              <!-- Right: Upload Button and details -->
+              <div class="space-y-1">
+                <div class="flex items-center gap-2">
+                  <div id="photo-placeholder-btn-only" class="inline-block">
+                    <button type="button" class="px-4 py-2 bg-white hover:bg-gray-50 border border-gray-200 text-gray-800 font-bold text-xs uppercase tracking-wider rounded-xl transition-all cursor-pointer shadow-xs flex items-center gap-2">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-3.5 h-3.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                      Upload Photo
+                    </button>
+                  </div>
+                  <div id="photo-preview-container" class="hidden inline-block">
+                    <button type="button" id="btn-remove-photo" class="px-3 py-2 bg-red-50 hover:bg-red-100 text-red-650 font-bold text-xs uppercase tracking-wider rounded-xl transition-all cursor-pointer border border-red-100">
+                      Remove
+                    </button>
+                  </div>
+                </div>
+                <p class="text-xs text-black font-medium">JPG, PNG or GIF (max. 2MB)</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- User Role Dropdown -->
+          <div class="space-y-1.5">
+            <label class="text-sm font-semibold text-gray-900 block">User Role *</label>
+            <div class="relative">
+              <select id="staff-inp-role" class="w-full bg-gray-50 border border-gray-200 text-sm font-medium text-gray-950 px-4 py-3.5 rounded-xl outline-none focus:bg-white focus:border-[#1E6C02] focus:ring-1 focus:ring-[#1E6C02] transition-colors appearance-none cursor-pointer">
+                <option value="Staff">Staff</option>
+                <option value="Administrator">Administrator</option>
+              </select>
+              <!-- Custom Arrow -->
+              <div class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-black">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-4 h-4"><polyline points="6 9 12 15 18 9"></polyline></svg>
+              </div>
+            </div>
+          </div>
+
+          <!-- Full Name -->
+          <div class="space-y-1.5">
+            <label class="text-sm font-semibold text-gray-900 block">Full Name *</label>
+            <input required type="text" id="staff-inp-name" placeholder="Enter full name" class="w-full bg-gray-50 border border-gray-200 text-sm font-medium text-gray-955 px-4 py-3.5 rounded-xl outline-none focus:bg-white focus:border-[#1E6C02] focus:ring-1 focus:ring-[#1E6C02] transition-colors" />
+          </div>
+
+          <!-- Email Address -->
+          <div class="space-y-1.5">
+            <label class="text-sm font-semibold text-gray-900 block">Email Address *</label>
+            <input required type="email" id="staff-inp-email" placeholder="Enter email address" class="w-full bg-gray-50 border border-gray-200 text-sm font-medium text-gray-955 px-4 py-3.5 rounded-xl outline-none focus:bg-white focus:border-[#1E6C02] focus:ring-1 focus:ring-[#1E6C02] transition-colors" />
+          </div>
+
+          <!-- Contact Number -->
+          <div class="space-y-1.5">
+            <label class="text-sm font-semibold text-gray-900 block">Contact Number *</label>
+            <input required type="text" id="staff-inp-phone" value="+63 " placeholder="+63 912 345 6789" class="w-full bg-gray-50 border border-gray-200 text-sm font-medium text-gray-955 px-4 py-3.5 rounded-xl outline-none focus:bg-white focus:border-[#1E6C02] focus:ring-1 focus:ring-[#1E6C02] transition-colors" />
+          </div>
+
+          <!-- Password block stacked vertically -->
+          <div class="space-y-5" id="staff-passwords-row">
+            <!-- Password -->
+            <div class="space-y-1.5">
+              <label class="text-sm font-semibold text-gray-900 block" id="lbl-staff-password">Password *</label>
+              <div class="relative">
+                <input type="password" id="staff-inp-password" placeholder="Enter password (min. 8 characters)" class="w-full bg-gray-50 border border-gray-200 text-sm font-medium text-gray-955 px-4 py-3.5 pr-10 rounded-xl outline-none focus:bg-white focus:border-[#1E6C02] focus:ring-1 focus:ring-[#1E6C02] transition-colors" />
+                <button type="button" class="btn-toggle-password absolute right-3 top-1/2 -translate-y-1/2 text-black hover:text-gray-900 p-1 cursor-pointer select-none transition-colors">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-4.5 h-4.5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                </button>
+              </div>
+            </div>
+
+            <!-- Confirm Password -->
+            <div class="space-y-1.5">
+              <label class="text-sm font-semibold text-gray-900 block">Confirm Password *</label>
+              <div class="relative">
+                <input type="password" id="staff-inp-confirm" placeholder="Re-enter password" class="w-full bg-gray-50 border border-gray-200 text-sm font-medium text-gray-955 px-4 py-3.5 pr-10 rounded-xl outline-none focus:bg-white focus:border-[#1E6C02] focus:ring-1 focus:ring-[#1E6C02] transition-colors" />
+                <button type="button" class="btn-toggle-password absolute right-3 top-1/2 -translate-y-1/2 text-black hover:text-gray-900 p-1 cursor-pointer select-none transition-colors">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-4.5 h-4.5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Fixed Footer -->
+        <div class="flex items-center justify-end gap-3 p-6 border-t border-gray-100 bg-gray-50/50">
+          <button type="button" id="btn-staff-cancel" class="px-5 py-2.5 bg-white hover:bg-gray-100 border border-gray-200 text-black font-bold text-xs uppercase tracking-wider rounded-xl cursor-pointer transition-colors select-none">
+            Cancel
+          </button>
+          <button type="submit" class="px-6 py-2.5 bg-[#1E6C02] hover:bg-[#145001] active:scale-[0.98] text-white font-bold text-xs uppercase tracking-wider rounded-xl cursor-pointer shadow-md transition-all select-none">
+            Save
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- CREATE / SAVE CONFIRMATION MODAL -->
+  <div id="save-confirm-modal" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-[90] flex items-center justify-center p-4 hidden transition-opacity duration-300">
+    <div class="bg-white rounded-3xl max-w-md w-full shadow-2xl p-8 border border-gray-150 relative transform scale-95 opacity-0 transition-all duration-300 animate-in fade-in zoom-in-95" id="save-confirm-modal-panel">
+      <div class="space-y-5">
+        <div class="flex items-center justify-between pb-3 border-b border-gray-100">
+          <h4 class="text-xl font-bold text-gray-950 tracking-tight" id="save-confirm-title">Create Staff Account</h4>
+          <button id="close-save-confirm-modal-x" class="text-black hover:text-gray-900 font-bold text-sm p-1 cursor-pointer select-none">✕</button>
+        </div>
+        
+        <p id="save-confirm-message" class="text-sm text-black font-medium leading-relaxed">
+          Are you sure you want to create this new staff account?<br><br>The selected role will immediately gain access to the system using the credentials provided.
+        </p>
+
+        <!-- Detailed Card -->
+        <div class="bg-[#F8FAF8] rounded-2xl p-5 border border-emerald-50 space-y-3 text-sm">
+          <div class="flex justify-between items-center py-0.5 border-b border-gray-100/50">
+            <span class="text-black font-semibold">Role:</span>
+            <span id="save-confirm-detail-role" class="text-gray-900 font-bold bg-green-50 px-2.5 py-1 rounded-full text-xs">Staff</span>
+          </div>
+          <div class="flex justify-between items-center py-0.5 border-b border-gray-100/50">
+            <span class="text-black font-semibold">Name:</span>
+            <span id="save-confirm-detail-name" class="text-gray-900 font-bold">Juan Dela Cruz</span>
+          </div>
+          <div class="flex justify-between items-center py-0.5">
+            <span class="text-black font-semibold">Email:</span>
+            <a id="save-confirm-detail-email" href="#" class="text-emerald-700 hover:underline font-bold" target="_blank">juan.staff@gmail.com</a>
+          </div>
+        </div>
+        
+        <div class="flex items-center justify-end gap-3 pt-4 border-t border-gray-100">
+          <button id="btn-cancel-save-confirm" class="px-5 py-2.5 bg-gray-100 hover:bg-gray-200 text-black font-bold text-xs uppercase tracking-wider rounded-xl cursor-pointer transition-colors select-none">
+            No, Cancel
+          </button>
+          <button id="btn-confirm-save-confirm" class="px-5 py-2.5 bg-[#1E6C02] hover:bg-[#145001] active:scale-[0.98] text-white font-bold text-xs uppercase tracking-wider rounded-xl cursor-pointer shadow-md transition-all select-none">
+            Yes, Create Account
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ARCHIVE CONFIRMATION MODAL -->
+  <div id="archive-confirm-modal" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-[90] flex items-center justify-center p-4 hidden transition-opacity duration-300">
+    <div class="bg-white rounded-3xl max-w-md w-full shadow-2xl overflow-hidden border border-gray-100 relative transform scale-95 opacity-0 transition-all duration-300" id="archive-confirm-modal-panel">
+      <!-- Light red background accent header block -->
+      <div class="bg-red-50 px-6 py-5 border-b border-red-100 flex items-center gap-3">
+        <div class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center text-red-600 shrink-0">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-5 h-5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+        </div>
+        <div>
+          <h4 class="text-lg font-bold text-red-700 tracking-tight">Archive Staff Account</h4>
+        </div>
+        <button id="close-archive-confirm-modal-x" class="text-red-400 hover:text-red-650 font-bold text-sm ml-auto p-1 cursor-pointer select-none">✕</button>
+      </div>
+      
+      <div class="p-6 space-y-5">
+        <p id="archive-confirm-message" class="text-sm text-black font-medium leading-relaxed">
+          Are you sure you want to archive <strong id="archive-staff-name" class="text-red-750 font-extrabold">Admin User</strong>?<br><br>Archived staff accounts cannot access the system, but their records will be preserved.
+        </p>
+        
+        <div class="flex items-center justify-end gap-3 pt-4 border-t border-gray-100">
+          <button id="btn-cancel-archive-confirm" class="px-5 py-2.5 bg-gray-100 hover:bg-gray-200 text-black font-bold text-xs uppercase tracking-wider rounded-xl cursor-pointer transition-colors select-none">
+            Cancel
+          </button>
+          <button id="btn-confirm-archive-confirm" class="px-5 py-2.5 bg-red-600 hover:bg-red-700 active:scale-[0.98] text-white font-bold text-xs uppercase tracking-wider rounded-xl cursor-pointer shadow-md transition-all select-none">
+            Yes, Archive
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RESTORE CONFIRMATION MODAL -->
+  <div id="restore-confirm-modal" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-[90] flex items-center justify-center p-4 hidden transition-opacity duration-300">
+    <div class="bg-white rounded-3xl max-w-md w-full shadow-2xl p-8 border border-gray-150 relative transform scale-95 opacity-0 transition-all duration-300" id="restore-confirm-modal-panel">
+      <div class="space-y-5">
+        <div class="flex items-center justify-between pb-3 border-b border-gray-100">
+          <h4 class="text-xl font-black text-gray-955 tracking-tight">Restore Staff Account</h4>
+          <button id="close-restore-confirm-modal-x" class="text-black hover:text-gray-900 font-extrabold text-sm p-1 cursor-pointer select-none">✕</button>
+        </div>
+        
+        <p id="restore-confirm-message" class="text-sm text-black font-bold leading-relaxed">
+          Are you sure you want to restore this staff account?<br><br>The staff member will regain access to the system.
+        </p>
+        
+        <div class="flex items-center justify-end gap-3 pt-4 border-t border-gray-100">
+          <button id="btn-cancel-restore-confirm" class="px-5 py-3 bg-gray-100 hover:bg-gray-200 text-black font-black text-xs uppercase tracking-wider rounded-xl cursor-pointer transition-colors select-none">
+            Cancel
+          </button>
+          <button id="btn-confirm-restore-confirm" class="px-5 py-3 bg-[#1E6C02] hover:bg-[#145001] active:scale-[0.98] text-white font-black text-xs uppercase tracking-wider rounded-xl cursor-pointer shadow-md transition-all select-none">
+            Yes, Restore
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STAFF ACTIVITY HISTORY MODAL -->
+  <div id="staff-history-modal" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-[90] flex items-center justify-center p-4 hidden transition-opacity duration-300">
+    <div class="bg-white rounded-3xl max-w-4xl w-full shadow-2xl overflow-hidden border border-gray-150 relative transform scale-95 opacity-0 transition-all duration-300" id="staff-history-modal-panel">
+      <!-- Fixed Header -->
+      <div class="flex justify-between items-start p-6 pb-4 border-b border-gray-100 bg-white">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-2xl bg-emerald-50 text-[#1E6C02] flex items-center justify-center text-xl font-bold border border-emerald-100">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-5 h-5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+          </div>
+          <div>
+            <h3 id="history-staff-name" class="text-xl font-black text-gray-950 tracking-tight">Staff Name</h3>
+            <p id="history-staff-sub" class="text-xs text-gray-500 font-semibold mt-0.5">Staff Activity History</p>
+          </div>
+        </div>
+        <button id="close-history-modal-x" class="text-black hover:text-gray-900 transition-colors cursor-pointer text-xl font-bold p-1 select-none">
+          ✕
+        </button>
+      </div>
+
+      <!-- Scrollable Body -->
+      <div class="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
+        <div class="overflow-x-auto w-full rounded-2xl border border-gray-200">
+          <table class="w-full text-left text-xs font-medium text-gray-700 border-collapse">
+            <thead>
+              <tr class="bg-gray-50 border-b border-gray-200 text-gray-900 font-bold uppercase text-[11px] tracking-wider">
+                <th class="py-3 px-4">Date & Time</th>
+                <th class="py-3 px-4">Action</th>
+                <th class="py-3 px-4">Module</th>
+                <th class="py-3 px-4">Description / Details</th>
+                <th class="py-3 px-4">Affected Order</th>
+                <th class="py-3 px-4">Customer</th>
+              </tr>
+            </thead>
+            <tbody id="history-table-tbody" class="divide-y divide-gray-100">
+              <!-- Loaded dynamically -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Footer Button -->
+      <div class="flex items-center justify-end p-4 border-t border-gray-100 bg-gray-50/50">
+        <button type="button" id="btn-close-history-modal" class="px-5 py-2 bg-gray-200 hover:bg-gray-300 text-gray-900 font-bold text-xs uppercase tracking-wider rounded-xl cursor-pointer transition-colors select-none">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="../src/app/shared.js"></script>
+
+  <!-- Interactive staff controller logic -->
+  <script type="module">
+    import { 
+      renderAdminLayout, 
+      addActivityLog, 
+      showToast, 
+      getCurrentAdmin, 
+      getAllOrders, 
+      getLogs, 
+      setItemAndSync, 
+      createStaffAuthAccount,
+      validatePhilippinePhone,
+      normalizePhilippinePhone,
+      checkPhoneExists,
+      checkEmailExists,
+      compressImageFile
+    } from '../src/app/shared.js';
+
+    const DEFAULT_STAFF = [
+      { 
+        id: '1', 
+        name: 'Admin User', 
+        email: 'admin@gmail.com', 
+        contactNumber: '+63 912 345 6789',
+        role: 'Administrator', 
+        status: 'Active',
+        isArchived: false,
+        archivedDate: ''
+      },
+      { 
+        id: '2', 
+        name: 'Juan Dela Cruz', 
+        email: 'juan.staff@gmail.com', 
+        contactNumber: '+63 923 456 7890',
+        role: 'Staff', 
+        status: 'Active',
+        isArchived: false,
+        archivedDate: ''
+      },
+      { 
+        id: '3', 
+        name: 'Maria Santos', 
+        email: 'maria.staff@gmail.com', 
+        contactNumber: '+63 934 567 8901',
+        role: 'Staff', 
+        status: 'Active',
+        isArchived: false,
+        archivedDate: ''
+      }
+    ];
+
+    function getStaff() {
+      let data = localStorage.getItem('aurora-staff');
+      let list = [];
+      if (!data) {
+        list = DEFAULT_STAFF;
+        localStorage.setItem('aurora-staff', JSON.stringify(list));
+      } else {
+        list = JSON.parse(data);
+      }
+      
+      return list;
+    }
+
+    function saveStaff(list) {
+      localStorage.setItem('aurora-staff', JSON.stringify(list));
+    }
+
+    function syncWithAdminUsers() {
+      const staffList = getStaff();
+      const admins = JSON.parse(localStorage.getItem('aurora-admin-users') || '[]');
+      
+      staffList.forEach(s => {
+        const roleCode = s.role === 'Administrator' ? 'admin' : 'staff';
+        const index = admins.findIndex(a => a.email && String(a.email).toLowerCase() === String(s.email).toLowerCase());
+        if (index !== -1) {
+          admins[index].name = s.name;
+          admins[index].role = roleCode;
+          admins[index].isArchived = s.isArchived;
+          if (s.firebaseUid) admins[index].firebaseUid = s.firebaseUid;
+        } else {
+          admins.push({
+            id: s.id,
+            name: s.name,
+            email: s.email,
+            role: roleCode,
+            isArchived: s.isArchived,
+            firebaseUid: s.firebaseUid || null
+          });
+        }
+      });
+      
+      setItemAndSync('aurora-admin-users', JSON.stringify(admins));
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      // 1. Sidebar render verification
+      renderAdminLayout('staff');
+
+      const targetSpace = document.getElementById('admin-main-content');
+      if (!targetSpace) return;
+
+      // Double-verify that user has admin privilege, and if not redirect
+      const cAdmin = getCurrentAdmin();
+      if (!cAdmin || cAdmin.role !== 'admin') {
+        alert('Access Restrained: This interface requires system administrator clearance.');
+        window.location.href = '/admin/dashboard.html';
+        return;
+      }
+
+      // Local variables
+      let showArchived = false;
+      let selectedStaffInModal = null;
+      let profilePictureBase64 = '';
+      let pendingDeleteId = null;
+      let pendingRestoreId = null;
+
+      // Modal elements caching
+      const staffModal = document.getElementById('staff-modal');
+      const staffModalPanel = document.getElementById('staff-modal-panel');
+      
+      const saveConfirmModal = document.getElementById('save-confirm-modal');
+      const saveConfirmModalPanel = document.getElementById('save-confirm-modal-panel');
+      const saveConfirmTitle = document.getElementById('save-confirm-title');
+      const saveConfirmMessage = document.getElementById('save-confirm-message');
+
+      const archiveConfirmModal = document.getElementById('archive-confirm-modal');
+      const archiveConfirmModalPanel = document.getElementById('archive-confirm-modal-panel');
+      const archiveStaffNameLabel = document.getElementById('archive-staff-name');
+
+      const restoreConfirmModal = document.getElementById('restore-confirm-modal');
+      const restoreConfirmModalPanel = document.getElementById('restore-confirm-modal-panel');
+
+      // Helper functions for transitions
+      function openModal(modalEl, panelEl) {
+        modalEl.classList.remove('hidden');
+        setTimeout(() => {
+          panelEl.classList.remove('opacity-0', 'scale-95');
+          panelEl.classList.add('opacity-100', 'scale-100');
+        }, 10);
+      }
+
+      function closeModal(modalEl, panelEl) {
+        panelEl.classList.remove('opacity-100', 'scale-100');
+        panelEl.classList.add('opacity-0', 'scale-95');
+        setTimeout(() => {
+          modalEl.classList.add('hidden');
+        }, 300);
+      }
+
+      function renderStaffPage() {
+        targetSpace.innerHTML = `
+          <div class="space-y-8 max-w-7xl mx-auto animate-in fade-in duration-300">
+            
+            <!-- Page Header Container matching layout from reference image -->
+            <div class="bg-white rounded-3xl p-8 border border-gray-150 shadow-sm flex flex-col md:flex-row gap-6 items-center justify-between">
+              <div class="space-y-1 text-center md:text-left">
+                <p class="text-base text-black font-bold">Manage your team members and their roles.</p>
+              </div>
+
+              <div class="flex flex-wrap items-center justify-center gap-4 w-full md:w-auto shrink-0">
+                <button id="btn-toggle-archived-staff" class="flex items-center gap-2 px-6 py-4 bg-white border-2 border-gray-200 text-gray-850 hover:bg-gray-50/80 font-black text-sm uppercase tracking-wider rounded-xl cursor-pointer shadow-xs transition-all active:scale-95 select-none">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 text-black"><polyline points="21 8 21 21 3 21 3 8"></polyline><rect x="1" y="3" width="22" height="5"></rect><line x1="10" y1="12" x2="14" y2="12"></line></svg>
+                  <span>${showArchived ? 'View Active' : 'View Archived'}</span>
+                </button>
+                <button id="btn-open-create-staff" class="flex items-center gap-2.5 px-6 py-4 bg-[#1E6C02] hover:bg-[#145001] active:scale-95 text-white font-black text-sm uppercase tracking-wider rounded-xl cursor-pointer shadow-md transition-all hover:scale-[1.01] select-none">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                  <span>Add Staff Member</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Active / Archived Staff Database List container -->
+            <div class="bg-white rounded-3xl border border-gray-150 p-8 shadow-sm space-y-6">
+              
+              <!-- Action header bar with Title and instant search bar -->
+              <div class="flex flex-col lg:flex-row gap-5 items-start lg:items-center justify-between">
+                <h3 class="text-2xl font-black text-gray-955 tracking-tight" id="table-card-title">
+                  ${showArchived ? 'Archived Staff' : 'Active Staff'}
+                </h3>
+                
+                <!-- Instant search bar -->
+                <div class="relative w-full lg:max-w-md">
+                  <span class="absolute left-4 top-1/2 -translate-y-1/2 text-black font-bold select-none">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                  </span>
+                  <input 
+                    type="text" 
+                    id="staff-search-input" 
+                    placeholder="Search by name, email, contact, role..." 
+                    class="w-full pl-12 pr-10 py-3.5 bg-gray-50 border-2 border-gray-150 rounded-2xl font-bold text-sm outline-none text-gray-900 focus:bg-white focus:border-[#1E6C02] transition-colors shadow-inner" 
+                  />
+                  <button 
+                    id="btn-clear-search" 
+                    class="absolute right-4 top-1/2 -translate-y-1/2 text-black hover:text-gray-900 transition-colors hidden cursor-pointer p-0.5 rounded-full hover:bg-gray-100"
+                  >
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="w-3.5 h-3.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Main Table responsive viewport -->
+              <div class="overflow-x-auto w-full rounded-2xl border border-gray-100">
+                <table class="w-full text-left text-sm font-semibold text-gray-700 min-w-[750px] border-collapse">
+                  <thead>
+                    <tr class="border-b border-gray-150 text-gray-900 font-bold text-sm select-none">
+                      <th class="py-5 px-6 font-bold text-gray-900">Name</th>
+                      ${showArchived ? `
+                        <th class="py-5 px-6 font-bold text-gray-900">Role</th>
+                        <th class="py-5 px-6 font-bold text-gray-900">Archived Date</th>
+                        <th class="py-5 px-6 font-bold text-gray-900">Account Status</th>
+                      ` : `
+                        <th class="py-5 px-6 font-bold text-gray-900">Contact Details</th>
+                        <th class="py-5 px-6 font-bold text-gray-900">Role</th>
+                        <th class="py-5 px-6 font-bold text-gray-900">Account Status</th>
+                      `}
+                      <th class="py-5 px-6 font-bold text-gray-900 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-gray-100" id="staff-table-body">
+                    <!-- Dynamic staff rows loaded here -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        `;
+
+        // Initialize event logic
+        bindPageLevelEvents();
+        renderTableRows();
+      }
+
+      function renderTableRows(searchQuery = '') {
+        const staffList = getStaff();
+        const tbody = document.getElementById('staff-table-body');
+        if (!tbody) return;
+
+        const q = String(searchQuery || '').toLowerCase().trim();
+
+        // 1. Exclude Administrator and filter by Active/Archived state
+        let filtered = staffList.filter(s => {
+          const roleStr = String(s.role || '').toLowerCase();
+          const isNotAdmin = s.role !== 'Administrator' && roleStr !== 'administrator';
+          const matchArchiveState = showArchived ? s.isArchived : !s.isArchived;
+          return isNotAdmin && matchArchiveState;
+        });
+
+        // 2. Filter by Search Query
+        if (q) {
+          filtered = filtered.filter(s => {
+            const nameMatch = String(s.name || '').toLowerCase().includes(q);
+            const emailMatch = String(s.email || '').toLowerCase().includes(q);
+            const phoneMatch = String(s.contactNumber || s.phone || '').toLowerCase().includes(q);
+            const roleMatch = String(s.role || '').toLowerCase().includes(q);
+            return nameMatch || emailMatch || phoneMatch || roleMatch;
+          });
+        }
+
+        if (filtered.length === 0) {
+          tbody.innerHTML = `
+            <tr>
+              <td colspan="${showArchived ? '5' : '5'}" class="py-16 text-center text-black font-extrabold text-base">
+                <div class="flex flex-col items-center justify-center gap-3">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-8 h-8 text-gray-400"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>
+                  <span>No matches found inside database.</span>
+                </div>
+              </td>
+            </tr>
+          `;
+          return;
+        }
+
+        tbody.innerHTML = filtered.map((member) => {
+          // Circular profile pic generator
+          const avatarHTML = member.profilePicture ? `
+            <img class="w-11 h-11 rounded-full object-cover border-2 border-green-50 shadow-xs animate-in fade-in-50" src="${member.profilePicture}" alt="${member.name}" />
+          ` : `
+            <div class="w-11 h-11 rounded-full bg-[#1E6C02] text-white flex items-center justify-center font-extrabold text-sm border-2 border-[#1E6C02]/20 shadow-xs select-none">
+              ${(member.name || 'S')[0].toUpperCase()}
+            </div>
+          `;
+
+          // Pill Badge styling
+          const roleBadgeHTML = member.role === 'Administrator' ? `
+            <span class="inline-flex items-center px-3.5 py-1 rounded-full text-xs font-bold bg-green-50 text-green-700 border border-green-200 select-none animate-in zoom-in-95">
+              Administrator
+            </span>
+          ` : `
+            <span class="inline-flex items-center px-3.5 py-1 rounded-full text-xs font-bold bg-blue-50 text-blue-700 border border-blue-200 select-none animate-in zoom-in-95">
+              Staff
+            </span>
+          `;
+
+          const statusBadgeHTML = member.isArchived ? `
+            <span class="inline-flex items-center px-3.5 py-1 rounded-full text-xs font-bold bg-gray-100 text-black border border-gray-200 select-none animate-in zoom-in-95">
+              Archived
+            </span>
+          ` : (member.status === 'Suspended' || member.status === 'Inactive' ? `
+            <span class="inline-flex items-center px-3.5 py-1 rounded-full text-xs font-bold bg-red-50 text-red-700 border border-red-200 select-none animate-in zoom-in-95">
+              ${member.status}
+            </span>
+          ` : `
+            <span class="inline-flex items-center px-3.5 py-1 rounded-full text-xs font-bold bg-[#E8F8EE] text-emerald-700 border border-emerald-100 select-none animate-in zoom-in-95">
+              Active
+            </span>
+          `);
+
+          if (showArchived) {
+            // Archived staff layout
+            const archivedDateString = member.archivedDate || 'N/A';
+            return `
+              <tr class="hover:bg-gray-50/50 transition-all duration-155 animate-in fade-in-50 border-b border-gray-100">
+                <td class="py-5 px-6">
+                  <div class="flex items-center gap-3.5">
+                    ${avatarHTML}
+                    <span class="font-extrabold text-black text-base tracking-tight">${member.name}</span>
+                  </div>
+                </td>
+                <td class="py-5 px-6">
+                  ${roleBadgeHTML}
+                </td>
+                <td class="py-5 px-6 font-bold text-black text-sm">
+                  ${archivedDateString}
+                </td>
+                <td class="py-5 px-6">
+                  ${statusBadgeHTML}
+                </td>
+                <td class="py-5 px-6 text-right">
+                  <button 
+                    data-id="${member.id}"
+                    class="btn-staff-restore px-4 py-2 bg-white hover:bg-green-50 border-2 border-[#1E6C02] text-[#1E6C02] font-extrabold text-xs uppercase tracking-wider rounded-xl cursor-pointer shadow-xs transition-all active:scale-95 select-none inline-flex items-center gap-1.5"
+                  >
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-4 h-4"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
+                    <span>Restore</span>
+                  </button>
+                </td>
+              </tr>
+            `;
+          } else {
+            // Active staff layout
+            return `
+              <tr class="hover:bg-gray-50/50 transition-all duration-155 animate-in fade-in-50 border-b border-gray-100">
+                <td class="py-5 px-6">
+                  <div class="flex items-center gap-3.5">
+                    ${avatarHTML}
+                    <span class="font-bold text-black text-base tracking-tight">${member.name}</span>
+                  </div>
+                </td>
+                <td class="py-5 px-6 font-medium text-black text-sm">
+                  <div class="font-bold text-gray-900">${member.email}</div>
+                  <div class="text-xs text-gray-500 font-medium tracking-wide mt-0.5">${member.contactNumber || 'N/A'}</div>
+                </td>
+                <td class="py-5 px-6">
+                  <span class="text-gray-900 font-bold text-sm">${member.role}</span>
+                </td>
+                <td class="py-5 px-6">
+                  ${statusBadgeHTML}
+                </td>
+                <td class="py-5 px-6 text-right">
+                  <div class="flex gap-2.5 justify-end items-center">
+                    <!-- View Activities Logs Button -->
+                    <button 
+                      data-id="${member.id}"
+                      title="View Activities Logs"
+                      class="btn-staff-history text-[#1E6C02] hover:text-emerald-800 cursor-pointer transition-all active:scale-95 flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 rounded-xl font-bold text-xs border border-emerald-200 shadow-2xs select-none"
+                    >
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-4 h-4"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+                      <span>View Activities Logs</span>
+                    </button>
+
+                    <!-- Edit Button -->
+                    <button 
+                      data-id="${member.id}"
+                      title="Edit Staff Member"
+                      class="btn-staff-edit text-blue-600 hover:text-blue-800 cursor-pointer transition-all active:scale-90 flex items-center justify-center p-1.5 hover:bg-blue-50/50 rounded-lg"
+                    >
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                    </button>
+                    
+                    <!-- Archive Button -->
+                    <button 
+                      data-id="${member.id}"
+                      title="Archive Staff Account"
+                      class="btn-staff-archive text-orange-500 hover:text-orange-700 cursor-pointer transition-all active:scale-90 flex items-center justify-center p-1.5 hover:bg-orange-50/50 rounded-lg"
+                    >
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><polyline points="21 8 21 21 3 21 3 8"></polyline><rect x="1" y="3" width="22" height="5"></rect><line x1="10" y1="12" x2="14" y2="12"></line></svg>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            `;
+          }
+        }).join('');
+
+        // Bind Action Clicks inside rows
+        bindRowLevelEvents();
+      }
+
+      function bindPageLevelEvents() {
+        // Toggle view
+        document.getElementById('btn-toggle-archived-staff').addEventListener('click', () => {
+          showArchived = !showArchived;
+          renderStaffPage();
+        });
+
+        // Search inputs
+        const searchInp = document.getElementById('staff-search-input');
+        const clearBtn = document.getElementById('btn-clear-search');
+        
+        if (searchInp) {
+          searchInp.addEventListener('input', (e) => {
+            const val = e.target.value;
+            if (val.trim()) {
+              clearBtn.classList.remove('hidden');
+            } else {
+              clearBtn.classList.add('hidden');
+            }
+            renderTableRows(val);
+          });
+        }
+
+        if (clearBtn) {
+          clearBtn.addEventListener('click', () => {
+            searchInp.value = '';
+            clearBtn.classList.add('hidden');
+            renderTableRows();
+            searchInp.focus();
+          });
+        }
+
+        // Open create staff modal
+        document.getElementById('btn-open-create-staff').addEventListener('click', () => {
+          selectedStaffInModal = null;
+          profilePictureBase64 = '';
+          
+          document.getElementById('staff-form').reset();
+          document.getElementById('staff-modal-title').textContent = 'Add Staff Member';
+          document.getElementById('staff-modal-subtitle').textContent = 'Create a new staff account for your team member.';
+          
+          // Pre-fill phone prefix
+          document.getElementById('staff-inp-phone').value = '+63 ';
+
+          // Clear file previews
+          document.getElementById('photo-preview-container').classList.add('hidden');
+          document.getElementById('photo-placeholder').classList.remove('hidden');
+
+          // Password mandatory
+          document.getElementById('lbl-staff-password').textContent = 'Password *';
+          document.getElementById('staff-inp-password').setAttribute('required', 'true');
+
+          openModal(staffModal, staffModalPanel);
+        });
+      }
+
+      function bindRowLevelEvents() {
+        const staffList = getStaff();
+
+        // Staff Activity History Modal Event
+        document.querySelectorAll('.btn-staff-history').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const id = btn.getAttribute('data-id');
+            const member = staffList.find(s => String(s.id) === String(id));
+            if (!member) return;
+
+            const modal = document.getElementById('staff-history-modal');
+            const modalPanel = document.getElementById('staff-history-modal-panel');
+
+            document.getElementById('history-staff-name').textContent = member.name;
+            document.getElementById('history-staff-sub').textContent = `${member.role || 'Staff'} • ${member.email || ''}`;
+
+            const allLogs = getLogs();
+            const allOrders = getAllOrders();
+
+            const memberNameLower = (member.name || '').toLowerCase().trim();
+            const memberEmailLower = (member.email || '').toLowerCase().trim();
+
+            // Filter logs for this specific staff member
+            const memberLogs = allLogs.filter(l => {
+              const uName = String(l.userName || '').toLowerCase().trim();
+              const uEmail = String(l.userEmail || '').toLowerCase().trim();
+              const uId = String(l.userId || '');
+              return (memberNameLower && uName === memberNameLower) ||
+                     (memberEmailLower && uEmail === memberEmailLower) ||
+                     (member.id && uId === String(member.id));
+            });
+
+            const tbody = document.getElementById('history-table-tbody');
+            if (memberLogs.length === 0) {
+              tbody.innerHTML = `
+                <tr>
+                  <td colspan="6" class="py-12 text-center text-gray-500 font-extrabold text-sm">
+                    No activity logs found for this staff member.
+                  </td>
+                </tr>
+              `;
+            } else {
+              tbody.innerHTML = memberLogs.map(log => {
+                let dateStr = 'N/A';
+                let timeStr = '';
+                if (log.timestamp) {
+                  try {
+                    const dt = new Date(log.timestamp);
+                    if (!isNaN(dt.getTime())) {
+                      const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+                      const m = months[dt.getMonth()];
+                      const d = dt.getDate();
+                      const y = dt.getFullYear();
+                      let h = dt.getHours();
+                      const mins = String(dt.getMinutes()).padStart(2, '0');
+                      const ampm = h >= 12 ? 'PM' : 'AM';
+                      h = h % 12 || 12;
+                      dateStr = `${m} ${d}, ${y}`;
+                      timeStr = `${h}:${mins} ${ampm}`;
+                    }
+                  } catch (e) {}
+                }
+
+                const action = log.action || 'Activity Action';
+                const category = log.category || 'System';
+                const target = log.target || '-';
+
+                let affectedOrder = '-';
+                let customer = '-';
+
+                if (log.orderId) {
+                  affectedOrder = `Order #${log.orderId}`;
+                }
+                if (log.customerName) {
+                  customer = log.customerName;
+                }
+
+                const targetStr = String(log.target || '') + ' ' + String(log.action || '');
+                const orderMatch = targetStr.match(/#?(RF\d+|RS\d+|\d{5,})/i);
+                if (orderMatch && affectedOrder === '-') {
+                  affectedOrder = orderMatch[0].startsWith('#') ? orderMatch[0] : `#${orderMatch[0]}`;
+                }
+
+                const customerMatch = targetStr.match(/Customer:\s*([A-Za-z\s]+)/i);
+                if (customerMatch && customer === '-') {
+                  customer = customerMatch[1].trim();
+                }
+
+                if (affectedOrder !== '-' && customer === '-') {
+                  const cleanOrderId = affectedOrder.replace('#', '').trim();
+                  const matchedOrder = allOrders.find(o => String(o.id) === cleanOrderId || String(o.orderNumber) === cleanOrderId);
+                  if (matchedOrder && (matchedOrder.fullName || matchedOrder.customerName)) {
+                    customer = matchedOrder.fullName || matchedOrder.customerName;
+                  }
+                }
+
+                return `
+                  <tr class="hover:bg-gray-50/80 transition-colors border-b border-gray-100">
+                    <td class="py-3.5 px-4 text-xs font-bold text-gray-900 whitespace-nowrap">
+                      <div>${dateStr}</div>
+                      <div class="text-[11px] text-gray-500 font-semibold">${timeStr}</div>
+                    </td>
+                    <td class="py-3.5 px-4 text-xs font-black text-gray-950">${action}</td>
+                    <td class="py-3.5 px-4 text-xs font-bold">
+                      <span class="inline-block px-2.5 py-1 rounded-lg bg-gray-100 text-gray-800 border border-gray-200">
+                        ${category}
+                      </span>
+                    </td>
+                    <td class="py-3.5 px-4 text-xs font-medium text-gray-700">${target}</td>
+                    <td class="py-3.5 px-4 text-xs font-black text-[#1E6C02] whitespace-nowrap">${affectedOrder}</td>
+                    <td class="py-3.5 px-4 text-xs font-bold text-gray-900 whitespace-nowrap">${customer}</td>
+                  </tr>
+                `;
+              }).join('');
+            }
+
+            document.getElementById('close-history-modal-x').onclick = () => closeModal(modal, modalPanel);
+            document.getElementById('btn-close-history-modal').onclick = () => closeModal(modal, modalPanel);
+
+            openModal(modal, modalPanel);
+          });
+        });
+
+        // Row edit
+        document.querySelectorAll('.btn-staff-edit').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const id = btn.getAttribute('data-id');
+            const match = staffList.find(s => s.id === id);
+            if (!match) return;
+
+            selectedStaffInModal = match;
+            profilePictureBase64 = match.profilePicture || '';
+
+            document.getElementById('staff-modal-title').textContent = 'Edit Staff Member';
+            document.getElementById('staff-modal-subtitle').textContent = 'Modify staff account details.';
+
+            document.getElementById('staff-inp-name').value = match.name || '';
+            document.getElementById('staff-inp-email').value = match.email || '';
+            document.getElementById('staff-inp-phone').value = match.contactNumber || '';
+            document.getElementById('staff-inp-role').value = match.role || 'Staff';
+
+            if (profilePictureBase64) {
+              document.getElementById('photo-preview-img').src = profilePictureBase64;
+              document.getElementById('photo-preview-container').classList.remove('hidden');
+              document.getElementById('photo-placeholder').classList.add('hidden');
+            } else {
+              document.getElementById('photo-preview-container').classList.add('hidden');
+              document.getElementById('photo-placeholder').classList.remove('hidden');
+            }
+
+            // Password optional during edits
+            document.getElementById('lbl-staff-password').textContent = 'Password (Optional)';
+            document.getElementById('staff-inp-password').removeAttribute('required');
+            document.getElementById('staff-inp-password').value = '';
+            document.getElementById('staff-inp-confirm').value = '';
+
+            openModal(staffModal, staffModalPanel);
+          });
+        });
+
+        // Row archive
+        document.querySelectorAll('.btn-staff-archive').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const id = btn.getAttribute('data-id');
+            const match = staffList.find(s => s.id === id);
+            if (!match) return;
+
+            if (match.email === cAdmin.email) {
+              showToast('You cannot self-archive your current administrator session!', 'error');
+              return;
+            }
+
+            pendingDeleteId = id;
+            archiveStaffNameLabel.textContent = match.name;
+            openModal(archiveConfirmModal, archiveConfirmModalPanel);
+          });
+        });
+
+        // Row restore
+        document.querySelectorAll('.btn-staff-restore').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const id = btn.getAttribute('data-id');
+            pendingRestoreId = id;
+            openModal(restoreConfirmModal, restoreConfirmModalPanel);
+          });
+        });
+      }
+
+      // Drag and Drop implementation for photo zone
+      const photoZone = document.getElementById('photo-upload-zone');
+      const photoInput = document.getElementById('staff-inp-photo');
+      const removePhotoBtn = document.getElementById('btn-remove-photo');
+
+      if (photoZone && photoInput) {
+        photoZone.addEventListener('click', (e) => {
+          if (e.target !== removePhotoBtn && !e.target.closest('#photo-preview-container')) {
+            photoInput.click();
+          }
+        });
+
+        photoZone.addEventListener('dragover', (e) => {
+          e.preventDefault();
+          photoZone.classList.add('border-[#1E6C02]', 'bg-green-50/20');
+        });
+
+        photoZone.addEventListener('dragleave', () => {
+          photoZone.classList.remove('border-[#1E6C02]', 'bg-green-50/20');
+        });
+
+        photoZone.addEventListener('drop', (e) => {
+          e.preventDefault();
+          photoZone.classList.remove('border-[#1E6C02]', 'bg-green-50/20');
+          const files = e.dataTransfer.files;
+          if (files.length > 0) {
+            photoInput.files = files;
+            photoInput.dispatchEvent(new Event('change'));
+          }
+        });
+
+        photoInput.addEventListener('change', (e) => {
+          const file = e.target.files[0];
+          if (file) {
+            if (!['image/jpeg', 'image/png', 'image/gif'].includes(file.type)) {
+              showToast('Please upload a JPG, PNG or GIF image.', 'error');
+              photoInput.value = '';
+              return;
+            }
+            if (file.size > 2 * 1024 * 1024) {
+              showToast('Maximum file size is 2 MB.', 'error');
+              photoInput.value = '';
+              return;
+            }
+
+            compressImageFile(file, 160, 0.75).then((compressed) => {
+              profilePictureBase64 = compressed || '';
+              if (profilePictureBase64) {
+                document.getElementById('photo-preview-img').src = profilePictureBase64;
+                document.getElementById('photo-preview-container').classList.remove('hidden');
+                document.getElementById('photo-placeholder').classList.add('hidden');
+              }
+            }).catch(() => {
+              const reader = new FileReader();
+              reader.onload = (evt) => {
+                profilePictureBase64 = evt.target.result;
+                document.getElementById('photo-preview-img').src = profilePictureBase64;
+                document.getElementById('photo-preview-container').classList.remove('hidden');
+                document.getElementById('photo-placeholder').classList.add('hidden');
+              };
+              reader.readAsDataURL(file);
+            });
+          }
+        });
+      }
+
+      if (removePhotoBtn) {
+        removePhotoBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          profilePictureBase64 = '';
+          photoInput.value = '';
+          document.getElementById('photo-preview-container').classList.add('hidden');
+          document.getElementById('photo-placeholder').classList.remove('hidden');
+        });
+      }
+
+      // Password visibility toggle
+      document.querySelectorAll('.btn-toggle-password').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const input = btn.previousElementSibling;
+          if (input) {
+            if (input.type === 'password') {
+              input.type = 'text';
+              btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-4.5 h-4.5"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>`;
+            } else {
+              input.type = 'password';
+              btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-4.5 h-4.5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>`;
+            }
+          }
+        });
+      });
+
+      // Close Main Add/Edit Modal
+      document.getElementById('btn-staff-cancel').addEventListener('click', () => {
+        closeModal(staffModal, staffModalPanel);
+      });
+      document.getElementById('close-staff-modal').addEventListener('click', () => {
+        closeModal(staffModal, staffModalPanel);
+      });
+
+      // Submit Form - TRIGGERS SAVE CONFIRMATION DIALOG
+      document.getElementById('staff-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+
+        const name = document.getElementById('staff-inp-name').value.trim();
+        const email = document.getElementById('staff-inp-email').value.trim();
+        const contactNumber = document.getElementById('staff-inp-phone').value.trim();
+        const password = document.getElementById('staff-inp-password').value;
+        const confirm = document.getElementById('staff-inp-confirm').value;
+        const role = document.getElementById('staff-inp-role').value;
+
+        // Validation
+        if (!name || !email || !contactNumber) {
+          showToast('Kindly fill in all required fields.', 'error');
+          return;
+        }
+
+        const normPhone = normalizePhilippinePhone(contactNumber);
+        if (!normPhone.isValid) {
+          showToast('Please enter a valid Philippine mobile number (e.g. 09XXXXXXXXX or +639XXXXXXXXX).', 'error');
+          return;
+        }
+
+        if (!selectedStaffInModal) {
+          if (checkEmailExists(email)) {
+            showToast('This email address is already registered.', 'error');
+            return;
+          }
+          if (checkPhoneExists(normPhone.canonical)) {
+            showToast('This contact number is already registered to another account.', 'error');
+            return;
+          }
+        } else {
+          if (checkPhoneExists(normPhone.canonical, selectedStaffInModal.id || selectedStaffInModal.email)) {
+            showToast('This contact number is already registered to another account.', 'error');
+            return;
+          }
+        }
+
+        // Fresh Password Check
+        if (!selectedStaffInModal) {
+          if (!password) {
+            showToast('Password is required.', 'error');
+            return;
+          }
+          if (password.length < 8) {
+            showToast('Password must be at least 8 characters.', 'error');
+            return;
+          }
+          if (password !== confirm) {
+            showToast('Passwords do not match.', 'error');
+            return;
+          }
+        } else {
+          // Edit Password check if filled
+          if (password) {
+            if (password.length < 8) {
+              showToast('Password must be at least 8 characters.', 'error');
+              return;
+            }
+            if (password !== confirm) {
+              showToast('Passwords do not match.', 'error');
+              return;
+            }
+          }
+        }
+
+        // Populate details card inside confirmation modal
+        const detailRole = document.getElementById('save-confirm-detail-role');
+        const detailName = document.getElementById('save-confirm-detail-name');
+        const detailEmail = document.getElementById('save-confirm-detail-email');
+
+        if (detailRole) detailRole.textContent = role;
+        if (detailName) detailName.textContent = name;
+        if (detailEmail) {
+          detailEmail.textContent = email;
+          detailEmail.href = 'mailto:' + email;
+        }
+
+        // Customize the Save/Create confirm modal content based on context
+        if (!selectedStaffInModal) {
+          saveConfirmTitle.textContent = 'Create Staff Account';
+          saveConfirmMessage.innerHTML = 'Are you sure you want to create this new staff account?<br><br>The selected role will immediately gain access to the system using the credentials provided.';
+          document.getElementById('btn-confirm-save-confirm').textContent = 'Yes, Create Account';
+        } else {
+          saveConfirmTitle.textContent = 'Save Changes';
+          saveConfirmMessage.innerHTML = 'Are you sure you want to save these changes?<br><br>The updated credentials and role will be applied immediately.';
+          document.getElementById('btn-confirm-save-confirm').textContent = 'Yes, Save Changes';
+        }
+
+        openModal(saveConfirmModal, saveConfirmModalPanel);
+      });
+
+      // Confirm Save/Create Clicked
+      document.getElementById('btn-confirm-save-confirm').addEventListener('click', async () => {
+        const name = document.getElementById('staff-inp-name').value.trim();
+        const email = document.getElementById('staff-inp-email').value.trim();
+        const contactNumber = document.getElementById('staff-inp-phone').value.trim();
+        const role = document.getElementById('staff-inp-role').value;
+        const password = document.getElementById('staff-inp-password').value;
+
+        const staffList = getStaff();
+
+        if (!selectedStaffInModal) {
+          let fbUid = null;
+          try {
+            if (createStaffAuthAccount && password) {
+              fbUid = await createStaffAuthAccount(email, password);
+            }
+          } catch (authErr) {
+            console.warn('[STAFF PROVISION] Firebase Auth notice:', authErr.code || authErr.message);
+          }
+
+          // Save Fresh Account
+          const fresh = {
+            id: 'staff-' + Date.now(),
+            name,
+            email,
+            contactNumber,
+            role,
+            status: 'Active',
+            isArchived: false,
+            archivedDate: '',
+            password: password || '12345678',
+            profilePicture: profilePictureBase64,
+            firebaseUid: fbUid || null
+          };
+
+          staffList.push(fresh);
+          saveStaff(staffList);
+          syncWithAdminUsers();
+
+          addActivityLog('User Management', 'Registered staff account: ' + name, name);
+          
+          if (role === 'Administrator') {
+            showToast('✔ Administrator account created successfully.', 'success');
+          } else {
+            showToast('✔ Staff account created successfully.', 'success');
+          }
+        } else {
+          // Save Edit
+          const updated = staffList.map(s => {
+            if (s.id === selectedStaffInModal.id) {
+              const u = {
+                ...s,
+                name,
+                email,
+                contactNumber,
+                role,
+                profilePicture: profilePictureBase64 || s.profilePicture || ''
+              };
+              if (password) {
+                u.password = password;
+              }
+              return u;
+            }
+            return s;
+          });
+
+          saveStaff(updated);
+          syncWithAdminUsers();
+
+          addActivityLog('User Management', 'Amended configurations for staff: ' + name, name);
+          showToast('✔ Staff member details updated successfully.', 'success');
+        }
+
+        // Close all modals
+        closeModal(saveConfirmModal, saveConfirmModalPanel);
+        closeModal(staffModal, staffModalPanel);
+        
+        // Refresh Table
+        renderTableRows();
+      });
+
+      // Cancel Save Confirmation Dialog
+      document.getElementById('btn-cancel-save-confirm').addEventListener('click', () => {
+        closeModal(saveConfirmModal, saveConfirmModalPanel);
+      });
+      document.getElementById('close-save-confirm-modal-x').addEventListener('click', () => {
+        closeModal(saveConfirmModal, saveConfirmModalPanel);
+      });
+
+      // Cancel Archive Confirmation Dialog
+      document.getElementById('btn-cancel-archive-confirm').addEventListener('click', () => {
+        closeModal(archiveConfirmModal, archiveConfirmModalPanel);
+        pendingDeleteId = null;
+      });
+      document.getElementById('close-archive-confirm-modal-x').addEventListener('click', () => {
+        closeModal(archiveConfirmModal, archiveConfirmModalPanel);
+        pendingDeleteId = null;
+      });
+
+      // Confirm Archive action Clicked
+      document.getElementById('btn-confirm-archive-confirm').addEventListener('click', () => {
+        if (!pendingDeleteId) return;
+
+        const staffList = getStaff();
+        const match = staffList.find(s => s.id === pendingDeleteId);
+        if (!match) return;
+
+        // Current Date Formatted: Month Date, Year
+        const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+        const now = new Date();
+        const formattedDate = `${months[now.getMonth()]} ${now.getDate()}, ${now.getFullYear()}`;
+
+        const updated = staffList.map(s => {
+          if (s.id === pendingDeleteId) {
+            return {
+              ...s,
+              isArchived: true,
+              archivedDate: formattedDate,
+              status: 'Archived'
+            };
+          }
+          return s;
+        });
+
+        saveStaff(updated);
+        syncWithAdminUsers();
+
+        addActivityLog('User Management', 'Archived team member: ' + match.name, match.name);
+        showToast('✔ Staff account archived successfully.', 'success');
+
+        closeModal(archiveConfirmModal, archiveConfirmModalPanel);
+        pendingDeleteId = null;
+        
+        // Refresh Page
+        renderTableRows();
+      });
+
+      // Cancel Restore Confirmation Dialog
+      document.getElementById('btn-cancel-restore-confirm').addEventListener('click', () => {
+        closeModal(restoreConfirmModal, restoreConfirmModalPanel);
+        pendingRestoreId = null;
+      });
+      document.getElementById('close-restore-confirm-modal-x').addEventListener('click', () => {
+        closeModal(restoreConfirmModal, restoreConfirmModalPanel);
+        pendingRestoreId = null;
+      });
+
+      // Confirm Restore action Clicked
+      document.getElementById('btn-confirm-restore-confirm').addEventListener('click', () => {
+        if (!pendingRestoreId) return;
+
+        const staffList = getStaff();
+        const match = staffList.find(s => s.id === pendingRestoreId);
+        if (!match) return;
+
+        const updated = staffList.map(s => {
+          if (s.id === pendingRestoreId) {
+            return {
+              ...s,
+              isArchived: false,
+              archivedDate: '',
+              status: 'Active'
+            };
+          }
+          return s;
+        });
+
+        saveStaff(updated);
+        syncWithAdminUsers();
+
+        addActivityLog('User Management', 'Restored team member: ' + match.name, match.name);
+        showToast('✔ Staff member restored successfully.', 'success');
+
+        closeModal(restoreConfirmModal, restoreConfirmModalPanel);
+        pendingRestoreId = null;
+
+        // Refresh Page
+        renderTableRows();
+      });
+
+      // Initial loading
+      renderStaffPage();
+    });
+  </script>
+</body>
+</html>

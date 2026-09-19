@@ -1,0 +1,1444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Inventory Control | RiceFlow</title>
+  <link rel="stylesheet" href="../src/styles/index.css">
+  <style>
+    /* Top horizontal scrollbar for products table */
+    #admin-products-table-scroll::-webkit-scrollbar {
+      height: 8px; /* Thickness of top scrollbar */
+    }
+    #admin-products-table-scroll::-webkit-scrollbar-track {
+      background: #EAECEF;
+      border-radius: 9999px;
+    }
+    #admin-products-table-scroll::-webkit-scrollbar-thumb {
+      background: #1E6C02; /* Brand green scrollbar color */
+      border-radius: 9999px;
+      border: 1px solid #EAECEF;
+    }
+    #admin-products-table-scroll::-webkit-scrollbar-thumb:hover {
+      background: #145001;
+    }
+  </style>
+</head>
+<body class="bg-[#F5F5F5] min-h-screen">
+
+  <div id="admin-layout-container"></div>
+
+  <!-- ADD PRODUCT DIALOG MODAL -->
+  <div id="add-product-dialog" class="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-3xl max-w-2xl w-full shadow-2xl border flex flex-col max-h-[90vh] animate-in fade-in zoom-in duration-200">
+      <!-- Popup Header -->
+      <div class="px-8 py-6 border-b border-gray-150 flex justify-between items-start shrink-0">
+        <div class="text-left">
+          <h3 class="text-2xl font-black text-black tracking-tight">Add New Product</h3>
+          <p class="text-sm text-gray-700 font-bold mt-1.5">Please complete the following form to add data.</p>
+        </div>
+        <button type="button" id="close-add-modal" class="text-gray-400 hover:text-black cursor-pointer p-1">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" class="w-6 h-6"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+
+      <form id="add-product-form" class="flex-1 overflow-y-auto p-8 space-y-6">
+        <!-- Section 1 – Basic Information -->
+        <div class="bg-white rounded-2xl p-6 border border-gray-200 shadow-xs space-y-5 text-left">
+          <h4 class="text-base font-black text-black uppercase tracking-wider">Basic Information</h4>
+          
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            <div class="space-y-1.5">
+              <label class="text-sm font-extrabold text-black flex items-center gap-1">Product Name <span class="text-rose-500">*</span></label>
+              <input type="text" id="add-inp-name" placeholder="e.g., Dinorado Rice" class="w-full bg-gray-50/50 border border-gray-250 text-base font-semibold text-gray-800 px-4 py-3 rounded-xl outline-none focus:border-[#1E6C02] focus:bg-white transition-all shadow-2xs" />
+              <span id="err-add-name" class="err-msg text-xs font-semibold text-rose-500 hidden mt-1 block">Please enter the product name.</span>
+            </div>
+            
+            <div class="space-y-1.5">
+              <label class="text-sm font-extrabold text-black flex items-center gap-1">Product Code <span class="text-rose-500">*</span></label>
+              <input type="text" id="add-inp-sku" placeholder="e.g., RICE-001" class="w-full bg-gray-50/50 border border-gray-250 text-base font-semibold text-gray-800 px-4 py-3 rounded-xl outline-none focus:border-[#1E6C02] focus:bg-white transition-all shadow-2xs" />
+              <span id="err-add-sku" class="err-msg text-xs font-semibold text-rose-500 hidden mt-1 block">Please enter the product code.</span>
+            </div>
+          </div>
+          
+          <div class="space-y-1.5">
+            <label class="text-sm font-extrabold text-black flex items-center gap-1">Rice Variety <span class="text-rose-500">*</span></label>
+            <input type="text" id="add-inp-variety" placeholder="e.g., Premium, Local, Specialty" class="w-full bg-gray-50/50 border border-gray-250 text-base font-semibold text-gray-800 px-4 py-3 rounded-xl outline-none focus:border-[#1E6C02] focus:bg-white transition-all shadow-2xs" />
+            <span id="err-add-variety" class="err-msg text-xs font-semibold text-rose-500 hidden mt-1 block">Please specify the rice variety.</span>
+          </div>
+        </div>
+
+        <!-- Section 2 – Product Stock -->
+        <div class="bg-white rounded-2xl p-6 border border-gray-200 shadow-xs space-y-5 text-left">
+          <h4 class="text-base font-black text-black uppercase tracking-wider">Product Stock</h4>
+          
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            <div class="space-y-1.5">
+              <label class="text-sm font-extrabold text-black flex items-center gap-1">Stock Quantity <span class="text-rose-500">*</span></label>
+              <input type="number" id="add-inp-stock" placeholder="e.g., 500" class="w-full bg-gray-50/50 border border-gray-250 text-base font-semibold text-gray-800 px-4 py-3 rounded-xl outline-none focus:border-[#1E6C02] focus:bg-white transition-all shadow-2xs" />
+              <span id="err-add-stock" class="err-msg text-xs font-semibold text-rose-500 hidden mt-1 block">Please enter a valid stock quantity (0 or greater).</span>
+            </div>
+            
+            <div class="space-y-1.5">
+              <label class="text-sm font-extrabold text-black flex items-center gap-1">Product Weight <span class="text-rose-500">*</span></label>
+              <input type="text" id="add-inp-unit" placeholder="e.g., 1kg" class="w-full bg-gray-50/50 border border-gray-250 text-base font-semibold text-gray-800 px-4 py-3 rounded-xl outline-none focus:border-[#1E6C02] focus:bg-white transition-all shadow-2xs" />
+              <span id="err-add-unit" class="err-msg text-xs font-semibold text-rose-500 hidden mt-1 block">Please specify the unit.</span>
+            </div>
+            
+            <div class="space-y-1.5">
+              <label class="text-sm font-extrabold text-black flex items-center gap-1">Price <span class="text-rose-500">*</span></label>
+              <input type="number" id="add-inp-price" placeholder="e.g., 75.00" class="w-full bg-gray-50/50 border border-gray-250 text-base font-semibold text-gray-800 px-4 py-3 rounded-xl outline-none focus:border-[#1E6C02] focus:bg-white transition-all shadow-2xs" />
+              <span id="err-add-price" class="err-msg text-xs font-semibold text-rose-500 hidden mt-1 block">Please enter a valid selling price.</span>
+            </div>
+            
+            <div class="space-y-1.5">
+              <label class="text-sm font-extrabold text-black flex items-center gap-1">Down Payment Price <span class="text-rose-500">*</span></label>
+              <input type="number" step="any" id="add-inp-reorder" placeholder="0.03" class="w-full bg-gray-50/50 border border-gray-250 text-base font-semibold text-gray-800 px-4 py-3 rounded-xl outline-none focus:border-[#1E6C02] focus:bg-white transition-all shadow-2xs" />
+              <span id="err-add-reorder" class="err-msg text-xs font-semibold text-rose-500 hidden mt-1 block">Please specify the reorder level (0 or greater).</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 3 – Product Description -->
+        <div class="space-y-2 text-left">
+          <label class="text-sm font-black text-black uppercase tracking-wider block">Product Description <span class="text-rose-500">*</span></label>
+          <textarea id="add-inp-desc" rows="3" placeholder="Enter product description..." class="w-full bg-gray-50 border border-gray-250 text-base font-semibold text-gray-800 p-4 rounded-xl outline-none focus:border-[#1E6C02] focus:bg-white transition-all shadow-2xs"></textarea>
+          <span id="err-add-desc" class="err-msg text-xs font-semibold text-rose-500 hidden mt-1 block">Please enter a product description.</span>
+        </div>
+
+        <!-- Section 5 – Product Image -->
+        <div class="space-y-2 text-left">
+          <label class="text-sm font-black text-black uppercase tracking-wider block">Product Image <span class="text-rose-500">*</span></label>
+          
+          <div id="add-image-upload-zone" class="border-2 border-dashed border-gray-300 hover:border-[#1E6C02] rounded-2xl p-8 flex flex-col items-center justify-center cursor-pointer transition-all bg-gray-50/50 hover:bg-green-50/5">
+            <svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+              <path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" stroke-linecap="round" stroke-linejoin="round"></path>
+            </svg>
+            <p class="text-base font-extrabold text-gray-800 mt-3">Click to upload product image</p>
+            <p class="text-xs text-gray-400 mt-1">Supported formats: PNG, JPG, WEBP</p>
+          </div>
+          <input type="file" id="add-file-image" accept=".png,.jpg,.jpeg,.webp" class="hidden">
+          
+          <div id="add-image-preview-container" class="hidden flex flex-col items-center gap-3 border border-gray-200 rounded-2xl p-4 bg-white">
+            <img id="add-image-preview-img" class="max-h-48 object-contain rounded-lg shadow-xs" />
+            <button type="button" id="btn-add-replace-image" class="px-3.5 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-xs font-bold transition-all cursor-pointer">Replace Image</button>
+          </div>
+          <span id="err-add-image" class="err-msg text-xs font-semibold text-rose-500 hidden mt-1 block">Please upload a product image.</span>
+        </div>
+
+        <!-- Bottom Buttons -->
+        <div class="flex gap-3 pt-6 border-t border-gray-150 justify-end shrink-0">
+          <button type="button" id="btn-add-cancel" class="px-6 py-3 text-sm font-extrabold text-gray-600 border border-gray-300 rounded-xl hover:bg-gray-50 transition-all cursor-pointer">Cancel</button>
+          <button type="submit" id="btn-add-submit" disabled class="px-6 py-3 text-sm font-extrabold bg-[#1E6C02] text-white hover:bg-[#145001] disabled:bg-[#A3DDA1] disabled:text-white disabled:cursor-not-allowed rounded-xl transition-all shadow-xs cursor-pointer">Add New Product</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- UPDATE SERVICE INFO MODAL -->
+  <div id="info-product-dialog" class="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-3xl max-w-2xl w-full shadow-2xl border flex flex-col max-h-[90vh] animate-in fade-in zoom-in duration-200">
+      <!-- Popup Header -->
+      <div class="px-8 py-6 border-b border-gray-150 flex justify-between items-start shrink-0">
+        <div class="text-left">
+          <h3 class="text-2xl font-black text-black tracking-tight">Update Product Details</h3>
+          <p class="text-sm text-gray-700 font-bold mt-1.5" id="info-modal-subtitle">Modify descriptions and other information.</p>
+        </div>
+        <button type="button" id="close-info-modal" class="text-gray-400 hover:text-black cursor-pointer p-1">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" class="w-6 h-6"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+
+      <form id="info-product-form" class="flex-1 overflow-y-auto p-8 space-y-6">
+        <!-- Section 1 – Basic Information -->
+        <div class="bg-white rounded-2xl p-6 border border-gray-200 shadow-xs space-y-5 text-left">
+          <h4 class="text-base font-black text-black uppercase tracking-wider">Basic Information</h4>
+          
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            <div class="space-y-1.5">
+              <label class="text-sm font-extrabold text-black flex items-center gap-1">Product Name <span class="text-rose-500">*</span></label>
+              <input type="text" id="info-inp-name" required placeholder="e.g., Dinorado Rice" class="w-full bg-gray-50/50 border border-gray-250 text-base font-semibold text-gray-800 px-4 py-3 rounded-xl outline-none focus:border-[#1E6C02] focus:bg-white transition-all shadow-2xs" />
+            </div>
+            
+            <div class="space-y-1.5">
+              <label class="text-sm font-extrabold text-black flex items-center gap-1">Product Code <span class="text-rose-500">*</span></label>
+              <input type="text" id="info-inp-sku" required placeholder="e.g., RICE-001" class="w-full bg-gray-50/50 border border-gray-250 text-base font-semibold text-gray-800 px-4 py-3 rounded-xl outline-none focus:border-[#1E6C02] focus:bg-white transition-all shadow-2xs" />
+            </div>
+          </div>
+          
+          <div class="space-y-1.5">
+            <label class="text-sm font-extrabold text-black flex items-center gap-1">Rice Variety <span class="text-rose-500">*</span></label>
+            <input type="text" id="info-inp-category" required placeholder="e.g., Premium, Local, Specialty" class="w-full bg-gray-50/50 border border-gray-250 text-base font-semibold text-gray-800 px-4 py-3 rounded-xl outline-none focus:border-[#1E6C02] focus:bg-white transition-all shadow-2xs" />
+          </div>
+        </div>
+
+        <!-- Section 2 – Product Stock -->
+        <div class="bg-white rounded-2xl p-6 border border-gray-200 shadow-xs space-y-5 text-left">
+          <h4 class="text-base font-black text-black uppercase tracking-wider">Product Stock</h4>
+          
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            <div class="space-y-1.5">
+              <label class="text-sm font-extrabold text-black flex items-center gap-1">Stock Quantity <span class="text-rose-500">*</span></label>
+              <input type="number" id="info-inp-stock" required placeholder="e.g., 500" class="w-full bg-gray-50/50 border border-gray-250 text-base font-semibold text-gray-800 px-4 py-3 rounded-xl outline-none focus:border-[#1E6C02] focus:bg-white transition-all shadow-2xs" />
+            </div>
+            
+            <div class="space-y-1.5">
+              <label class="text-sm font-extrabold text-black flex items-center gap-1">Product Weight <span class="text-rose-500">*</span></label>
+              <input type="text" id="info-inp-weight" required placeholder="e.g., 1kg" class="w-full bg-gray-50/50 border border-gray-250 text-base font-semibold text-gray-800 px-4 py-3 rounded-xl outline-none focus:border-[#1E6C02] focus:bg-white transition-all shadow-2xs" />
+            </div>
+            
+            <div class="space-y-1.5">
+              <label class="text-sm font-extrabold text-black flex items-center gap-1">Price <span class="text-rose-500">*</span></label>
+              <input type="number" id="info-inp-price" required placeholder="e.g., 75.00" class="w-full bg-gray-50/50 border border-gray-250 text-base font-semibold text-gray-800 px-4 py-3 rounded-xl outline-none focus:border-[#1E6C02] focus:bg-white transition-all shadow-2xs" />
+            </div>
+            
+            <div class="space-y-1.5">
+              <label class="text-sm font-extrabold text-black flex items-center gap-1">Down Payment Price <span class="text-rose-500">*</span></label>
+              <input type="number" step="any" id="info-inp-reorder" required placeholder="0.03" class="w-full bg-gray-50/50 border border-gray-250 text-base font-semibold text-gray-800 px-4 py-3 rounded-xl outline-none focus:border-[#1E6C02] focus:bg-white transition-all shadow-2xs" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 3 – Product Description -->
+        <div class="space-y-2 text-left">
+          <label class="text-sm font-black text-black uppercase tracking-wider block">Product Description <span class="text-rose-500">*</span></label>
+          <textarea id="info-inp-desc" required rows="3" placeholder="Enter product description..." class="w-full bg-gray-50 border border-gray-250 text-base font-semibold text-gray-800 p-4 rounded-xl outline-none focus:border-[#1E6C02] focus:bg-white transition-all shadow-2xs"></textarea>
+        </div>
+
+        <!-- Section 5 – Product Image -->
+        <div class="space-y-2 text-left">
+          <label class="text-sm font-black text-black uppercase tracking-wider block">Product Image <span class="text-rose-500">*</span></label>
+          
+          <div id="info-image-upload-zone" class="border-2 border-dashed border-gray-300 hover:border-[#1E6C02] rounded-2xl p-8 flex flex-col items-center justify-center cursor-pointer transition-all bg-gray-50/50 hover:bg-green-50/5">
+            <svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+              <path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" stroke-linecap="round" stroke-linejoin="round"></path>
+            </svg>
+            <p class="text-base font-extrabold text-gray-800 mt-3">Click to upload product image</p>
+            <p class="text-xs text-gray-400 mt-1">Supported formats: PNG, JPG, WEBP</p>
+          </div>
+          <input type="file" id="info-file-image" accept=".png,.jpg,.jpeg,.webp" class="hidden">
+          
+          <div id="info-image-preview-container" class="hidden flex flex-col items-center gap-3 border border-gray-200 rounded-2xl p-4 bg-white">
+            <img id="info-image-preview-img" class="max-h-48 object-contain rounded-lg shadow-xs" />
+            <button type="button" id="btn-info-replace-image" class="px-3.5 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-xs font-bold transition-all cursor-pointer">Replace Image</button>
+          </div>
+        </div>
+
+        <!-- Bottom Buttons -->
+        <div class="flex gap-3 pt-6 border-t border-gray-150 justify-end shrink-0">
+          <button type="button" id="btn-info-cancel" class="px-6 py-3 text-sm font-extrabold text-gray-600 border border-gray-300 rounded-xl hover:bg-gray-50 transition-all cursor-pointer">Cancel</button>
+          <button type="submit" id="btn-info-submit" class="px-6 py-3 text-sm font-extrabold bg-[#1E6C02] text-white hover:bg-[#145001] rounded-xl transition-all shadow-xs cursor-pointer">Update Information</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ADD / DEDUCT STOCK DIALOG MODAL -->
+  <div id="stock-product-dialog" class="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-3xl max-w-lg w-full shadow-2xl p-8 border border-gray-250 flex flex-col relative animate-in fade-in zoom-in duration-200">
+      <!-- Close button -->
+      <button type="button" id="close-stock-modal" class="absolute top-6 right-6 text-gray-400 hover:text-black cursor-pointer p-1">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" class="w-6 h-6"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+      </button>
+
+      <!-- Popup Header -->
+      <div class="text-center mb-8">
+        <h3 class="text-3xl font-black text-black tracking-tight" id="stock-modal-title">Add Product Stock</h3>
+        <p class="text-base text-black font-semibold mt-2" id="stock-modal-subtitle">
+          Manage inventory for <span id="stock-modal-product-name" class="font-black text-black">7A Hope Rice</span>.
+        </p>
+      </div>
+
+      <!-- Segmented Buttons / Tabs for Add & Deduct -->
+      <div class="flex justify-center gap-6 mb-8">
+        <!-- Add Button -->
+        <button id="btn-op-add" class="w-32 h-32 rounded-3xl border-2 flex flex-col items-center justify-center gap-2 cursor-pointer transition-all shadow-sm">
+          <span class="text-3xl font-black">+</span>
+          <span class="text-lg font-black">Add</span>
+        </button>
+        <!-- Deduct Button -->
+        <button id="btn-op-ded" class="w-32 h-32 rounded-3xl border-2 flex flex-col items-center justify-center gap-2 cursor-pointer transition-all shadow-sm">
+          <span class="text-3xl font-black">−</span>
+          <span class="text-lg font-black">Deduct</span>
+        </button>
+      </div>
+
+      <!-- Quantity input with Enter Quantity label -->
+      <div class="text-center mb-8 space-y-3">
+        <label class="text-lg font-black text-black block">Enter Quantity</label>
+        
+        <div class="flex items-center justify-center gap-4">
+          <!-- Circular minus button -->
+          <button type="button" id="btn-stock-qty-minus" class="w-12 h-12 rounded-full border-2 border-gray-300 flex items-center justify-center text-2xl font-black text-black hover:bg-gray-50 active:scale-95 transition-all cursor-pointer">
+            −
+          </button>
+          
+          <!-- Text value input field -->
+          <input type="number" id="inp-stock-qty" min="0" value="0" class="w-48 bg-gray-100 border border-gray-200 text-center text-xl font-black text-black py-3 rounded-2xl outline-none focus:bg-white focus:border-[#1E6C02] transition-all [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
+          
+          <!-- Circular plus button -->
+          <button type="button" id="btn-stock-qty-plus" class="w-12 h-12 rounded-full border-2 border-gray-300 flex items-center justify-center text-2xl font-black text-black hover:bg-gray-50 active:scale-95 transition-all cursor-pointer">
+            +
+          </button>
+        </div>
+      </div>
+
+      <!-- Current Stock display -->
+      <div class="text-center mb-8">
+        <p class="text-lg text-black font-bold">
+          Current Stock: <span id="stock-modal-current-val" class="font-black text-black">200</span>
+        </p>
+      </div>
+
+      <!-- Bottom Buttons -->
+      <div class="grid grid-cols-2 gap-4 pt-6 border-t border-gray-150">
+        <button id="btn-stock-cancel" class="py-4 text-base font-black text-black border-2 border-gray-300 rounded-2xl hover:bg-gray-50 transition-all cursor-pointer">
+          Cancel
+        </button>
+        <button id="btn-stock-confirm" disabled class="py-4 text-base font-black text-white bg-[#1E6C02] hover:bg-[#145001] disabled:bg-[#A3DDA1] disabled:text-white disabled:cursor-not-allowed rounded-2xl transition-all shadow-xs cursor-pointer">
+          Confirm Stock Update
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONFIRM UPDATE STOCK DIALOG MODAL -->
+  <div id="confirm-stock-update-dialog" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-60 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-3xl max-w-md w-full shadow-2xl border p-6 text-center animate-in fade-in zoom-in duration-200">
+      <div class="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4 border border-blue-100">
+        <svg class="w-8 h-8 text-[#1E6C02]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+        </svg>
+      </div>
+      <h3 class="text-xl font-black text-gray-900 mb-2">Update Product Stock</h3>
+      <p class="text-sm font-bold text-gray-650 leading-relaxed mb-6 text-center">
+        Are you sure you want to update the inventory stock for this product?<br>
+        <span class="text-xs text-gray-400 font-semibold block mt-1">Please review the quantity before continuing.</span>
+      </p>
+      <div class="grid grid-cols-2 gap-3">
+        <button type="button" id="btn-confirm-stock-cancel" class="px-5 py-3 text-sm font-extrabold text-gray-700 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 transition-all cursor-pointer">Cancel</button>
+        <button type="button" id="btn-confirm-stock-yes" class="px-5 py-3 text-sm font-extrabold text-white bg-[#1E6C02] hover:bg-[#145001] rounded-xl transition-all shadow-xs cursor-pointer">Yes, Update Stock</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ARCHIVE PRODUCT CONFIRMATION DIALOG MODAL -->
+  <div id="archive-product-confirm-dialog" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-60 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-3xl max-w-md w-full shadow-2xl border p-6 text-center animate-in fade-in zoom-in duration-200">
+      <div class="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4 border border-red-100">
+        <span class="text-3xl text-red-600 font-bold">⚠️</span>
+      </div>
+      <h3 class="text-xl font-black text-gray-900 mb-2">Archive Product</h3>
+      <p class="text-sm font-bold text-gray-650 leading-relaxed mb-6 text-center">
+        Are you sure you want to archive this product?<br>
+        <span class="text-xs text-red-500 font-semibold block mt-1">Archived products will no longer appear in the active inventory, but all product records will be preserved and can be restored later.</span>
+      </p>
+      <div class="grid grid-cols-2 gap-3">
+        <button type="button" id="btn-archive-confirm-cancel" class="px-5 py-3 text-sm font-extrabold text-gray-700 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 transition-all cursor-pointer">Cancel</button>
+        <button type="button" id="btn-archive-confirm-yes" class="px-5 py-3 text-sm font-extrabold text-white bg-red-600 hover:bg-red-700 rounded-xl transition-all shadow-xs cursor-pointer">Yes, Archive Product</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- RESTORE PRODUCT CONFIRMATION DIALOG MODAL -->
+  <div id="restore-product-confirm-dialog" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-60 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-3xl max-w-md w-full shadow-2xl border p-6 text-center animate-in fade-in zoom-in duration-200">
+      <div class="w-16 h-16 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-4 border border-green-100">
+        <span class="text-3xl text-[#1E6C02] font-bold">♻️</span>
+      </div>
+      <h3 class="text-xl font-black text-gray-900 mb-2">Restore Product</h3>
+      <p class="text-sm font-bold text-gray-650 leading-relaxed mb-6 text-center">
+        Are you sure you want to restore this product?<br>
+        <span class="text-xs text-[#1E6C02] font-semibold block mt-1">This product will become active again and will be visible in the Product Inventory.</span>
+      </p>
+      <div class="grid grid-cols-2 gap-3">
+        <button type="button" id="btn-restore-confirm-cancel" class="px-5 py-3 text-sm font-extrabold text-gray-700 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 transition-all cursor-pointer">Cancel</button>
+        <button type="button" id="btn-restore-confirm-yes" class="px-5 py-3 text-sm font-extrabold text-white bg-[#1E6C02] hover:bg-[#145001] rounded-xl transition-all shadow-xs cursor-pointer">Restore Product</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONFIRMATION DIALOG MODAL -->
+  <div id="confirm-product-dialog" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-60 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-3xl max-w-md w-full shadow-2xl border p-6 text-center animate-in fade-in zoom-in duration-200">
+      <div class="w-16 h-16 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-4 border border-green-100">
+        <svg class="w-8 h-8 text-[#1E6C02]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+        </svg>
+      </div>
+      <h3 class="text-xl font-black text-gray-900 mb-2">Add New Product</h3>
+      <p class="text-sm font-bold text-gray-650 leading-relaxed mb-6">
+        Are you sure you want to add this new product to the inventory?<br>
+        <span class="text-xs text-gray-400 font-semibold">Please review the information before continuing.</span>
+      </p>
+      <div class="grid grid-cols-2 gap-3">
+        <button type="button" id="btn-confirm-cancel" class="px-5 py-3 text-sm font-extrabold text-gray-700 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 transition-all cursor-pointer">Cancel</button>
+        <button type="button" id="btn-confirm-yes" class="px-5 py-3 text-sm font-extrabold text-white bg-[#1E6C02] hover:bg-[#145001] rounded-xl transition-all shadow-xs cursor-pointer">Yes, Add Product</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONFIRM UPDATE DIALOG MODAL -->
+  <div id="confirm-update-product-dialog" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-60 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-3xl max-w-md w-full shadow-2xl border p-6 text-center animate-in fade-in zoom-in duration-200">
+      <div class="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4 border border-blue-100">
+        <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+        </svg>
+      </div>
+      <h3 class="text-xl font-black text-gray-900 mb-2">Update Product Information</h3>
+      <p class="text-sm font-bold text-gray-650 leading-relaxed mb-6">
+        Are you sure you want to save the changes made to this product?<br>
+        <span class="text-xs text-gray-400 font-semibold">Please review the updated information before continuing.</span>
+      </p>
+      <div class="grid grid-cols-2 gap-3">
+        <button type="button" id="btn-confirm-update-cancel" class="px-5 py-3 text-sm font-extrabold text-gray-700 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 transition-all cursor-pointer">Cancel</button>
+        <button type="button" id="btn-confirm-update-yes" class="px-5 py-3 text-sm font-extrabold text-white bg-[#1E6C02] hover:bg-[#145001] rounded-xl transition-all shadow-xs cursor-pointer">Yes, Update Product</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="../src/app/shared.js"></script>
+
+  <!-- Products Controller logic -->
+  <script type="module">
+    import { renderAdminLayout, getProducts, saveProducts, addActivityLog, showToast, allocateStockToReservations, addInventoryHistory, getCurrentAdmin } from '../src/app/shared.js';
+
+    document.addEventListener('DOMContentLoaded', () => {
+      renderAdminLayout('products');
+
+      const currentAdmin = getCurrentAdmin() || { role: 'staff' };
+      const isAdmin = currentAdmin && currentAdmin.role === 'admin';
+
+      const targetSpace = document.getElementById('admin-main-content');
+      if (!targetSpace) return;
+
+      // Local filters state
+      let searchQuery = '';
+      let showArchived = false;
+
+      // Focused pointers
+      let selectedProductInModal = null;
+      let stockOperation = 'add'; // 'add' or 'deduct'
+
+      // Modal elements
+      const addDialog = document.getElementById('add-product-dialog');
+      const infoDialog = document.getElementById('info-product-dialog');
+      const stockDialog = document.getElementById('stock-product-dialog');
+
+      // Check URL filter query parameters for dashboard deep linking
+      const urlParams = new URLSearchParams(window.location.search);
+      const stockFilterParam = urlParams.get('filter'); // 'low' or 'out'
+
+      function renderCatalog() {
+        const productsList = getProducts();
+        const q = String(searchQuery || '').toLowerCase().trim();
+        
+        const filtered = productsList.filter(p => {
+          const nameStr = String(p.name || '').toLowerCase();
+          const typeStr = String(p.type || '').toLowerCase();
+          const matchesSearch = !q || nameStr.includes(q) || typeStr.includes(q);
+          const matchesArchive = showArchived ? p.isArchived : !p.isArchived;
+          return matchesSearch && matchesArchive;
+        });
+
+        // Banner for dashboard stock filter
+        let filterBannerHtml = '';
+        if (stockFilterParam === 'low') {
+          filterBannerHtml = `
+            <div class="mb-4 p-4 bg-amber-50 border border-amber-300 rounded-2xl text-amber-950 font-bold text-sm flex items-center justify-between shadow-xs">
+              <div class="flex items-center gap-2">
+                <span class="text-base">⚡</span>
+                <span><strong>Dashboard Filter Active:</strong> Showing Low Stock Products (1 to 20 Sacks)</span>
+              </div>
+              <a href="products.html" class="text-xs bg-amber-200 hover:bg-amber-300 text-amber-950 font-black px-3.5 py-1.5 rounded-xl transition-colors">Clear Filter</a>
+            </div>
+          `;
+        } else if (stockFilterParam === 'out') {
+          filterBannerHtml = `
+            <div class="mb-4 p-4 bg-red-50 border border-red-300 rounded-2xl text-red-950 font-bold text-sm flex items-center justify-between shadow-xs">
+              <div class="flex items-center gap-2">
+                <span class="text-base">🚨</span>
+                <span><strong>Dashboard Filter Active:</strong> Showing Out of Stock Products (0 Sacks)</span>
+              </div>
+              <a href="products.html" class="text-xs bg-red-200 hover:bg-red-300 text-red-950 font-black px-3.5 py-1.5 rounded-xl transition-colors">Clear Filter</a>
+            </div>
+          `;
+        }
+
+        targetSpace.innerHTML = `
+          <div class="space-y-6">
+            ${filterBannerHtml}
+            
+            <!-- Controls bar block -->
+            <div class="bg-white rounded-3xl p-6 border border-gray-200 shadow-xs flex flex-col md:flex-row gap-4 items-center justify-between">
+              <!-- Search -->
+              <div class="relative w-full md:max-w-md">
+                <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                </span>
+                <input 
+                  type="text" 
+                  id="inp-search-products" 
+                  placeholder="Search products..." 
+                  value="${searchQuery}"
+                  class="w-full bg-gray-50 border border-gray-200 text-base font-semibold text-gray-800 pl-11 pr-4 py-3 rounded-xl focus:border-[#1E6C02] focus:bg-white outline-none transition-all shadow-2xs"
+                />
+              </div>
+
+              <!-- Switchers and actions button -->
+              <div class="flex items-center gap-3 w-full md:w-auto shrink-0 justify-end">
+                <button id="btn-toggle-archived" class="flex items-center gap-2 h-12 px-5 bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 font-black text-sm uppercase tracking-wider rounded-xl cursor-pointer transition-colors">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4.5 h-4.5 text-gray-550"><polyline points="21 8 21 21 3 21 3 8"></polyline><rect x="1" y="3" width="22" height="5"></rect><line x1="10" y1="12" x2="14" y2="12"></line></svg>
+                  ${showArchived ? 'View Active' : 'View Archived'}
+                </button>
+                ${isAdmin ? `
+                <button id="btn-open-add-dialog" class="flex items-center gap-2 h-12 px-6 bg-[#1E6C02] text-white hover:bg-[#145001] font-black text-sm uppercase tracking-wider rounded-xl shadow-xs cursor-pointer transition-colors">
+                  + Add New Product
+                </button>
+                ` : `
+                <button id="btn-open-add-dialog" disabled title="Only the Administrator can manage products and inventory." class="flex items-center gap-2 h-12 px-6 bg-gray-200 text-gray-400 border border-gray-300 font-black text-sm uppercase tracking-wider rounded-xl cursor-not-allowed opacity-75">
+                  + Add New Product
+                </button>
+                `}
+              </div>
+            </div>
+ 
+            <!-- Table section -->
+            <div class="bg-white rounded-3xl border border-gray-200 p-6 shadow-xs space-y-4">
+              <h3 class="text-2xl font-black text-gray-900 tracking-tight">
+                ${showArchived ? 'Archived Products' : 'Product Stock'}
+              </h3>
+ 
+              <div class="overflow-x-auto overflow-y-visible" style="transform: rotateX(180deg); -webkit-transform: rotateX(180deg);" id="admin-products-table-scroll">
+                <div style="transform: rotateX(180deg); -webkit-transform: rotateX(180deg); padding-top: 10px;">
+                  <table class="w-full text-left text-sm font-semibold text-gray-700 min-w-[1150px]">
+                    <thead>
+                      <tr class="border-b border-gray-200 text-gray-900 uppercase text-xs tracking-wider font-extrabold bg-gray-50/50">
+                        <th class="py-4 px-5 text-left font-bold text-gray-900">No.</th>
+                        <th class="py-4 px-6 text-left font-bold text-gray-900">Product Name</th>
+                        <th class="py-4 px-6 text-left font-bold text-gray-900">Price</th>
+                        <th class="py-4 px-6 text-center font-bold text-gray-900">Current Stock</th>
+                        <th class="py-4 px-6 text-center font-bold text-gray-900">Reserved Stock</th>
+                        <th class="py-4 px-6 text-center font-bold text-gray-900">Category</th>
+                        <th class="py-4 px-6 text-center font-bold text-gray-900">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100">
+                      ${filtered.map((item, index) => {
+                        const cur = item.availableStock !== undefined ? item.availableStock : (item.stock !== undefined ? item.stock : 0);
+                        const res = item.reservedStock !== undefined ? item.reservedStock : 0;
+                        const av = cur;
+
+                        let isHighlighted = false;
+                        let rowHighlightStyle = 'hover:bg-gray-50/50 transition-colors';
+                        if (stockFilterParam === 'low' && av >= 1 && av <= 20) {
+                          isHighlighted = true;
+                          rowHighlightStyle = 'bg-amber-100/90 dark:bg-amber-950/80 border-2 border-amber-500 font-bold text-amber-950 dark:text-amber-100 shadow-md';
+                        } else if (stockFilterParam === 'out' && av === 0) {
+                          isHighlighted = true;
+                          rowHighlightStyle = 'bg-red-100/90 dark:bg-red-950/80 border-2 border-red-500 font-bold text-red-950 dark:text-red-100 shadow-md';
+                        }
+
+                        let currentStockColorClass = 'text-gray-900 font-normal';
+                        if (cur === 0) {
+                          currentStockColorClass = 'text-red-600 font-normal';
+                        } else if (cur <= 20) {
+                          currentStockColorClass = 'text-amber-600 font-normal';
+                        }
+
+                        return `
+                          <tr id="product-row-${item.id}" class="${rowHighlightStyle}">
+                            <td class="py-5 px-5 text-gray-900 font-bold text-base text-left whitespace-nowrap">${index + 1}</td>
+                            <td class="py-5 px-6 text-left min-w-[280px]">
+                              <div class="flex items-center gap-4">
+                                <div class="w-14 h-14 bg-[#F9F9F9] rounded-xl border border-gray-200 shrink-0 p-1.5 flex items-center justify-center overflow-hidden shadow-2xs">
+                                  <img src="${item.image || 'https://i.pinimg.com/736x/69/66/78/696678fbb7edb048d016178c6034872d.jpg'}" class="max-w-full max-h-full object-contain rounded-lg" style="image-rendering: -webkit-optimize-contrast; image-rendering: crisp-edges;" />
+                                </div>
+                                <div class="flex flex-col text-left">
+                                  <span class="font-bold text-gray-900 text-[17px] leading-snug block">${item.name}</span>
+                                  ${isHighlighted ? `<span class="text-[11px] font-extrabold uppercase ${stockFilterParam === 'low' ? 'text-amber-800 dark:text-amber-200' : 'text-red-800 dark:text-red-200'}">★ Highlighted Product</span>` : ''}
+                                </div>
+                              </div>
+                            </td>
+                            <td class="py-5 px-6 font-normal text-gray-900 text-base text-left whitespace-nowrap">
+                              ₱${item.price?.toLocaleString()}.00 
+                              <span class="text-xs text-gray-600 font-medium uppercase">/ ${item.weight || item.unit || '25kg'}</span>
+                            </td>
+                            <td class="py-5 px-6 text-center text-base whitespace-nowrap">
+                              <span class="${currentStockColorClass}">${cur} Sack${cur !== 1 ? 's' : ''}</span>
+                            </td>
+                            <td class="py-5 px-6 text-center text-base whitespace-nowrap">
+                              <span class="font-normal text-red-600">${res} Sack${res !== 1 ? 's' : ''}</span>
+                            </td>
+                            <td class="py-5 px-6 text-center whitespace-nowrap">
+                              <span class="inline-flex items-center px-3.5 py-1.5 rounded-xl bg-gray-100 text-gray-800 font-bold text-xs tracking-wide uppercase border border-gray-200">${item.type || 'Rice'} Rice</span>
+                            </td>
+                            <td class="py-5 px-6 text-center whitespace-nowrap">
+                            <div class="flex gap-2.5 justify-center">
+                              <!-- Edit Info -->
+                              ${isAdmin ? `
+                              <button 
+                                data-id="${item.id}"
+                                title="Update Product Information"
+                                class="btn-info-click p-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl cursor-pointer transition-colors"
+                              >
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-5 h-5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                              </button>
+                              ` : `
+                              <button 
+                                disabled
+                                title="Only the Administrator can manage products and inventory."
+                                class="p-2.5 text-gray-400 bg-gray-100/60 rounded-xl cursor-not-allowed opacity-60"
+                              >
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-5 h-5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                              </button>
+                              `}
+                              
+                              <!-- Access stock levels -->
+                              ${isAdmin ? `
+                              <button 
+                                data-id="${item.id}"
+                                title="Adjust Stock Inventory"
+                                class="btn-stock-click p-2.5 bg-[#1E6C02] hover:bg-[#145001] text-white rounded-xl cursor-pointer transition-colors"
+                              >
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-5 h-5"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+                              </button>
+                              ` : `
+                              <button 
+                                disabled
+                                title="Only the Administrator can manage products and inventory."
+                                class="p-2.5 text-gray-400 bg-gray-100/60 rounded-xl cursor-not-allowed opacity-60"
+                              >
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-5 h-5"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+                              </button>
+                              `}
+
+                              <!-- Archive toggle -->
+                              ${isAdmin ? `
+                              <button 
+                                data-id="${item.id}"
+                                title="${showArchived ? 'Restore Product' : 'Archive Product'}"
+                                class="btn-archive-click p-2.5 ${showArchived ? 'bg-teal-600 hover:bg-teal-700' : 'bg-red-600 hover:bg-red-700'} text-white rounded-xl cursor-pointer transition-colors"
+                              >
+                                ${showArchived ? `
+                                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-5 h-5"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
+                                ` : `
+                                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-5 h-5"><polyline points="21 8 21 21 3 21 3 8"></polyline><rect x="1" y="3" width="22" height="5"></rect><line x1="10" y1="12" x2="14" y2="12"></line></svg>
+                                `}
+                              </button>
+                              ` : `
+                              <button 
+                                disabled
+                                title="Only the Administrator can manage products and inventory."
+                                class="p-2.5 text-gray-400 bg-gray-100/60 rounded-xl cursor-not-allowed opacity-60"
+                              >
+                                ${showArchived ? `
+                                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-5 h-5"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
+                                ` : `
+                                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-5 h-5"><polyline points="21 8 21 21 3 21 3 8"></polyline><rect x="1" y="3" width="22" height="5"></rect><line x1="10" y1="12" x2="14" y2="12"></line></svg>
+                                `}
+                              </button>
+                              `}
+                            </div>
+                          </td>
+                        </tr>
+                      `;
+                    }).join('')}
+
+                    ${filtered.length === 0 ? `
+                      <tr>
+                        <td colspan="7" class="py-16 text-center text-gray-500 font-extrabold text-base">
+                          No products matched current settings.
+                        </td>
+                      </tr>
+                    ` : ''}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+            </div>
+          </div>
+        `;
+
+        // Bind listing elements triggers
+        bindCatalogActions();
+      }
+
+      function bindCatalogActions() {
+        const productsList = getProducts();
+
+        // Reconnect Search Filter Input
+        const sch = document.getElementById('inp-search-products');
+        sch.addEventListener('input', () => {
+          searchQuery = sch.value;
+        });
+        sch.addEventListener('change', () => {
+          renderCatalog();
+        });
+        sch.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') renderCatalog();
+        });
+
+        // Toggle Archived Views Button Click
+        document.getElementById('btn-toggle-archived').addEventListener('click', () => {
+          showArchived = !showArchived;
+          renderCatalog();
+        });
+
+        // Add variety modal opener click
+        document.getElementById('btn-open-add-dialog').addEventListener('click', () => {
+          if (window.resetAddForm) {
+            window.resetAddForm();
+          } else {
+            document.getElementById('add-product-form').reset();
+          }
+          addDialog.classList.remove('hidden');
+        });
+
+        // 1. Update Info Card Trigger Click
+        document.querySelectorAll('.btn-info-click').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const id = btn.getAttribute('data-id');
+            const match = productsList.find(p => p.id === id);
+            if (!match) return;
+
+            selectedProductInModal = match;
+            
+            document.getElementById('info-inp-name').value = match.name;
+            document.getElementById('info-inp-sku').value = match.sku || '';
+            document.getElementById('info-inp-category').value = match.type;
+            document.getElementById('info-inp-stock').value = match.currentStock !== undefined ? match.currentStock : (match.stock || 0);
+            document.getElementById('info-inp-weight').value = match.weight || match.unit || '25kg';
+            document.getElementById('info-inp-price').value = match.price;
+            document.getElementById('info-inp-reorder').value = match.reorderLevel || 0;
+            document.getElementById('info-inp-desc').value = match.description || '';
+
+            // Handle edit image preview initialization
+            const editZone = document.getElementById('info-image-upload-zone');
+            const editPreviewContainer = document.getElementById('info-image-preview-container');
+            const editPreviewImg = document.getElementById('info-image-preview-img');
+            const editFileInput = document.getElementById('info-file-image');
+
+            if (editFileInput) editFileInput.value = '';
+
+            if (match.image) {
+              uploadedEditProductImageBase64 = match.image;
+              if (editPreviewImg) editPreviewImg.src = match.image;
+              if (editZone) editZone.classList.add('hidden');
+              if (editPreviewContainer) editPreviewContainer.classList.remove('hidden');
+            } else {
+              uploadedEditProductImageBase64 = null;
+              if (editZone) editZone.classList.remove('hidden');
+              if (editPreviewContainer) editPreviewContainer.classList.add('hidden');
+            }
+
+            infoDialog.classList.remove('hidden');
+          });
+        });
+
+        // 2. Adjust Stock Sacks Dialog Click
+        document.querySelectorAll('.btn-stock-click').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const id = btn.getAttribute('data-id');
+            const match = productsList.find(p => p.id === id);
+            if (!match) return;
+
+            selectedProductInModal = match;
+            document.getElementById('stock-modal-product-name').textContent = match.name;
+            document.getElementById('stock-modal-current-val').textContent = match.availableStock !== undefined ? match.availableStock : (match.stock || 0);
+
+            // Reset operations to unselected (null)
+            stockOperation = null;
+            document.getElementById('inp-stock-qty').value = '0';
+            
+            updateStockOpButtonsUI();
+            validateStockForm();
+
+            stockDialog.classList.remove('hidden');
+          });
+        });
+
+        // 3. Archive / Restore Trigger clicks
+        document.querySelectorAll('.btn-archive-click').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const id = btn.getAttribute('data-id');
+            const match = productsList.find(p => p.id === id);
+            if (!match) return;
+
+            selectedProductInModal = match;
+            if (showArchived) {
+              document.getElementById('restore-product-confirm-dialog').classList.remove('hidden');
+            } else {
+              document.getElementById('archive-product-confirm-dialog').classList.remove('hidden');
+            }
+          });
+        });
+      }
+
+      // Toggle Add/Deduct Buttons visually
+      const opAdd = document.getElementById('btn-op-add');
+      const opDed = document.getElementById('btn-op-ded');
+
+      function updateStockOpButtonsUI() {
+        if (stockOperation === 'add') {
+          // Add active, Deduct inactive
+          opAdd.className = "w-32 h-32 rounded-3xl border-2 flex flex-col items-center justify-center gap-2 cursor-pointer transition-all shadow-sm border-[#1E6C02] bg-[#1E6C02] text-white";
+          opDed.className = "w-32 h-32 rounded-3xl border-2 flex flex-col items-center justify-center gap-2 cursor-pointer transition-all shadow-sm bg-white border-gray-300 text-black hover:bg-gray-50";
+        } else if (stockOperation === 'deduct') {
+          // Deduct active, Add inactive
+          opAdd.className = "w-32 h-32 rounded-3xl border-2 flex flex-col items-center justify-center gap-2 cursor-pointer transition-all shadow-sm bg-white border-gray-300 text-black hover:bg-gray-50";
+          opDed.className = "w-32 h-32 rounded-3xl border-2 flex flex-col items-center justify-center gap-2 cursor-pointer transition-all shadow-sm border-[#1E6C02] bg-[#1E6C02] text-white";
+        } else {
+          // Both inactive
+          opAdd.className = "w-32 h-32 rounded-3xl border-2 flex flex-col items-center justify-center gap-2 cursor-pointer transition-all shadow-sm bg-white border-gray-300 text-black hover:bg-gray-50";
+          opDed.className = "w-32 h-32 rounded-3xl border-2 flex flex-col items-center justify-center gap-2 cursor-pointer transition-all shadow-sm bg-white border-gray-300 text-black hover:bg-gray-50";
+        }
+      }
+
+      function validateStockForm() {
+        const qtyInput = document.getElementById('inp-stock-qty');
+        const qty = parseInt(qtyInput.value || '0');
+        const confirmBtn = document.getElementById('btn-stock-confirm');
+        
+        const isQtyValid = !isNaN(qty) && qty > 0;
+        const isOpSelected = stockOperation === 'add' || stockOperation === 'deduct';
+        
+        if (isQtyValid && isOpSelected) {
+          confirmBtn.removeAttribute('disabled');
+        } else {
+          confirmBtn.setAttribute('disabled', 'true');
+        }
+      }
+
+      opAdd.addEventListener('click', () => {
+        stockOperation = 'add';
+        updateStockOpButtonsUI();
+        validateStockForm();
+      });
+
+      opDed.addEventListener('click', () => {
+        stockOperation = 'deduct';
+        updateStockOpButtonsUI();
+        validateStockForm();
+      });
+
+      document.getElementById('btn-stock-qty-minus').addEventListener('click', () => {
+        const input = document.getElementById('inp-stock-qty');
+        let val = parseInt(input.value || '0');
+        if (val > 0) {
+          val--;
+          input.value = val;
+          validateStockForm();
+        }
+      });
+
+      document.getElementById('btn-stock-qty-plus').addEventListener('click', () => {
+        const input = document.getElementById('inp-stock-qty');
+        let val = parseInt(input.value || '0');
+        val++;
+        input.value = val;
+        validateStockForm();
+      });
+
+      const qtyInputEl = document.getElementById('inp-stock-qty');
+      qtyInputEl.addEventListener('input', () => {
+        let val = qtyInputEl.value;
+        if (val < 0) {
+          qtyInputEl.value = 0;
+        } else {
+          qtyInputEl.value = Math.floor(val);
+        }
+        validateStockForm();
+      });
+      qtyInputEl.addEventListener('change', () => {
+        let val = parseInt(qtyInputEl.value || '0');
+        if (isNaN(val) || val < 0) {
+          qtyInputEl.value = 0;
+        } else {
+          qtyInputEl.value = val;
+        }
+        validateStockForm();
+      });
+
+      const closeStockModalBtn = document.getElementById('close-stock-modal');
+      if (closeStockModalBtn) {
+        closeStockModalBtn.addEventListener('click', () => {
+          stockDialog.classList.add('hidden');
+        });
+      }
+
+      // 4. Modal submit listeners & File Uploads
+      let uploadedProductImageBase64 = null;
+      let uploadedEditProductImageBase64 = null;
+
+      // Product Image Upload Area Bindings
+      const imageZone = document.getElementById('add-image-upload-zone');
+      const imageInput = document.getElementById('add-file-image');
+      const imagePreviewContainer = document.getElementById('add-image-preview-container');
+      const imagePreviewImg = document.getElementById('add-image-preview-img');
+      const imageReplaceBtn = document.getElementById('btn-add-replace-image');
+
+      if (imageZone && imageInput) {
+        imageZone.addEventListener('click', () => imageInput.click());
+        
+        imageZone.addEventListener('dragover', (e) => {
+          e.preventDefault();
+          imageZone.classList.add('border-[#1E6C02]', 'bg-green-50/5');
+        });
+        imageZone.addEventListener('dragleave', () => {
+          imageZone.classList.remove('border-[#1E6C02]', 'bg-green-50/5');
+        });
+        imageZone.addEventListener('drop', (e) => {
+          e.preventDefault();
+          imageZone.classList.remove('border-[#1E6C02]', 'bg-green-50/5');
+          const file = e.dataTransfer.files[0];
+          if (file) handleProductImageFile(file);
+        });
+
+        imageInput.addEventListener('change', (e) => {
+          const file = e.target.files[0];
+          if (file) handleProductImageFile(file);
+        });
+      }
+
+      function handleProductImageFile(file) {
+        if (!file.type.match('image.*')) {
+          showToast('Invalid file format. Please upload PNG, JPG or WEBP.', 'error');
+          return;
+        }
+        const reader = new FileReader();
+        reader.onload = (evt) => {
+          uploadedProductImageBase64 = evt.target.result;
+          imagePreviewImg.src = uploadedProductImageBase64;
+          imageZone.classList.add('hidden');
+          imagePreviewContainer.classList.remove('hidden');
+          document.getElementById('err-add-image').classList.add('hidden');
+          validateAddFormRealtime();
+        };
+        reader.readAsDataURL(file);
+      }
+
+      if (imageReplaceBtn) {
+        imageReplaceBtn.addEventListener('click', () => {
+          uploadedProductImageBase64 = null;
+          imageInput.value = '';
+          imagePreviewImg.src = '';
+          imagePreviewContainer.classList.add('hidden');
+          imageZone.classList.remove('hidden');
+          validateAddFormRealtime();
+        });
+      }
+
+      // Edit Product Image Upload Area Bindings
+      const infoImageZone = document.getElementById('info-image-upload-zone');
+      const infoImageInput = document.getElementById('info-file-image');
+      const infoImagePreviewContainer = document.getElementById('info-image-preview-container');
+      const infoImagePreviewImg = document.getElementById('info-image-preview-img');
+      const infoImageReplaceBtn = document.getElementById('btn-info-replace-image');
+
+      if (infoImageZone && infoImageInput) {
+        infoImageZone.addEventListener('click', () => infoImageInput.click());
+        
+        infoImageZone.addEventListener('dragover', (e) => {
+          e.preventDefault();
+          infoImageZone.classList.add('border-[#1E6C02]', 'bg-green-50/5');
+        });
+        infoImageZone.addEventListener('dragleave', () => {
+          infoImageZone.classList.remove('border-[#1E6C02]', 'bg-green-50/5');
+        });
+        infoImageZone.addEventListener('drop', (e) => {
+          e.preventDefault();
+          infoImageZone.classList.remove('border-[#1E6C02]', 'bg-green-50/5');
+          const file = e.dataTransfer.files[0];
+          if (file) handleEditProductImageFile(file);
+        });
+
+        infoImageInput.addEventListener('change', (e) => {
+          const file = e.target.files[0];
+          if (file) handleEditProductImageFile(file);
+        });
+      }
+
+      function handleEditProductImageFile(file) {
+        if (!file.type.match('image.*')) {
+          showToast('Invalid file format. Please upload PNG, JPG or WEBP.', 'error');
+          return;
+        }
+        const reader = new FileReader();
+        reader.onload = (evt) => {
+          uploadedEditProductImageBase64 = evt.target.result;
+          infoImagePreviewImg.src = uploadedEditProductImageBase64;
+          infoImageZone.classList.add('hidden');
+          infoImagePreviewContainer.classList.remove('hidden');
+        };
+        reader.readAsDataURL(file);
+      }
+
+      if (infoImageReplaceBtn) {
+        infoImageReplaceBtn.addEventListener('click', () => {
+          uploadedEditProductImageBase64 = null;
+          infoImageInput.value = '';
+          infoImagePreviewImg.src = '';
+          infoImagePreviewContainer.classList.add('hidden');
+          infoImageZone.classList.remove('hidden');
+        });
+      }
+
+      // Reset add form completely
+      window.resetAddForm = function() {
+        const form = document.getElementById('add-product-form');
+        if (form) form.reset();
+
+        uploadedProductImageBase64 = null;
+        if (imageInput) imageInput.value = '';
+        if (imagePreviewImg) imagePreviewImg.src = '';
+        if (imagePreviewContainer) imagePreviewContainer.classList.add('hidden');
+        if (imageZone) imageZone.classList.remove('hidden');
+
+        document.querySelectorAll('.err-msg').forEach(el => el.classList.add('hidden'));
+
+        const addSubmitBtn = document.getElementById('btn-add-submit');
+        if (addSubmitBtn) {
+          addSubmitBtn.setAttribute('disabled', 'true');
+        }
+      }
+
+      const addSubmitBtn = document.getElementById('btn-add-submit');
+
+      function validateAddFormRealtime() {
+        if (!addSubmitBtn) return;
+
+        const name = document.getElementById('add-inp-name').value.trim();
+        const sku = document.getElementById('add-inp-sku').value.trim();
+        const variety = document.getElementById('add-inp-variety').value.trim();
+        
+        const stockVal = document.getElementById('add-inp-stock').value;
+        const stock = parseInt(stockVal);
+        const stockValid = stockVal !== '' && !isNaN(stock) && stock >= 0;
+
+        const unit = document.getElementById('add-inp-unit').value.trim();
+        
+        const priceVal = document.getElementById('add-inp-price').value;
+        const price = parseFloat(priceVal);
+        const priceValid = priceVal !== '' && !isNaN(price) && price > 0;
+
+        const reorderVal = document.getElementById('add-inp-reorder').value;
+        const reorderLevel = parseFloat(reorderVal);
+        const reorderValid = reorderVal !== '' && !isNaN(reorderLevel) && reorderLevel >= 0;
+
+        const description = document.getElementById('add-inp-desc').value.trim();
+
+        const hasProductImage = !!uploadedProductImageBase64;
+
+        const isValid = name && sku && variety && stockValid && unit && priceValid && reorderValid && description && hasProductImage;
+
+        if (isValid) {
+          addSubmitBtn.removeAttribute('disabled');
+        } else {
+          addSubmitBtn.setAttribute('disabled', 'true');
+        }
+      }
+
+      // Bind input events for real-time validation
+      const formFields = [
+        'add-inp-name', 'add-inp-sku', 'add-inp-variety', 
+        'add-inp-stock', 'add-inp-unit', 'add-inp-price', 
+        'add-inp-reorder', 'add-inp-desc'
+      ];
+
+      formFields.forEach(fieldId => {
+        const el = document.getElementById(fieldId);
+        if (el) {
+          el.addEventListener('input', validateAddFormRealtime);
+          el.addEventListener('change', validateAddFormRealtime);
+        }
+      });
+
+      // A. Form submit trigger confirmation dialog
+      document.getElementById('add-product-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+        
+        // Final sanity check before showing dialog
+        const name = document.getElementById('add-inp-name').value.trim();
+        const sku = document.getElementById('add-inp-sku').value.trim();
+        const variety = document.getElementById('add-inp-variety').value.trim();
+        const stockVal = document.getElementById('add-inp-stock').value;
+        const stock = parseInt(stockVal);
+        const unit = document.getElementById('add-inp-unit').value.trim();
+        const priceVal = document.getElementById('add-inp-price').value;
+        const price = parseFloat(priceVal);
+        const reorderVal = document.getElementById('add-inp-reorder').value;
+        const reorderLevel = parseFloat(reorderVal);
+        const description = document.getElementById('add-inp-desc').value.trim();
+
+        if (!name || !sku || !variety || isNaN(stock) || !unit || isNaN(price) || isNaN(reorderLevel) || !description || !uploadedProductImageBase64) {
+          showToast('Please fill in all required fields and upload files.', 'error');
+          return;
+        }
+
+        const confirmDialog = document.getElementById('confirm-product-dialog');
+        if (confirmDialog) {
+          confirmDialog.classList.remove('hidden');
+        }
+      });
+
+      // Handle confirmation buttons
+      document.getElementById('btn-confirm-cancel').addEventListener('click', () => {
+        document.getElementById('confirm-product-dialog').classList.add('hidden');
+      });
+
+      document.getElementById('btn-confirm-yes').addEventListener('click', () => {
+        const name = document.getElementById('add-inp-name').value.trim();
+        const sku = document.getElementById('add-inp-sku').value.trim();
+        const variety = document.getElementById('add-inp-variety').value.trim();
+        const stock = parseInt(document.getElementById('add-inp-stock').value || '0');
+        const unit = document.getElementById('add-inp-unit').value.trim();
+        const price = parseFloat(document.getElementById('add-inp-price').value || '0');
+        const reorderLevel = parseFloat(document.getElementById('add-inp-reorder').value || '0');
+        const description = document.getElementById('add-inp-desc').value.trim();
+
+        const productsList = getProducts();
+        
+        const newProduct = {
+          id: Date.now().toString(),
+          sku,
+          name,
+          price,
+          stock,
+          image: uploadedProductImageBase64,
+          type: variety,
+          description,
+          weight: unit,
+          unit,
+          reorderLevel,
+          isArchived: false
+        };
+
+        productsList.push(newProduct);
+        saveProducts(productsList);
+
+        // Record to Inventory History
+        addInventoryHistory({
+          productId: newProduct.id,
+          productName: name,
+          quantityAdded: stock,
+          remarks: 'Initial stock seeding for new variety'
+        });
+
+        if (stock > 0) {
+          allocateStockToReservations(newProduct.id, { actualRestockedQty: stock, reason: 'initial_stock' });
+        }
+
+        addActivityLog({
+          action: `Created new premium Rice Variety entry: '${name}'`,
+          category: 'Inventory',
+          target: name
+        });
+
+        // Hide both dialogs
+        document.getElementById('confirm-product-dialog').classList.add('hidden');
+        addDialog.classList.add('hidden');
+        resetAddForm();
+        
+        // Success Toast Notification
+        showToast('✔ Product added successfully.');
+        
+        renderCatalog();
+      });
+
+      // Cancel button Add dialog
+      document.getElementById('btn-add-cancel').addEventListener('click', () => {
+        addDialog.classList.add('hidden');
+        resetAddForm();
+      });
+      document.getElementById('close-add-modal').addEventListener('click', () => {
+        addDialog.classList.add('hidden');
+        resetAddForm();
+      });
+
+      // B. Update Product entry dialog Commit
+      document.getElementById('info-product-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+
+        if (!selectedProductInModal) return;
+
+        const name = document.getElementById('info-inp-name').value.trim();
+        const sku = document.getElementById('info-inp-sku').value.trim();
+        const type = document.getElementById('info-inp-category').value.trim();
+        const stock = parseInt(document.getElementById('info-inp-stock').value || '0');
+        const weight = document.getElementById('info-inp-weight').value.trim();
+        const price = parseFloat(document.getElementById('info-inp-price').value);
+        const reorderLevel = parseFloat(document.getElementById('info-inp-reorder').value);
+        const description = document.getElementById('info-inp-desc').value.trim();
+
+        if (!name || !sku || !type || isNaN(stock) || !weight || isNaN(price) || isNaN(reorderLevel) || !description || !uploadedEditProductImageBase64) {
+          showToast('Please fill in all required fields and upload product image.', 'error');
+          return;
+        }
+
+        document.getElementById('confirm-update-product-dialog').classList.remove('hidden');
+      });
+
+      // Handle update confirmation buttons
+      document.getElementById('btn-confirm-update-cancel').addEventListener('click', () => {
+        document.getElementById('confirm-update-product-dialog').classList.add('hidden');
+      });
+
+      document.getElementById('btn-confirm-update-yes').addEventListener('click', () => {
+        if (!selectedProductInModal) return;
+
+        const name = document.getElementById('info-inp-name').value.trim();
+        const sku = document.getElementById('info-inp-sku').value.trim();
+        const type = document.getElementById('info-inp-category').value.trim();
+        const stock = parseInt(document.getElementById('info-inp-stock').value || '0');
+        const weight = document.getElementById('info-inp-weight').value.trim();
+        const price = parseFloat(document.getElementById('info-inp-price').value);
+        const reorderLevel = parseFloat(document.getElementById('info-inp-reorder').value);
+        const description = document.getElementById('info-inp-desc').value.trim();
+
+        const productsList = getProducts();
+        const oldStock = selectedProductInModal.currentStock !== undefined ? selectedProductInModal.currentStock : selectedProductInModal.stock;
+        const stockDiff = stock - oldStock;
+        if (stockDiff !== 0) {
+          addInventoryHistory({
+            productId: selectedProductInModal.id,
+            productName: name,
+            quantityAdded: stockDiff,
+            remarks: `Physical stock updated via product editing`
+          });
+        }
+
+        const updated = productsList.map(p => {
+          if (p.id === selectedProductInModal.id) {
+            return {
+              ...p,
+              sku,
+              name,
+              type,
+              stock,
+              price,
+              weight,
+              unit: weight,
+              reorderLevel,
+              description,
+              image: uploadedEditProductImageBase64
+            };
+          }
+          return p;
+        });
+
+        saveProducts(updated);
+
+        if (stockDiff > 0) {
+          allocateStockToReservations(selectedProductInModal.id, { actualRestockedQty: stockDiff, reason: 'restock' });
+        }
+
+        addActivityLog({
+          action: `Admin revised properties details for grain variety: ${name}`,
+          category: 'Inventory',
+          target: name
+        });
+
+        showToast('Grains details record updated perfectly!');
+        document.getElementById('confirm-update-product-dialog').classList.add('hidden');
+        infoDialog.classList.add('hidden');
+        renderCatalog();
+      });
+
+      document.getElementById('btn-info-cancel').addEventListener('click', () => {
+        infoDialog.classList.add('hidden');
+      });
+      document.getElementById('close-info-modal').addEventListener('click', () => {
+        infoDialog.classList.add('hidden');
+      });
+
+      // C. Update Stock quantity Dialog Confirmation Commit
+      document.getElementById('btn-stock-confirm').addEventListener('click', () => {
+        if (!selectedProductInModal) return;
+
+        const sacksQty = parseInt(document.getElementById('inp-stock-qty').value || '0');
+        if (sacksQty <= 0) {
+          showToast('Please type a valid quantity!', 'error');
+          return;
+        }
+
+        if (!stockOperation) {
+          showToast('Please select either Add or Deduct adjustment!', 'error');
+          return;
+        }
+
+        document.getElementById('confirm-stock-update-dialog').classList.remove('hidden');
+      });
+
+      document.getElementById('btn-confirm-stock-cancel').addEventListener('click', () => {
+        document.getElementById('confirm-stock-update-dialog').classList.add('hidden');
+      });
+
+      document.getElementById('btn-confirm-stock-yes').addEventListener('click', () => {
+        if (!selectedProductInModal || !stockOperation) return;
+
+        const sacksQty = parseInt(document.getElementById('inp-stock-qty').value || '0');
+        const delta = stockOperation === 'add' ? sacksQty : -sacksQty;
+        const rawProducts = JSON.parse(localStorage.getItem('aurora-products') || '[]');
+        const existingRaw = rawProducts.find(p => String(p.id) === String(selectedProductInModal.id));
+        const currentPhysical = existingRaw ? Number(existingRaw.stock || 0) : Number(selectedProductInModal.currentStock !== undefined ? selectedProductInModal.currentStock : selectedProductInModal.stock || 0);
+        const finalSacksStock = Math.max(0, currentPhysical + delta);
+
+        const restockTimestamp = new Date().toISOString();
+        const productsList = getProducts();
+        const updated = productsList.map(p => {
+          if (String(p.id) === String(selectedProductInModal.id)) {
+            return {
+              ...p,
+              stock: finalSacksStock,
+              currentStock: finalSacksStock,
+              lastRestockAt: stockOperation === 'add' ? restockTimestamp : p.lastRestockAt,
+              lastRestockedQty: stockOperation === 'add' ? delta : p.lastRestockedQty
+            };
+          }
+          return p;
+        });
+
+        saveProducts(updated);
+
+        // Record to Inventory History
+        addInventoryHistory({
+          productId: selectedProductInModal.id,
+          productName: selectedProductInModal.name,
+          quantityAdded: delta,
+          remarks: `Manual stock ${stockOperation === 'add' ? 'replenishment' : 'deduction'}`
+        });
+
+        // Auto FCFS allocation of stock to waiting reservations
+        if (stockOperation === 'add' && delta > 0) {
+  // ------------------------------------------------------------
+  // AUTOMATIC RESERVATION ALLOCATION
+  // The exact amount added by this restock is passed to the
+  // reservation allocator.
+  // ------------------------------------------------------------
+  const restockQuantity = Number(delta);
+
+  if (restockQuantity > 0) {
+    allocateStockToReservations(
+      String(selectedProductInModal.id),
+      restockQuantity
+    );
+  }
+}
+
+        addActivityLog({
+          action: `Adjusted inventory database (${stockOperation === 'add' ? 'addition' : 'reduction'}) of ${sacksQty} sacks for variety: '${selectedProductInModal.name}'`,
+          category: 'Inventory',
+          target: selectedProductInModal.name
+        });
+
+        showToast(`Stock updated! Physical stock: ${finalSacksStock} sacks`);
+        document.getElementById('confirm-stock-update-dialog').classList.add('hidden');
+        stockDialog.classList.add('hidden');
+        renderCatalog();
+      });
+
+      document.getElementById('btn-stock-cancel').addEventListener('click', () => {
+        stockDialog.classList.add('hidden');
+      });
+
+      // D. Archive product confirmation handlers
+      document.getElementById('btn-archive-confirm-cancel').addEventListener('click', () => {
+        document.getElementById('archive-product-confirm-dialog').classList.add('hidden');
+      });
+
+      document.getElementById('btn-archive-confirm-yes').addEventListener('click', () => {
+        if (!selectedProductInModal) return;
+
+        const productsList = getProducts();
+        const updated = productsList.map(p => {
+          if (p.id === selectedProductInModal.id) {
+            return { ...p, isArchived: true };
+          }
+          return p;
+        });
+
+        saveProducts(updated);
+
+        addActivityLog({
+          action: `Archive premium rice variety Entry: ${selectedProductInModal.name}`,
+          category: 'Inventory',
+          target: selectedProductInModal.name
+        });
+
+        showToast(`Grains specie entry successfully archived!`);
+        document.getElementById('archive-product-confirm-dialog').classList.add('hidden');
+        renderCatalog();
+      });
+
+      // E. Restore product confirmation handlers
+      document.getElementById('btn-restore-confirm-cancel').addEventListener('click', () => {
+        document.getElementById('restore-product-confirm-dialog').classList.add('hidden');
+      });
+
+      document.getElementById('btn-restore-confirm-yes').addEventListener('click', () => {
+        if (!selectedProductInModal) return;
+
+        const productsList = getProducts();
+        const updated = productsList.map(p => {
+          if (p.id === selectedProductInModal.id) {
+            return { ...p, isArchived: false };
+          }
+          return p;
+        });
+
+        saveProducts(updated);
+
+        addActivityLog({
+          action: `Restore premium rice variety Entry: ${selectedProductInModal.name}`,
+          category: 'Inventory',
+          target: selectedProductInModal.name
+        });
+
+        showToast(`Grains specie entry successfully restored!`);
+        document.getElementById('restore-product-confirm-dialog').classList.add('hidden');
+        renderCatalog();
+      });
+
+      // Initial loading render
+      renderCatalog();
+
+      // Deep Linking handler for notifications
+      try {
+        const urlParams = new URLSearchParams(window.location.search);
+        const productId = urlParams.get('productId');
+        if (productId) {
+          const products = getProducts();
+          const product = products.find(p => p.id === productId);
+          if (product) {
+            // If product is archived, show archived toggle to true so they can locate it
+            if (product.archived && !showArchived) {
+              showArchived = true;
+              document.getElementById('btn-show-archived').textContent = "Show Active Varieties";
+              renderCatalog();
+            }
+            
+            // Scroll to the product and highlight it
+            setTimeout(() => {
+              const row = document.getElementById(`product-row-${productId}`);
+              if (row) {
+                row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                row.classList.add('ring-4', 'ring-green-400', 'bg-green-50/50', 'transition-all', 'duration-500');
+                setTimeout(() => {
+                  row.classList.remove('ring-4', 'ring-green-400', 'bg-green-50/50');
+                }, 4000);
+              }
+            }, 500);
+          } else {
+            showToast("The related record is no longer available.", "error");
+          }
+        }
+      } catch (err) {
+        console.warn('[DEEP LINKING] Failed to handle link:', err);
+      }
+    });
+  </script>
+</body>
+</html>

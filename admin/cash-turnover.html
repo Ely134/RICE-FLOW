@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cash Turnover Verification | Aurora Rice Admin</title>
+  <link rel="stylesheet" href="../src/styles/index.css">
+</head>
+<body class="bg-[#F5F5F5] min-h-screen">
+
+  <div id="admin-layout-container"></div>
+
+  <!-- VERIFY CASH TURNOVER CONFIRMATION MODAL -->
+  <div id="verify-turnover-modal" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-[90] flex items-center justify-center p-4 hidden transition-opacity duration-300">
+    <div class="bg-white rounded-3xl max-w-lg w-full shadow-2xl overflow-hidden border border-gray-150 relative transform scale-95 opacity-0 transition-all duration-300" id="verify-turnover-modal-panel">
+      <!-- Fixed Header -->
+      <div class="flex justify-between items-start p-6 pb-4 border-b border-gray-100 bg-white">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-2xl bg-emerald-50 text-[#1E6C02] flex items-center justify-center text-xl font-bold border border-emerald-100">
+            💵
+          </div>
+          <div>
+            <h3 class="text-xl font-black text-gray-950 tracking-tight">Verify Cash Turnover</h3>
+            <p class="text-xs text-black font-semibold mt-0.5">Financial Audit & Verification Workflow</p>
+          </div>
+        </div>
+        <button id="close-verify-modal-x" class="text-black hover:text-gray-900 transition-colors cursor-pointer text-xl font-bold p-1 select-none">
+          ✕
+        </button>
+      </div>
+
+      <!-- Scrollable Form Body -->
+      <div class="p-6 space-y-5 max-h-[75vh] overflow-y-auto">
+        <!-- Order Financial Summary Card -->
+        <div class="bg-[#F8FAF8] rounded-2xl p-5 border border-emerald-100 space-y-3">
+          <div class="flex justify-between items-center pb-2.5 border-b border-gray-200/60 text-xs">
+            <span class="text-black font-semibold">Order Ticket Number:</span>
+            <span id="modal-order-id" class="font-black text-gray-900 text-sm">#10045</span>
+          </div>
+          <div class="flex justify-between items-center pb-2.5 border-b border-gray-200/60 text-xs">
+            <span class="text-black font-semibold">Customer Name:</span>
+            <span id="modal-customer-name" class="font-bold text-gray-900">Juan Dela Cruz</span>
+          </div>
+          <div class="flex justify-between items-center pb-2.5 border-b border-gray-200/60 text-xs">
+            <span class="text-black font-semibold">Collected By (Staff):</span>
+            <span id="modal-collected-by" class="font-bold text-[#1E6C02]">Maria Santos</span>
+          </div>
+          <div class="flex justify-between items-center pb-2.5 border-b border-gray-200/60 text-xs">
+            <span class="text-black font-semibold">Delivery Date & Time:</span>
+            <span id="modal-delivery-date" class="font-bold text-gray-800">July 22, 2026 - 10:30 AM</span>
+          </div>
+          <div class="flex justify-between items-center pb-2.5 border-b border-gray-200/60 text-xs">
+            <span class="text-black font-semibold">Payment Method:</span>
+            <span id="modal-payment-method" class="font-bold text-gray-800 uppercase">Cash (COD)</span>
+          </div>
+          <div class="flex justify-between items-center pt-1">
+            <span class="text-black font-bold text-sm">Collected Cash Amount:</span>
+            <span id="modal-collected-amount" class="text-2xl font-black text-[#1E6C02]">₱980.00</span>
+          </div>
+        </div>
+
+        <!-- Official Audit Confirmation Notice -->
+        <div class="p-4 bg-amber-50/90 border border-amber-200/80 rounded-2xl space-y-1.5 text-amber-950 text-xs">
+          <div class="font-black uppercase tracking-wider text-[11px] flex items-center gap-1.5 text-amber-900">
+            <span>⚠️</span> CASH AUDIT CONFIRMATION
+          </div>
+          <p class="font-bold leading-relaxed">
+            Please confirm that the collected cash has been received from the staff member and counted accurately.
+          </p>
+          <p class="text-amber-800 font-medium">
+            Once verified, this financial record will be officially marked as audited and saved in the historical ledger.
+          </p>
+        </div>
+
+        <!-- Audit Remarks -->
+        <div class="space-y-1.5">
+          <label class="text-xs font-bold text-gray-900 uppercase tracking-wider block">Audit Remarks (Optional)</label>
+          <textarea id="modal-audit-remarks" rows="2" placeholder="e.g. Received cash in full without discrepancy." class="w-full bg-gray-50 border border-gray-200 text-xs font-medium text-gray-900 p-3 rounded-xl outline-none focus:bg-white focus:border-[#1E6C02] transition-colors"></textarea>
+        </div>
+      </div>
+
+      <!-- Footer Buttons -->
+      <div class="flex items-center justify-end gap-3 p-5 border-t border-gray-100 bg-gray-50/50">
+        <button type="button" id="btn-cancel-verify-modal" class="px-5 py-2.5 bg-white hover:bg-gray-100 border border-gray-200 text-black font-bold text-xs uppercase tracking-wider rounded-xl cursor-pointer transition-colors select-none">
+          Cancel
+        </button>
+        <button type="button" id="btn-confirm-verify-modal" class="px-6 py-2.5 bg-[#1E6C02] hover:bg-[#145001] active:scale-[0.98] text-white font-black text-xs uppercase tracking-wider rounded-xl cursor-pointer shadow-md transition-all select-none flex items-center gap-2">
+          <span>✔ Verify Turnover</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import {
+      renderAdminLayout,
+      getCurrentAdmin,
+      getOrders,
+      getAllOrders,
+      verifyCashTurnover,
+      getStaff,
+      showToast,
+      addActivityLog
+    } from '../src/app/shared.js';
+
+    document.addEventListener('DOMContentLoaded', () => {
+      // Initialize Sidebar
+      renderAdminLayout('cash-turnover');
+
+      const targetSpace = document.getElementById('admin-main-content');
+      if (!targetSpace) return;
+
+      // Verify Administrator Access Only
+      const cAdmin = getCurrentAdmin();
+      if (!cAdmin || cAdmin.role !== 'admin') {
+        alert('Access Restrained: Cash Turnover Verification requires system administrator clearance.');
+        window.location.href = '../admin/dashboard.html';
+        return;
+      }
+
+      let activeFilterTab = 'all'; // 'all', 'pending', 'verified', 'no-collection'
+      let selectedDateFilter = '';
+      let selectedStaffFilter = '';
+      let searchQuery = '';
+      let selectedOrderForModal = null;
+
+      // Modal elements
+      const verifyModal = document.getElementById('verify-turnover-modal');
+      const verifyModalPanel = document.getElementById('verify-turnover-modal-panel');
+
+      function openModal(modalEl, panelEl) {
+        modalEl.classList.remove('hidden');
+        setTimeout(() => {
+          panelEl.classList.remove('opacity-0', 'scale-95');
+          panelEl.classList.add('opacity-100', 'scale-100');
+        }, 10);
+      }
+
+      function closeModal(modalEl, panelEl) {
+        panelEl.classList.remove('opacity-100', 'scale-100');
+        panelEl.classList.add('opacity-0', 'scale-95');
+        setTimeout(() => {
+          modalEl.classList.add('hidden');
+        }, 300);
+      }
+
+      function renderPage() {
+        const allOrders = getAllOrders();
+        const staffList = getStaff();
+
+        // Calculate summary metrics
+        const todayStr = new Date().toLocaleDateString();
+
+        // Pending Turnover sum
+        const pendingOrders = allOrders.filter(o => o.financialStatus === 'Pending Turnover');
+        const pendingAmount = pendingOrders.reduce((sum, o) => sum + Number(o.amountCollected || 0), 0);
+
+        // Today's Verified Cash sum
+        const todayVerifiedOrders = allOrders.filter(o => o.financialStatus === 'Verified' && o.verifiedDate === todayStr);
+        const todayVerifiedAmount = todayVerifiedOrders.reduce((sum, o) => sum + Number(o.amountCollected || 0), 0);
+
+        // Collected Today sum (across all delivered orders collected today)
+        const todayCollectedOrders = allOrders.filter(o => o.collectedDate === todayStr && o.amountCollected > 0);
+        const todayCollectedAmount = todayCollectedOrders.reduce((sum, o) => sum + Number(o.amountCollected || 0), 0);
+
+        targetSpace.innerHTML = `
+          <div class="space-y-8 max-w-7xl mx-auto animate-in fade-in duration-300 pb-12">
+            
+            <!-- Page Header Container -->
+            <div class="bg-white rounded-3xl p-8 border border-gray-150 shadow-sm flex flex-col md:flex-row gap-6 items-center justify-between">
+              <div class="space-y-1 text-center md:text-left">
+                <p class="text-base text-black font-bold">Audit and verify cash collected by delivery staff independent of customer order status.</p>
+              </div>
+
+              <div class="flex items-center gap-3 bg-emerald-50/80 px-5 py-3 rounded-2xl border border-emerald-100">
+                <span class="text-2xl">🛡️</span>
+                <div>
+                  <span class="text-xs font-black text-[#1E6C02] uppercase tracking-wider block">Administrator Ledger</span>
+                  <span class="text-xs text-black font-medium">Financial Verification Portal</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Summary KPI Metric Cards -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
+              
+              <!-- Card 1: Pending Cash Turnover -->
+              <div class="bg-white rounded-3xl p-6 border border-gray-150 shadow-sm space-y-3 relative overflow-hidden group hover:border-amber-300 transition-all">
+                <div class="flex justify-between items-center">
+                  <span class="text-xs font-black uppercase tracking-wider text-black">Pending Cash Turnover</span>
+                  <div class="w-10 h-10 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold text-lg border border-amber-100">
+                    ⏳
+                  </div>
+                </div>
+                <div class="space-y-1">
+                  <h3 class="text-3xl font-black text-amber-950 tracking-tight">₱${pendingAmount.toLocaleString('en-US', { minimumFractionDigits: 2 })}</h3>
+                  <p class="text-xs text-black font-medium">${pendingOrders.length} delivery ticket(s) awaiting verification</p>
+                </div>
+                <div class="h-1.5 w-full bg-amber-100 rounded-full overflow-hidden">
+                  <div class="h-full bg-amber-500 rounded-full" style="width: ${pendingOrders.length > 0 ? '100%' : '0%'}"></div>
+                </div>
+              </div>
+
+              <!-- Card 2: Today's Verified Cash -->
+              <div class="bg-white rounded-3xl p-6 border border-gray-150 shadow-sm space-y-3 relative overflow-hidden group hover:border-emerald-300 transition-all">
+                <div class="flex justify-between items-center">
+                  <span class="text-xs font-black uppercase tracking-wider text-black">Today's Verified Cash</span>
+                  <div class="w-10 h-10 rounded-2xl bg-emerald-50 text-[#1E6C02] flex items-center justify-center font-bold text-lg border border-emerald-100">
+                    🏦
+                  </div>
+                </div>
+                <div class="space-y-1">
+                  <h3 class="text-3xl font-black text-[#1E6C02] tracking-tight">₱${todayVerifiedAmount.toLocaleString('en-US', { minimumFractionDigits: 2 })}</h3>
+                  <p class="text-xs text-black font-medium">${todayVerifiedOrders.length} turnover(s) audited today</p>
+                </div>
+                <div class="h-1.5 w-full bg-emerald-100 rounded-full overflow-hidden">
+                  <div class="h-full bg-[#1E6C02] rounded-full" style="width: ${todayVerifiedOrders.length > 0 ? '100%' : '0%'}"></div>
+                </div>
+              </div>
+
+              <!-- Card 3: Total Collected Today -->
+              <div class="bg-white rounded-3xl p-6 border border-gray-150 shadow-sm space-y-3 relative overflow-hidden group hover:border-blue-300 transition-all">
+                <div class="flex justify-between items-center">
+                  <span class="text-xs font-black uppercase tracking-wider text-black">Collected Today</span>
+                  <div class="w-10 h-10 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-lg border border-blue-100">
+                    💵
+                  </div>
+                </div>
+                <div class="space-y-1">
+                  <h3 class="text-3xl font-black text-gray-950 tracking-tight">₱${todayCollectedAmount.toLocaleString('en-US', { minimumFractionDigits: 2 })}</h3>
+                  <p class="text-xs text-black font-medium">${todayCollectedOrders.length} delivery cash collection(s) today</p>
+                </div>
+                <div class="h-1.5 w-full bg-blue-100 rounded-full overflow-hidden">
+                  <div class="h-full bg-blue-600 rounded-full" style="width: ${todayCollectedOrders.length > 0 ? '100%' : '0%'}"></div>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- Filter Tabs & Main Table Section -->
+            <div class="bg-white rounded-3xl border border-gray-150 p-8 shadow-sm space-y-6">
+              
+              <!-- Tab Controls -->
+              <div class="flex flex-wrap items-center gap-2 border-b border-gray-150 pb-4">
+                <button 
+                  data-tab="all" 
+                  class="btn-filter-tab px-5 py-2.5 rounded-2xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer ${activeFilterTab === 'all' ? 'bg-[#1E6C02] text-white shadow-md' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}"
+                >
+                  All Turnovers (${allOrders.filter(o => o.status === 'delivered' || o.status === 'completed' || o.financialStatus).length})
+                </button>
+                <button 
+                  data-tab="pending" 
+                  class="btn-filter-tab px-5 py-2.5 rounded-2xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer ${activeFilterTab === 'pending' ? 'bg-amber-500 text-white shadow-md' : 'bg-amber-50 text-amber-800 hover:bg-amber-100 border border-amber-200'}"
+                >
+                  ⏳ Pending Turnover (${pendingOrders.length})
+                </button>
+                <button 
+                  data-tab="verified" 
+                  class="btn-filter-tab px-5 py-2.5 rounded-2xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer ${activeFilterTab === 'verified' ? 'bg-emerald-700 text-white shadow-md' : 'bg-emerald-50 text-emerald-800 hover:bg-emerald-100 border border-emerald-200'}"
+                >
+                  ✔ Verified (${allOrders.filter(o => o.financialStatus === 'Verified').length})
+                </button>
+                <button 
+                  data-tab="no-collection" 
+                  class="btn-filter-tab px-5 py-2.5 rounded-2xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer ${activeFilterTab === 'no-collection' ? 'bg-gray-800 text-white shadow-md' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}"
+                >
+                  🚫 No Cash Collection (${allOrders.filter(o => o.financialStatus === 'No Cash Collection Required').length})
+                </button>
+              </div>
+
+              <!-- Filter Bar (Date, Staff, Search) -->
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                
+                <!-- Search Input -->
+                <div class="relative">
+                  <span class="absolute left-4 top-1/2 -translate-y-1/2 text-black font-bold">
+                    🔍
+                  </span>
+                  <input 
+                    type="text" 
+                    id="inp-search-turnover" 
+                    value="${searchQuery}" 
+                    placeholder="Search by Order #, Customer, Staff..." 
+                    class="w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl font-bold text-xs outline-none focus:bg-white focus:border-[#1E6C02] transition-colors" 
+                  />
+                </div>
+
+                <!-- Date Filter -->
+                <div class="flex items-center gap-2">
+                  <input 
+                    type="date" 
+                    id="inp-date-filter" 
+                    value="${selectedDateFilter}" 
+                    class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl font-bold text-xs outline-none focus:bg-white focus:border-[#1E6C02] transition-colors" 
+                  />
+                  ${selectedDateFilter ? `
+                    <button id="btn-clear-date" class="px-3 py-3 bg-gray-100 hover:bg-gray-200 text-black font-bold text-xs rounded-xl transition-colors cursor-pointer shrink-0">
+                      Clear
+                    </button>
+                  ` : ''}
+                </div>
+
+                <!-- Assigned Staff Filter -->
+                <div>
+                  <select id="inp-staff-filter" class="w-full bg-gray-50 border border-gray-200 text-xs font-bold text-gray-900 px-4 py-3 rounded-xl outline-none focus:bg-white focus:border-[#1E6C02] transition-colors cursor-pointer">
+                    <option value="">All Delivery Staff</option>
+                    ${staffList.map(s => `
+                      <option value="${s.name}" ${selectedStaffFilter === s.name ? 'selected' : ''}>${s.name} (${s.role})</option>
+                    `).join('')}
+                  </select>
+                </div>
+
+              </div>
+
+              <!-- Main Table Responsive Viewport -->
+              <div class="overflow-x-auto w-full rounded-2xl border border-gray-100">
+                <table class="w-full text-left text-xs font-semibold text-gray-700 min-w-[950px] border-collapse">
+                  <thead>
+                    <tr class="border-b border-gray-150 text-gray-900 font-bold text-xs bg-gray-50/50 select-none">
+                      <th class="py-4 px-5">Order Number</th>
+                      <th class="py-4 px-5">Customer Name</th>
+                      <th class="py-4 px-5">Collected By (Staff)</th>
+                      <th class="py-4 px-5">Delivery Date & Time</th>
+                      <th class="py-4 px-5">Amount Collected</th>
+                      <th class="py-4 px-5">Payment Method</th>
+                      <th class="py-4 px-5">Financial Status</th>
+                      <th class="py-4 px-5">Verified By</th>
+                      <th class="py-4 px-5 text-right">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-gray-100" id="turnover-table-body">
+                    <!-- Loaded dynamically -->
+                  </tbody>
+                </table>
+              </div>
+
+            </div>
+
+            <!-- Daily Turnover Reconciliation Summary -->
+            <div class="bg-white rounded-3xl border border-gray-150 p-8 shadow-sm space-y-6">
+              <div class="flex items-center justify-between border-b border-gray-100 pb-4">
+                <div>
+                  <h3 class="text-xl font-black text-gray-950 tracking-tight">Daily Turnover Reconciliation Summary</h3>
+                  <p class="text-xs text-black font-semibold mt-0.5">Audited cash collection totals grouped by delivery date & staff member.</p>
+                </div>
+                <span class="px-3 py-1 bg-emerald-50 text-[#1E6C02] border border-emerald-200 font-black text-xs rounded-full">
+                  Verified Records
+                </span>
+              </div>
+
+              <div id="daily-summary-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                <!-- Loaded dynamically -->
+              </div>
+            </div>
+
+          </div>
+        `;
+
+        bindPageEvents();
+        renderTableRows();
+        renderDailySummaries();
+      }
+
+      function renderTableRows() {
+        const allOrders = getAllOrders();
+        const tbody = document.getElementById('turnover-table-body');
+        if (!tbody) return;
+
+        // Filter orders relevant for turnover
+        let filtered = allOrders.filter(o => {
+          return o.status === 'delivered' || o.status === 'completed' || o.financialStatus || o.amountCollected > 0;
+        });
+
+        // Tab Filter
+        if (activeFilterTab === 'pending') {
+          filtered = filtered.filter(o => o.financialStatus === 'Pending Turnover');
+        } else if (activeFilterTab === 'verified') {
+          filtered = filtered.filter(o => o.financialStatus === 'Verified');
+        } else if (activeFilterTab === 'no-collection') {
+          filtered = filtered.filter(o => o.financialStatus === 'No Cash Collection Required');
+        }
+
+        // Date Filter
+        if (selectedDateFilter) {
+          const formattedFilterDate = new Date(selectedDateFilter).toLocaleDateString();
+          filtered = filtered.filter(o => {
+            return o.collectedDate === formattedFilterDate || o.deliveredDate === formattedFilterDate || o.verifiedDate === formattedFilterDate;
+          });
+        }
+
+        // Staff Filter
+        if (selectedStaffFilter) {
+          const staffLower = String(selectedStaffFilter || '').toLowerCase();
+          filtered = filtered.filter(o => {
+            return String(o.collectedBy || '').toLowerCase().includes(staffLower) ||
+                   String(o.assignedStaff || '').toLowerCase().includes(staffLower) ||
+                   String(o.deliveryVerificationBy || '').toLowerCase().includes(staffLower);
+          });
+        }
+
+        // Search Query
+        if (searchQuery && typeof searchQuery === 'string' && searchQuery.trim()) {
+          const q = String(searchQuery || '').toLowerCase().trim();
+          filtered = filtered.filter(o => {
+            const idMatch = String(o.id || '').toLowerCase().includes(q);
+            const nameMatch = String(o.fullName || o.customerName || '').toLowerCase().includes(q);
+            const staffMatch = String(o.collectedBy || o.assignedStaff || '').toLowerCase().includes(q);
+            return idMatch || nameMatch || staffMatch;
+          });
+        }
+
+        if (filtered.length === 0) {
+          tbody.innerHTML = `
+            <tr>
+              <td colspan="9" class="py-12 text-center text-black font-extrabold text-sm">
+                <div class="flex flex-col items-center justify-center gap-2">
+                  <span class="text-3xl">📭</span>
+                  <span>No turnover records match the selected filters.</span>
+                </div>
+              </td>
+            </tr>
+          `;
+          return;
+        }
+
+        tbody.innerHTML = filtered.map(order => {
+          const amount = Number(order.amountCollected || 0);
+          const formattedAmount = `₱${amount.toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
+
+          // Status Badge
+          let statusBadgeHTML = '';
+          if (order.financialStatus === 'Pending Turnover') {
+            statusBadgeHTML = `
+              <span class="inline-flex items-center px-3 py-1 rounded-full text-[11px] font-black bg-amber-100 text-amber-800 border border-amber-300">
+                ⏳ Pending Turnover
+              </span>
+            `;
+          } else if (order.financialStatus === 'Verified') {
+            statusBadgeHTML = `
+              <span class="inline-flex items-center px-3 py-1 rounded-full text-[11px] font-black bg-emerald-100 text-emerald-800 border border-emerald-300">
+                ✔ Verified
+              </span>
+            `;
+          } else {
+            statusBadgeHTML = `
+              <span class="inline-flex items-center px-3 py-1 rounded-full text-[11px] font-bold bg-gray-100 text-black border border-gray-300">
+                🚫 No Collection
+              </span>
+            `;
+          }
+
+          // Action Button
+          let actionHTML = '';
+          if (order.financialStatus === 'Pending Turnover') {
+            actionHTML = `
+              <button 
+                data-id="${order.id}" 
+                class="btn-trigger-verify px-3.5 py-1.5 bg-[#1E6C02] hover:bg-[#145001] active:scale-95 text-white font-black text-xs uppercase tracking-wider rounded-xl cursor-pointer shadow-xs transition-all select-none"
+              >
+                Verify Turnover
+              </button>
+            `;
+          } else if (order.financialStatus === 'Verified') {
+            actionHTML = `
+              <span class="text-emerald-700 font-extrabold text-xs flex items-center justify-end gap-1">
+                ✔ Audited
+              </span>
+            `;
+          } else {
+            actionHTML = `
+              <span class="text-black font-semibold text-xs">
+                N/A
+              </span>
+            `;
+          }
+
+          const verificationDetails = order.financialStatus === 'Verified' ? `
+            <div>
+              <span class="font-bold text-gray-900 block">${order.verifiedBy || 'Administrator'}</span>
+              <span class="text-[10px] text-black font-semibold block">${order.verifiedDate || ''} ${order.verifiedTime || ''}</span>
+            </div>
+          ` : '<span class="text-black font-semibold">-</span>';
+
+          return `
+            <tr class="hover:bg-gray-50/60 transition-colors border-b border-gray-100">
+              <td class="py-4 px-5 font-black text-gray-950">#${order.id}</td>
+              <td class="py-4 px-5 font-bold text-gray-900">${order.fullName || order.customerName || 'Customer'}</td>
+              <td class="py-4 px-5 font-bold text-[#1E6C02]">${order.collectedBy || order.assignedStaff || 'Staff Member'}</td>
+              <td class="py-4 px-5 text-black font-bold">
+                <div>${order.collectedDate || order.deliveredDate || 'N/A'}</div>
+                <div class="text-[10px] text-black font-semibold">${order.collectedTime || order.deliveredTime || ''}</div>
+              </td>
+              <td class="py-4 px-5 font-black text-base ${amount > 0 ? 'text-[#1E6C02]' : 'text-gray-400'}">${formattedAmount}</td>
+              <td class="py-4 px-5 font-bold text-gray-800 uppercase">${(order.paymentMethod || 'Cash').replace('gcash', 'G-Cash')}</td>
+              <td class="py-4 px-5">${statusBadgeHTML}</td>
+              <td class="py-4 px-5">${verificationDetails}</td>
+              <td class="py-4 px-5 text-right">${actionHTML}</td>
+            </tr>
+          `;
+        }).join('');
+
+        // Bind click listeners
+        document.querySelectorAll('.btn-trigger-verify').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const orderId = btn.getAttribute('data-id');
+            const match = allOrders.find(o => String(o.id) === String(orderId));
+            if (!match) return;
+
+            selectedOrderForModal = match;
+
+            document.getElementById('modal-order-id').textContent = `#${match.id}`;
+            document.getElementById('modal-customer-name').textContent = match.fullName || match.customerName || 'Customer';
+            document.getElementById('modal-collected-by').textContent = match.collectedBy || match.assignedStaff || 'Staff Member';
+            document.getElementById('modal-delivery-date').textContent = `${match.collectedDate || match.deliveredDate || 'N/A'} - ${match.collectedTime || match.deliveredTime || ''}`;
+            document.getElementById('modal-payment-method').textContent = (match.paymentMethod || 'cash').replace('gcash', 'G-Cash');
+            document.getElementById('modal-collected-amount').textContent = `₱${Number(match.amountCollected || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
+            document.getElementById('modal-audit-remarks').value = '';
+
+            openModal(verifyModal, verifyModalPanel);
+          });
+        });
+      }
+
+      function renderDailySummaries() {
+        const container = document.getElementById('daily-summary-container');
+        if (!container) return;
+
+        const allOrders = getAllOrders();
+        const verifiedOrders = allOrders.filter(o => o.financialStatus === 'Verified');
+
+        if (verifiedOrders.length === 0) {
+          container.innerHTML = `
+            <div class="col-span-full py-8 text-center text-black font-bold text-xs bg-gray-50 rounded-2xl border border-gray-100">
+              No verified turnovers logged in ledger yet.
+            </div>
+          `;
+          return;
+        }
+
+        // Group verified orders by date + staff
+        const groups = {};
+        verifiedOrders.forEach(o => {
+          const dateKey = o.collectedDate || o.deliveredDate || o.verifiedDate || 'Unspecified Date';
+          const staffKey = o.collectedBy || o.assignedStaff || 'Staff Member';
+          const groupKey = `${dateKey}___${staffKey}`;
+
+          if (!groups[groupKey]) {
+            groups[groupKey] = {
+              date: dateKey,
+              staff: staffKey,
+              count: 0,
+              totalAmount: 0,
+              verifiedBy: o.verifiedBy || 'Administrator',
+              lastVerifiedTime: o.verifiedTime || '4:30 PM'
+            };
+          }
+
+          groups[groupKey].count += 1;
+          groups[groupKey].totalAmount += Number(o.amountCollected || 0);
+        });
+
+        const groupList = Object.values(groups);
+
+        container.innerHTML = groupList.map(g => `
+          <div class="bg-[#F8FAF8] rounded-2xl p-5 border border-emerald-100/80 space-y-3.5 text-xs shadow-2xs hover:border-emerald-200 transition-all">
+            <div class="flex items-center justify-between pb-2.5 border-b border-emerald-100">
+              <span class="font-black text-gray-950 text-sm">📅 ${g.date}</span>
+              <span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded font-black text-[10px] uppercase">
+                ✔ VERIFIED
+              </span>
+            </div>
+
+            <div class="space-y-2 text-gray-800">
+              <div class="flex justify-between items-center">
+                <span class="font-semibold text-black">Collected By:</span>
+                <span class="font-bold text-[#1E6C02]">${g.staff}</span>
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="font-semibold text-black">Orders Delivered:</span>
+                <span class="font-black text-gray-900">${g.count} Ticket(s)</span>
+              </div>
+              <div class="flex justify-between items-center bg-white p-2.5 rounded-xl border border-emerald-100">
+                <span class="font-bold text-xs text-gray-900">Total Cash Collected:</span>
+                <span class="font-black text-base text-[#1E6C02]">₱${g.totalAmount.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
+              </div>
+              <div class="flex justify-between items-center pt-1 border-t border-gray-100 text-[11px]">
+                <span class="text-black font-bold">Verified By:</span>
+                <span class="font-bold text-gray-900">${g.verifiedBy} (${g.lastVerifiedTime})</span>
+              </div>
+            </div>
+          </div>
+        `).join('');
+      }
+
+      function bindPageEvents() {
+        // Tab buttons
+        document.querySelectorAll('.btn-filter-tab').forEach(btn => {
+          btn.addEventListener('click', () => {
+            activeFilterTab = btn.getAttribute('data-tab');
+            renderPage();
+          });
+        });
+
+        // Search input
+        const searchInp = document.getElementById('inp-search-turnover');
+        if (searchInp) {
+          searchInp.addEventListener('input', (e) => {
+            searchQuery = e.target.value;
+            renderTableRows();
+          });
+        }
+
+        // Date input
+        const dateInp = document.getElementById('inp-date-filter');
+        if (dateInp) {
+          dateInp.addEventListener('change', (e) => {
+            selectedDateFilter = e.target.value;
+            renderPage();
+          });
+        }
+
+        const clearDateBtn = document.getElementById('btn-clear-date');
+        if (clearDateBtn) {
+          clearDateBtn.addEventListener('click', () => {
+            selectedDateFilter = '';
+            renderPage();
+          });
+        }
+
+        // Staff Select
+        const staffInp = document.getElementById('inp-staff-filter');
+        if (staffInp) {
+          staffInp.addEventListener('change', (e) => {
+            selectedStaffFilter = e.target.value;
+            renderTableRows();
+          });
+        }
+
+        // Close verify modal triggers
+        document.getElementById('close-verify-modal-x').onclick = () => closeModal(verifyModal, verifyModalPanel);
+        document.getElementById('btn-cancel-verify-modal').onclick = () => closeModal(verifyModal, verifyModalPanel);
+
+        // Confirm verification
+        document.getElementById('btn-confirm-verify-modal').onclick = () => {
+          if (!selectedOrderForModal) return;
+
+          const remarks = document.getElementById('modal-audit-remarks').value.trim();
+
+          try {
+            verifyCashTurnover(selectedOrderForModal.id, remarks);
+            closeModal(verifyModal, verifyModalPanel);
+            showToast(`✔ Cash turnover verified for Order Ticket #${selectedOrderForModal.id}.`, 'success');
+            renderPage();
+          } catch (err) {
+            alert(err.message || 'Error verifying cash turnover.');
+          }
+        };
+      }
+
+      renderPage();
+    });
+  </script>
+</body>
+</html>

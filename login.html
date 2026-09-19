@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Log in | RiceFlow</title>
+  <link rel="stylesheet" href="src/styles/index.css">
+</head>
+<body class="bg-[#F5F5F5] min-h-screen flex flex-col justify-between">
+
+  <!-- Dynamic Header Bar -->
+  <div id="navbar-container"></div>
+
+  <!-- Centered Login Main Content -->
+  <main class="flex-grow flex items-center justify-center p-4 py-12">
+    <div id="login-card" class="w-full max-w-md bg-white p-8 lg:p-12 rounded-[32px] shadow-2xl border border-gray-100 animate-in fade-in zoom-in duration-300">
+      <div class="w-full">
+        <!-- Title & Subtitle Header -->
+        <div class="mb-8 text-center">
+          <div class="flex items-center justify-center mb-2">
+            <h1 class="text-3xl font-black text-[#222222] tracking-tight flex items-center">
+              Log in
+              <!-- Custom Rice Stalk Vector Icon -->
+              <svg viewBox="0 0 24 24" fill="none" stroke="#1E6C02" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="w-7 h-7 inline-block shrink-0 align-middle ml-2.5">
+                <line x1="3" y1="21" x2="20" y2="4" />
+                <ellipse cx="18.5" cy="5.5" rx="3.5" ry="1.8" transform="rotate(-45 18.5 5.5)" />
+                <ellipse cx="13" cy="9" rx="3.5" ry="1.8" transform="rotate(-75 13 9)" />
+                <ellipse cx="16" cy="11" rx="3.5" ry="1.8" transform="rotate(-15 16 11)" />
+                <ellipse cx="9" cy="13" rx="3.5" ry="1.8" transform="rotate(-75 9 13)" />
+                <ellipse cx="12" cy="15" rx="3.5" ry="1.8" transform="rotate(-15 12 15)" />
+                <ellipse cx="5" cy="17" rx="3.5" ry="1.8" transform="rotate(-75 5 17)" />
+                <ellipse cx="8" cy="19" rx="3.5" ry="1.8" transform="rotate(-15 8 19)" />
+              </svg>
+            </h1>
+          </div>
+          <p class="text-sm text-gray-500 font-semibold">Enter your Credentials to access your account</p>
+        </div>
+
+        <!-- Lockout / General Error Alert banner -->
+        <div id="login-alert" class="hidden mb-6 p-4 bg-red-50 border border-red-200 rounded-2xl animate-in fade-in duration-200">
+          <div class="flex items-start space-x-3 text-red-600">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-5 h-5 mt-0.5 shrink-0"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+            <div>
+              <h5 class="text-xs font-black uppercase tracking-wider mb-1" id="login-alert-title">Too Many Failed Login Attempts</h5>
+              <p class="text-xs font-medium leading-relaxed text-red-700" id="login-alert-desc">
+                For your security, your account has been temporarily locked due to multiple unsuccessful login attempts. Please try again later or use the Forgot Password feature.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Form container -->
+        <form id="form-login" class="space-y-6">
+          
+          <!-- Email Address input field -->
+          <div class="space-y-2">
+            <label for="email" class="text-sm font-bold text-[#222222] block">
+              Email Address
+            </label>
+            <input
+              id="email"
+              type="email"
+              required
+              placeholder="Enter Email Address"
+              class="w-full h-12 px-4 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-[#1E6C02]/20 focus:border-[#1E6C02] transition-all text-sm font-medium text-[#222222]"
+            />
+          </div>
+
+          <!-- Password input field -->
+          <div class="space-y-2">
+            <label for="password" class="text-sm font-bold text-[#222222] block">
+              Password
+            </label>
+            <div class="relative">
+              <input
+                id="password"
+                type="password"
+                required
+                placeholder="Enter Password"
+                class="w-full h-12 pl-4 pr-12 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-[#1E6C02]/20 focus:border-[#1E6C02] transition-all text-sm font-medium text-[#222222]"
+              />
+              <button
+                type="button"
+                id="btn-toggle-password"
+                class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none cursor-pointer"
+              >
+                <!-- Eye SVG -->
+                <svg id="eye-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Remember me & forgotten keys links -->
+          <div class="flex items-center justify-between">
+            <label class="flex items-center space-x-2.5 cursor-pointer select-none text-xs font-bold text-[#222222]">
+              <input
+                type="checkbox"
+                id="remember"
+                class="w-4.5 h-4.5 border border-gray-300 rounded text-[#1E6C02] focus:ring-[#1E6C02] cursor-pointer"
+              />
+              <span>Remember for 30 days</span>
+            </label>
+            <button type="button" id="btn-forgot-password" class="text-xs text-black hover:text-[#1E6C02] font-semibold transition-colors bg-transparent border-0 cursor-pointer">
+              forgot password?
+            </button>
+          </div>
+
+          <!-- Primary login action button -->
+          <button
+            type="submit"
+            id="btn-submit"
+            class="w-full h-12 bg-[#1E6C02] hover:bg-[#145001] text-white font-bold rounded-xl shadow-lg shadow-green-900/10 hover:shadow-green-900/20 transition-all cursor-pointer font-bold text-sm tracking-wide"
+          >
+            Login
+          </button>
+        </form>
+
+        <!-- Register entry redirection -->
+        <div class="text-center mt-8">
+          <p class="text-sm font-bold text-[#222222]">
+            Don't have an account? 
+            <a href="register.html" class="text-[#1E6C02] hover:underline font-extrabold ml-0.5">
+              Register now!
+            </a>
+          </p>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Forgot Password Modal dialog -->
+  <div id="forgot-password-modal" class="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden">
+    <div class="w-full max-w-md bg-white rounded-3xl p-8 shadow-2xl border border-gray-150 transform transition-all scale-95 opacity-0 duration-300" id="forgot-password-content">
+      <!-- Header -->
+      <div class="flex items-center justify-between mb-6 pb-2 border-b border-gray-100">
+        <h3 class="text-xl font-extrabold text-[#222222]">Forgot Password</h3>
+        <button id="close-forgot-modal" class="p-1 text-gray-400 hover:text-gray-650 cursor-pointer">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-5 h-5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+      
+      <!-- Input State -->
+      <div id="forgot-input-state">
+        <p class="text-sm text-black font-normal mb-5 leading-relaxed">
+          Please enter your registered email address. We will send a secure password reset link to your inbox.
+        </p>
+        <div class="space-y-4">
+          <div class="space-y-1.5">
+            <label for="forgot-email" class="text-sm font-bold text-black block">Email Address</label>
+            <input
+              id="forgot-email"
+              type="email"
+              placeholder="Enter your registered email"
+              class="w-full h-12 px-4 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-[#1E6C02]/20 focus:border-[#1E6C02] transition-all text-sm font-medium text-[#222222]"
+            />
+          </div>
+          <button
+            type="button"
+            id="btn-send-reset"
+            class="w-full h-12 bg-[#1E6C02] hover:bg-[#145001] text-white font-bold rounded-xl shadow-lg transition-all cursor-pointer font-bold text-sm tracking-wide flex items-center justify-center gap-2"
+          >
+            <span id="btn-send-reset-text">Send Password Reset Link</span>
+          </button>
+        </div>
+      </div>
+      
+      <!-- Success State -->
+      <div id="forgot-success-state" class="hidden text-center py-4">
+        <div class="h-16 w-16 bg-[#E2F9E5] text-[#1E6C02] rounded-full flex items-center justify-center mx-auto mb-4 border border-[#C6EFCE]">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" class="w-8 h-8"><polyline points="20 6 9 17 4 12"></polyline></svg>
+        </div>
+        <h4 class="text-lg font-black text-[#222222] mb-2">Password Reset Link Sent</h4>
+        <p class="text-sm text-black font-normal leading-relaxed mb-6 max-w-sm mx-auto">
+          We've sent a password reset link to your email address. Please check your inbox and spam/junk folder.
+        </p>
+        <button
+          type="button"
+          id="btn-back-to-login"
+          class="px-6 h-11 bg-gray-100 hover:bg-gray-205 text-[#222222] font-bold rounded-xl transition-all cursor-pointer font-bold text-xs"
+        >
+          Back to Login
+        </button>
+      </div>
+
+      <!-- Not Found State -->
+      <div id="forgot-notfound-state" class="hidden text-center py-4">
+        <div class="h-16 w-16 bg-red-50 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4 border border-red-200">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" class="w-8 h-8"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </div>
+        <h4 class="text-lg font-black text-[#222222] mb-2">Email Not Found</h4>
+        <p class="text-sm text-black font-normal leading-relaxed mb-6 max-w-sm mx-auto">
+          No account is associated with this email address. Please check your spelling or register for a new account.
+        </p>
+        <div class="flex space-x-3 justify-center">
+          <button
+            type="button"
+            id="btn-try-again-forgot"
+            class="px-5 h-11 bg-gray-100 hover:bg-gray-200 text-[#222222] font-bold rounded-xl transition-all cursor-pointer font-bold text-xs"
+          >
+            Try Again
+          </button>
+          <a
+            href="register.html"
+            class="px-5 h-11 bg-[#1E6C02] hover:bg-[#145001] text-white flex items-center justify-center font-bold rounded-xl transition-all font-bold text-xs"
+          >
+            Register
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dynamic Footer Bar -->
+  <div id="footer-container"></div>
+
+  <!-- Shared vanilla platform core -->
+  <script type="module" src="src/app/shared.js"></script>
+
+  <!-- Embedded controller logic -->
+  <script type="module">
+    import { loginUser, loginAdmin, sendUserPasswordReset, showToast } from './src/app/shared.js';
+
+    document.addEventListener('DOMContentLoaded', () => {
+      // Show pending redirect/login reason message if any
+      const pendingMsg = sessionStorage.getItem('login-message');
+      if (pendingMsg) {
+        showToast(pendingMsg, 'error');
+        sessionStorage.removeItem('login-message');
+      }
+
+      const form = document.getElementById('form-login');
+      const emailInput = document.getElementById('email');
+      const passwordInput = document.getElementById('password');
+      const toggleBtn = document.getElementById('btn-toggle-password');
+      const eyeIcon = document.getElementById('eye-icon');
+      const submitBtn = document.getElementById('btn-submit');
+
+      // Password visibility toggle helpers
+      let isVisible = false;
+      const eyeOpenSvg = `<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle>`;
+      const eyeClosedSvg = `<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line>`;
+
+      toggleBtn.addEventListener('click', () => {
+        isVisible = !isVisible;
+        passwordInput.type = isVisible ? 'text' : 'password';
+        eyeIcon.innerHTML = isVisible ? eyeClosedSvg : eyeOpenSvg;
+      });
+
+      // Forgot Password Modal Integration
+      const forgotBtn = document.getElementById('btn-forgot-password');
+      const forgotModal = document.getElementById('forgot-password-modal');
+      const forgotContent = document.getElementById('forgot-password-content');
+      const closeForgotModal = document.getElementById('close-forgot-modal');
+      const btnSendReset = document.getElementById('btn-send-reset');
+      const forgotEmailInput = document.getElementById('forgot-email');
+      const forgotInputState = document.getElementById('forgot-input-state');
+      const forgotSuccessState = document.getElementById('forgot-success-state');
+      const forgotNotFoundState = document.getElementById('forgot-notfound-state');
+      const btnBackToLogin = document.getElementById('btn-back-to-login');
+      const btnTryAgainForgot = document.getElementById('btn-try-again-forgot');
+
+      const openModal = () => {
+        forgotModal.classList.remove('hidden');
+        setTimeout(() => {
+          forgotContent.classList.remove('scale-95', 'opacity-0');
+          forgotContent.classList.add('scale-100', 'opacity-100');
+        }, 10);
+        forgotInputState.classList.remove('hidden');
+        forgotSuccessState.classList.add('hidden');
+        forgotNotFoundState.classList.add('hidden');
+        forgotEmailInput.value = '';
+      };
+
+      const closeModal = () => {
+        forgotContent.classList.remove('scale-100', 'opacity-100');
+        forgotContent.classList.add('scale-95', 'opacity-0');
+        setTimeout(() => {
+          forgotModal.classList.add('hidden');
+        }, 300);
+      };
+
+      forgotBtn.addEventListener('click', openModal);
+      closeForgotModal.addEventListener('click', closeModal);
+      btnBackToLogin.addEventListener('click', closeModal);
+      forgotModal.addEventListener('click', (e) => {
+        if (e.target === forgotModal) closeModal();
+      });
+
+      // Auto-open modal if requested via URL query/hash parameter
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('action') === 'forgot' || window.location.hash === '#forgot') {
+        openModal();
+      }
+
+      btnTryAgainForgot.addEventListener('click', () => {
+        forgotNotFoundState.classList.add('hidden');
+        forgotInputState.classList.remove('hidden');
+        forgotEmailInput.value = '';
+      });
+
+      let isSendingReset = false;
+
+      btnSendReset.addEventListener('click', async () => {
+        if (isSendingReset) return;
+
+        const email = forgotEmailInput.value.trim().toLowerCase();
+        if (!email) {
+          showToast('Please enter your email address.', 'error');
+          return;
+        }
+
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+          showToast('Please enter a valid email address structure (e.g., name@domain.com).', 'error');
+          return;
+        }
+
+        // Loading and double-submission protection
+        isSendingReset = true;
+        btnSendReset.disabled = true;
+        btnSendReset.classList.add('opacity-80', 'cursor-not-allowed');
+        const originalBtnContent = btnSendReset.innerHTML;
+        btnSendReset.innerHTML = `
+          <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          <span>Sending Reset Link...</span>
+        `;
+
+        try {
+          await sendUserPasswordReset(email);
+
+          // ONLY after Firebase successfully confirms:
+          forgotInputState.classList.add('hidden');
+          forgotSuccessState.classList.remove('hidden');
+          showToast('Password reset link sent! Please check your email.', 'success');
+        } catch (err) {
+          if (err.message === 'user-not-found') {
+            forgotInputState.classList.add('hidden');
+            forgotNotFoundState.classList.remove('hidden');
+          } else {
+            showToast(err.message || 'Something went wrong while sending the reset email. Please try again.', 'error');
+          }
+        } finally {
+          isSendingReset = false;
+          btnSendReset.disabled = false;
+          btnSendReset.classList.remove('opacity-80', 'cursor-not-allowed');
+          btnSendReset.innerHTML = originalBtnContent;
+        }
+      });
+
+      // Handle submission login
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const email = emailInput.value.trim();
+        const password = passwordInput.value;
+
+        if (!email || !password) {
+          showToast('Kindly fill all parameters!', 'error');
+          return;
+        }
+
+        if (email.includes('@')) {
+          const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+          if (!emailRegex.test(email)) {
+            showToast('Please enter a valid email address structure (e.g., name@domain.com).', 'error');
+            return;
+          }
+        }
+
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = `
+          <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white inline-block" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg> Signing in...
+        `;
+
+        try {
+          // 1. Try Admin / Staff Logins
+          const tryAdmin = await loginAdmin(email, password);
+          if (tryAdmin) {
+            showToast('Welcome back, Administrative Staff!');
+            setTimeout(() => {
+              window.location.href = 'admin/dashboard.html';
+            }, 800);
+            return;
+          }
+
+          // 2. Try Customer Logins
+          const tryCustomer = await loginUser(email, password);
+          if (tryCustomer) {
+            showToast('Logged in successfully!');
+            setTimeout(() => {
+              const redirectPath = (sessionStorage.getItem('login-redirect') || 'index.html').replace(/^\//, '');
+              sessionStorage.removeItem('login-redirect');
+              window.location.href = redirectPath;
+            }, 800);
+            return;
+          }
+
+          // Failed all credentials
+          const alertBanner = document.getElementById('login-alert');
+          const alertTitle = document.getElementById('login-alert-title');
+          const alertDesc = document.getElementById('login-alert-desc');
+          
+          alertTitle.textContent = "Sign-in Error";
+          alertDesc.textContent = "Invalid email or password parameters!";
+          alertBanner.classList.remove('hidden');
+          showToast('Invalid email or password parameters!', 'error');
+        } catch (err) {
+          const errMsg = err.message || '';
+          const alertBanner = document.getElementById('login-alert');
+          const alertTitle = document.getElementById('login-alert-title');
+          const alertDesc = document.getElementById('login-alert-desc');
+
+          if (errMsg === 'account-archived') {
+            alertTitle.textContent = "Account Archived";
+            alertDesc.innerHTML = `Your customer account has been archived by the administration and access is currently blocked. If you believe this is a mistake or would like to request account restoration, please reach out through our <a href="contact.html" class="font-bold underline text-red-800 hover:text-red-950">Contact Us</a> page or email support.`;
+            alertBanner.classList.remove('hidden');
+            showToast('This account is archived. Login access is blocked.', 'error');
+          } else if (errMsg.startsWith('locked:')) {
+            const seconds = parseInt(errMsg.split(':')[1], 10);
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            const timeStr = mins > 0 ? `${mins} minute${mins > 1 ? 's' : ''} and ${secs} second${secs !== 1 ? 's' : ''}` : `${secs} second${secs !== 1 ? 's' : ''}`;
+            
+            alertTitle.textContent = "Too Many Failed Login Attempts";
+            alertDesc.innerHTML = `For your security, your account has been temporarily locked due to multiple unsuccessful login attempts. Please try again later or use the Forgot Password feature. (Lockout active for ${timeStr})`;
+            alertBanner.classList.remove('hidden');
+            showToast(`Too Many Failed Login Attempts. Account locked temporarily.`, 'error');
+          } else {
+            alertTitle.textContent = "Sign-in Error";
+            alertDesc.textContent = errMsg || 'An unexpected error occurred.';
+            alertBanner.classList.remove('hidden');
+            showToast(errMsg || 'An unexpected error occurred.', 'error');
+          }
+        } finally {
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Login';
+        }
+      });
+    });
+  </script>
+</body>
+</html>

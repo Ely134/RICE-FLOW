@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RiceFlow: A Queue-Enabled Rice Ordering and Inventory Management System</title>
+  <link rel="stylesheet" href="src/styles/index.css">
+</head>
+<body class="bg-[#F5F5F5] min-h-screen">
+
+  <!-- Dynamic Header Bar -->
+  <div id="navbar-container"></div>
+
+  <!-- Main Hero and Explanatory Content -->
+  <main class="min-h-screen">
+    <!-- Hero Section -->
+    <section class="relative bg-gradient-to-br from-[#F5F5F5] to-white py-16 lg:py-24">
+      <div class="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid lg:grid-cols-2 gap-12 items-center">
+          <div>
+            <h1 id="hero-title" class="text-3xl sm:text-4xl lg:text-5xl font-black text-[#222222] mb-6 leading-tight tracking-tight">
+              Aurora Local Rice<br /><span class="text-[#1E6C02]">Online Ordering</span>
+            </h1>
+            <p id="hero-desc" class="text-base lg:text-lg text-gray-600 mb-8 leading-relaxed max-w-xl">
+              Order premium quality rice online the easy way. Instantly check available rice stocks, reserve your order in real time when key varieties are out of stock, join the restocking queue, and coordinate flexible store pickup or instant delivery. High-fidelity rice management, crafted just for you.
+            </p>
+            <a href="products.html" class="inline-flex items-center justify-center bg-[#1E6C02] hover:bg-[#145001] text-white rounded-full px-8 py-4 font-bold transition-all hover:translate-x-1 shadow-lg shadow-green-900/10">
+              Order Rice Now
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="ml-2 w-5 h-5"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+            </a>
+          </div>
+          <div class="relative h-[300px] lg:h-[400px] rounded-2xl overflow-hidden shadow-xl">
+            <img
+              id="hero-image"
+              src="https://static.vecteezy.com/system/resources/thumbnails/047/128/443/small/a-bag-of-rice-is-sitting-on-a-wooden-table-with-a-bunch-of-rice-on-the-table-photo.jpg"
+              alt="Rice sack on wood"
+              class="w-full h-full object-cover"
+              referrerpolicy="no-referrer"
+            />
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Why Choose Us Feature Cards -->
+    <section class="py-16 lg:py-20 bg-white">
+      <div class="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-12">
+          <h2 id="why-choose-title" class="text-2xl sm:text-3xl lg:text-4xl font-black text-[#222222] mb-4">
+            Why Choose Aurora Local Rice?
+          </h2>
+          <p class="text-black text-base max-w-2xl mx-auto font-normal">
+            We are committed to providing the ultimate queue-enabled rice ordering and inventory management platform.
+          </p>
+        </div>
+
+        <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8" id="why-choose-grid">
+          <!-- Dynamically populated features or static -->
+          <div class="bg-green-50/50 rounded-2xl p-6 hover:shadow-lg transition-all border border-green-100">
+            <div class="text-[#1E6C02] mb-4">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-8 h-8"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+            </div>
+            <h3 class="text-lg font-bold text-[#222222] mb-2">Fresh & Quality Rice</h3>
+            <p class="text-black text-base leading-relaxed font-normal">Premium quality local grains sourced directly from certified agricultural farms in Aurora.</p>
+          </div>
+
+          <div class="bg-green-50/50 rounded-2xl p-6 hover:shadow-lg transition-all border border-green-100">
+            <div class="text-[#1E6C02] mb-4">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-8 h-8"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+            </div>
+            <h3 class="text-lg font-bold text-[#222222] mb-2">Real-Time Stock Alerts</h3>
+            <p class="text-black text-base leading-relaxed font-normal">Accurate stock registers updated in real-time, warning you of low stock or out-of-stock items.</p>
+          </div>
+
+          <div class="bg-green-50/50 rounded-2xl p-6 hover:shadow-lg transition-all border border-green-100">
+            <div class="text-[#1E6C02] mb-4">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-8 h-8"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+            </div>
+            <h3 class="text-lg font-bold text-[#222222] mb-2">Fair Restock Queues</h3>
+            <p class="text-black text-base leading-relaxed font-normal">Submit reservation requests with small downpayments and secure your transparent position in line.</p>
+          </div>
+
+          <div class="bg-green-50/50 rounded-2xl p-6 hover:shadow-lg transition-all border border-green-100">
+            <div class="text-[#1E6C02] mb-4">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-8 h-8"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
+            </div>
+            <h3 class="text-lg font-bold text-[#222222] mb-2">Fast Pickup & Easy Delivery</h3>
+            <p class="text-black text-base leading-relaxed font-normal">Pick up straight from our local outlet, or coordinate rapid shipping directly to your doorstep.</p>
+          </div>
+
+          <div class="bg-green-50/50 rounded-2xl p-6 hover:shadow-lg transition-all border border-green-100">
+            <div class="text-[#1E6C02] mb-4">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-8 h-8"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+            </div>
+            <h3 class="text-lg font-bold text-[#222222] mb-2">Secure Store Validation</h3>
+            <p class="text-black text-base leading-relaxed font-normal">Verify GCash screenshots with transparent receipts and QR verification badges to keep data secure.</p>
+          </div>
+
+          <div class="bg-green-50/50 rounded-2xl p-6 hover:shadow-lg transition-all border border-green-100">
+            <div class="text-[#1E6C02] mb-4">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-8 h-8"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+            </div>
+            <h3 class="text-lg font-bold text-[#222222] mb-2">Community Rated</h3>
+            <p class="text-black text-base leading-relaxed font-normal">Hundreds of families trust Aurora Rice Store for clean grains, fast support, and daily food security.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Featured Products Showcase -->
+    <section class="py-16 lg:py-20 bg-[#F5F5F5]">
+      <div class="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-12">
+          <h2 class="text-2xl sm:text-3xl lg:text-4xl font-black text-[#222222] mb-2">
+            Featured Collection
+          </h2>
+          <p class="text-gray-500 font-semibold text-sm">Popular rice varieties available for immediate booking</p>
+        </div>
+
+        <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6" id="products-showcase">
+          <!-- Rendered dynamically by javascript -->
+        </div>
+      </div>
+    </section>
+
+    <!-- Customer Reviews -->
+    <section class="py-16 lg:py-20 bg-white">
+      <div class="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-12">
+          <h2 class="text-2xl sm:text-3xl lg:text-4xl font-black text-[#222222] mb-4">
+            Customer Reviews
+          </h2>
+          <p class="text-black max-w-2xl mx-auto font-semibold">
+            What our customers say about us
+          </p>
+        </div>
+
+        <div class="grid md:grid-cols-3 gap-6 lg:gap-8" id="reviews-showcase">
+          <!-- Rendered dynamically by javascript -->
+        </div>
+
+        <div class="text-center mt-12">
+          <a href="reviews.html" class="inline-flex items-center justify-center border-2 border-[#1E6C02] text-[#1E6C02] bg-transparent hover:bg-[#1E6C02] hover:text-white px-8 py-3.5 font-bold rounded-xl transition-all shadow-md">
+            Read More Reviews
+          </a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Dynamic Footer Bar -->
+  <div id="footer-container"></div>
+
+  <!-- Shared dynamic runtime -->
+  <script type="module" src="src/app/shared.js"></script>
+
+  <!-- Homepage Dynamic Dynamic Content Loading script -->
+  <script type="module">
+    import { getProducts, getReviews, getStoreSettings } from './src/app/shared.js';
+
+    document.addEventListener('DOMContentLoaded', () => {
+      // 0. Dynamic Store Settings Updates
+      const settings = getStoreSettings();
+      const heroTitle = document.getElementById('hero-title');
+      if (heroTitle) {
+        heroTitle.innerHTML = `${settings.storeName}<br /><span class="text-[#1E6C02]">Online Ordering</span>`;
+      }
+      const heroDesc = document.getElementById('hero-desc');
+      if (heroDesc) {
+        heroDesc.textContent = settings.description;
+      }
+      const heroImage = document.getElementById('hero-image');
+      if (heroImage) {
+        heroImage.src = settings.banner;
+      }
+      const whyChooseTitle = document.getElementById('why-choose-title');
+      if (whyChooseTitle) {
+        whyChooseTitle.textContent = `Why Choose ${settings.storeName}?`;
+      }
+
+      // 1. Featured Products
+      function renderFeaturedProducts() {
+        const products = getProducts().filter(p => !p.isArchived && !p.archived).slice(0, 4);
+        const containerProducts = document.getElementById('products-showcase');
+        if (containerProducts) {
+          containerProducts.innerHTML = products.map(product => `
+            <div class="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-350 cursor-pointer border border-gray-100 flex flex-col h-full group" onclick="window.location.href='product-details.html?id=${product.id}'">
+              <div class="relative h-56 overflow-hidden flex-shrink-0 bg-gray-50 flex items-center justify-center p-2">
+                <img
+                  src="${product.image}"
+                  alt="${product.name}"
+                  class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  referrerPolicy="no-referrer"
+                />
+                ${product.stock === 0 ? `
+                  <div class="absolute top-3 right-3 bg-red-600 text-white font-extrabold text-[10px] uppercase px-2.5 py-1 rounded-md shadow-md shadow-red-900/15">
+                    Pre-order Join Queue
+                  </div>
+                ` : product.stock <= 20 ? `
+                  <div class="absolute top-3 right-3 bg-orange-500 text-white font-extrabold text-[10px] uppercase px-2.5 py-1 rounded-md shadow-md shadow-orange-900/15">
+                    Low Stock
+                  </div>
+                ` : ''}
+              </div>
+              <div class="p-5 flex flex-col flex-grow">
+                <span class="text-xs font-semibold text-black uppercase tracking-wider mb-1">${product.type} Rice</span>
+                <h3 class="font-extrabold text-black mb-3 line-clamp-2 min-h-[3rem] group-hover:text-[#1E6C02] transition-colors">${product.name}</h3>
+                <div class="flex justify-between items-end mt-auto pt-4 border-t border-gray-100">
+                  <span class="text-[#1E6C02] text-2xl font-black">
+                    ₱${product.price.toLocaleString()}.00
+                  </span>
+                  <span class="text-black text-xs font-semibold uppercase tracking-wider mb-1">25kg SACK</span>
+                </div>
+              </div>
+            </div>
+          `).join('');
+        }
+      }
+      renderFeaturedProducts();
+      window.addEventListener('aurora-sync-event', (e) => {
+        if (!e.detail || !e.detail.key || e.detail.key === 'aurora-products') {
+          renderFeaturedProducts();
+        }
+      });
+
+      // 2. Featured Reviews
+      function renderFeaturedReviews() {
+        const rList = getReviews().slice(0, 3);
+        const containerReviews = document.getElementById('reviews-showcase');
+        if (!containerReviews) return;
+
+        if (rList.length === 0) {
+          containerReviews.innerHTML = `
+            <div class="col-span-full py-12 text-center text-gray-400 font-semibold bg-gray-50/60 rounded-2xl border border-gray-100 select-none">
+              <svg class="w-10 h-10 text-gray-300 mx-auto mb-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+              </svg>
+              <p class="text-sm text-gray-500 font-bold">No customer reviews yet.</p>
+              <p class="text-xs text-gray-400 mt-0.5">Verified customer reviews will appear here once submitted.</p>
+            </div>
+          `;
+          return;
+        }
+
+        containerReviews.innerHTML = rList.map(review => {
+          const starsHtml = Array.from({ length: 5 }, (_, i) => `
+            <svg viewBox="0 0 24 24" class="w-5 h-5 ${i < review.rating ? 'text-yellow-400 fill-yellow-400' : 'text-gray-200'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+            </svg>
+          `).join('');
+
+          const initial = review.name ? review.name[0].toUpperCase() : 'U';
+          const subText = review.productName ? `Verified Purchase • ${review.productName}` : 'Verified Customer • Ordering Experience';
+
+          return `
+            <div class="bg-gray-50 border border-gray-100 rounded-2xl p-6 hover:shadow-lg transition-all duration-300 flex flex-col justify-between">
+              <div>
+                <div class="flex items-center gap-1 mb-4">
+                  ${starsHtml}
+                </div>
+                ${review.title ? `<h4 class="font-extrabold text-gray-900 text-sm mb-2">${review.title}</h4>` : ''}
+                <p class="text-gray-600 mb-6 font-medium italic leading-relaxed text-sm">
+                  "${review.comment}"
+                </p>
+              </div>
+              <div class="flex items-center gap-3 pt-3 border-t border-gray-100">
+                <div class="w-9 h-9 rounded-full bg-green-100 text-[#1E6C02] font-black flex items-center justify-center text-sm shadow-inner uppercase shrink-0">
+                  ${initial}
+                </div>
+                <div class="min-w-0">
+                  <h4 class="font-bold text-gray-800 leading-none truncate">${review.name || 'Customer'}</h4>
+                  <p class="text-[10px] text-gray-400 font-bold mt-1 uppercase tracking-wider truncate">${subText}</p>
+                </div>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+
+      renderFeaturedReviews();
+      window.addEventListener('aurora-sync-event', (e) => {
+        if (!e.detail || !e.detail.key || e.detail.key === 'aurora-reviews') {
+          renderFeaturedReviews();
+        }
+      });
+    });
+  </script>
+</body>
+</html>

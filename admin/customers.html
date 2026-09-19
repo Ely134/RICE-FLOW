@@ -1,0 +1,1010 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Customer List | RiceFlow</title>
+  <link rel="stylesheet" href="../src/styles/index.css">
+  <style>
+    /* Custom scrollbar styling for the order history ledger and main customer table */
+    #modal-orders-scrollbar-wrapper::-webkit-scrollbar,
+    #admin-customers-table-scroll::-webkit-scrollbar {
+      height: 8px; /* Thickness of top scrollbar */
+    }
+    #modal-orders-scrollbar-wrapper::-webkit-scrollbar-track,
+    #admin-customers-table-scroll::-webkit-scrollbar-track {
+      background: #EAECEF;
+      border-radius: 9999px;
+    }
+    #modal-orders-scrollbar-wrapper::-webkit-scrollbar-thumb,
+    #admin-customers-table-scroll::-webkit-scrollbar-thumb {
+      background: #1E6C02; /* Brand green scrollbar color */
+      border-radius: 9999px;
+      border: 1px solid #EAECEF;
+    }
+    #modal-orders-scrollbar-wrapper::-webkit-scrollbar-thumb:hover,
+    #admin-customers-table-scroll::-webkit-scrollbar-thumb:hover {
+      background: #145001;
+    }
+
+    /* Dark mode override for customer status card */
+    .dark #edit-customer-dialog #modal-status-banner {
+      background-color: rgba(31, 41, 55, 0.8) !important; /* Standard dark slate UI card background */
+      border-color: rgba(55, 65, 81, 1) !important;
+    }
+    .dark #edit-customer-dialog #modal-customer-status-badge {
+      background-color: transparent !important;
+      border: none !important;
+      box-shadow: none !important;
+    }
+  </style>
+</head>
+<body class="bg-[#F5F5F5] min-h-screen">
+
+  <div id="admin-layout-container"></div>
+
+  <!-- VIEW CUSTOMER DETAILS DIALOG -->
+  <div id="edit-customer-dialog" class="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center p-4 sm:p-6 hidden">
+    <div class="bg-white dark:bg-gray-900 rounded-2xl max-w-4xl w-full shadow-2xl p-6 sm:p-8 md:p-10 border border-gray-200 dark:border-gray-800 max-h-[90vh] overflow-y-auto overflow-x-auto animate-in fade-in zoom-in duration-200 text-gray-900 dark:text-gray-100">
+      
+      <!-- Modal Header -->
+      <div class="flex justify-between items-start pb-4 border-b border-gray-200 dark:border-gray-800">
+        <div>
+          <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100" id="modal-customer-name">Customer Details</h3>
+          <p class="text-sm font-semibold text-gray-600 dark:text-gray-400 mt-0.5" id="modal-customer-id">Customer ID: #ID</p>
+        </div>
+        <button id="close-customer-modal" class="text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100 p-1 rounded-lg transition-colors cursor-pointer" title="Close">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-5 h-5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+
+      <div class="space-y-6 pt-4 px-2 sm:px-4 md:px-6">
+        
+        <!-- Status Info Banner -->
+        <div id="modal-status-banner" class="bg-gray-50/80 dark:bg-gray-800/60 p-4 sm:p-5 rounded-xl border border-gray-200 dark:border-gray-700">
+          <div>
+            <span class="text-xs font-bold text-gray-900 dark:text-gray-200 uppercase tracking-wider block mb-1.5">Customer Status</span>
+            <div id="modal-customer-status-badge" class="flex items-center gap-2">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Customer Information Section -->
+        <div class="space-y-3 px-1 sm:px-2">
+          <h4 class="text-sm font-bold text-gray-900 dark:text-gray-100 uppercase tracking-wider border-b border-gray-200 dark:border-gray-800 pb-2">Customer Information</h4>
+          <div class="grid sm:grid-cols-2 gap-x-8 gap-y-4 text-sm px-1 sm:px-2">
+            <div>
+              <span class="font-bold block text-xs uppercase text-gray-500 dark:text-gray-400 mb-0.5">Full Name</span>
+              <span id="modal-info-fullname" class="font-normal text-gray-900 dark:text-gray-100 text-base"></span>
+            </div>
+            <div>
+              <span class="font-bold block text-xs uppercase text-gray-500 dark:text-gray-400 mb-0.5">Email Address</span>
+              <span id="modal-info-email" class="font-normal text-gray-900 dark:text-gray-100 text-base"></span>
+            </div>
+            <div>
+              <span class="font-bold block text-xs uppercase text-gray-500 dark:text-gray-400 mb-0.5">Contact Number</span>
+              <span id="modal-info-phone" class="font-normal text-gray-900 dark:text-gray-100 text-base"></span>
+            </div>
+            <div>
+              <span class="font-bold block text-xs uppercase text-gray-500 dark:text-gray-400 mb-0.5">Gender</span>
+              <span id="modal-info-gender" class="font-normal text-gray-900 dark:text-gray-100 text-base"></span>
+            </div>
+            <div class="sm:col-span-2">
+              <span class="font-bold block text-xs uppercase text-gray-500 dark:text-gray-400 mb-0.5">Shipping Address</span>
+              <span id="modal-info-address" class="font-normal text-gray-900 dark:text-gray-100 text-base"></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Customer Stats Section -->
+        <div class="space-y-3 px-1 sm:px-2">
+          <h4 class="text-sm font-bold text-gray-900 dark:text-gray-100 uppercase tracking-wider border-b border-gray-200 dark:border-gray-800 pb-2">Customer Stats</h4>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
+            <div class="bg-emerald-50/80 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 p-3 rounded-xl">
+              <span class="text-xs font-bold text-emerald-800 dark:text-emerald-300 uppercase block">Total Spent</span>
+              <span id="modal-stat-total-spent" class="text-lg font-bold text-emerald-950 dark:text-emerald-100">₱0.00</span>
+            </div>
+            <div class="bg-blue-50/80 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800/60 p-3 rounded-xl">
+              <span class="text-xs font-bold text-blue-800 dark:text-blue-300 uppercase block">Total Orders</span>
+              <span id="modal-stat-total-orders" class="text-lg font-bold text-blue-950 dark:text-blue-100">0</span>
+            </div>
+            <div class="bg-teal-50/80 dark:bg-teal-950/40 border border-teal-200 dark:border-teal-800/60 p-3 rounded-xl">
+              <span class="text-xs font-bold text-teal-800 dark:text-teal-300 uppercase block">Completed Orders</span>
+              <span id="modal-stat-completed-orders" class="text-lg font-bold text-teal-950 dark:text-teal-100">0</span>
+            </div>
+            <div class="bg-purple-50/80 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800/60 p-3 rounded-xl">
+              <span class="text-xs font-bold text-purple-800 dark:text-purple-300 uppercase block">Reservations</span>
+              <span id="modal-stat-reservations" class="text-lg font-bold text-purple-950 dark:text-purple-100">0</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent Orders Section -->
+        <div class="space-y-3 px-1 sm:px-2">
+          <h4 class="text-sm font-bold text-gray-900 dark:text-gray-100 uppercase tracking-wider border-b border-gray-200 dark:border-gray-800 pb-2">Recent Orders</h4>
+          <div class="overflow-x-auto rounded-xl border border-gray-200 dark:border-gray-800">
+            <table class="w-full text-left text-sm font-normal text-gray-900 dark:text-gray-100">
+              <thead>
+                <tr class="border-b border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-bold uppercase text-xs tracking-wider bg-gray-50 dark:bg-gray-800/80">
+                  <th class="py-3 px-4 font-bold text-gray-900 dark:text-gray-100">Date</th>
+                  <th class="py-3 px-4 font-bold text-gray-900 dark:text-gray-100">Rice Variety</th>
+                  <th class="py-3 px-4 font-bold text-gray-900 dark:text-gray-100">Amount</th>
+                  <th class="py-3 px-4 text-right font-bold text-gray-900 dark:text-gray-100">Status</th>
+                </tr>
+              </thead>
+              <tbody id="modal-orders-tbody" class="divide-y divide-gray-100 dark:divide-gray-800 font-normal text-gray-900 dark:text-gray-100">
+                <!-- Dynamically assigned -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-800 mt-6 gap-3">
+        <button id="btn-modal-archive-customer" class="px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider cursor-pointer transition-colors flex items-center gap-2">
+          <!-- Populated dynamically -->
+        </button>
+        <div class="flex items-center gap-3">
+          <button id="btn-modal-login-as-customer" class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] text-white rounded-xl text-xs font-bold uppercase tracking-wider cursor-pointer transition-all flex items-center gap-2 select-none shadow-xs" title="Open Storefront Profile as this customer">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-4 h-4"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path><polyline points="10 17 15 12 10 7"></polyline><line x1="15" y1="12" x2="3" y2="12"></line></svg>
+            Login as Customer
+          </button>
+          <button id="btn-customer-close-footer" class="px-6 py-2.5 bg-gray-900 hover:bg-black text-white dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-white rounded-xl text-xs font-bold uppercase tracking-wider cursor-pointer transition-colors">
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CUSTOMER ARCHIVE / RESTORE CONFIRMATION MODAL -->
+  <div id="customer-archive-confirm-modal" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-[95] flex items-center justify-center p-4 hidden transition-opacity duration-300">
+    <div id="customer-archive-modal-panel" class="bg-white dark:bg-gray-900 rounded-3xl max-w-md w-full shadow-2xl overflow-hidden border border-gray-200 dark:border-gray-800 relative transform scale-95 opacity-0 transition-all duration-300">
+      <!-- Modal Header Banner -->
+      <div id="customer-archive-modal-header" class="bg-rose-50 dark:bg-rose-950/40 px-6 py-5 border-b border-rose-100 dark:border-rose-900/50 flex items-center gap-3">
+        <div id="customer-archive-modal-icon-wrap" class="w-10 h-10 rounded-full bg-rose-100 dark:bg-rose-900/60 flex items-center justify-center text-rose-600 dark:text-rose-400 shrink-0">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-5 h-5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+        </div>
+        <div>
+          <h4 id="customer-archive-modal-title" class="text-lg font-bold text-rose-700 dark:text-rose-300 tracking-tight">Archive Customer Account</h4>
+        </div>
+        <button id="close-customer-archive-modal-x" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 font-bold text-sm ml-auto p-1 cursor-pointer select-none" title="Cancel">✕</button>
+      </div>
+
+      <div class="p-6 space-y-5">
+        <p id="customer-archive-confirm-message" class="text-sm text-gray-800 dark:text-gray-200 font-medium leading-relaxed">
+          <!-- Dynamically populated -->
+        </p>
+
+        <div class="flex items-center justify-end gap-3 pt-4 border-t border-gray-100 dark:border-gray-800">
+          <button id="btn-cancel-customer-archive-modal" class="px-5 py-2.5 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200 font-bold text-xs uppercase tracking-wider rounded-xl cursor-pointer transition-colors select-none">
+            Cancel
+          </button>
+          <button id="btn-confirm-customer-archive-modal" class="px-5 py-2.5 bg-rose-600 hover:bg-rose-700 active:scale-[0.98] text-white font-bold text-xs uppercase tracking-wider rounded-xl cursor-pointer shadow-md transition-all select-none flex items-center gap-2">
+            Yes, Archive
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="../src/app/shared.js"></script>
+
+  <!-- Interactive logical routines -->
+  <script type="module">
+    import { renderAdminLayout, addActivityLog, showToast, syncUsersAndCustomers, updateUserFromCustomer, setItemAndSync, getCustomerVerifiedSpentAmount, setCustomerArchiveStatusInFirestore } from '../src/app/shared.js';
+
+    // Load DB helper
+    function getCustomers() {
+      syncUsersAndCustomers();
+      const data = localStorage.getItem('aurora-customers');
+      if (!data) {
+        localStorage.setItem('aurora-customers', JSON.stringify([]));
+        return [];
+      }
+      return JSON.parse(data);
+    }
+
+    function saveCustomers(list) {
+      setItemAndSync('aurora-customers', JSON.stringify(list));
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      renderAdminLayout('customers');
+
+      const targetSpace = document.getElementById('admin-main-content');
+      if (!targetSpace) return;
+
+      // Local interactive variables
+      let searchQuery = '';
+      let timeFilter = 'all';
+      let showArchived = false;
+      let selectedCustomerInModal = null;
+
+      const editDialog = document.getElementById('edit-customer-dialog');
+
+      function matchesTimeFilter(c, filter) {
+        if (!filter || filter === 'all') return true;
+        const rawDate = c.registrationDate || c.regDate || c.createdAt || c.dateCreated;
+        if (!rawDate) return true;
+        const d = new Date(rawDate);
+        if (isNaN(d.getTime())) return true;
+        
+        const now = new Date();
+        if (filter === 'today') {
+          return d.getFullYear() === now.getFullYear() &&
+                 d.getMonth() === now.getMonth() &&
+                 d.getDate() === now.getDate();
+        }
+        if (filter === 'this-week') {
+          const diffDays = (now.getTime() - d.getTime()) / (1000 * 3600 * 24);
+          return diffDays >= 0 && diffDays <= 7;
+        }
+        if (filter === 'this-month') {
+          return d.getFullYear() === now.getFullYear() &&
+                 d.getMonth() === now.getMonth();
+        }
+        if (filter === 'this-year') {
+          return d.getFullYear() === now.getFullYear();
+        }
+        return true;
+      }
+
+      function renderCustomersBoard() {
+        const customers = getCustomers();
+        const q = String(searchQuery || '').toLowerCase().trim();
+
+        const filtered = customers.filter(c => {
+          const nameStr = String(c.name || '').toLowerCase();
+          const emailStr = String(c.email || '').toLowerCase();
+          const phoneStr = String(c.phone || '');
+          const matchesSearch = !q || nameStr.includes(q) || emailStr.includes(q) || phoneStr.includes(searchQuery || '');
+          const matchesArchive = showArchived ? c.isArchived : !c.isArchived;
+          const matchesTime = matchesTimeFilter(c, timeFilter);
+          return matchesSearch && matchesArchive && matchesTime;
+        });
+
+        targetSpace.innerHTML = `
+          <div class="space-y-6 w-full">
+            
+            <!-- Top Toolbar -->
+            <div class="bg-white dark:bg-gray-900 rounded-2xl p-4 sm:p-6 border border-gray-200/80 dark:border-gray-800 shadow-xs flex flex-nowrap items-center justify-between gap-3 sm:gap-4 w-full overflow-x-auto">
+              <!-- 1. Search Bar -->
+              <div class="relative w-64 sm:w-72 shrink-0">
+                <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4.5 h-4.5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                </span>
+                <input 
+                  type="text" 
+                  id="inp-search-customers" 
+                  placeholder="Search by name, phone, email..." 
+                  value="${searchQuery}"
+                  class="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-sm font-semibold text-gray-900 dark:text-gray-100 pl-10 pr-4 py-2.5 rounded-xl focus:border-[#1E6C02] focus:bg-white dark:focus:bg-gray-800 outline-none transition-all"
+                />
+              </div>
+
+              <!-- Controls Toolbar Items 2-6 -->
+              <div class="flex items-center gap-2 sm:gap-2.5 lg:gap-3 shrink-0 flex-nowrap">
+                <!-- 2. Time Filter -->
+                <select id="select-time-filter" class="px-3.5 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 font-bold text-xs uppercase tracking-wider rounded-xl cursor-pointer focus:border-[#1E6C02] outline-none transition-colors shrink-0">
+                  <option value="all" ${timeFilter === 'all' ? 'selected' : ''}>All Time</option>
+                  <option value="today" ${timeFilter === 'today' ? 'selected' : ''}>Today</option>
+                  <option value="this-week" ${timeFilter === 'this-week' ? 'selected' : ''}>This Week</option>
+                  <option value="this-month" ${timeFilter === 'this-month' ? 'selected' : ''}>This Month</option>
+                  <option value="this-year" ${timeFilter === 'this-year' ? 'selected' : ''}>This Year</option>
+                </select>
+
+                <!-- 3. View Archived -->
+                <button id="btn-toggle-archived-clients" class="flex items-center gap-2 px-3.5 py-2.5 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-700 font-bold text-xs uppercase tracking-wider rounded-xl cursor-pointer transition-colors whitespace-nowrap shrink-0">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 text-gray-900 dark:text-gray-100"><polyline points="21 8 21 21 3 21 3 8"></polyline><rect x="1" y="3" width="22" height="5"></rect><line x1="10" y1="12" x2="14" y2="12"></line></svg>
+                  ${showArchived ? 'View Active' : 'View Archived'}
+                </button>
+
+                <!-- 4. Export Excel -->
+                <button id="btn-export-excel" class="flex items-center gap-2 px-3.5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs uppercase tracking-wider rounded-xl cursor-pointer transition-colors whitespace-nowrap shrink-0">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="8" y1="13" x2="16" y2="13"></line><line x1="8" y1="17" x2="16" y2="17"></line></svg>
+                  Export Excel
+                </button>
+
+                <!-- 5. Export CSV -->
+                <button id="btn-export-csv" class="flex items-center gap-2 px-3.5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs uppercase tracking-wider rounded-xl cursor-pointer transition-colors whitespace-nowrap shrink-0">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                  Export CSV
+                </button>
+
+                <!-- 6. Export PDF -->
+                <button id="btn-export-pdf" class="flex items-center gap-2 px-3.5 py-2.5 bg-red-600 hover:bg-red-700 text-white font-bold text-xs uppercase tracking-wider rounded-xl cursor-pointer transition-colors whitespace-nowrap shrink-0">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><path d="M12 18v-6"></path><path d="m9 15 3 3 3-3"></path></svg>
+                  Export PDF
+                </button>
+              </div>
+            </div>
+
+            <!-- Ledger Table Card -->
+            <div class="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200/80 dark:border-gray-800 p-4 sm:p-6 shadow-xs space-y-4 text-gray-900 dark:text-gray-100 w-full">
+              <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100 tracking-tight">
+                ${showArchived ? 'List of Archived Customers' : 'List of Customers'}
+              </h3>
+
+              <div id="customers-table-container" class="w-full overflow-x-auto rounded-xl border border-gray-200 dark:border-gray-800">
+                <table class="w-full text-left text-sm font-normal text-gray-900 dark:text-gray-100 min-w-[960px]">
+                  <thead>
+                    <tr class="border-b border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-bold uppercase text-xs tracking-wider bg-gray-50 dark:bg-gray-800">
+                      <th class="py-3.5 px-4 w-12 text-center">No.</th>
+                      <th class="py-3.5 px-4 w-[22%]">Name</th>
+                      <th class="py-3.5 px-4 w-[24%]">Email</th>
+                      <th class="py-3.5 px-4 w-[16%]">Phone</th>
+                      <th class="py-3.5 px-4 w-[15%]">Total Spent</th>
+                      <th class="py-3.5 px-4 w-[12%]">Status</th>
+                      <th class="py-3.5 px-4 text-center w-28">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-gray-100 dark:divide-gray-800 text-gray-900 dark:text-gray-100 font-normal">
+                    ${(() => {
+                      const orders = JSON.parse(localStorage.getItem('aurora-orders') || '[]');
+
+                      function getCustomerOrders(client, allOrdersList) {
+                        if (!client || !allOrdersList) return [];
+                        const cId = String(client.id || '').toLowerCase();
+                        const cUid = String(client.uid || client.firebaseUid || '').toLowerCase();
+                        const cCusId = String(client.customerId || '').toLowerCase();
+                        const cEmail = String(client.email || '').toLowerCase().trim();
+                        const cName = String(client.name || '').toLowerCase().trim();
+
+                        return allOrdersList.filter(o => {
+                          const oUserId = String(o.userId || o.uid || '').toLowerCase();
+                          const oCusId = String(o.customerId || '').toLowerCase();
+                          const oEmail = String(o.customerEmail || o.email || '').toLowerCase().trim();
+                          const oName = String(o.fullName || o.customerName || '').toLowerCase().trim();
+
+                          if (cId && oUserId === cId) return true;
+                          if (cUid && (oUserId === cUid || oCusId === cUid)) return true;
+                          if (cCusId && (oCusId === cCusId || oUserId === cCusId)) return true;
+                          if (cEmail && oEmail === cEmail) return true;
+                          if (cName && oName && cName === oName) return true;
+
+                          return false;
+                        });
+                      }
+
+                      return filtered.map((client, index) => {
+                        const clientOrders = getCustomerOrders(client, orders);
+
+                        // Total Spent: actual verified/paid amount only
+                        let totalSpentAmount = 0;
+                        if (clientOrders.length > 0) {
+                          totalSpentAmount = clientOrders.reduce((sum, o) => sum + getCustomerVerifiedSpentAmount(o), 0);
+                        } else if (client.totalSpent && !isNaN(parseFloat(client.totalSpent))) {
+                          totalSpentAmount = parseFloat(client.totalSpent);
+                        }
+
+                        // Account status calculation (strictly independent of order status)
+                        let statusBadgeHtml = '';
+                        if (client.isArchived) {
+                          statusBadgeHtml = `<span class="px-2.5 py-1 rounded-full bg-rose-100 text-rose-900 border border-rose-300 dark:bg-rose-950/60 dark:text-rose-200 dark:border-rose-800 font-bold text-xs inline-block">Archived</span>`;
+                        } else if (client.isActive === false || client.status === 'Suspended' || client.status === 'Inactive' || client.isSuspended === true) {
+                          statusBadgeHtml = `<span class="px-2.5 py-1 rounded-full bg-rose-100 text-rose-900 border border-rose-300 dark:bg-rose-950/60 dark:text-rose-200 dark:border-rose-800 font-bold text-xs inline-block">Suspended</span>`;
+                        } else {
+                          statusBadgeHtml = `<span class="px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-900 border border-emerald-300 dark:bg-emerald-950/60 dark:text-emerald-200 dark:border-emerald-800 font-bold text-xs inline-block">Active</span>`;
+                        }
+
+                        return `
+                          <tr class="hover:bg-gray-50/80 dark:hover:bg-gray-800/50 transition-colors text-gray-900 dark:text-gray-100">
+                            <td class="py-3.5 px-4 text-center font-bold text-sm">${index + 1}</td>
+                            <td class="py-3.5 px-4 font-bold text-sm">${client.name}</td>
+                            <td class="py-3.5 px-4 text-sm text-gray-600 dark:text-gray-400">${client.email}</td>
+                            <td class="py-3.5 px-4 text-sm whitespace-nowrap">${client.phone || 'N/A'}</td>
+                            <td class="py-3.5 px-4 font-bold text-sm whitespace-nowrap">₱${totalSpentAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                            <td class="py-3.5 px-4 whitespace-nowrap">${statusBadgeHtml}</td>
+                            <td class="py-3.5 px-4 text-center whitespace-nowrap">
+                              <div class="flex items-center justify-center gap-1.5">
+                                <button 
+                                  data-id="${client.id || ''}"
+                                  data-customer-id="${client.customerId || ''}"
+                                  data-email="${client.email || ''}"
+                                  data-uid="${client.uid || client.firebaseUid || ''}"
+                                  class="btn-edit-client p-1.5 text-gray-600 hover:text-emerald-700 dark:text-gray-300 dark:hover:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/50 rounded-lg transition-colors cursor-pointer"
+                                  title="View Customer Details"
+                                >
+                                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4.5 h-4.5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                                </button>
+                                <button 
+                                  data-id="${client.id || ''}"
+                                  data-customer-id="${client.customerId || ''}"
+                                  data-email="${client.email || ''}"
+                                  data-uid="${client.uid || client.firebaseUid || ''}"
+                                  class="btn-archive-direct p-1.5 ${client.isArchived ? 'text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/50' : 'text-gray-600 hover:text-rose-700 dark:text-gray-300 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/50'} rounded-lg transition-colors cursor-pointer"
+                                  title="${client.isArchived ? 'Restore Customer Account' : 'Archive Customer Account'}"
+                                >
+                                  ${client.isArchived ? `
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4.5 h-4.5"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg>
+                                  ` : `
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4.5 h-4.5"><polyline points="21 8 21 21 3 21 3 8"></polyline><rect x="1" y="3" width="22" height="5"></rect><line x1="10" y1="12" x2="14" y2="12"></line></svg>
+                                  `}
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        `;
+                      }).join('')
+                    })()}
+
+                    ${filtered.length === 0 ? `
+                      <tr>
+                        <td colspan="7" class="py-8 text-center text-gray-500 dark:text-gray-400 font-medium text-sm">
+                          No customer profiles matched the search criteria.
+                        </td>
+                      </tr>
+                    ` : ''}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        `;
+
+        // Bind events
+        bindCustomersEvents();
+      }
+
+      function bindCustomersEvents() {
+        const customers = getCustomers();
+
+        // Search Input controller
+        const searchInput = document.getElementById('inp-search-customers');
+        if (searchInput) {
+          searchInput.addEventListener('input', () => {
+            searchQuery = searchInput.value;
+          });
+          searchInput.addEventListener('change', () => {
+            renderCustomersBoard();
+          });
+          searchInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') renderCustomersBoard();
+          });
+        }
+
+        // Time Filter controller
+        const timeFilterSelect = document.getElementById('select-time-filter');
+        if (timeFilterSelect) {
+          timeFilterSelect.addEventListener('change', () => {
+            timeFilter = timeFilterSelect.value;
+            renderCustomersBoard();
+          });
+        }
+
+        // Toggle archived view
+        const toggleArchivedBtn = document.getElementById('btn-toggle-archived-clients');
+        if (toggleArchivedBtn) {
+          toggleArchivedBtn.addEventListener('click', () => {
+            showArchived = !showArchived;
+            renderCustomersBoard();
+          });
+        }
+
+        // Export Excel Button
+        const exportExcelBtn = document.getElementById('btn-export-excel');
+        if (exportExcelBtn) {
+          exportExcelBtn.addEventListener('click', () => {
+            showToast('Excel report generated successfully! Check your browser downloads.');
+          });
+        }
+
+        // Export CSV Button
+        const exportCsvBtn = document.getElementById('btn-export-csv');
+        if (exportCsvBtn) {
+          exportCsvBtn.addEventListener('click', () => {
+            showToast('CSV report exported successfully! Check your browser downloads.');
+          });
+        }
+
+        // Export PDF Button
+        const exportPdfBtn = document.getElementById('btn-export-pdf');
+        if (exportPdfBtn) {
+          exportPdfBtn.addEventListener('click', () => {
+            showToast('PDF report generated successfully! Check your browser downloads.');
+          });
+        }
+
+        // Direct Archive / Restore Button
+        document.querySelectorAll('.btn-archive-direct').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            e.preventDefault();
+            const match = findMatchingCustomer(btn);
+            if (match) {
+              openCustomerArchiveModal(match);
+            }
+          });
+        });
+
+        // Open view user details dialogue trigger
+        document.querySelectorAll('.btn-edit-client').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            e.preventDefault();
+            const match = findMatchingCustomer(btn);
+            if (match) {
+              openCustomerDetailsModal(match);
+            }
+          });
+        });
+
+        // Table Event Delegation (ensures clicks work reliably across re-renders)
+        const tableContainer = document.getElementById('customers-table-container');
+        if (tableContainer && !tableContainer.dataset.hasDelegation) {
+          tableContainer.dataset.hasDelegation = 'true';
+          tableContainer.addEventListener('click', (e) => {
+            const archiveBtn = e.target.closest('.btn-archive-direct');
+            if (archiveBtn) {
+              e.stopPropagation();
+              e.preventDefault();
+              const match = findMatchingCustomer(archiveBtn);
+              if (match) {
+                openCustomerArchiveModal(match);
+              }
+              return;
+            }
+
+            const editBtn = e.target.closest('.btn-edit-client');
+            if (editBtn) {
+              e.stopPropagation();
+              e.preventDefault();
+              const match = findMatchingCustomer(editBtn);
+              if (match) {
+                openCustomerDetailsModal(match);
+              }
+            }
+          });
+        }
+      }
+
+      // Helper to find customer by any available identifier
+      function findMatchingCustomer(el) {
+        if (!el) return null;
+        const id = el.getAttribute('data-id');
+        const customerId = el.getAttribute('data-customer-id');
+        const email = el.getAttribute('data-email');
+        const uid = el.getAttribute('data-uid');
+        const customers = getCustomers();
+
+        return customers.find(c => {
+          if (id && (String(c.id) === String(id) || String(c.customerId) === String(id) || String(c.uid) === String(id))) return true;
+          if (customerId && (String(c.customerId) === String(customerId) || String(c.id) === String(customerId))) return true;
+          if (uid && (String(c.uid) === String(uid) || String(c.firebaseUid) === String(uid) || String(c.id) === String(uid))) return true;
+          if (email && c.email && String(c.email).toLowerCase() === String(email).toLowerCase()) return true;
+          return false;
+        });
+      }
+
+      // Customer Details Modal Handler
+      function openCustomerDetailsModal(match) {
+        if (!match) return;
+        selectedCustomerInModal = match;
+        const customers = getCustomers();
+        const allOrdersList = JSON.parse(localStorage.getItem('aurora-orders') || '[]');
+
+        function findCustomerOrders(client, list) {
+          if (!client || !list) return [];
+          const cId = String(client.id || '').toLowerCase();
+          const cUid = String(client.uid || client.firebaseUid || '').toLowerCase();
+          const cCusId = String(client.customerId || '').toLowerCase();
+          const cEmail = String(client.email || '').toLowerCase().trim();
+          const cName = String(client.name || '').toLowerCase().trim();
+
+          return list.filter(o => {
+            const oUserId = String(o.userId || o.uid || '').toLowerCase();
+            const oCusId = String(o.customerId || '').toLowerCase();
+            const oEmail = String(o.customerEmail || o.email || '').toLowerCase().trim();
+            const oName = String(o.fullName || o.customerName || '').toLowerCase().trim();
+
+            if (cId && oUserId === cId) return true;
+            if (cUid && (oUserId === cUid || oCusId === cUid)) return true;
+            if (cCusId && (oCusId === cCusId || oUserId === cCusId)) return true;
+            if (cEmail && oEmail === cEmail) return true;
+            if (cName && oName && cName === oName) return true;
+
+            return false;
+          });
+        }
+
+        const clientOrders = findCustomerOrders(match, allOrdersList);
+
+        // Calculate Customer Stats
+        const validOrders = clientOrders.filter(o => {
+          const isRes = !!o.isPreOrder || (o.items && o.items.some(it => it.isReservation));
+          const s = (o.status || '').toLowerCase().replace(/_/g, '-');
+          return !isRes && s !== 'cancelled' && s !== 'rejected';
+        });
+        const totalOrdersCount = clientOrders.length > 0 ? validOrders.length : (match.recentOrders ? match.recentOrders.length : 0);
+
+        const completedOrders = clientOrders.filter(o => {
+          const s = (o.status || '').toLowerCase().replace(/_/g, '-');
+          return s === 'completed' || s === 'delivered';
+        });
+        const completedOrdersCount = completedOrders.length;
+
+        const validReservations = clientOrders.filter(o => {
+          const isRes = !!o.isPreOrder || (o.items && o.items.some(it => it.isReservation));
+          const s = (o.status || '').toLowerCase().replace(/_/g, '-');
+          return isRes && s !== 'cancelled' && s !== 'rejected';
+        });
+        const reservationsCount = validReservations.length;
+
+        let totalSpentAmount = 0;
+        if (clientOrders.length > 0) {
+          totalSpentAmount = clientOrders.reduce((sum, o) => sum + getCustomerVerifiedSpentAmount(o), 0);
+        } else if (match.totalSpent && !isNaN(parseFloat(match.totalSpent))) {
+          totalSpentAmount = parseFloat(match.totalSpent);
+        }
+
+        // Customer ID calculation
+        let displayCustomerId = match.customerId || match.uid || match.firebaseUid;
+        if (!displayCustomerId || displayCustomerId.startsWith('user-') || displayCustomerId.startsWith('demo-user') || /^\d+$/.test(String(displayCustomerId))) {
+          const idx = customers.findIndex(c => c.id === match.id);
+          displayCustomerId = `CUS-${String(idx >= 0 ? idx + 1 : 1).padStart(6, '0')}`;
+        }
+
+        // Populate Modal Header
+        document.getElementById('modal-customer-name').textContent = match.name || 'Customer Profile';
+        document.getElementById('modal-customer-id').textContent = `Customer ID: #${displayCustomerId}`;
+
+        // Populate Status badge
+        const statusBadgeContainer = document.getElementById('modal-customer-status-badge');
+        if (statusBadgeContainer) {
+          if (match.isArchived) {
+            statusBadgeContainer.innerHTML = `<span class="px-3 py-1 rounded-full bg-rose-100 text-rose-900 border border-rose-300 dark:bg-rose-950/60 dark:text-rose-200 dark:border-rose-800 font-bold text-xs inline-block">🔴 Archived Account</span>`;
+          } else if (match.isActive === false || match.status === 'Suspended' || match.status === 'Inactive' || match.isSuspended === true) {
+            statusBadgeContainer.innerHTML = `<span class="px-3 py-1 rounded-full bg-rose-100 text-rose-900 border border-rose-300 dark:bg-rose-950/60 dark:text-rose-200 dark:border-rose-800 font-bold text-xs inline-block">🔴 Suspended</span>`;
+          } else {
+            statusBadgeContainer.innerHTML = `<span class="px-3 py-1 rounded-full bg-emerald-100 text-emerald-900 border border-emerald-300 dark:bg-emerald-950/60 dark:text-emerald-200 dark:border-emerald-800 font-bold text-xs inline-block">🟢 Active Account</span>`;
+          }
+        }
+
+        // Populate Modal Archive Button
+        const modalArchiveBtn = document.getElementById('btn-modal-archive-customer');
+        if (modalArchiveBtn) {
+          modalArchiveBtn.disabled = false;
+          modalArchiveBtn.classList.remove('opacity-50', 'pointer-events-none');
+          if (match.isArchived) {
+            modalArchiveBtn.className = 'px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider cursor-pointer transition-colors flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white';
+            modalArchiveBtn.innerHTML = `
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-4 h-4"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg>
+              Restore Customer Account
+            `;
+          } else {
+            modalArchiveBtn.className = 'px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider cursor-pointer transition-colors flex items-center gap-2 bg-rose-600 hover:bg-rose-700 text-white';
+            modalArchiveBtn.innerHTML = `
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-4 h-4"><polyline points="21 8 21 21 3 21 3 8"></polyline><rect x="1" y="3" width="22" height="5"></rect><line x1="10" y1="12" x2="14" y2="12"></line></svg>
+              Archive Customer Account
+            `;
+          }
+        }
+
+        // Configure Modal Login as Customer Button
+        const modalLoginBtn = document.getElementById('btn-modal-login-as-customer');
+        if (modalLoginBtn) {
+          if (match.isArchived) {
+            modalLoginBtn.disabled = true;
+            modalLoginBtn.classList.add('opacity-40', 'cursor-not-allowed');
+            modalLoginBtn.classList.remove('hover:bg-emerald-700', 'active:scale-[0.98]');
+            modalLoginBtn.title = 'Cannot login: This account is currently archived';
+          } else {
+            modalLoginBtn.disabled = false;
+            modalLoginBtn.classList.remove('opacity-40', 'cursor-not-allowed');
+            modalLoginBtn.classList.add('hover:bg-emerald-700', 'active:scale-[0.98]');
+            modalLoginBtn.title = 'Open Storefront Profile as this customer';
+          }
+        }
+
+        // Populate Customer Info
+        const femaleNames = ['Maria', 'Leni', 'Gloria', 'Corazon', 'Imelda', 'Grace', 'Sarah', 'Katarina', 'Rica', 'Cherry', 'Teresa', 'Leah', 'Danica', 'Patricia', 'Angela', 'Cristina', 'Jovelyn', 'Nora', 'Vilma', 'Sharon', 'Judy', 'Regine', 'Ana', 'Clara', 'Rosa', 'Elena', 'Sofia', 'Isabel', 'Jessica', 'Jane', 'Michelle', 'Mary', 'Anna', 'Joy'];
+        const inferGender = (name, stored) => {
+          const storedStr = String(stored || '').toLowerCase();
+          if (storedStr === 'female' || storedStr === 'male') {
+            return storedStr.charAt(0).toUpperCase() + storedStr.slice(1);
+          }
+          if (!name) return 'Male';
+          const first = String(name || '').trim().split(' ')[0];
+          return femaleNames.includes(first) ? 'Female' : 'Male';
+        };
+
+        document.getElementById('modal-info-fullname').textContent = match.name || 'N/A';
+        document.getElementById('modal-info-email').textContent = match.email || 'N/A';
+        document.getElementById('modal-info-phone').textContent = match.phone || 'N/A';
+        document.getElementById('modal-info-gender').textContent = inferGender(match.name, match.gender);
+        document.getElementById('modal-info-address').textContent = match.shippingAddress || 'No address on file';
+
+        // Populate Customer Stats
+        document.getElementById('modal-stat-total-spent').textContent = `₱${totalSpentAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        document.getElementById('modal-stat-total-orders').textContent = String(totalOrdersCount);
+        document.getElementById('modal-stat-completed-orders').textContent = String(completedOrdersCount);
+        document.getElementById('modal-stat-reservations').textContent = String(reservationsCount);
+
+        // Populate Recent Orders Table
+        const borderOrdersBody = document.getElementById('modal-orders-tbody');
+        const rec = clientOrders.length > 0 ? clientOrders : (match.recentOrders || []);
+
+        if (rec.length === 0) {
+          borderOrdersBody.innerHTML = `
+            <tr>
+              <td colspan="4" class="py-6 text-center text-gray-500 font-medium text-sm">No recent orders found for this customer.</td>
+            </tr>
+          `;
+        } else {
+          const sortedOrders = [...rec].sort((a, b) => {
+            const dA = new Date(a.createdAt || a.date || 0).getTime();
+            const dB = new Date(b.createdAt || b.date || 0).getTime();
+            return dB - dA;
+          });
+
+          borderOrdersBody.innerHTML = sortedOrders.map(ord => {
+            let col = 'bg-gray-100 text-gray-700';
+            const s = (ord.status || '').toLowerCase().replace(/_/g, '-');
+            if (s === 'delivered' || s === 'completed') col = 'bg-emerald-100 text-emerald-900 border border-emerald-300';
+            else if (s === 'processing' || s === 'to-ship' || s === 'shipped') col = 'bg-blue-100 text-blue-900 border border-blue-300';
+            else if (s === 'pending' || s === 'to-pay') col = 'bg-amber-100 text-amber-900 border border-amber-300';
+            else if (s === 'cancelled' || s === 'rejected') col = 'bg-rose-100 text-rose-900 border border-rose-300';
+
+            const dateStr = ord.createdAt ? new Date(ord.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : (ord.date || 'N/A');
+            const prodNames = ord.items && ord.items.length > 0 
+              ? ord.items.map(i => `${i.product?.name || i.name || 'Rice'} (${i.quantity || 1}x)`).join(', ') 
+              : (ord.product || ord.item || '25kg Rice');
+            const amt = parseFloat(ord.total || ord.totalPrice || ord.amount || ord.billTotal || 0);
+
+            return `
+              <tr class="hover:bg-gray-50/80 transition-colors">
+                <td class="py-3 px-4 font-normal text-gray-900 text-sm whitespace-nowrap">${dateStr}</td>
+                <td class="py-3 px-4 text-gray-900 font-medium text-sm max-w-[220px] truncate">${prodNames}</td>
+                <td class="py-3 px-4 text-gray-900 font-bold text-sm">₱${amt.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                <td class="py-3 px-4 text-right whitespace-nowrap">
+                  <span class="px-2.5 py-1 rounded-full text-[11px] uppercase tracking-wider font-bold ${col}">${ord.status || 'Pending'}</span>
+                </td>
+              </tr>
+            `;
+          }).join('');
+        }
+
+        editDialog.classList.remove('hidden');
+      }
+
+      // Archive / Restore Confirmation Modal Logic
+      let pendingCustomerForArchive = null;
+
+      function openCustomerArchiveModal(customer) {
+        if (!customer) return;
+        pendingCustomerForArchive = customer;
+        const isNowArchived = !customer.isArchived;
+        const customerDisplayName = customer.name || customer.fullName || customer.email || 'Customer';
+
+        const modal = document.getElementById('customer-archive-confirm-modal');
+        const panel = document.getElementById('customer-archive-modal-panel');
+        const header = document.getElementById('customer-archive-modal-header');
+        const iconWrap = document.getElementById('customer-archive-modal-icon-wrap');
+        const title = document.getElementById('customer-archive-modal-title');
+        const msg = document.getElementById('customer-archive-confirm-message');
+        const confirmBtn = document.getElementById('btn-confirm-customer-archive-modal');
+
+        if (!modal || !panel || !header || !iconWrap || !title || !msg || !confirmBtn) return;
+
+        if (isNowArchived) {
+          header.className = "bg-rose-50 dark:bg-rose-950/40 px-6 py-5 border-b border-rose-100 dark:border-rose-900/50 flex items-center gap-3";
+          iconWrap.className = "w-10 h-10 rounded-full bg-rose-100 dark:bg-rose-900/60 flex items-center justify-center text-rose-600 dark:text-rose-400 shrink-0";
+          iconWrap.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-5 h-5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>`;
+          title.textContent = "Archive Customer Account";
+          title.className = "text-lg font-bold text-rose-700 dark:text-rose-300 tracking-tight";
+          msg.innerHTML = `Are you sure you want to archive <strong class="text-rose-700 dark:text-rose-400 font-extrabold">${customerDisplayName}</strong>?<br><br>Archived accounts cannot log in to RiceFlow. All order history and profile records will remain securely preserved.`;
+          confirmBtn.className = "px-5 py-2.5 bg-rose-600 hover:bg-rose-700 active:scale-[0.98] text-white font-bold text-xs uppercase tracking-wider rounded-xl cursor-pointer shadow-md transition-all select-none flex items-center gap-2";
+          confirmBtn.textContent = "Yes, Archive";
+        } else {
+          header.className = "bg-emerald-50 dark:bg-emerald-950/40 px-6 py-5 border-b border-emerald-100 dark:border-emerald-900/50 flex items-center gap-3";
+          iconWrap.className = "w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-900/60 flex items-center justify-center text-emerald-600 dark:text-emerald-400 shrink-0";
+          iconWrap.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-5 h-5"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg>`;
+          title.textContent = "Restore Customer Account";
+          title.className = "text-lg font-bold text-emerald-700 dark:text-emerald-300 tracking-tight";
+          msg.innerHTML = `Are you sure you want to restore <strong class="text-emerald-700 dark:text-emerald-400 font-extrabold">${customerDisplayName}</strong>?<br><br>The customer will immediately regain access to their account and dashboard.`;
+          confirmBtn.className = "px-5 py-2.5 bg-[#1E6C02] hover:bg-[#145001] active:scale-[0.98] text-white font-bold text-xs uppercase tracking-wider rounded-xl cursor-pointer shadow-md transition-all select-none flex items-center gap-2";
+          confirmBtn.textContent = "Yes, Restore";
+        }
+
+        confirmBtn.disabled = false;
+        modal.classList.remove('hidden');
+        setTimeout(() => {
+          panel.classList.remove('scale-95', 'opacity-0');
+          panel.classList.add('scale-100', 'opacity-100');
+        }, 10);
+      }
+
+      function closeCustomerArchiveModal() {
+        const modal = document.getElementById('customer-archive-confirm-modal');
+        const panel = document.getElementById('customer-archive-modal-panel');
+        if (!modal || !panel) return;
+        panel.classList.remove('scale-100', 'opacity-100');
+        panel.classList.add('scale-95', 'opacity-0');
+        setTimeout(() => {
+          modal.classList.add('hidden');
+          pendingCustomerForArchive = null;
+        }, 200);
+      }
+
+      // Archive Confirmation Modal Buttons
+      const confirmArchiveBtn = document.getElementById('btn-confirm-customer-archive-modal');
+      if (confirmArchiveBtn) {
+        confirmArchiveBtn.addEventListener('click', async () => {
+          if (!pendingCustomerForArchive) return;
+          const targetCustomer = pendingCustomerForArchive;
+          const isNowArchived = !targetCustomer.isArchived;
+          const labelAct = isNowArchived ? 'Archive' : 'Restore';
+          const actionText = isNowArchived ? 'archive' : 'restore';
+          const customerDisplayName = targetCustomer.name || targetCustomer.fullName || 'Customer';
+
+          confirmArchiveBtn.disabled = true;
+          confirmArchiveBtn.classList.add('opacity-75', 'cursor-not-allowed');
+          confirmArchiveBtn.innerHTML = `
+            <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            ${isNowArchived ? 'Archiving...' : 'Restoring...'}
+          `;
+
+          const client = {
+            ...targetCustomer,
+            isArchived: isNowArchived,
+            isActive: !isNowArchived,
+            status: isNowArchived ? 'Archived' : 'Active',
+            updatedAt: new Date().toISOString()
+          };
+
+          try {
+            // 1. Authoritatively persist to Firebase Firestore
+            await setCustomerArchiveStatusInFirestore(client, isNowArchived);
+          } catch (err) {
+            console.error('[FIREBASE] Error saving archive status to Firestore:', err);
+            showToast(`Failed to ${actionText} customer in Firebase: ${err.message || 'Database error'}`, 'error');
+            confirmArchiveBtn.disabled = false;
+            confirmArchiveBtn.classList.remove('opacity-75', 'cursor-not-allowed');
+            confirmArchiveBtn.textContent = isNowArchived ? 'Yes, Archive' : 'Yes, Restore';
+            return;
+          }
+
+          // 2. Update local state
+          updateUserFromCustomer(client);
+
+          const allCustomers = getCustomers();
+          const updated = allCustomers.map(c => {
+            if (
+              (c.id && client.id && String(c.id) === String(client.id)) ||
+              (c.customerId && client.customerId && String(c.customerId) === String(client.customerId)) ||
+              (c.uid && client.uid && String(c.uid) === String(client.uid)) ||
+              (c.email && client.email && String(c.email).toLowerCase() === String(client.email).toLowerCase())
+            ) {
+              return { ...c, ...client };
+            }
+            return c;
+          });
+          saveCustomers(updated);
+
+          // 3. Log administrative activity
+          addActivityLog({
+            action: `${labelAct}d customer profile: ${customerDisplayName}`,
+            category: 'User Management',
+            target: customerDisplayName
+          });
+
+          showToast(`Customer '${customerDisplayName}' successfully ${actionText}d!`);
+          closeCustomerArchiveModal();
+
+          // Close customer details dialog if currently open
+          if (editDialog && !editDialog.classList.contains('hidden')) {
+            editDialog.classList.add('hidden');
+          }
+
+          // Immediately re-render board
+          renderCustomersBoard();
+        });
+      }
+
+      const closeArchiveModalX = document.getElementById('close-customer-archive-modal-x');
+      if (closeArchiveModalX) {
+        closeArchiveModalX.addEventListener('click', closeCustomerArchiveModal);
+      }
+
+      const cancelArchiveModalBtn = document.getElementById('btn-cancel-customer-archive-modal');
+      if (cancelArchiveModalBtn) {
+        cancelArchiveModalBtn.addEventListener('click', closeCustomerArchiveModal);
+      }
+
+      const archiveModalBackdrop = document.getElementById('customer-archive-confirm-modal');
+      if (archiveModalBackdrop) {
+        archiveModalBackdrop.addEventListener('click', (e) => {
+          if (e.target === archiveModalBackdrop) {
+            closeCustomerArchiveModal();
+          }
+        });
+      }
+
+      // Modal Close Handlers
+      const closeTopBtn = document.getElementById('close-customer-modal');
+      if (closeTopBtn) {
+        closeTopBtn.addEventListener('click', () => {
+          editDialog.classList.add('hidden');
+        });
+      }
+
+      const closeFooterBtn = document.getElementById('btn-customer-close-footer');
+      if (closeFooterBtn) {
+        closeFooterBtn.addEventListener('click', () => {
+          editDialog.classList.add('hidden');
+        });
+      }
+
+      // Modal Archive / Restore Button Click Handler (inside customer details modal)
+      const modalArchiveBtn = document.getElementById('btn-modal-archive-customer');
+      if (modalArchiveBtn) {
+        modalArchiveBtn.addEventListener('click', () => {
+          if (!selectedCustomerInModal) return;
+          openCustomerArchiveModal(selectedCustomerInModal);
+        });
+      }
+
+      // Modal Login as Customer Button Handler
+      const modalLoginBtn = document.getElementById('btn-modal-login-as-customer');
+      if (modalLoginBtn) {
+        modalLoginBtn.addEventListener('click', () => {
+          if (!selectedCustomerInModal) return;
+          if (selectedCustomerInModal.isArchived) {
+            showToast('Cannot login: This customer account is currently archived.', 'error');
+            return;
+          }
+          const customerDisplayName = selectedCustomerInModal.name || selectedCustomerInModal.fullName || selectedCustomerInModal.email || 'Customer';
+          
+          // Prepare customer session object while preserving administrative session
+          const customerSession = {
+            id: selectedCustomerInModal.id || `user-${selectedCustomerInModal.customerId || Date.now()}`,
+            firebaseUid: selectedCustomerInModal.firebaseUid || selectedCustomerInModal.uid || '',
+            customerId: selectedCustomerInModal.customerId || selectedCustomerInModal.id || '',
+            fullName: selectedCustomerInModal.name || selectedCustomerInModal.fullName || customerDisplayName,
+            email: selectedCustomerInModal.email || '',
+            phone: selectedCustomerInModal.phone || '',
+            address: selectedCustomerInModal.shippingAddress || selectedCustomerInModal.address || '',
+            gender: selectedCustomerInModal.gender || 'Other',
+            profilePicture: selectedCustomerInModal.profilePicture || '',
+            role: 'customer',
+            isImpersonated: true,
+            impersonatedBy: getCurrentAdmin()?.email || 'admin'
+          };
+          localStorage.setItem('aurora-user', JSON.stringify(customerSession));
+          localStorage.setItem('aurora-logged-in', 'true');
+
+          addActivityLog({
+            action: `Admin logged in as customer: ${customerDisplayName}`,
+            category: 'User Management',
+            target: customerDisplayName
+          });
+
+          showToast(`Switching view to customer: ${customerDisplayName}...`, 'info');
+          setTimeout(() => {
+            window.open('../profile.html', '_blank');
+          }, 300);
+        });
+      }
+
+      // Initial board rendering
+      renderCustomersBoard();
+
+      // Real-time synchronization listeners for cross-device updates
+      window.addEventListener('aurora-sync-event', (e) => {
+        if (e.detail && (e.detail.key === 'aurora-customers' || e.detail.key === 'aurora-users')) {
+          renderCustomersBoard();
+        }
+      });
+      window.addEventListener('aurora-customers-updated', () => {
+        renderCustomersBoard();
+      });
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,1987 @@
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  --font-size: 16px;
+  --background: #ffffff;
+  --foreground: oklch(0.145 0 0);
+  --card: #ffffff;
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: #030213;
+  --primary-foreground: oklch(1 0 0);
+  --secondary: oklch(0.95 0.0058 264.53);
+  --secondary-foreground: #030213;
+  --muted: #ececf0;
+  --muted-foreground: #717182;
+  --accent: #e9ebef;
+  --accent-foreground: #030213;
+  --destructive: #d4183d;
+  --destructive-foreground: #ffffff;
+  --border: rgba(0, 0, 0, 0.1);
+  --input: transparent;
+  --input-background: #f3f3f5;
+  --switch-background: #cbced4;
+  --font-weight-medium: 500;
+  --font-weight-normal: 400;
+  --ring: oklch(0.708 0 0);
+  --chart-1: oklch(0.646 0.222 41.116);
+  --chart-2: oklch(0.6 0.118 184.704);
+  --chart-3: oklch(0.398 0.07 227.392);
+  --chart-4: oklch(0.828 0.189 84.429);
+  --chart-5: oklch(0.769 0.188 70.08);
+  --radius: 0.625rem;
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: #030213;
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: oklch(0.708 0 0);
+  
+  /* Brand Colors */
+  --brand-green: #1E6C02;
+  --brand-dark-green: #193317;
+  --brand-light-bg: #F5F5F5;
+  --brand-text-dark: #222222;
+}
+
+.dark {
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.145 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.145 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.985 0 0);
+  --primary-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.396 0.141 25.723);
+  --destructive-foreground: oklch(0.637 0.237 25.331);
+  --border: oklch(0.269 0 0);
+  --input: oklch(0.269 0 0);
+  --ring: oklch(0.439 0 0);
+  --font-weight-medium: 500;
+  --font-weight-normal: 400;
+  --chart-1: oklch(0.488 0.243 264.376);
+  --chart-2: oklch(0.696 0.17 162.48);
+  --chart-3: oklch(0.769 0.188 70.08);
+  --chart-4: oklch(0.627 0.265 303.9);
+  --chart-5: oklch(0.645 0.246 16.439);
+  --sidebar: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(0.269 0 0);
+  --sidebar-ring: oklch(0.439 0 0);
+}
+
+.dark input[type="text"],
+.dark input[type="email"],
+.dark input[type="password"],
+.dark input[type="tel"],
+.dark input[type="number"],
+.dark input[type="search"],
+.dark select,
+.dark textarea {
+  background-color: #1e293b;
+  color: #f8fafc;
+  border-color: #334155;
+}
+
+.dark select option {
+  background-color: #0f172a;
+  color: #f8fafc;
+}
+
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: #94a3b8;
+}
+
+@theme inline {
+  --font-sans: 'Poppins', sans-serif;
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-input-background: var(--input-background);
+  --color-switch-background: var(--switch-background);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --animate-float: float 6s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-20px); }
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+    font-family: 'Poppins', sans-serif !important;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Poppins', sans-serif !important;
+  }
+
+  /**
+  * Default typography styles for HTML elements (h1-h4, p, label, button, input).
+  * These are in @layer base, so Tailwind utility classes (like text-sm, text-lg) automatically override them.
+  */
+
+  html {
+    font-size: var(--font-size);
+  }
+
+  h1 {
+    font-size: var(--text-2xl);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+  }
+
+  h2 {
+    font-size: var(--text-xl);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+  }
+
+  h3 {
+    font-size: var(--text-lg);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+  }
+
+  h4 {
+    font-size: var(--text-base);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+  }
+
+  label {
+    font-size: var(--text-base);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+  }
+
+  button {
+    font-size: var(--text-base);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+  }
+
+  input {
+    font-size: var(--text-base);
+    font-weight: var(--font-weight-normal);
+    line-height: 1.5;
+  }
+}
+
+/* ==========================================================================
+   ADMIN NIGHT MODE / DARK MODE OVERRIDES & ACCESSIBILITY UPGRADES
+   ========================================================================== */
+
+/* Smooth fade transition when switching modes */
+html, body, #admin-layout-container, aside, header, main, div, input, select, textarea, table, tr, td, th, span, h1, h2, h3, h4, p, label {
+  transition: background-color 250ms ease-in-out, border-color 250ms ease-in-out, color 250ms ease-in-out, fill 250ms ease-in-out, stroke 250ms ease-in-out;
+}
+
+/* ==========================================================================
+   DAY MODE (LIGHT MODE) HIGH-CONTRAST ACCESSIBILITY ENHANCEMENTS
+   ========================================================================== */
+html:not(.dark) #admin-layout-container .text-gray-400,
+html:not(.dark) #admin-layout-container .text-xs.text-gray-400 {
+  color: #5A6578 !important; /* Boost light grey text to highly visible slate grey (> 4.5:1) */
+}
+html:not(.dark) #admin-layout-container .text-gray-400 * {
+  color: #5A6578 !important;
+}
+
+html:not(.dark) #admin-layout-container .text-gray-500,
+html:not(.dark) #admin-layout-container .text-gray-550 {
+  color: #475569 !important; /* Slate grey with outstanding readability */
+}
+html:not(.dark) #admin-layout-container .text-gray-500 *,
+html:not(.dark) #admin-layout-container .text-gray-550 * {
+  color: #475569 !important;
+}
+
+html:not(.dark) #admin-layout-container .text-gray-600,
+html:not(.dark) #admin-layout-container .text-gray-650 {
+  color: #334155 !important; /* Deep charcoal for excellent scanning contrast */
+}
+html:not(.dark) #admin-layout-container .text-gray-600 *,
+html:not(.dark) #admin-layout-container .text-gray-650 * {
+  color: #334155 !important;
+}
+
+html:not(.dark) #admin-layout-container .text-gray-700,
+html:not(.dark) #admin-layout-container .text-gray-750 {
+  color: #1E293B !important; /* Almost black */
+}
+html:not(.dark) #admin-layout-container .text-gray-700 *,
+html:not(.dark) #admin-layout-container .text-gray-750 * {
+  color: #1E293B !important;
+}
+
+/* Day Mode primary green disabled buttons contrast fix (white text on #A3DDA1 is unreadable) */
+html:not(.dark) button:disabled.bg-\[\#1E6C02\],
+html:not(.dark) button:disabled.disabled\:bg-\[\#A3DDA1\],
+html:not(.dark) button[disabled].bg-\[\#1E6C02\],
+html:not(.dark) button[disabled].disabled\:bg-\[\#A3DDA1\] {
+  background-color: #E2F9E5 !important; /* Soft green */
+  color: #1E6C02 !important; /* Forest green text (> 4.5:1 contrast) */
+  border: 1.5px solid #A3DDA1 !important;
+  opacity: 0.8 !important;
+}
+
+/* Day Mode general disabled buttons contrast boost */
+html:not(.dark) button:disabled:not(.bg-\[\#1E6C02\]):not(.disabled\:bg-\[\#A3DDA1\]),
+html:not(.dark) button[disabled]:not(.bg-\[\#1E6C02\]):not(.disabled\:bg-\[\#A3DDA1\]) {
+  background-color: #F3F4F6 !important;
+  color: #4B5563 !important; /* Strong charcoal text */
+  border: 1px solid #D1D5DB !important;
+}
+
+
+/* ==========================================================================
+   NIGHT MODE (DARK MODE) HIGH-CONTRAST ACCESSIBILITY ENHANCEMENTS
+   ========================================================================== */
+
+/* Layout & Backgrounds */
+.dark body,
+.dark #admin-layout-container {
+  background-color: #1F2937 !important; /* Dark charcoal */
+  color: #F9FAFB !important; /* Near-white text for excellent contrast */
+}
+
+.dark #admin-sidebar,
+.dark aside {
+  background-color: #111827 !important; /* Darker charcoal for depth and distinction */
+  border-color: #4B5563 !important; /* High-contrast border */
+}
+
+.dark header {
+  background-color: #111827 !important; /* Match top header background to sidebar */
+  border-color: #4B5563 !important;
+}
+
+.dark #admin-main-content {
+  background-color: #1F2937 !important; /* Main workspace area */
+}
+
+/* Core Cards & Light Containers in Dark Mode (turned dark charcoal for eye comfort) */
+.dark #admin-layout-container .bg-white,
+.dark #admin-layout-container .bg-gray-50,
+.dark #admin-layout-container .bg-gray-55,
+.dark #admin-layout-container .bg-gray-100,
+.dark #admin-layout-container .bg-gray-150,
+.dark #admin-layout-container .bg-gray-200,
+.dark #admin-layout-container .bg-gray-250,
+.dark #admin-layout-container .bg-gray-50\/50,
+.dark #admin-layout-container .bg-slate-50,
+.dark #admin-layout-container .bg-slate-100,
+.dark #admin-layout-container .bg-slate-150,
+.dark #admin-layout-container .bg-slate-200,
+.dark #admin-layout-container .bg-slate-250,
+.dark #admin-layout-container .bg-slate-50\/30,
+.dark #admin-layout-container .bg-slate-50\/50,
+.dark #admin-layout-container .bg-slate-100\/60,
+.dark #admin-layout-container .bg-slate-100\/70,
+.dark #admin-layout-container .bg-\[\#F5F5F5\],
+.dark #admin-layout-container .bg-\[\#FCF8F5\],
+.dark #admin-layout-container .bg-\[\#FFF5EC\],
+.dark .bg-white,
+.dark .bg-gray-50,
+.dark .bg-gray-55,
+.dark .bg-gray-100,
+.dark .bg-gray-150,
+.dark .bg-gray-200,
+.dark .bg-gray-250,
+.dark .bg-slate-50,
+.dark .bg-slate-100,
+.dark .bg-slate-150,
+.dark .bg-slate-200,
+.dark .bg-slate-250 {
+  background-color: #111827 !important; /* Card content background */
+}
+
+/* Generic borders inside the admin area - boosted contrast */
+.dark #admin-layout-container *,
+.dark .border,
+.dark .border-gray-100,
+.dark .border-gray-150,
+.dark .border-gray-200,
+.dark .border-gray-300,
+.dark .border-gray-400,
+.dark .border-slate-100,
+.dark .border-slate-150,
+.dark .border-slate-200,
+.dark .border-slate-300,
+.dark .border-slate-400,
+.dark .border-slate-200\/40,
+.dark .border-slate-200\/50,
+.dark .border-slate-200\/60,
+.dark .border-slate-200\/70,
+.dark .border-slate-200\/80,
+.dark .border-slate-100\/70 {
+  border-color: #4B5563 !important; /* Strong gray border to ensure proper visibility and clear bounding boxes */
+}
+
+/* Sidebar navigation item overrides */
+.dark aside nav a {
+  color: #F3F4F6 !important; /* Highly readable light grey text */
+}
+.dark aside nav a:hover {
+  background-color: #1F2937 !important;
+  color: #FFFFFF !important;
+}
+/* Keep the primary green branding active item intact */
+.dark aside nav a.bg-\[\#1E6C02\] {
+  background-color: #1E6C02 !important;
+  color: #FFFFFF !important;
+}
+
+/* Typography contrast and readability overrides - ABSOLUTELY NO GRAY TEXT FOR SENSITIVE LABELS */
+.dark #admin-layout-container .text-black,
+.dark #admin-layout-container .text-gray-950,
+.dark #admin-layout-container .text-gray-900,
+.dark #admin-layout-container .text-gray-850,
+.dark #admin-layout-container .text-gray-800,
+.dark #admin-layout-container .text-slate-950,
+.dark #admin-layout-container .text-slate-900,
+.dark #admin-layout-container .text-slate-850,
+.dark #admin-layout-container .text-slate-800,
+.dark .text-slate-950,
+.dark .text-slate-900,
+.dark .text-slate-850,
+.dark .text-slate-800,
+.dark #admin-layout-container h1,
+.dark #admin-layout-container h2,
+.dark #admin-layout-container h3,
+.dark #admin-layout-container h4,
+.dark #admin-layout-container th,
+.dark #admin-layout-container .font-extrabold {
+  color: #FFFFFF !important; /* Pure high-contrast white headings */
+}
+
+.dark #admin-layout-container .text-gray-750,
+.dark #admin-layout-container .text-gray-700,
+.dark #admin-layout-container .text-gray-650,
+.dark #admin-layout-container .text-gray-600,
+.dark #admin-layout-container .text-gray-550,
+.dark #admin-layout-container .text-slate-750,
+.dark #admin-layout-container .text-slate-700,
+.dark #admin-layout-container .text-slate-650,
+.dark #admin-layout-container .text-slate-660,
+.dark #admin-layout-container .text-slate-600,
+.dark #admin-layout-container .text-slate-550,
+.dark .text-slate-750,
+.dark .text-slate-700,
+.dark .text-slate-650,
+.dark .text-slate-600,
+.dark .text-slate-550,
+.dark #admin-layout-container p,
+.dark #admin-layout-container label,
+.dark #admin-layout-container td,
+.dark p,
+.dark label,
+.dark td {
+  color: #F9FAFB !important; /* Ultra high-contrast near-white text for elderly users */
+}
+
+.dark #admin-layout-container .text-gray-500,
+.dark #admin-layout-container .text-gray-450,
+.dark #admin-layout-container .text-gray-400,
+.dark #admin-layout-container .text-gray-350,
+.dark #admin-layout-container .text-slate-500,
+.dark #admin-layout-container .text-slate-450,
+.dark #admin-layout-container .text-slate-400,
+.dark #admin-layout-container .text-slate-350,
+.dark #admin-layout-container .text-xs.text-black,
+.dark #admin-layout-container .text-xs.text-gray-400,
+.dark #admin-layout-container .text-xs.text-gray-500,
+.dark #admin-layout-container .text-xs.text-slate-400,
+.dark #admin-layout-container .text-xs.text-slate-500,
+.dark .text-gray-400,
+.dark .text-gray-500,
+.dark .text-slate-400,
+.dark .text-slate-500 {
+  color: #E5E7EB !important; /* Bright light gray for captions and minor text (replaces low contrast gray) */
+}
+
+/* Calendar widget & Notification Badge readability */
+.dark #admin-layout-container .bg-gray-50 span,
+.dark #admin-layout-container .bg-gray-50 svg {
+  color: #FFFFFF !important;
+}
+
+.dark #admin-layout-container .bg-gray-50 {
+  background-color: #1F2937 !important;
+  border-color: #4B5563 !important;
+}
+
+.dark #admin-layout-container .text-black svg {
+  color: #FFFFFF !important;
+}
+
+.dark #admin-layout-container .text-left span {
+  color: #FFFFFF !important;
+}
+
+.dark #admin-layout-container .text-left .text-black {
+  color: #FFFFFF !important;
+}
+
+.dark #admin-layout-container .text-left .text-\[10px\] {
+  color: #E5E7EB !important;
+}
+
+/* Form Controls, Input Elements, Selects, and Textareas */
+.dark #admin-layout-container input[type="text"],
+.dark #admin-layout-container input[type="number"],
+.dark #admin-layout-container input[type="email"],
+.dark #admin-layout-container input[type="password"],
+.dark #admin-layout-container input[type="date"],
+.dark #admin-layout-container select,
+.dark #admin-layout-container textarea,
+.dark .modal input,
+.dark .modal select,
+.dark .modal textarea,
+.dark input,
+.dark select,
+.dark textarea {
+  background-color: #1F2937 !important; /* Charcoal background */
+  color: #FFFFFF !important; /* High-contrast input text */
+  border-color: #4B5563 !important; /* Highly visible borders */
+}
+
+.dark #admin-layout-container input::placeholder,
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: #9CA3AF !important; /* High-contrast visible placeholder text (WCAG AAA standard on charcoal) */
+}
+
+.dark #admin-layout-container input:focus,
+.dark #admin-layout-container select:focus,
+.dark #admin-layout-container textarea:focus {
+  border-color: #34D399 !important; /* Vibrant mint green focus border for maximum visibility */
+  box-shadow: 0 0 0 2px rgba(52, 211, 153, 0.4) !important;
+}
+
+/* Tabular Data, Headers, Hover states, Search */
+.dark table {
+  background-color: #111827 !important;
+}
+
+.dark tr {
+  background-color: #111827 !important;
+}
+
+.dark tr.odd\:bg-white,
+.dark tr:nth-child(odd) {
+  background-color: #111827 !important;
+}
+
+.dark tr.even\:bg-slate-50\/30,
+.dark tr.even\:bg-slate-50\/20,
+.dark tr:nth-child(even) {
+  background-color: #1a2232 !important; /* Subtly lighter shade for alternating rows to maximize reading comfort */
+}
+
+.dark tr:hover,
+.dark tr.odd\:bg-white:hover,
+.dark tr.even\:bg-slate-50\/30:hover {
+  background-color: #243049 !important; /* Highlight on hover */
+}
+
+.dark thead tr {
+  background-color: #1F2937 !important;
+}
+
+.dark th {
+  background-color: #111827 !important;
+  border-bottom: 2px solid #4B5563 !important;
+}
+
+.dark td {
+  border-bottom: 1px solid #4B5563 !important;
+}
+
+/* Popup Dialog Overlays & Confirm Dialog Boxes */
+.dark .fixed.inset-0.bg-black\/40,
+.dark .fixed.inset-0.bg-black\/50 {
+  background-color: rgba(0, 0, 0, 0.75) !important; /* Darker shade to improve modal focus contrast */
+}
+
+.dark .fixed.inset-0 .bg-white,
+.dark .modal-content,
+.dark [id*="dialog"] .bg-white,
+.dark [id*="modal"] .bg-white {
+  background-color: #111827 !important; /* Eye-friendly modal bg */
+  color: #FFFFFF !important;
+  border: 1px solid #4B5563 !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6) !important;
+}
+
+/* Brand green actions kept vibrant and accessible */
+.dark .bg-\[\#1E6C02\] {
+  background-color: #1E6C02 !important;
+  color: #FFFFFF !important;
+}
+
+.dark .hover\:bg-\[\#145001\]:hover {
+  background-color: #145001 !important;
+}
+
+/* Image Upload & QR Code Dropzones */
+.dark .border-dashed {
+  border-color: #4B5563 !important;
+}
+
+.dark .border-dashed:hover {
+  border-color: #34D399 !important;
+}
+
+/* Stock adjustment helper buttons (opAdd, opDed) */
+.dark .w-32.h-32 {
+  background-color: #1F2937 !important;
+  color: #FFFFFF !important;
+  border-color: #4B5563 !important;
+}
+
+.dark .w-32.h-32.bg-\[\#1E6C02\] {
+  background-color: #1E6C02 !important;
+  border-color: #1E6C02 !important;
+}
+
+/* Status Badges - Vivid contrast with border lines to ensure perfect scanning and accessibility */
+.dark .bg-green-50, 
+.dark .bg-green-100, 
+.dark .bg-emerald-50, 
+.dark .bg-emerald-100, 
+.dark .bg-\[\#EAF9EC\], 
+.dark .bg-\[\#E2F9E5\],
+.dark .bg-\[\#E6F4EA\],
+.dark .bg-\[\#e6f4ea\],
+.dark .bg-\[\#E8F8EE\],
+.dark .bg-\[\#e8f8ee\] {
+  background-color: rgba(16, 185, 129, 0.2) !important;
+  color: #34D399 !important; /* Vibrant mint green */
+  border: 1px solid rgba(16, 185, 129, 0.5) !important;
+}
+
+.dark .bg-red-50, 
+.dark .bg-red-100, 
+.dark .bg-\[\#FFF5F5\], 
+.dark .bg-\[\#FFF0F0\],
+.dark .bg-rose-50,
+.dark .bg-rose-100 {
+  background-color: rgba(239, 68, 68, 0.2) !important;
+  color: #F87171 !important; /* Vibrant light red */
+  border: 1px solid rgba(239, 68, 68, 0.5) !important;
+}
+
+.dark .bg-blue-50, 
+.dark .bg-blue-100, 
+.dark .bg-indigo-50, 
+.dark .bg-indigo-100 {
+  background-color: rgba(59, 130, 246, 0.2) !important;
+  color: #60A5FA !important; /* Vibrant light blue */
+  border: 1px solid rgba(59, 130, 246, 0.5) !important;
+}
+
+.dark .bg-amber-50, 
+.dark .bg-amber-100, 
+.dark .bg-yellow-50, 
+.dark .bg-yellow-100, 
+.dark .bg-orange-50, 
+.dark .bg-orange-100 {
+  background-color: rgba(245, 158, 11, 0.25) !important;
+  color: #FBBF24 !important; /* Vibrant golden amber/yellow */
+  border: 1px solid rgba(245, 158, 11, 0.5) !important;
+}
+
+.dark .bg-purple-50, 
+.dark .bg-purple-100 {
+  background-color: rgba(139, 92, 246, 0.2) !important;
+  color: #C084FC !important; /* Vibrant light purple */
+  border: 1px solid rgba(139, 92, 246, 0.5) !important;
+}
+
+/* Reports visual charts/bars overrides */
+.dark .bg-gray-200 {
+  background-color: #4B5563 !important;
+}
+
+/* Chart text overrides (ensuring labels are pure white) */
+.dark #sales-barchart-inner span,
+.dark #piechart-container-inner p,
+.dark #piechart-container-inner span {
+  color: #FFFFFF !important;
+}
+.dark #piechart-container-inner .rounded-full {
+  border-color: #374151 !important;
+}
+
+/* Secondary & pagination buttons: converted safely into a distinct dark gray button with high-contrast text.
+   This avoids them turning blank white, and ensures they remain highly clickable and fully consistent. */
+.dark .join-item,
+.dark .btn-pagination,
+.dark #admin-layout-container button.bg-white,
+.dark #admin-layout-container button.bg-gray-50,
+.dark #admin-layout-container button.bg-gray-55,
+.dark #admin-layout-container button.bg-gray-100,
+.dark #admin-layout-container button.bg-gray-150,
+.dark #admin-layout-container button.bg-gray-200,
+.dark #admin-layout-container button.bg-gray-250,
+.dark #admin-layout-container button.bg-slate-50,
+.dark #admin-layout-container button.bg-slate-100,
+.dark #admin-layout-container button.bg-slate-150,
+.dark #admin-layout-container button.bg-slate-200,
+.dark #admin-layout-container button.bg-slate-250,
+.dark #admin-layout-container button.bg-\[\#F5F5F5\],
+.dark #admin-layout-container button.border,
+.dark button.bg-white,
+.dark button.bg-gray-50,
+.dark button.bg-gray-55,
+.dark button.bg-gray-100,
+.dark button.bg-gray-150,
+.dark button.bg-gray-200,
+.dark button.bg-gray-250,
+.dark button.bg-slate-50,
+.dark button.bg-slate-100,
+.dark button.bg-slate-150,
+.dark button.bg-slate-200,
+.dark button.bg-slate-250 {
+  background-color: #374151 !important; /* Distinct dark gray background */
+  border-color: #4B5563 !important;
+  color: #FFFFFF !important; /* High contrast text */
+}
+
+/* Specific polished styles for Export buttons in Reports page in dark mode */
+.dark .btn-export-trigger[data-export="Excel"] {
+  background-color: rgba(16, 185, 129, 0.15) !important;
+  border-color: #10B981 !important;
+  color: #34D399 !important;
+}
+.dark .btn-export-trigger[data-export="CSV"] {
+  background-color: rgba(59, 130, 246, 0.15) !important;
+  border-color: #3B82F6 !important;
+  color: #60A5FA !important;
+}
+.dark .btn-export-trigger[data-export="PDF"] {
+  background-color: rgba(239, 68, 68, 0.15) !important;
+  border-color: #EF4444 !important;
+  color: #F87171 !important;
+}
+
+.dark .join-item:hover,
+.dark .btn-pagination:hover,
+.dark #admin-layout-container button.bg-white:hover,
+.dark #admin-layout-container button.bg-gray-50:hover,
+.dark #admin-layout-container button.bg-gray-55:hover,
+.dark #admin-layout-container button.bg-gray-100:hover,
+.dark #admin-layout-container button.bg-gray-150:hover,
+.dark #admin-layout-container button.bg-gray-200:hover,
+.dark #admin-layout-container button.bg-gray-250:hover,
+.dark #admin-layout-container button.bg-slate-50:hover,
+.dark #admin-layout-container button.bg-slate-100:hover,
+.dark #admin-layout-container button.bg-slate-150:hover,
+.dark #admin-layout-container button.bg-slate-200:hover,
+.dark #admin-layout-container button.bg-slate-250:hover,
+.dark #admin-layout-container button.border:hover,
+.dark button.bg-white:hover,
+.dark button.bg-gray-50:hover,
+.dark button.bg-gray-55:hover,
+.dark button.bg-gray-100:hover,
+.dark button.bg-slate-50:hover,
+.dark button.bg-slate-100:hover {
+  background-color: #4B5563 !important; /* Slightly lighter gray on hover */
+  color: #FFFFFF !important;
+}
+
+/* Ensure outlined ghost buttons have a subtle background in dark mode */
+.dark #admin-layout-container button.border,
+.dark button.border {
+  background-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+/* Accessibility shadow depth for critical action text in dark mode */
+.dark button,
+.dark .btn-pagination,
+.dark .btn-action,
+.dark #admin-layout-container button {
+  text-shadow: 0 1px 2px rgba(0,0,0,0.4);
+}
+
+/* Vibrant overrides for status text in dark mode */
+.dark .text-blue-600,
+.dark .text-blue-700,
+.dark .text-blue-800 {
+  color: #60A5FA !important;
+}
+
+.dark .text-emerald-600,
+.dark .text-emerald-700,
+.dark .text-emerald-800,
+.dark .text-\[\#1E6C02\],
+.dark .text-\[\#1e6c02\],
+.dark .text-[#1E6C02],
+.dark .text-[#1e6c02],
+.dark .text-brand-green,
+.dark .text-\[\#137333\],
+.dark .text-\[\#137333\] * {
+  color: #34D399 !important; /* Vibrant high-contrast mint green */
+}
+
+.dark .text-purple-600,
+.dark .text-purple-700,
+.dark .text-purple-800 {
+  color: #C084FC !important;
+}
+
+.dark .text-orange-600,
+.dark .text-orange-700,
+.dark .text-orange-800 {
+  color: #FDBA74 !important;
+}
+
+.dark .text-red-500,
+.dark .text-red-600,
+.dark .text-red-700,
+.dark .text-red-800 {
+  color: #F87171 !important; /* Vibrant light red */
+}
+
+.dark .border-red-200,
+.dark .border-red-300 {
+  border-color: rgba(239, 68, 68, 0.4) !important;
+}
+
+/* Keep text dark on bright yellow/orange/amber backgrounds in dark mode to prevent white-on-yellow contrast issues */
+.dark .bg-yellow-400,
+.dark .bg-yellow-300,
+.dark .bg-amber-400,
+.dark .bg-amber-300,
+.dark .bg-orange-400,
+.dark .bg-orange-300,
+.dark .bg-yellow-500,
+.dark .bg-amber-500,
+.dark .bg-orange-500 {
+  color: #111827 !important;
+}
+
+.dark .bg-yellow-400 *,
+.dark .bg-yellow-300 *,
+.dark .bg-amber-400 *,
+.dark .bg-amber-300 *,
+.dark .bg-orange-400 *,
+.dark .bg-orange-300 *,
+.dark .bg-yellow-500 *,
+.dark .bg-amber-500 *,
+.dark .bg-orange-500 * {
+  color: #111827 !important;
+}
+
+/* Specifically target any disabled buttons in dark mode to ensure clear disabled state */
+.dark button:disabled,
+.dark button[disabled],
+.dark button:disabled.bg-\[\#1E6C02\],
+.dark button:disabled.disabled\:bg-\[\#A3DDA1\],
+.dark button[disabled].bg-\[\#1E6C02\],
+.dark button[disabled].disabled\:bg-\[\#A3DDA1\] {
+  background-color: #374151 !important;
+  color: #9CA3AF !important;
+  border-color: #4B5563 !important;
+  opacity: 0.6 !important;
+}
+
+/* Polished Sleek Custom Scrollbar for Status Filters Stack */
+#status-filters-stack {
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin !important;
+}
+
+#status-filters-stack::-webkit-scrollbar {
+  height: 6px !important;
+  display: block !important;
+}
+
+#status-filters-stack::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.05) !important;
+  border-radius: 9999px !important;
+}
+
+.dark #status-filters-stack::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05) !important;
+}
+
+#status-filters-stack::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2) !important;
+  border-radius: 9999px !important;
+}
+
+.dark #status-filters-stack::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.25) !important;
+}
+
+#status-filters-stack::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.35) !important;
+}
+
+.dark #status-filters-stack::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.4) !important;
+}
+
+
+/* ==========================================================================
+   HIGH-CONTRAST ACCESSIBILITY OVERRIDES FOR MODALS & DIALOGS IN DARK MODE
+   ========================================================================== */
+
+/* 1. Modal Overlay & Inner Container Backgrounds */
+.dark .fixed.inset-0 .bg-white,
+.dark .fixed.inset-0.bg-white,
+.dark [id*="modal"] .bg-white,
+.dark [id*="dialog"] .bg-white,
+.dark .modal-content,
+.dark .fixed.inset-0 .modal-content,
+.dark #details-modal-box,
+.dark [id*="modal-box"] {
+  background-color: #0F172A !important; /* Elegant deep dark background as requested */
+  color: #FFFFFF !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+}
+
+/* 2. Inner Cards, Informational Panels, and Section Wrappers inside Modals (Avoiding light-gray backgrounds completely) */
+.dark [id*="modal"] [class*="bg-white"]:not([class*="bg-green"]):not([class*="bg-red"]):not([class*="bg-emerald"]):not([class*="bg-amber"]):not([class*="bg-orange"]):not([class*="bg-blue"]),
+.dark [id*="modal"] [class*="bg-gray-"]:not([class*="bg-green"]):not([class*="bg-red"]):not([class*="bg-emerald"]):not([class*="bg-amber"]):not([class*="bg-orange"]):not([class*="bg-blue"]),
+.dark [id*="modal"] [class*="bg-slate-"]:not([class*="bg-green"]):not([class*="bg-red"]):not([class*="bg-emerald"]):not([class*="bg-amber"]):not([class*="bg-orange"]):not([class*="bg-blue"]),
+.dark [id*="modal"] [class*="bg-purple-"]:not([class*="bg-green"]):not([class*="bg-red"]):not([class*="bg-emerald"]):not([class*="bg-amber"]):not([class*="bg-orange"]):not([class*="bg-blue"]),
+.dark [id*="modal"] [class*="bg-neutral-"]:not([class*="bg-green"]):not([class*="bg-red"]):not([class*="bg-emerald"]):not([class*="bg-amber"]):not([class*="bg-orange"]):not([class*="bg-blue"]),
+.dark [id*="dialog"] [class*="bg-white"]:not([class*="bg-green"]):not([class*="bg-red"]):not([class*="bg-emerald"]):not([class*="bg-amber"]):not([class*="bg-orange"]):not([class*="bg-blue"]),
+.dark [id*="dialog"] [class*="bg-gray-"]:not([class*="bg-green"]):not([class*="bg-red"]):not([class*="bg-emerald"]):not([class*="bg-amber"]):not([class*="bg-orange"]):not([class*="bg-blue"]),
+.dark [id*="dialog"] [class*="bg-slate-"]:not([class*="bg-green"]):not([class*="bg-red"]):not([class*="bg-emerald"]):not([class*="bg-amber"]):not([class*="bg-orange"]):not([class*="bg-blue"]),
+.dark [id*="dialog"] [class*="bg-purple-"]:not([class*="bg-green"]):not([class*="bg-red"]):not([class*="bg-emerald"]):not([class*="bg-amber"]):not([class*="bg-orange"]):not([class*="bg-blue"]),
+.dark [id*="dialog"] [class*="bg-neutral-"]:not([class*="bg-green"]):not([class*="bg-red"]):not([class*="bg-emerald"]):not([class*="bg-amber"]):not([class*="bg-orange"]):not([class*="bg-blue"]),
+.dark .modal-content [class*="bg-white"]:not([class*="bg-green"]):not([class*="bg-red"]):not([class*="bg-emerald"]):not([class*="bg-amber"]):not([class*="bg-orange"]):not([class*="bg-blue"]),
+.dark .modal-content [class*="bg-gray-"]:not([class*="bg-green"]):not([class*="bg-red"]):not([class*="bg-emerald"]):not([class*="bg-amber"]):not([class*="bg-orange"]):not([class*="bg-blue"]),
+.dark .modal-content [class*="bg-slate-"]:not([class*="bg-green"]):not([class*="bg-red"]):not([class*="bg-emerald"]):not([class*="bg-amber"]):not([class*="bg-orange"]):not([class*="bg-blue"]),
+.dark .modal-content [class*="bg-purple-"]:not([class*="bg-green"]):not([class*="bg-red"]):not([class*="bg-emerald"]):not([class*="bg-amber"]):not([class*="bg-orange"]):not([class*="bg-blue"]),
+.dark .modal-content [class*="bg-neutral-"]:not([class*="bg-green"]):not([class*="bg-red"]):not([class*="bg-emerald"]):not([class*="bg-amber"]):not([class*="bg-orange"]):not([class*="bg-blue"]),
+.dark .fixed.inset-0 [class*="bg-white"]:not([class*="bg-green"]):not([class*="bg-red"]):not([class*="bg-emerald"]):not([class*="bg-amber"]):not([class*="bg-orange"]):not([class*="bg-blue"]):not([id*="details-modal"]):not([id*="qr-scanner-modal"]):not([id*="accept-confirm-modal"]):not([id*="reject-confirm-modal"]):not([id*="prepare-confirm-modal"]):not([id*="cancellation-modal"]):not([id*="confirmation-modal"]),
+.dark .fixed.inset-0 [class*="bg-gray-"]:not([class*="bg-green"]):not([class*="bg-red"]):not([class*="bg-emerald"]):not([class*="bg-amber"]):not([class*="bg-orange"]):not([class*="bg-blue"]),
+.dark .fixed.inset-0 [class*="bg-slate-"]:not([class*="bg-green"]):not([class*="bg-red"]):not([class*="bg-emerald"]):not([class*="bg-amber"]):not([class*="bg-orange"]):not([class*="bg-blue"]),
+.dark .fixed.inset-0 [class*="bg-purple-"]:not([class*="bg-green"]):not([class*="bg-red"]):not([class*="bg-emerald"]):not([class*="bg-amber"]):not([class*="bg-orange"]):not([class*="bg-blue"]),
+.dark .fixed.inset-0 [class*="bg-neutral-"]:not([class*="bg-green"]):not([class*="bg-red"]):not([class*="bg-emerald"]):not([class*="bg-amber"]):not([class*="bg-orange"]):not([class*="bg-blue"]) {
+  background-color: #0F172A !important; /* Consistent Dark Background */
+  border: 1px solid rgba(255, 255, 255, 0.15) !important; /* Proper high-contrast border as requested */
+  color: #FFFFFF !important;
+}
+
+/* 3. Global Text/Heading/Label/Value Colors Inside Modals (Elders accessibility) */
+.dark .fixed.inset-0,
+.dark [id*="modal"],
+.dark [id*="dialog"],
+.dark .modal-content {
+  color: #FFFFFF !important;
+}
+
+/* Titles and major text elements inside modals */
+.dark .fixed.inset-0 h1,
+.dark .fixed.inset-0 h2,
+.dark .fixed.inset-0 h3,
+.dark .fixed.inset-0 h4,
+.dark .fixed.inset-0 h5,
+.dark .fixed.inset-0 h6,
+.dark .fixed.inset-0 label,
+.dark .fixed.inset-0 th,
+.dark [id*="modal"] h1,
+.dark [id*="modal"] h2,
+.dark [id*="modal"] h3,
+.dark [id*="modal"] h4,
+.dark [id*="modal"] label,
+.dark [id*="dialog"] h1,
+.dark [id*="dialog"] h2,
+.dark [id*="dialog"] h3,
+.dark [id*="dialog"] h4,
+.dark [id*="dialog"] label {
+  color: #FFFFFF !important;
+  font-weight: bold !important;
+}
+
+/* Values and descriptions inside modals */
+.dark .fixed.inset-0 p:not([class*="text-green"]):not([class*="text-red"]):not([class*="text-emerald"]):not([class*="text-amber"]):not([class*="text-orange"]):not([class*="text-blue"]),
+.dark .fixed.inset-0 li:not([class*="text-green"]):not([class*="text-red"]):not([class*="text-emerald"]):not([class*="text-amber"]):not([class*="text-orange"]):not([class*="text-blue"]),
+.dark .fixed.inset-0 td:not([class*="text-green"]):not([class*="text-red"]):not([class*="text-emerald"]):not([class*="text-amber"]):not([class*="text-orange"]):not([class*="text-blue"]),
+.dark .fixed.inset-0 span:not([class*="text-green"]):not([class*="text-red"]):not([class*="text-emerald"]):not([class*="text-amber"]):not([class*="text-orange"]):not([class*="text-blue"]):not([class*="text-[#1E6C02]"]),
+.dark .fixed.inset-0 div:not([class*="text-green"]):not([class*="text-red"]):not([class*="text-emerald"]):not([class*="text-amber"]):not([class*="text-orange"]):not([class*="text-blue"]):not([class*="text-[#1E6C02]"]):not([class*="bg-green"]):not([class*="bg-red"]):not([class*="bg-emerald"]):not([class*="bg-amber"]):not([class*="bg-orange"]):not([class*="bg-blue"]),
+.dark [id*="modal"] p:not([class*="text-green"]):not([class*="text-red"]):not([class*="text-emerald"]):not([class*="text-amber"]):not([class*="text-orange"]):not([class*="text-blue"]),
+.dark [id*="modal"] li:not([class*="text-green"]):not([class*="text-red"]):not([class*="text-emerald"]):not([class*="text-amber"]):not([class*="text-orange"]):not([class*="text-blue"]),
+.dark [id*="modal"] td:not([class*="text-green"]):not([class*="text-red"]):not([class*="text-emerald"]):not([class*="text-amber"]):not([class*="text-orange"]):not([class*="text-blue"]),
+.dark [id*="modal"] span:not([class*="text-green"]):not([class*="text-red"]):not([class*="text-emerald"]):not([class*="text-amber"]):not([class*="text-orange"]):not([class*="text-blue"]):not([class*="text-[#1E6C02]"]),
+.dark [id*="modal"] div:not([class*="text-green"]):not([class*="text-red"]):not([class*="text-emerald"]):not([class*="text-amber"]):not([class*="text-orange"]):not([class*="text-blue"]):not([class*="text-[#1E6C02]"]):not([class*="bg-green"]):not([class*="bg-red"]):not([class*="bg-emerald"]):not([class*="bg-amber"]):not([class*="bg-orange"]):not([class*="bg-blue"]),
+.dark [id*="dialog"] p:not([class*="text-green"]):not([class*="text-red"]):not([class*="text-emerald"]):not([class*="text-amber"]):not([class*="text-orange"]):not([class*="text-blue"]),
+.dark [id*="dialog"] li:not([class*="text-green"]):not([class*="text-red"]):not([class*="text-emerald"]):not([class*="text-amber"]):not([class*="text-orange"]):not([class*="text-blue"]),
+.dark [id*="dialog"] td:not([class*="text-green"]):not([class*="text-red"]):not([class*="text-emerald"]):not([class*="text-amber"]):not([class*="text-orange"]):not([class*="text-blue"]),
+.dark [id*="dialog"] span:not([class*="text-green"]):not([class*="text-red"]):not([class*="text-emerald"]):not([class*="text-amber"]):not([class*="text-orange"]):not([class*="text-blue"]):not([class*="text-[#1E6C02]"]),
+.dark [id*="dialog"] div:not([class*="text-green"]):not([class*="text-red"]):not([class*="text-emerald"]):not([class*="text-amber"]):not([class*="text-orange"]):not([class*="text-blue"]):not([class*="text-[#1E6C02]"]):not([class*="bg-green"]):not([class*="bg-red"]):not([class*="bg-emerald"]):not([class*="bg-amber"]):not([class*="bg-orange"]):not([class*="bg-blue"]) {
+  color: rgba(255, 255, 255, 0.92) !important;
+}
+
+/* Override all hardcoded Tailwind text-gray and text-black classes inside modals, turning them into pure White */
+.dark .fixed.inset-0 [class*="text-black"]:not([class*="text-green"]):not([class*="text-red"]):not([class*="text-emerald"]):not([class*="text-amber"]):not([class*="text-orange"]):not([class*="text-blue"]),
+.dark .fixed.inset-0 [class*="text-gray-"]:not([class*="text-green"]):not([class*="text-red"]):not([class*="text-emerald"]):not([class*="text-amber"]):not([class*="text-orange"]):not([class*="text-blue"]),
+.dark .fixed.inset-0 [class*="text-slate-"]:not([class*="text-green"]):not([class*="text-red"]):not([class*="text-emerald"]):not([class*="text-amber"]):not([class*="text-orange"]):not([class*="text-blue"]),
+.dark [id*="modal"] [class*="text-black"]:not([class*="text-green"]):not([class*="text-red"]):not([class*="text-emerald"]):not([class*="text-amber"]):not([class*="text-orange"]):not([class*="text-blue"]),
+.dark [id*="modal"] [class*="text-gray-"]:not([class*="text-green"]):not([class*="text-red"]):not([class*="text-emerald"]):not([class*="text-amber"]):not([class*="text-orange"]):not([class*="text-blue"]),
+.dark [id*="modal"] [class*="text-slate-"]:not([class*="text-green"]):not([class*="text-red"]):not([class*="text-emerald"]):not([class*="text-amber"]):not([class*="text-orange"]):not([class*="text-blue"]),
+.dark [id*="dialog"] [class*="text-black"]:not([class*="text-green"]):not([class*="text-red"]):not([class*="text-emerald"]):not([class*="text-amber"]):not([class*="text-orange"]):not([class*="text-blue"]),
+.dark [id*="dialog"] [class*="text-gray-"]:not([class*="text-green"]):not([class*="text-red"]):not([class*="text-emerald"]):not([class*="text-amber"]):not([class*="text-orange"]):not([class*="text-blue"]),
+.dark [id*="dialog"] [class*="text-slate-"]:not([class*="text-green"]):not([class*="text-red"]):not([class*="text-emerald"]):not([class*="text-amber"]):not([class*="text-orange"]):not([class*="text-blue"]) {
+  color: #FFFFFF !important;
+}
+
+/* 5. Input Fields, Select Dropdowns, and Textareas */
+.dark .fixed.inset-0 input,
+.dark .fixed.inset-0 select,
+.dark .fixed.inset-0 textarea,
+.dark [id*="modal"] input,
+.dark [id*="modal"] select,
+.dark [id*="modal"] textarea,
+.dark [id*="dialog"] input,
+.dark [id*="dialog"] select,
+.dark [id*="dialog"] textarea {
+  background-color: #0F172A !important; /* Beautiful dark background as requested */
+  border: 1.5px solid rgba(255, 255, 255, 0.25) !important; /* Proper thin white outline */
+  color: #FFFFFF !important;
+  caret-color: #FFFFFF !important;
+  border-radius: 0.75rem !important;
+}
+
+/* Focus style for inputs inside modals */
+.dark .fixed.inset-0 input:focus,
+.dark .fixed.inset-0 select:focus,
+.dark .fixed.inset-0 textarea:focus,
+.dark [id*="modal"] input:focus,
+.dark [id*="modal"] select:focus,
+.dark [id*="modal"] textarea:focus,
+.dark [id*="dialog"] input:focus,
+.dark [id*="dialog"] select:focus,
+.dark [id*="dialog"] textarea:focus {
+  border-color: rgba(255, 255, 255, 0.5) !important;
+  outline: none !important;
+}
+
+/* Placeholder styling inside modals */
+.dark .fixed.inset-0 input::placeholder,
+.dark .fixed.inset-0 textarea::placeholder,
+.dark [id*="modal"] input::placeholder,
+.dark [id*="modal"] textarea::placeholder,
+.dark [id*="dialog"] input::placeholder,
+.dark [id*="dialog"] textarea::placeholder {
+  color: rgba(255, 255, 255, 0.7) !important; /* Perfect high visibility placeholder text */
+}
+
+/* Select option styling inside modals */
+.dark .fixed.inset-0 select option,
+.dark [id*="modal"] select option,
+.dark [id*="dialog"] select option {
+  background-color: #0F172A !important; /* Hard dark background to ensure visibility inside option dropdown lists */
+  color: #FFFFFF !important;
+}
+
+/* 6. Dividers and Borders (Instead of gray lines, use rgba(255,255,255,.15)) */
+.dark .fixed.inset-0 .border,
+.dark .fixed.inset-0 .border-t,
+.dark .fixed.inset-0 .border-b,
+.dark .fixed.inset-0 .border-l,
+.dark .fixed.inset-0 .border-r,
+.dark .fixed.inset-0 .border-gray-100,
+.dark .fixed.inset-0 .border-gray-150,
+.dark .fixed.inset-0 .border-gray-200,
+.dark .fixed.inset-0 .border-gray-300,
+.dark .fixed.inset-0 .border-slate-100,
+.dark .fixed.inset-0 .border-slate-200,
+.dark .fixed.inset-0 hr,
+.dark [id*="modal"] .border,
+.dark [id*="modal"] .border-t,
+.dark [id*="modal"] .border-b,
+.dark [id*="modal"] hr,
+.dark [id*="dialog"] .border,
+.dark [id*="dialog"] .border-t,
+.dark [id*="dialog"] .border-b,
+.dark [id*="dialog"] hr {
+  border-color: rgba(255, 255, 255, 0.15) !important;
+}
+
+/* 7. File Upload Dashed Boxes */
+.dark .fixed.inset-0 .border-dashed,
+.dark [id*="modal"] .border-dashed,
+.dark [id*="dialog"] .border-dashed {
+  border-style: dashed !important;
+  border-width: 2.5px !important;
+  border-color: rgba(255, 255, 255, 0.6) !important; /* High contrast white dashed borders */
+  background-color: #0F172A !important;
+}
+
+.dark .fixed.inset-0 .border-dashed *,
+.dark [id*="modal"] .border-dashed *,
+.dark [id*="dialog"] .border-dashed * {
+  color: #FFFFFF !important;
+  fill: #FFFFFF !important;
+}
+
+/* 8. Buttons inside Modals */
+.dark .fixed.inset-0 button,
+.dark .fixed.inset-0 button span,
+.dark .fixed.inset-0 button svg,
+.dark [id*="modal"] button,
+.dark [id*="modal"] button span,
+.dark [id*="modal"] button svg,
+.dark [id*="dialog"] button,
+.dark [id*="dialog"] button span,
+.dark [id*="dialog"] button svg {
+  color: #FFFFFF !important; /* Make sure the text on all buttons inside modals is pure white */
+  font-weight: bold !important;
+}
+
+/* Ensure secondary action cancel/close button background hovers are clean and consistent */
+.dark .fixed.inset-0 button:hover,
+.dark [id*="modal"] button:hover,
+.dark [id*="dialog"] button:hover {
+  background-color: rgba(255, 255, 255, 0.15);
+}
+
+/* Keep the main green buttons matching their green background and white text */
+.dark .fixed.inset-0 button.bg-\[\#1E6C02\],
+.dark [id*="modal"] button.bg-\[\#1E6C02\],
+.dark [id*="dialog"] button.bg-\[\#1E6C02\] {
+  background-color: #1E6C02 !important;
+  color: #FFFFFF !important;
+}
+
+/* 9. Tables inside Modals */
+.dark .fixed.inset-0 table,
+.dark [id*="modal"] table,
+.dark [id*="dialog"] table {
+  background-color: #111827 !important;
+}
+
+.dark .fixed.inset-0 th,
+.dark [id*="modal"] th,
+.dark [id*="dialog"] th {
+  background-color: #111827 !important;
+  color: #FFFFFF !important;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.25) !important;
+}
+
+.dark .fixed.inset-0 td,
+.dark [id*="modal"] td,
+.dark [id*="dialog"] td {
+  color: #FFFFFF !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15) !important;
+}
+
+/* ==========================================================================
+   CUSTOMER-FACING SYSTEM-WIDE DARK MODE OVERRIDES & ACCESSIBILITY UPGRADES
+   ========================================================================== */
+
+.dark,
+.dark body,
+.dark main,
+.dark #navbar-container {
+  background-color: #0F172A !important;
+  color: #FFFFFF !important;
+}
+
+/* Header container dark background */
+.dark #navbar-container,
+.dark #navbar-container > div {
+  background-color: #0F172A !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+}
+
+/* Nav links & icons in Header */
+.dark #navbar-container nav a,
+.dark #navbar-container button,
+.dark #navbar-container span,
+.dark #navbar-container p,
+.dark #navbar-container svg,
+.dark #navbar-container a {
+  color: #FFFFFF !important;
+}
+
+/* Mobile Drawer inside Customer Portal */
+.dark #mobile-drawer > div,
+.dark #mobile-drawer nav a,
+.dark #mobile-drawer span,
+.dark #mobile-drawer h4,
+.dark #mobile-drawer p {
+  background-color: #111827 !important;
+  color: #FFFFFF !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+}
+
+/* Customer Portal Hero background section */
+.dark section {
+  background-color: #0F172A !important;
+  background-image: none !important;
+}
+
+/* Customer Cards (Featured Products, Product Cards, Filters, Reservation Cards, Timeline, Notifications, Contact, Purchase list) */
+.dark .bg-white,
+.dark .bg-gray-50,
+.dark .bg-gray-55,
+.dark .bg-gray-100,
+.dark .bg-gray-150,
+.dark .bg-gray-200,
+.dark .bg-gray-250,
+.dark .bg-slate-50,
+.dark .bg-slate-100,
+.dark .bg-slate-150,
+.dark .bg-slate-200,
+.dark .bg-slate-250,
+.dark .bg-green-50,
+.dark .bg-green-50\/50,
+.dark .bg-orange-50,
+.dark .bg-orange-50\/50,
+.dark .bg-amber-50,
+.dark .bg-amber-50\/50,
+.dark .bg-amber-100,
+.dark .bg-yellow-50,
+.dark .bg-red-50,
+.dark .bg-indigo-50 {
+  background-color: #111827 !important;
+  color: #FFFFFF !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+}
+
+/* Borders in Customer portal */
+.dark .border,
+.dark .border-gray-100,
+.dark .border-gray-150,
+.dark .border-gray-200,
+.dark .border-gray-300,
+.dark .border-gray-400,
+.dark .border-slate-100,
+.dark .border-slate-150,
+.dark .border-slate-200,
+.dark .border-slate-300,
+.dark .border-slate-400,
+.dark .border-slate-200\/40,
+.dark .border-slate-200\/50,
+.dark .border-slate-200\/60,
+.dark .border-slate-200\/70,
+.dark .border-slate-200\/80,
+.dark .border-slate-100\/70,
+.dark .border-green-100,
+.dark .border-green-200,
+.dark .border-orange-100,
+.dark .border-orange-200,
+.dark .border-amber-100 {
+  border-color: rgba(255, 255, 255, 0.15) !important;
+}
+
+/* Typography Overrides (NO GRAY TEXT) */
+.dark h1,
+.dark h2,
+.dark h3,
+.dark h4,
+.dark h5,
+.dark h6,
+.dark p,
+.dark span:not(.bg-red-500):not(.bg-\[\#1E6C02\]):not([class*="bg-green-"]):not([class*="bg-red-"]):not([class*="bg-orange-"]):not([class*="bg-blue-"]),
+.dark label,
+.dark th,
+.dark td,
+.dark strong,
+.dark a:not([class*="bg-"]):not(.bg-\[\#1E6C02\]):not(.bg-red-500):not(.bg-orange-500):not(.bg-blue-500),
+.dark input,
+.dark select,
+.dark textarea {
+  color: #FFFFFF !important;
+}
+
+/* Replace any text-gray classes to white */
+.dark .text-gray-400,
+.dark .text-gray-550,
+.dark .text-gray-500,
+.dark .text-gray-650,
+.dark .text-gray-600,
+.dark .text-gray-750,
+.dark .text-gray-700,
+.dark .text-gray-800,
+.dark .text-gray-900,
+.dark .text-slate-400,
+.dark .text-slate-500,
+.dark .text-slate-600,
+.dark .text-slate-700,
+.dark .text-slate-800,
+.dark .text-slate-900,
+.dark .text-green-800,
+.dark .text-green-700,
+.dark .text-green-100\/70,
+.dark .text-green-100\/80,
+.dark .text-green-100\/60 {
+  color: #FFFFFF !important;
+}
+
+/* Footer Background to #0F172A (instead of dark green) */
+.dark footer,
+.dark #footer-container,
+.dark #footer-container > div {
+  background-color: #0F172A !important;
+  color: #FFFFFF !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+}
+
+.dark footer a,
+.dark footer p,
+.dark footer span,
+.dark footer h4 {
+  color: #FFFFFF !important;
+}
+
+/* Forms: Inputs, Dropdowns, Date Pickers, Calendar, Upload Boxes */
+.dark input[type="text"],
+.dark input[type="number"],
+.dark input[type="email"],
+.dark input[type="password"],
+.dark input[type="tel"],
+.dark input[type="date"],
+.dark select,
+.dark textarea,
+.dark .upload-box,
+.dark [id*="inp-"],
+.dark [class*="input-"],
+.dark select option {
+  background-color: #1F2937 !important; /* Charcoal background */
+  color: #FFFFFF !important;
+  border-color: rgba(255, 255, 255, 0.25) !important;
+}
+
+/* Placeholder contrast */
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: #E5E7EB !important; /* Bright high-contrast near-white text */
+}
+
+/* Option element within dropdowns in Dark Mode */
+.dark select option {
+  background-color: #111827 !important;
+  color: #FFFFFF !important;
+}
+
+/* Notifications: ensure badge remains highly visible in dark mode */
+.dark #customer-notif-badge,
+.dark [id*="badge"]:not(#modal-customer-vip-badge):not(#modal-customer-status-badge),
+.dark .bg-red-500,
+.dark .bg-red-600 {
+  background-color: #EF4444 !important; /* Vivid red for badge */
+  color: #FFFFFF !important;
+  border-color: #111827 !important;
+}
+
+/* Modals & Popups within Customer portal */
+.dark [id*="modal"] > div > div,
+.dark [id*="dialog"] > div > div,
+.dark .fixed.inset-0 > div > div,
+.dark .modal-content {
+  background-color: #0F172A !important;
+  border: 1px solid rgba(255, 255, 255, 0.25) !important;
+  color: #FFFFFF !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5) !important;
+}
+
+/* Info cards inside popups/modals */
+.dark [id*="modal"] .bg-gray-50,
+.dark [id*="modal"] .bg-gray-100,
+.dark [id*="modal"] .bg-slate-50,
+.dark [id*="modal"] .bg-slate-100,
+.dark [id*="modal"] .bg-white,
+.dark [id*="dialog"] .bg-gray-50,
+.dark [id*="dialog"] .bg-gray-100,
+.dark [id*="dialog"] .bg-slate-50,
+.dark [id*="dialog"] .bg-slate-100,
+.dark [id*="dialog"] .bg-white,
+.dark .fixed.inset-0 .bg-gray-50,
+.dark .fixed.inset-0 .bg-gray-100,
+.dark .fixed.inset-0 .bg-slate-50,
+.dark .fixed.inset-0 .bg-slate-100,
+.dark .fixed.inset-0 .bg-white {
+  background-color: #0F172A !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  color: #FFFFFF !important;
+}
+
+/* Divider lines in Modals */
+.dark [id*="modal"] hr,
+.dark [id*="modal"] .divide-y > *,
+.dark [id*="dialog"] hr,
+.dark [id*="dialog"] .divide-y > * {
+  border-color: rgba(255, 255, 255, 0.15) !important;
+}
+
+/* Ensure Close icons inside modals are white */
+.dark [id*="modal"] button svg,
+.dark [id*="modal"] button svg *,
+.dark [id*="dialog"] button svg,
+.dark [id*="dialog"] button svg * {
+  stroke: #FFFFFF !important;
+}
+
+/* Alternating table rows in dark mode inside customer portal */
+.dark table {
+  border-color: rgba(255, 255, 255, 0.15) !important;
+}
+.dark th {
+  background-color: #1F2937 !important;
+  color: #FFFFFF !important;
+  border-color: rgba(255, 255, 255, 0.2) !important;
+}
+.dark tr:nth-child(even) {
+  background-color: #1a2232 !important;
+}
+.dark tr:nth-child(odd) {
+  background-color: #111827 !important;
+}
+.dark td {
+  border-color: rgba(255, 255, 255, 0.15) !important;
+}
+
+/* ==========================================================================
+   ADDITIONAL ACCESSIBILITY & READABILITY TUNINGS FOR CUSTOMER PORTAL
+   ========================================================================== */
+
+/* 1. Checkout & Reservation (Delivery Method buttons) */
+.dark #div-del,
+.dark #div-pic {
+  background-color: transparent !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+}
+.dark #div-del label,
+.dark #div-pic label,
+.dark #div-del span,
+.dark #div-pic span,
+.dark #div-del svg,
+.dark #div-pic svg {
+  color: #FFFFFF !important;
+}
+.dark #div-del:has(input:checked),
+.dark #div-pic:has(input:checked) {
+  background-color: #1E6C02 !important;
+  border-color: #1E6C02 !important;
+}
+.dark #div-del:not(:has(input:checked)):hover,
+.dark #div-pic:not(:has(input:checked)):hover {
+  background-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+/* 2. Payment Method (GCash, Cash) */
+.dark #div-pm-gcash,
+.dark #div-pm-cash {
+  background-color: transparent !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+}
+.dark #div-pm-gcash label,
+.dark #div-pm-cash label,
+.dark #div-pm-gcash span,
+.dark #div-pm-cash span {
+  color: #FFFFFF !important;
+}
+.dark #div-pm-gcash:has(input:checked),
+.dark #div-pm-cash:has(input:checked) {
+  background-color: #1E6C02 !important;
+  border-color: #1E6C02 !important;
+}
+.dark #div-pm-gcash:not(:has(input:checked)):hover,
+.dark #div-pm-cash:not(:has(input:checked)):hover {
+  background-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+/* 3. Store Pickup Location Box */
+.dark #pickup-container {
+  background-color: #111827 !important;
+  border-color: rgba(255, 255, 255, 0.25) !important;
+}
+.dark #pickup-container *,
+.dark #pickup-container p,
+.dark #pickup-container div,
+.dark #pickup-container span {
+  color: #FFFFFF !important;
+}
+
+/* 4. Payment Required Notice Banner */
+.dark .bg-\[\#E2F9E5\].border-\[\#C6EFCE\] {
+  background-color: rgba(30, 108, 2, 0.15) !important;
+  border-color: rgba(30, 108, 2, 0.4) !important;
+}
+.dark .bg-\[\#E2F9E5\].border-\[\#C6EFCE\] * {
+  color: #FFFFFF !important;
+}
+
+/* 5. GCash details box & QR zone */
+.dark .bg-\[\#F8F9FA\] {
+  background-color: #111827 !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+}
+.dark #gcash-account-name,
+.dark #gcash-number-lbl,
+.dark #lbl-pay-amount,
+.dark #lbl-send-amount,
+.dark #lbl-send-amount-desc,
+.dark #payment-req-title,
+.dark #payment-req-desc,
+.dark #payment-req-desc * {
+  color: #FFFFFF !important;
+}
+.dark #dropzone {
+  background-color: #111827 !important;
+  border-color: rgba(255, 255, 255, 0.25) !important;
+}
+.dark #dropzone p,
+.dark #dropzone span {
+  color: #FFFFFF !important;
+}
+.dark #dropzone:hover {
+  background-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+/* 6. Checkout Summary invoice lines & Totals */
+.dark #checkout-form-container span,
+.dark #checkout-form-container label,
+.dark #checkout-form-container h3,
+.dark #checkout-form-container p {
+  color: #FFFFFF !important;
+}
+.dark #subtotal-val,
+.dark #delivery-val,
+.dark #total-val,
+.dark #paid-val,
+.dark #remaining-val {
+  color: #FFFFFF !important;
+}
+/* Total Due blue box */
+.dark .bg-\[\#EBF3FF\].border-\[\#C5DFFF\] {
+  background-color: rgba(59, 130, 246, 0.15) !important;
+  border-color: rgba(59, 130, 246, 0.4) !important;
+}
+.dark #lbl-send-amount,
+.dark #lbl-send-amount-desc {
+  color: #FFFFFF !important;
+}
+
+/* 7. CTA Buttons Hover Safeguard */
+.dark #btn-add-to-cart {
+  background-color: #1E6C02 !important;
+  color: #FFFFFF !important;
+}
+.dark #btn-add-to-cart:hover {
+  background-color: #145001 !important;
+}
+.dark #btn-buy-now {
+  background-color: transparent !important;
+  border-color: #1E6C02 !important;
+  color: #1DB954 !important;
+}
+.dark #btn-buy-now:hover {
+  background-color: #1E6C02 !important;
+  color: #FFFFFF !important;
+}
+
+/* 8. Notifications Dropdown Panel */
+.dark #customer-notif-dropdown {
+  background-color: #0F172A !important;
+  border-color: rgba(255, 255, 255, 0.2) !important;
+}
+.dark #customer-notif-dropdown * {
+  color: #FFFFFF !important;
+}
+.dark #customer-notif-list > div {
+  background-color: #111827 !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+.dark #customer-notif-list > div:hover {
+  background-color: rgba(255, 255, 255, 0.08) !important;
+}
+.dark #customer-notif-list > div.bg-green-50\/10 {
+  background-color: rgba(30, 108, 2, 0.15) !important;
+}
+.dark #customer-notif-list .w-8.h-8 {
+  background-color: #1F2937 !important;
+  border-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+/* 9. My Purchases Category Tabs */
+.dark #purchase-tabs-header {
+  background-color: #0F172A !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+}
+.dark .purchase-tab-btn {
+  background-color: transparent !important;
+  color: rgba(255, 255, 255, 0.8) !important;
+  border: 1px solid transparent !important;
+}
+.dark .purchase-tab-btn.bg-white,
+.dark .purchase-tab-btn[class*="bg-white"] {
+  background-color: #1E6C02 !important;
+  color: #FFFFFF !important;
+  border: 1px solid #1E6C02 !important;
+  font-weight: 700 !important;
+}
+.dark .purchase-tab-btn:not(.bg-white):not([class*="bg-white"]) {
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+.dark .purchase-tab-btn:not(.bg-white):hover {
+  background-color: rgba(255, 255, 255, 0.08) !important;
+  color: #FFFFFF !important;
+}
+
+/* 10. Order Tracking (Stepper) */
+.dark .border-gray-150.rounded-3xl.bg-\[\#FCFCFC\] {
+  background-color: #111827 !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+}
+.dark .border-gray-150.rounded-3xl.bg-\[\#FCFCFC\] span {
+  color: #FFFFFF !important;
+}
+.dark .bg-gray-100.-z-10 {
+  background-color: rgba(255, 255, 255, 0.15) !important;
+}
+.dark .bg-\[\#1E6C02\].-z-10 {
+  background-color: #1E6C02 !important;
+}
+.dark .bg-gray-150.text-gray-400.border-2.border-gray-200 {
+  background-color: transparent !important;
+  border-color: #FFFFFF !important;
+  color: #FFFFFF !important;
+}
+.dark .bg-\[\#1E6C02\].text-white {
+  background-color: #1E6C02 !important;
+  border-color: #1E6C02 !important;
+  color: #FFFFFF !important;
+}
+.dark .ring-green-100 {
+  --tw-ring-color: rgba(30, 108, 2, 0.4) !important;
+}
+.dark .text-gray-400.font-semibold {
+  color: rgba(255, 255, 255, 0.8) !important;
+}
+.dark .text-gray-850.font-extrabold {
+  color: #FFFFFF !important;
+}
+.dark .text-\[\#1E6C02\].font-black {
+  color: #1DB954 !important;
+}
+.dark .bg-\[\#E8F5E9\].text-\[\#1E6C02\] {
+  background-color: #1E6C02 !important;
+  color: #FFFFFF !important;
+}
+
+/* 11. Order Details Cards & Banners */
+.dark #order-details-container {
+  color: #FFFFFF !important;
+}
+.dark #order-details-container .bg-white,
+.dark #order-details-container .bg-gray-50,
+.dark #order-details-container .bg-gray-100 {
+  background-color: #111827 !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+}
+.dark #order-details-container * {
+  color: #FFFFFF !important;
+}
+.dark #order-details-container .text-\[\#1E6C02\] {
+  color: #1DB954 !important;
+}
+.dark #order-details-container .bg-\[\#E8F5E9\] {
+  background-color: #1E6C02 !important;
+  color: #FFFFFF !important;
+}
+/* Orange payment upload warning zone */
+.dark .bg-\[\#FCF8F5\].border-orange-100 {
+  background-color: rgba(221, 107, 32, 0.1) !important;
+  border-color: rgba(221, 107, 32, 0.3) !important;
+}
+/* Blue reservation queue detail block */
+.dark .bg-blue-50\/30.border-blue-200 {
+  background-color: rgba(59, 130, 246, 0.1) !important;
+  border-color: rgba(59, 130, 246, 0.3) !important;
+}
+
+/* 12. Modals & Popups Overrides */
+.dark div[id*="modal"] > div > div,
+.dark div[id*="dialog"] > div > div {
+  background-color: #111827 !important;
+  border: 1px solid rgba(255, 255, 255, 0.25) !important;
+}
+.dark div[id*="modal"] *,
+.dark div[id*="dialog"] * {
+  color: #FFFFFF !important;
+}
+.dark div[id*="modal"] .bg-white,
+.dark div[id*="modal"] .bg-gray-50,
+.dark div[id*="modal"] .bg-gray-100,
+.dark div[id*="modal"] [class*="bg-\["],
+.dark div[id*="dialog"] .bg-white,
+.dark div[id*="dialog"] .bg-gray-50,
+.dark div[id*="dialog"] .bg-gray-100,
+.dark div[id*="dialog"] [class*="bg-\["] {
+  background-color: #0F172A !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+  color: #FFFFFF !important;
+}
+.dark div[id*="modal"] .text-gray-400,
+.dark div[id*="dialog"] .text-gray-400 {
+  color: rgba(255, 255, 255, 0.7) !important;
+}
+
+/* Edit profile and edit customer dialog inputs inside modals */
+.dark div[id*="dialog"] input,
+.dark div[id*="dialog"] select,
+.dark div[id*="dialog"] textarea {
+  background-color: #1F2937 !important;
+  color: #FFFFFF !important;
+  border: 1px solid rgba(255, 255, 255, 0.25) !important;
+}
+
+/* ==========================================================================
+   CUSTOMER SYSTEM-WIDE DARK MODE READABILITY & HOVER FIXES
+   ========================================================================== */
+
+/* 1. Payment Breakdown Card (Order Details View) */
+.dark #order-details-container .bg-\[\#FCFCFC\] {
+  background-color: #111827 !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+}
+.dark #order-details-container .bg-\[\#FCFCFC\] * {
+  color: #FFFFFF !important;
+}
+.dark #order-details-container .bg-gray-50 {
+  background-color: #1F2937 !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+}
+.dark #order-details-container .bg-gray-50 * {
+  color: #FFFFFF !important;
+}
+.dark #order-details-container .bg-green-50\/50 {
+  background-color: rgba(30, 108, 2, 0.15) !important;
+  border-color: rgba(30, 108, 2, 0.3) !important;
+}
+.dark #order-details-container .bg-green-50\/50 span {
+  color: #4ADE80 !important;
+}
+
+/* 2. Customer Profile Menu Header Dropdown Hover Fix */
+.dark #navbar-container a[href*="profile.html"] {
+  border-color: rgba(255, 255, 255, 0.15) !important;
+}
+.dark #navbar-container a[href*="profile.html"]:hover {
+  background-color: rgba(255, 255, 255, 0.08) !important;
+  border-color: rgba(255, 255, 255, 0.25) !important;
+}
+.dark #navbar-container a[href*="profile.html"] span {
+  color: #FFFFFF !important;
+}
+
+/* 3. Add to Cart Hover Protection on Product Details */
+.dark #btn-add-to-cart:hover {
+  background-color: #145001 !important;
+  color: #FFFFFF !important;
+}
+
+/* 4. Complete Status & Alert Cards Overrides (No more gray or washed out blue backgrounds) */
+
+/* Blue/Sky Status & Info Boxes (e.g. "Preparing Order", "Queue Transparency") */
+.dark .bg-blue-50\/60,
+.dark .bg-blue-50\/50,
+.dark .bg-blue-50,
+.dark .bg-\[\#EDF5FF\],
+.dark [class*="bg-blue-50"],
+.dark [class*="bg-\[\#EDF5FF\]"] {
+  background-color: #1E293B !important; /* Premium Dark Slate Blue */
+  border-color: rgba(59, 130, 246, 0.3) !important;
+  color: #FFFFFF !important;
+}
+.dark .bg-blue-50\/60 *,
+.dark .bg-blue-50\/50 *,
+.dark .bg-blue-50 *,
+.dark .bg-\[\#EDF5FF\] *,
+.dark [class*="bg-blue-50"] *,
+.dark [class*="bg-\[\#EDF5FF\]"] * {
+  color: #FFFFFF !important;
+}
+.dark .bg-blue-50\/60 h5,
+.dark .bg-blue-50\/50 h5,
+.dark .bg-blue-50 h5,
+.dark .bg-\[\#EDF5FF\] h5,
+.dark .bg-blue-50\/60 span,
+.dark .bg-blue-50\/50 span,
+.dark .bg-blue-50 span,
+.dark [class*="bg-blue-50"] h5,
+.dark [class*="bg-blue-50"] span {
+  color: #60A5FA !important; /* Highly readable light accent blue */
+}
+
+/* Green/Emerald Status Boxes (e.g. "Delivery Verification Required", "Order Completed") */
+.dark .bg-\[\#EAF9EC\],
+.dark .bg-emerald-50\/60,
+.dark .bg-emerald-50\/70,
+.dark .bg-emerald-50,
+.dark [class*="bg-\[\#EAF9EC\]"],
+.dark [class*="bg-emerald-50"] {
+  background-color: #064E3B !important; /* Rich Dark Green */
+  border-color: rgba(16, 185, 129, 0.3) !important;
+  color: #FFFFFF !important;
+}
+.dark .bg-\[\#EAF9EC\] *,
+.dark .bg-emerald-50\/60 *,
+.dark .bg-emerald-50\/70 *,
+.dark .bg-emerald-50 * {
+  color: #FFFFFF !important;
+}
+.dark .bg-\[\#EAF9EC\] h5,
+.dark .bg-emerald-50\/60 h5,
+.dark .bg-emerald-50\/70 h5,
+.dark .bg-emerald-50 h5,
+.dark .bg-\[\#EAF9EC\] span,
+.dark .bg-emerald-50\/60 span,
+.dark .bg-emerald-50\/70 span,
+.dark .bg-emerald-50 span {
+  color: #34D399 !important; /* Premium light green accent */
+}
+
+/* Amber/Orange/Yellow Status Boxes (e.g. "Waiting for Payment Verification", "Reservation") */
+.dark .bg-amber-50\/70,
+.dark .bg-amber-50,
+.dark .bg-orange-50\/75,
+.dark .bg-orange-50,
+.dark .bg-\[\#FEFCBF\],
+.dark [class*="bg-amber-50"],
+.dark [class*="bg-orange-50"],
+.dark [class*="bg-\[\#FEFCBF\]"] {
+  background-color: #451A03 !important; /* Premium Warm Dark Amber */
+  border-color: rgba(245, 158, 11, 0.3) !important;
+  color: #FFFFFF !important;
+}
+.dark .bg-amber-50\/70 *,
+.dark .bg-amber-50 *,
+.dark .bg-orange-50\/75 *,
+.dark .bg-orange-50 *,
+.dark .bg-\[\#FEFCBF\] * {
+  color: #FFFFFF !important;
+}
+.dark .bg-amber-50\/70 h5,
+.dark .bg-amber-50 h5,
+.dark .bg-orange-50\/75 h5,
+.dark .bg-orange-50 h5,
+.dark .bg-\[\#FEFCBF\] h5,
+.dark .bg-amber-50\/70 span,
+.dark .bg-amber-50 span,
+.dark .bg-orange-50\/75 span,
+.dark .bg-orange-50 span,
+.dark .bg-\[\#FEFCBF\] span {
+  color: #FBBF24 !important; /* Beautiful bright yellow/amber accent */
+}
+
+/* Dark Mode Status Badges Standardization */
+.dark .bg-green-50, 
+.dark .bg-emerald-50, 
+.dark .bg-\[\#E2F9E5\], 
+.dark [class*="bg-[#E2F9E5]"],
+.dark .bg-emerald-100 {
+  background-color: rgba(6, 78, 59, 0.6) !important;
+  border: 1px solid #10B981 !important;
+  color: #FFFFFF !important;
+}
+.dark .bg-green-50 *, 
+.dark .bg-emerald-50 *, 
+.dark .bg-\[\#E2F9E5\] *, 
+.dark [class*="bg-[#E2F9E5]"] * {
+  color: #FFFFFF !important;
+}
+.dark .bg-green-50 svg, 
+.dark .bg-emerald-50 svg {
+  color: #34D399 !important;
+  stroke: #34D399 !important;
+}
+
+.dark .bg-amber-50, 
+.dark .bg-orange-50, 
+.dark .bg-yellow-50, 
+.dark .bg-amber-100, 
+.dark .bg-orange-100 {
+  background-color: rgba(120, 53, 15, 0.6) !important;
+  border: 1px solid #F59E0B !important;
+  color: #FFFFFF !important;
+}
+.dark .bg-amber-50 *, 
+.dark .bg-orange-50 *, 
+.dark .bg-yellow-50 * {
+  color: #FFFFFF !important;
+}
+.dark .bg-amber-50 svg, 
+.dark .bg-orange-50 svg {
+  color: #FBBF24 !important;
+  stroke: #FBBF24 !important;
+}
+
+.dark .bg-red-50, 
+.dark .bg-rose-50, 
+.dark .bg-red-100 {
+  background-color: rgba(127, 29, 29, 0.6) !important;
+  border: 1px solid #EF4444 !important;
+  color: #FFFFFF !important;
+}
+.dark .bg-red-50 *, 
+.dark .bg-rose-50 * {
+  color: #FFFFFF !important;
+}
+.dark .bg-red-50 svg {
+  color: #F87171 !important;
+  stroke: #F87171 !important;
+}
+
+.dark .bg-blue-50, 
+.dark .bg-indigo-50, 
+.dark .bg-sky-50, 
+.dark .bg-blue-100 {
+  background-color: rgba(30, 58, 138, 0.6) !important;
+  border: 1px solid #3B82F6 !important;
+  color: #FFFFFF !important;
+}
+.dark .bg-blue-50 *, 
+.dark .bg-indigo-50 * {
+  color: #FFFFFF !important;
+}
+.dark .bg-blue-50 svg {
+  color: #60A5FA !important;
+  stroke: #60A5FA !important;
+}
+
+.dark .bg-purple-50, 
+.dark .bg-violet-50, 
+.dark .bg-purple-100 {
+  background-color: rgba(88, 28, 135, 0.6) !important;
+  border: 1px solid #A855F7 !important;
+  color: #FFFFFF !important;
+}
+.dark .bg-purple-50 * {
+  color: #FFFFFF !important;
+}
+.dark .bg-purple-50 svg {
+  color: #C084FC !important;
+  stroke: #C084FC !important;
+}
+
+.dark .bg-teal-50, 
+.dark .bg-cyan-50, 
+.dark .bg-teal-100 {
+  background-color: rgba(19, 78, 74, 0.6) !important;
+  border: 1px solid #14B8A6 !important;
+  color: #FFFFFF !important;
+}
+.dark .bg-teal-50 * {
+  color: #FFFFFF !important;
+}
+.dark .bg-teal-50 svg {
+  color: #2DD4BF !important;
+  stroke: #2DD4BF !important;
+}
+
+.dark .bg-gray-50, 
+.dark .bg-slate-50, 
+.dark .bg-gray-100 {
+  background-color: rgba(30, 41, 59, 0.8) !important;
+  border: 1px solid rgba(255, 255, 255, 0.25) !important;
+  color: #FFFFFF !important;
+}
+.dark .bg-gray-50 *, 
+.dark .bg-slate-50 * {
+  color: #FFFFFF !important;
+}
+
+/* Dark mode notification bell hover, focus, active, click states */
+.dark #admin-notif-btn {
+  background-color: transparent !important;
+  color: #F8FAFC !important;
+}
+
+.dark #admin-notif-btn:hover,
+.dark #admin-notif-btn:focus,
+.dark #admin-notif-btn:active,
+.dark #admin-notif-btn:focus-visible,
+.dark #admin-notif-btn[aria-expanded="true"] {
+  background-color: #334155 !important; /* Dark slate background on hover/click */
+  color: #FFFFFF !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.dark #admin-notif-btn svg {
+  color: #F8FAFC !important;
+}
+
+.dark #admin-notif-btn:hover svg,
+.dark #admin-notif-btn:focus svg,
+.dark #admin-notif-btn:active svg {
+  color: #FFFFFF !important;
+}
+
+/* Inventory Health dark mode count badge overrides - removing white/light background */
+.dark #dash-low-stock-count {
+  background-color: rgba(245, 158, 11, 0.2) !important;
+  color: #FBBF24 !important;
+  border: 1px solid rgba(245, 158, 11, 0.4) !important;
+}
+
+.dark #dash-out-stock-count {
+  background-color: rgba(239, 68, 68, 0.2) !important;
+  color: #F87171 !important;
+  border: 1px solid rgba(239, 68, 68, 0.4) !important;
+}
+
+
+

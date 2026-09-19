@@ -1,0 +1,1266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rice Reservation | RiceFlow</title>
+  <link rel="stylesheet" href="src/styles/index.css">
+</head>
+<body class="bg-[#F5F5F7] min-h-screen font-sans">
+
+  <!-- Dynamic Header Bar -->
+  <div id="navbar-container"></div>
+
+  <!-- MAIN WRAPPER -->
+  <main class="py-8 max-w-[1240px] mx-auto px-4 sm:px-6 lg:px-8 min-h-screen">
+    
+    <!-- SUBMISSION CONFIRMATION SPLASH -->
+    <div id="success-splash" class="hidden max-w-2xl mx-auto bg-white rounded-[24px] p-12 text-center border border-gray-100 shadow-2xl animate-in fade-in zoom-in-95 duration-300">
+      <div id="success-queue-badge" class="h-20 w-20 bg-amber-50 text-amber-700 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner border border-amber-200">
+        <span class="text-2xl font-black">#1</span>
+      </div>
+      <h2 class="text-3xl font-black text-[#222222] mb-3 tracking-tight">Order Submitted Successfully!</h2>
+      <p class="text-gray-500 font-bold text-sm leading-relaxed max-w-md mx-auto mb-6">
+        Your order has been received and is now waiting for processing.
+      </p>
+
+      <div class="bg-amber-50 border border-amber-200 rounded-2xl p-5 mb-8 max-w-md mx-auto text-left space-y-2.5 text-xs font-semibold text-amber-900">
+        <p class="font-extrabold text-[#7A4B00] text-sm border-b pb-1.5">📋 Reservation Receipt Logged</p>
+        <div class="grid grid-cols-2 gap-y-2 pt-1 font-bold">
+          <span class="text-amber-700">Queue Position:</span>
+          <span class="text-gray-900 text-right" id="success-queue-pos">Queue Position #1</span>
+
+          <span class="text-amber-700">Reservation Date:</span>
+          <span class="text-gray-900 text-right" id="success-date">June 19, 2026</span>
+
+          <span class="text-amber-700" id="success-est-label">Estimated Delivery:</span>
+          <span class="text-gray-900 text-right" id="success-est-avail">Waiting for Restock</span>
+
+          <span class="text-amber-700">Status:</span>
+          <span class="text-right text-orange-600 uppercase font-black tracking-wider" id="success-status">Pending Reservation</span>
+        </div>
+      </div>
+
+      <div class="flex flex-col sm:flex-row gap-4 justify-center">
+        <a href="products.html" class="px-6 h-12 flex items-center justify-center border border-gray-200 text-gray-700 font-bold rounded-2xl hover:bg-gray-50 transition-all cursor-pointer">Continue Shopping</a>
+        <a href="profile.html" class="px-6 h-12 flex items-center justify-center bg-[#1E6C02] text-white font-bold rounded-2xl hover:bg-[#145001] transition-all shadow-lg hover:shadow-xl cursor-pointer">View My Orders</a>
+      </div>
+    </div>
+
+    <!-- MAIN FORM BODY -->
+    <div id="checkout-form-container" class="animate-in fade-in duration-300">
+      
+      <!-- Back Link and Header block -->
+      <div class="mb-6 text-left">
+        <div class="flex items-center gap-3">
+          <a href="products.html" id="back-link" class="text-[#1E6C02] hover:text-[#145001] transition-all p-1 flex items-center justify-center focus:outline-none">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+          </a>
+          <h1 class="text-2xl sm:text-3xl font-black text-black dark:text-gray-100 tracking-tight">Rice Reservation</h1>
+        </div>
+        <p class="text-sm sm:text-base text-black dark:text-gray-200 font-normal text-left mt-1.5">Reserve this product while it is currently out of stock</p>
+      </div>
+
+      <form id="order-form" onsubmit="return false;">
+        <div class="grid lg:grid-cols-3 gap-8">
+          
+          <!-- Column 1 & 2: Form Details -->
+          <div class="lg:col-span-2 space-y-6">
+            
+            <!-- Out of Stock Product Overview Card -->
+            <div class="bg-white dark:bg-slate-900 rounded-[24px] p-5 sm:p-6 border border-gray-100 dark:border-slate-800 shadow-sm space-y-5 text-left">
+              <div class="flex flex-col sm:flex-row items-start justify-between gap-4">
+                <div class="flex items-center gap-4">
+                  <div class="w-20 h-20 bg-[#F8F9FA] dark:bg-slate-800 rounded-[20px] overflow-hidden border border-gray-150 dark:border-slate-700 p-1.5 shrink-0 flex items-center justify-center">
+                    <img id="p-image" src="https://i.pinimg.com/736x/4b/b5/f9/4bb5f91184c5482b607e76ee2a9ce319.jpg" class="w-full h-full object-cover rounded-xl" />
+                  </div>
+                  <div class="text-left">
+                    <h4 id="p-name" class="font-extrabold text-sm sm:text-base text-black dark:text-gray-100 leading-tight">Hope 160 Rice</h4>
+                    <p class="text-xs text-gray-400 font-semibold mt-1">25 kg</p>
+                    
+                    <div class="mt-2 text-left flex items-center gap-3">
+                      <span id="p-price" class="text-[#1E6C02] dark:text-emerald-400 font-black underline decoration-2 underline-offset-4 text-base">
+                        ₱1,380.00
+                      </span>
+                      <span class="px-2 py-0.5 bg-red-600 text-white font-bold text-[9px] uppercase tracking-wider rounded-md">Out Of Stock</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Interactive Qty Adjusters -->
+                <div class="flex items-center gap-2.5 shrink-0 select-none bg-gray-50 dark:bg-slate-800 p-1 rounded-xl border border-gray-200 dark:border-slate-700 self-end sm:self-center">
+                  <button type="button" id="btn-qty-dec" class="w-8 h-8 rounded-lg bg-white dark:bg-slate-700 hover:bg-gray-100 dark:hover:bg-slate-600 flex items-center justify-center font-bold text-gray-600 dark:text-gray-200 border border-gray-200 dark:border-slate-600 shadow-xs transition-colors cursor-pointer">-</button>
+                  <span id="qty-val" class="w-8 text-center font-black text-sm text-[#222222] dark:text-gray-100">x1</span>
+                  <button type="button" id="btn-qty-inc" class="w-8 h-8 rounded-lg bg-white dark:bg-slate-700 hover:bg-gray-100 dark:hover:bg-slate-600 flex items-center justify-center font-bold text-gray-600 dark:text-gray-200 border border-gray-200 dark:border-slate-600 shadow-xs transition-colors cursor-pointer">+</button>
+                </div>
+              </div>
+
+              <!-- Reservation informational alert banner -->
+              <div class="bg-[#FFF3E0] dark:bg-amber-950/40 border border-[#FFCC80] dark:border-amber-800/50 rounded-2xl p-4.5 text-left">
+                <p class="text-sm sm:text-[15px] font-normal leading-relaxed flex items-start gap-2.5 text-black dark:text-gray-200">
+                  <span class="text-base select-none shrink-0">⚠️</span>
+                  <span>This product is currently unavailable. You may reserve this item, and your order will be placed in the queue once confirmed by the admin.</span>
+                </p>
+              </div>
+            </div>
+
+            <!-- Delivery Method Card -->
+            <div class="bg-white dark:bg-slate-900 rounded-[24px] p-6 border border-gray-100 dark:border-slate-800 shadow-sm space-y-5 text-left">
+              <div class="flex items-center gap-2 pb-1 border-b border-gray-50 dark:border-slate-800">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-5 h-5 text-gray-500 dark:text-gray-400"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
+                <h3 class="text-base font-bold text-gray-900 dark:text-gray-100">Delivery Method</h3>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <!-- Option 1: Delivery -->
+                <div id="div-del" class="flex items-center space-x-3 rounded-2xl p-4 border border-[#1E6C02] cursor-pointer bg-[#F8FAF8] dark:bg-emerald-950/40 transition-all">
+                  <input type="radio" value="delivery" name="delivery-radio" id="rad-delivery" checked class="h-4 w-4 text-[#1E6C02] focus:ring-[#1E6C02]" />
+                  <label for="rad-delivery" class="font-bold text-gray-800 dark:text-gray-200 flex items-center gap-2 cursor-pointer flex-1 text-sm select-none">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-4 h-4 text-[#1E6C02]"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
+                    <span>Delivery (₱80)</span>
+                  </label>
+                </div>
+
+                <!-- Option 2: Store Pickup -->
+                <div id="div-pic" class="flex items-center space-x-3 rounded-2xl p-4 border border-gray-200 dark:border-slate-700 cursor-pointer bg-white dark:bg-slate-800 transition-all hover:bg-gray-50 dark:hover:bg-slate-700">
+                  <input type="radio" value="pickup" name="delivery-radio" id="rad-pickup" class="h-4 w-4 text-[#1E6C02] focus:ring-[#1E6C02]" />
+                  <label for="rad-pickup" class="font-bold text-gray-800 dark:text-gray-200 flex items-center gap-2 cursor-pointer flex-1 text-sm select-none">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-4 h-4 text-gray-400"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                    <span>Store Pickup (Free)</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <!-- Delivery Information Card -->
+            <div class="bg-white dark:bg-slate-900 rounded-[24px] p-6 border border-gray-100 dark:border-slate-800 shadow-sm space-y-5 text-left">
+              <div class="flex items-center gap-2 pb-1 border-b border-gray-50 dark:border-slate-800">
+                <span class="text-base">📍</span>
+                <h3 class="text-base font-bold text-gray-900 dark:text-gray-100" id="info-header">Delivery Information</h3>
+              </div>
+
+              <!-- Prepulated values block -->
+              <div class="grid sm:grid-cols-2 gap-4">
+                <div class="space-y-1.5 text-left">
+                  <div class="flex items-center justify-between">
+                    <label class="text-xs font-bold text-gray-950 dark:text-gray-200">Full Name</label>
+                    <span class="bg-[#E2F9E5] text-[#1E6C02] dark:bg-emerald-950/60 dark:text-emerald-300 text-[9px] font-black px-1.5 py-0.5 rounded-md tracking-wider">SAVED INFO</span>
+                  </div>
+                  <input required readonly type="text" name="fullName" id="inp-fullName" class="w-full bg-[#F5F5F7] dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-sm font-semibold text-gray-650 dark:text-gray-300 px-4 h-12 rounded-2xl outline-none transition-all placeholder-gray-400 dark:placeholder-gray-500 shadow-none cursor-not-allowed" />
+                </div>
+
+                <div class="space-y-1.5 text-left">
+                  <div class="flex items-center justify-between">
+                    <label class="text-xs font-bold text-gray-950 dark:text-gray-200">Contact Number</label>
+                    <span class="bg-[#E2F9E5] text-[#1E6C02] dark:bg-emerald-950/60 dark:text-emerald-300 text-[9px] font-black px-1.5 py-0.5 rounded-md tracking-wider">SAVED INFO</span>
+                  </div>
+                  <input required readonly type="tel" name="phone" id="inp-phone" class="w-full bg-[#F5F5F7] dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-sm font-semibold text-gray-650 dark:text-gray-300 px-4 h-12 rounded-2xl outline-none transition-all placeholder-gray-400 dark:placeholder-gray-500 shadow-none cursor-not-allowed" />
+                </div>
+              </div>
+
+              <!-- Address Block -->
+              <div id="address-container" class="space-y-1.5 text-left">
+                <label class="text-xs font-bold text-gray-950 dark:text-gray-200">Delivery Address</label>
+                <textarea required name="address" id="inp-address" rows="3" placeholder="House No., Street name, Barangay, Aurora, Zamboanga del Sur" class="w-full bg-[#F8F9FA] dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-sm font-medium text-[#222222] dark:text-gray-100 p-4 rounded-2xl outline-none focus:bg-white dark:focus:bg-slate-700 focus:ring-1 focus:ring-[#1E6C02] transition-all placeholder-gray-400 dark:placeholder-gray-500 shadow-none resize-none"></textarea>
+              </div>
+
+              <!-- Additional special instructions field -->
+              <div class="space-y-1.5 text-left">
+                <label class="text-xs font-semibold text-gray-600 dark:text-gray-400">Special Instructions (Optional)</label>
+                <input type="text" id="inp-notes" placeholder="Any special instructions for delivery" class="w-full bg-[#F8F9FA] dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-sm font-medium text-[#222222] dark:text-gray-100 px-4 h-12 rounded-2xl outline-none focus:bg-white dark:focus:bg-slate-700 focus:ring-1 focus:ring-[#1E6C02] transition-all placeholder-gray-400 dark:placeholder-gray-500 shadow-none" />
+              </div>
+
+              <!-- Pickup warehouse notification (Hidden initially) -->
+              <div id="pickup-container" class="hidden bg-[#F0F6FF] dark:bg-slate-800 border border-[#BFDBFE] dark:border-slate-700 rounded-[20px] p-6 space-y-4">
+                <p class="font-black text-[#1E3A8A] dark:text-blue-300 flex items-center gap-2 text-base">
+                  <span>🏪</span> Store Pick-Up Location
+                </p>
+                <div class="text-sm text-gray-700 dark:text-gray-300 font-semibold leading-relaxed pl-7 space-y-2">
+                  <div class="font-black text-gray-900 dark:text-gray-100 text-base">RiceFlow Local Grains Warehouse</div>
+                  <div>Main Street, Aurora, Zamboanga del Sur.</div>
+                  <div class="pt-1 text-gray-650 dark:text-gray-400">
+                    Contact Number: <span class="font-bold text-gray-900 dark:text-gray-100 text-base">+63 912 345 6789</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Payment Method Card -->
+            <div class="bg-white dark:bg-slate-900 rounded-[24px] p-6 border border-gray-100 dark:border-slate-800 shadow-sm space-y-5 text-left">
+              <div class="flex items-center justify-between pb-2 border-b border-gray-100 dark:border-slate-800">
+                <div class="flex items-center gap-2">
+                  <span class="text-base">💰</span>
+                  <h3 class="text-base sm:text-lg font-bold text-black dark:text-gray-100">Payment Method</h3>
+                </div>
+                <!-- Information (ⓘ) Icon with Tooltip and Navigation -->
+                <div class="relative inline-flex items-center group">
+                  <a 
+                    href="payment-guide.html?from=reservation" 
+                    id="payment-guide-info-link"
+                    class="text-[#1E6C02] hover:text-[#145001] dark:text-emerald-400 p-1.5 rounded-full hover:bg-emerald-50 dark:hover:bg-slate-800 transition-all flex items-center justify-center cursor-pointer"
+                    aria-label="Payment Methods Guide"
+                  >
+                    <!-- Green circular info icon matching user uploaded image information.png -->
+                    <svg class="w-6 h-6 text-[#1E6C02] dark:text-emerald-400 transition-transform group-hover:scale-110" viewBox="0 0 512 512" fill="currentColor">
+                      <path d="M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zm0-464a208 208 0 1 1 0 416 208 208 0 1 1 0-416zm0 104a32 32 0 1 1 0 64 32 32 0 1 1 0-64zm-24 120h48c13.3 0 24 10.7 24 24v128c0 13.3-10.7 24-24 24h-48c-13.3 0-24-10.7-24-24V296c0-13.3 10.7-24 24-24z"/>
+                    </svg>
+                  </a>
+                  <!-- Tooltip -->
+                  <div class="absolute right-0 bottom-full mb-2 hidden group-hover:flex items-center px-3 py-1.5 bg-gray-900 dark:bg-slate-800 text-white text-xs font-normal rounded-xl shadow-xl whitespace-nowrap z-30 pointer-events-none transition-opacity">
+                    <span>Learn more about our payment methods</span>
+                    <div class="absolute top-full right-3 border-4 border-transparent border-t-gray-900 dark:border-t-slate-800"></div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="space-y-3">
+                <label class="text-xs font-bold text-gray-500 dark:text-gray-400 block">Choose Payment Option:</label>
+                
+                <div class="space-y-3">
+                  <!-- option gcash -->
+                  <div id="div-pm-gcash" class="flex items-center space-x-3 rounded-2xl p-4 border border-[#1E6C02] cursor-pointer bg-[#F8FAF8] dark:bg-emerald-950/40 transition-all">
+                    <input type="radio" value="gcash" name="payment-radio" id="rad-pm-gcash" checked class="h-4 w-4 text-[#1E6C02] focus:ring-[#1E6C02]" />
+                    <label for="rad-pm-gcash" class="font-bold text-gray-800 dark:text-gray-200 flex items-center justify-between cursor-pointer flex-1 text-sm select-none">
+                      <span class="flex items-center gap-2">📱 GCash</span>
+                      <span class="text-[10px] text-[#1E6C02] dark:text-emerald-400 font-black uppercase tracking-wider">Full Payment Required</span>
+                    </label>
+                  </div>
+
+                  <!-- option cash on delivery -->
+                  <div id="div-pm-cash" class="flex items-center space-x-3 rounded-2xl p-4 border border-gray-200 dark:border-slate-700 cursor-pointer bg-white dark:bg-slate-800 transition-all hover:bg-gray-50 dark:hover:bg-slate-700">
+                    <input type="radio" value="cash" name="payment-radio" id="rad-pm-cash" class="h-4 w-4 text-[#1E6C02] focus:ring-[#1E6C02]" />
+                    <label for="rad-pm-cash" class="font-bold text-gray-800 dark:text-gray-200 flex items-center justify-between cursor-pointer flex-1 text-sm select-none">
+                      <span class="flex items-center gap-2">💵 Cash Deposit (30%)</span>
+                      <span class="text-[10px] text-amber-600 dark:text-amber-400 font-extrabold uppercase tracking-wider">30% Down Payment Required</span>
+                    </label>
+                  </div>
+
+                  <!-- option reserve without payment -->
+                  <div id="div-pm-none" class="flex items-center space-x-3 rounded-2xl p-4 border border-gray-200 dark:border-slate-700 cursor-pointer bg-white dark:bg-slate-800 transition-all hover:bg-gray-50 dark:hover:bg-slate-700">
+                    <input type="radio" value="none" name="payment-radio" id="rad-pm-none" class="h-4 w-4 text-[#1E6C02] focus:ring-[#1E6C02]" />
+                    <label for="rad-pm-none" class="font-bold text-gray-800 dark:text-gray-200 flex items-center justify-between cursor-pointer flex-1 text-sm select-none">
+                      <span class="flex items-center gap-2">⏱️ Reserve Without Payment</span>
+                      <span class="text-[10px] text-blue-600 dark:text-blue-400 font-extrabold uppercase tracking-wider">Pay Later Upon Restock (48h)</span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              <!-- GCash Visual QR Code and upload screenshot card -->
+              <div class="bg-white dark:bg-slate-900 rounded-[24px] border border-gray-150 dark:border-slate-800 p-5 space-y-5">
+                <!-- Checkmark notification -->
+                <div class="flex gap-2 items-start bg-[#E2F9E5] dark:bg-emerald-950/50 border border-[#C6EFCE] dark:border-emerald-800/60 rounded-xl p-3 text-[#1E6C02] dark:text-emerald-300">
+                  <span class="text-sm select-none">✅</span>
+                  <div class="text-xs font-bold leading-relaxed">
+                    <span id="payment-req-title">Full Payment Required</span>
+                    <p class="text-gray-600 dark:text-gray-300 font-medium mt-0.5" id="payment-req-desc">Please send the FULL payment amount via GCash and upload your screenshot for verification.</p>
+                  </div>
+                </div>
+
+                <!-- GCash Information Card -->
+                <div class="bg-[#F8F9FA] dark:bg-slate-800 rounded-[20px] p-5 border border-gray-100 dark:border-slate-700 max-w-[340px] mx-auto text-center shadow-xs">
+                  <div class="w-36 h-36 bg-white dark:bg-slate-700 border border-gray-150 dark:border-slate-600 rounded-xl mx-auto mb-3 overflow-hidden p-1.5 flex items-center justify-center">
+                    <img 
+                      id="gcash-qr-img"
+                      src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=09123456789" 
+                      alt="GCash QR Code" 
+                      class="w-full h-full object-contain"
+                    />
+                  </div>
+                  <h5 class="text-sm font-bold text-gray-500 dark:text-gray-400">Account Name: <span class="text-gray-900 dark:text-gray-100 font-extrabold" id="gcash-account-name">Aurora Local Rice</span></h5>
+                  <p class="text-xs text-gray-500 dark:text-gray-400 font-bold mt-1">GCash Number: <span class="text-[#1E6C02] dark:text-emerald-400 font-black" id="gcash-number-lbl">0912 345 6789</span></p>
+                  
+                  <div class="mt-4 bg-[#E2F9E5] dark:bg-emerald-950/60 border border-[#C6EFCE] dark:border-emerald-800/60 py-2 px-4 rounded-xl inline-block">
+                    <span class="text-xs font-extrabold text-[#1E6C02] dark:text-emerald-300" id="lbl-pay-amount">Amount to Pay: ₱1,430.00</span>
+                  </div>
+                </div>
+
+                <!-- Screenshot dropbox zone -->
+                <div class="space-y-2">
+                  <label class="text-xs font-bold text-gray-900 dark:text-gray-200 block flex items-center gap-1.5">
+                    <span>📎</span> Upload Payment Screenshot
+                  </label>
+                  
+                  <label 
+                    for="inp-screenshot" 
+                    id="dropzone"
+                    class="flex flex-col items-center justify-center w-full h-44 border-2 border-dashed border-[#C6EFCE] dark:border-slate-700 bg-white dark:bg-slate-800/90 rounded-2xl cursor-pointer hover:bg-emerald-50/10 dark:hover:bg-slate-700 transition-all text-center p-4 group"
+                  >
+                    <div class="w-10 h-10 rounded-full bg-gray-50 dark:bg-slate-700 flex items-center justify-center mb-2 text-gray-400 dark:text-gray-300 group-hover:scale-105 transition-transform border border-gray-100 dark:border-slate-600">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-5 h-5 text-gray-500 dark:text-gray-300"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                    </div>
+                    <p class="text-sm font-bold text-gray-800 dark:text-gray-200">Upload payment screenshot here</p>
+                    <p class="text-xs text-gray-400 dark:text-gray-400 mt-1">JPEG, PNG, and PDF formats, up to 10MB</p>
+                    <span class="mt-3 inline-block px-4 py-2 border border-gray-200 dark:border-slate-600 text-xs font-bold text-[#222222] dark:text-gray-100 bg-white dark:bg-slate-700 rounded-xl shadow-xs group-hover:bg-gray-50 dark:group-hover:bg-slate-600 transition-colors">Browse File</span>
+                    <input required type="file" accept="image/*" name="screenshot" id="inp-screenshot" class="hidden" />
+                  </label>
+
+                  <!-- Image Preview Block -->
+                  <div id="screenshot-success" class="hidden flex items-center gap-3 bg-[#E2F9E5] dark:bg-emerald-950/60 text-[#1E6C02] dark:text-emerald-300 px-4 py-3 rounded-2xl border border-[#C6EFCE] dark:border-emerald-800/60 animate-in fade-in">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" class="w-5 h-5 text-[#1E6C02] dark:text-emerald-300 flex-shrink-0"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    <div class="flex-1 truncate">
+                      <span class="text-xs font-bold truncate block" id="screenshot-success-fn">screenshot.jpg</span>
+                      <p class="text-[10px] text-[#1D931D] dark:text-emerald-400 font-semibold mt-0.5">Reference attached successfully</p>
+                    </div>
+                    <div id="screenshot-preview-container" class="w-10 h-10 rounded-lg overflow-hidden border border-emerald-250 dark:border-emerald-800 select-none bg-white dark:bg-slate-800">
+                      <img id="screenshot-mini-preview" class="w-full h-full object-cover" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Column 3: Sticky Order Summary Card -->
+          <div class="lg:col-span-1 text-left">
+            <div class="bg-white dark:bg-slate-900 rounded-[24px] border border-gray-100 dark:border-slate-800 p-6 sticky top-24 shadow-sm space-y-6">
+              <h3 class="text-lg font-bold text-black dark:text-gray-100 pb-3 border-b border-gray-100 dark:border-slate-800 tracking-tight">Reservation Summary</h3>
+              
+              <!-- Review Item Rows -->
+              <div class="space-y-3 max-h-[220px] overflow-y-auto pr-1" id="selected-items-review">
+                <!-- Dynamically populated -->
+              </div>
+
+              <!-- Cost invoice details -->
+              <div class="border-t border-gray-150 dark:border-slate-800 pt-4 space-y-3 text-sm sm:text-[15px]">
+                <div class="flex justify-between items-center py-1">
+                  <span class="font-bold text-black dark:text-gray-100">Subtotal</span>
+                  <span class="font-normal text-black dark:text-gray-200" id="subtotal-val">₱0.00</span>
+                </div>
+                <div class="flex justify-between items-center py-1">
+                  <span class="font-bold text-black dark:text-gray-100">Delivery Fee</span>
+                  <span class="font-normal text-black dark:text-gray-200" id="delivery-val">₱80.00</span>
+                </div>
+                <div class="border-t border-gray-150 dark:border-slate-800 pt-3 pb-1 flex justify-between items-center select-none">
+                  <span class="font-bold text-black dark:text-gray-100 text-base sm:text-lg">Total</span>
+                  <span class="text-[#1E6C02] dark:text-emerald-400 font-black text-lg sm:text-xl" id="total-val">₱0.00</span>
+                </div>
+                <div class="flex justify-between items-center py-1">
+                  <span class="font-bold text-black dark:text-gray-100">Paid Amount</span>
+                  <span class="font-normal text-black dark:text-gray-200" id="paid-val">₱0.00</span>
+                </div>
+                <div class="flex justify-between items-center py-1">
+                  <span class="font-bold text-black dark:text-gray-100">Remaining Balance</span>
+                  <span class="font-normal text-black dark:text-gray-200" id="remaining-val">₱0.00</span>
+                </div>
+
+                <!-- Blue Accent Details Payment Due Box -->
+                <div class="bg-[#EBF3FF] dark:bg-slate-800 border border-[#C5DFFF] dark:border-slate-700 p-4 rounded-2xl flex flex-col justify-center mt-2">
+                  <p class="text-xs font-bold text-[#3B82F6] uppercase tracking-wider" id="lbl-send-amount-desc">FULL PAYMENT:</p>
+                  <p class="text-2xl font-black text-[#1E3A8A] dark:text-blue-300 mt-1 select-none" id="lbl-send-amount">₱0.00</p>
+                </div>
+              </div>
+
+              <!-- Form Submit Trigger Button -->
+              <button 
+                type="submit"
+                class="w-full h-14 bg-[#1E6C02] hover:bg-[#145001] text-white font-extrabold rounded-2xl transition-all shadow-md text-base cursor-pointer tracking-wide flex items-center justify-center shadow-green-950/5"
+                id="btn-submit-order"
+              >
+                Submit Reservation Request
+              </button>
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+  </main>
+
+  <!-- Confirm Order Modal Dialog -->
+  <div id="confirm-order-modal" class="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-[24px] max-w-md w-full p-8 shadow-2xl border border-gray-100 animate-in fade-in zoom-in-95 duration-200 text-center">
+      <div class="h-16 w-16 bg-emerald-50 text-[#1E6C02] rounded-full flex items-center justify-center mb-6 mx-auto border border-emerald-100">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-8 h-8"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
+      </div>
+      <h3 class="text-xl font-black text-gray-900 mb-2">Confirm Reservation</h3>
+      <p class="text-sm font-semibold text-gray-500 leading-relaxed mb-8">
+        Are you sure you want to place this reservation order?
+      </p>
+      <div class="flex gap-4">
+        <button id="btn-cancel-confirm" class="flex-1 h-12 border border-gray-200 text-gray-700 font-bold rounded-2xl hover:bg-gray-50 transition-all cursor-pointer">Cancel</button>
+        <button id="btn-submit-confirm" class="flex-1 h-12 bg-[#1E6C02] text-white font-bold rounded-2xl hover:bg-[#145001] transition-all cursor-pointer shadow-lg shadow-green-900/10">Confirm Reservation</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Exit Confirmation Modal Dialog -->
+  <div id="exit-confirm-modal" class="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-[24px] max-w-md w-full p-8 shadow-2xl border border-gray-100 animate-in fade-in zoom-in-95 duration-200 text-center">
+      <div class="h-16 w-16 bg-red-50 text-red-650 rounded-full flex items-center justify-center mb-6 mx-auto border border-red-100">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-8 h-8"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+      </div>
+      <h3 class="text-xl font-black text-gray-900 mb-2">Unsaved Information</h3>
+      <p class="text-sm font-semibold text-gray-500 leading-relaxed mb-8">
+        You have unsaved information on the checkout form. If you leave now, your changes will be lost.
+      </p>
+      <div class="flex gap-4">
+        <button id="btn-stay-checkout" class="flex-1 h-12 border border-gray-200 text-gray-700 font-bold rounded-2xl hover:bg-gray-50 transition-all cursor-pointer">Stay on Checkout</button>
+        <button id="btn-leave-page" class="flex-1 h-12 bg-red-600 text-white font-bold rounded-2xl hover:bg-red-700 transition-all cursor-pointer shadow-lg shadow-red-900/10">Leave Page</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PHONE VERIFICATION MODAL DIALOG (Firebase Phone Auth OTP) -->
+  <div id="phone-otp-modal" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white dark:bg-slate-900 rounded-[28px] max-w-md w-full p-6 sm:p-8 shadow-2xl border border-gray-100 dark:border-slate-800 animate-in fade-in zoom-in-95 duration-200 text-center relative">
+      
+      <!-- Close / Dismiss button -->
+      <button type="button" id="btn-close-phone-modal" class="absolute top-5 right-5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors p-1">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-5 h-5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+      </button>
+
+      <!-- Security Icon Header -->
+      <div class="h-16 w-16 bg-emerald-50 dark:bg-emerald-950/60 text-[#1E6C02] dark:text-emerald-400 rounded-full flex items-center justify-center mb-5 mx-auto border border-emerald-100 dark:border-emerald-800/60 shadow-xs">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-8 h-8"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>
+      </div>
+
+      <h3 class="text-xl font-black text-gray-900 dark:text-gray-100 mb-2 tracking-tight">Verify Your Contact Number</h3>
+      <p class="text-xs sm:text-sm font-semibold text-gray-500 dark:text-gray-400 leading-relaxed mb-5">
+        To secure your reservation and prevent duplicate queues, please verify your mobile number with a one-time SMS verification code.
+      </p>
+
+      <!-- Target Phone Display Badge -->
+      <div class="bg-[#F8FAF8] dark:bg-emerald-950/40 border border-emerald-100 dark:border-emerald-900/60 rounded-2xl p-3.5 mb-5 flex items-center justify-between text-left">
+        <div class="space-y-0.5">
+          <span class="text-[10px] font-extrabold uppercase tracking-wider text-emerald-800 dark:text-emerald-300">Sending SMS to:</span>
+          <p class="text-sm font-black text-gray-900 dark:text-white" id="otp-phone-display">+63 9XX XXX XXXX</p>
+        </div>
+        <button type="button" id="btn-otp-change-phone" class="text-xs font-bold text-[#1E6C02] dark:text-emerald-400 hover:underline cursor-pointer">
+          Change
+        </button>
+      </div>
+
+      <!-- Invisible reCAPTCHA container -->
+      <div id="recaptcha-container"></div>
+
+      <!-- Step 1: Send Code State -->
+      <div id="otp-step-send" class="space-y-3">
+        <button 
+          type="button" 
+          id="btn-send-otp"
+          class="w-full h-12 bg-[#1E6C02] hover:bg-[#145001] text-white font-extrabold rounded-2xl transition-all shadow-md text-sm cursor-pointer flex items-center justify-center gap-2"
+        >
+          <span id="btn-send-otp-text">Send Verification Code (SMS)</span>
+          <svg id="btn-send-otp-spinner" class="hidden animate-spin w-4 h-4 text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
+        </button>
+      </div>
+
+      <!-- Step 2: Enter OTP Code State -->
+      <div id="otp-step-verify" class="hidden space-y-4 text-left">
+        <div class="space-y-1.5">
+          <div class="flex justify-between items-center">
+            <label for="inp-otp-code" class="text-xs font-bold text-gray-950 dark:text-gray-200">Enter 6-Digit SMS Code</label>
+            <span id="otp-timer-display" class="text-[11px] font-semibold text-gray-500 dark:text-gray-400">Resend in <span class="font-bold text-[#1E6C02]" id="otp-countdown">60</span>s</span>
+          </div>
+          <input 
+            type="text" 
+            id="inp-otp-code" 
+            maxlength="6" 
+            inputmode="numeric" 
+            autocomplete="one-time-code" 
+            placeholder="• • • • • •" 
+            class="w-full bg-[#F8F9FA] dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-center tracking-[0.5em] text-xl font-black text-[#222222] dark:text-white px-4 h-14 rounded-2xl outline-none focus:bg-white dark:focus:bg-slate-700 focus:ring-2 focus:ring-[#1E6C02] transition-all placeholder-gray-300"
+          />
+        </div>
+
+        <div id="otp-error-msg" class="hidden text-xs font-bold text-red-600 bg-red-50 dark:bg-red-950/50 p-2.5 rounded-xl border border-red-100 dark:border-red-900/50 text-center">
+          Invalid verification code. Please check and try again.
+        </div>
+
+        <div class="flex gap-3 pt-2">
+          <button 
+            type="button" 
+            id="btn-resend-otp" 
+            disabled 
+            class="flex-1 h-12 border border-gray-200 dark:border-slate-700 text-gray-400 dark:text-gray-500 bg-gray-50 dark:bg-slate-800 font-bold rounded-2xl transition-all text-xs cursor-not-allowed"
+          >
+            Resend Code
+          </button>
+          <button 
+            type="button" 
+            id="btn-verify-otp" 
+            class="flex-1 h-12 bg-[#1E6C02] hover:bg-[#145001] text-white font-extrabold rounded-2xl transition-all shadow-md text-xs cursor-pointer flex items-center justify-center gap-1.5"
+          >
+            <span id="btn-verify-otp-text">Verify & Reserve</span>
+            <svg id="btn-verify-otp-spinner" class="hidden animate-spin w-4 h-4 text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Dynamic Footer Bar -->
+  <div id="footer-container"></div>
+
+  <!-- Shared database API utilities -->
+  <script type="module" src="src/app/shared.js"></script>
+
+  <!-- Reservation interactive mechanics -->
+  <script type="module">
+    import { 
+      getProductById, 
+      getCurrentUser, 
+      showToast, 
+      addOrder, 
+      getOrders, 
+      saveOrders,
+      clearCartItems,
+      normalizePhilippinePhone,
+      checkPhoneExists,
+      updateUserPhoneVerified,
+      getEstimatedArrivalDate,
+      getReservationQueuePosition
+    } from './src/app/shared.js';
+    import { 
+      sendFirebasePhoneVerification, 
+      verifyAndLinkPhoneCredential,
+      initFirestoreSync
+    } from './src/lib/firebase.js';
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      // Wait for the initial Firebase synchronization so public inventory history
+      // is available before calculating the reservation estimate.
+      try {
+        await initFirestoreSync();
+      } catch (syncErr) {
+        console.warn('[RESERVATION] Initial Firestore sync unavailable; continuing with local data:', syncErr);
+      }
+
+      // 1. Authorization checks
+      let user = getCurrentUser();
+      if (!user) {
+        showToast('Login is required to access reservation checkout.', 'error');
+        setTimeout(() => {
+          // Redirect to login page and preserve checkout context path
+          const urlParams = new URLSearchParams(window.location.search);
+          const pId = urlParams.get('productId') || '8';
+          sessionStorage.setItem('login-message', 'Please log in to reserve out of stock items.');
+          sessionStorage.setItem('login-redirect', window.location.href);
+          window.location.href = 'login.html';
+        }, 1200);
+        return;
+      }
+
+      // 2. Fetch target out-of-stock product details
+      const urlParams = new URLSearchParams(window.location.search);
+      const productId = urlParams.get('productId') || '8'; // Defaults to Hope 160 Rice
+      const initialQty = parseInt(urlParams.get('quantity')) || 1;
+
+      const product = getProductById(productId);
+      if (!product) {
+        showToast('Varietal item not found in warehouse archive', 'error');
+        setTimeout(() => {
+          window.location.href = '/products.html';
+        }, 1200);
+        return;
+      }
+
+      // Check if product is available: the prompt indicates this reservation checkout page is only for Out of Stock products
+      // We render product details inside the page
+      document.getElementById('p-image').src = product.image;
+      document.getElementById('p-name').textContent = product.name;
+      document.getElementById('p-price').textContent = `₱${product.price.toLocaleString()}.00`;
+      
+      // Update browser back-arrow reference
+      document.getElementById('back-link').href = `/product-details.html?id=${product.id}`;
+
+      // Populate user info values
+      const inpFullName = document.getElementById('inp-fullName');
+      const inpPhone = document.getElementById('inp-phone');
+      const inpAddress = document.getElementById('inp-address');
+      if (inpFullName) inpFullName.value = user.fullName || 'Demo User';
+      if (inpPhone) inpPhone.value = user.phone || '+63 912 345 6789';
+      if (inpAddress) {
+        inpAddress.value = user.address || '';
+      }
+
+      // Interactive state variables
+      let quantity = initialQty < 1 ? 1 : initialQty;
+      let deliveryOption = 'delivery'; // Default is Delivery
+      let paymentMethod = 'gcash'; // Default is GCash (matching checked radio in UI)
+      let paymentProofFile = null;
+
+      // HTML Elements
+      const btnDec = document.getElementById('btn-qty-dec');
+      const btnInc = document.getElementById('btn-qty-inc');
+      const qtyVal = document.getElementById('qty-val');
+      
+      const divDel = document.getElementById('div-del');
+      const divPic = document.getElementById('div-pic');
+      const radDel = document.getElementById('rad-delivery');
+      const radPic = document.getElementById('rad-pickup');
+      const infoHeader = document.getElementById('info-header');
+      const addressCont = document.getElementById('address-container');
+      const pickupCont = document.getElementById('pickup-container');
+      const addressInput = document.getElementById('inp-address');
+
+      const radGcash = document.getElementById('rad-pm-gcash');
+      const radCash = document.getElementById('rad-pm-cash');
+      const radNone = document.getElementById('rad-pm-none');
+      const divPmGcash = document.getElementById('div-pm-gcash');
+      const divPmCash = document.getElementById('div-pm-cash');
+      const divPmNone = document.getElementById('div-pm-none');
+      const payReqTitle = document.getElementById('payment-req-title');
+      const payReqDesc = document.getElementById('payment-req-desc');
+
+      const screenshotSuccess = document.getElementById('screenshot-success');
+      const screenshotFn = document.getElementById('screenshot-success-fn');
+      const screenshotInput = document.getElementById('inp-screenshot');
+      const screenshotMiniPreview = document.getElementById('screenshot-mini-preview');
+
+      // Bill calculator variables
+      const subtotalValCol = document.getElementById('subtotal-val');
+      const deliveryValCol = document.getElementById('delivery-val');
+      const totalValCol = document.getElementById('total-val');
+      const lblPayAmount = document.getElementById('lbl-pay-amount');
+      const lblSendAmount = document.getElementById('lbl-send-amount');
+      const lblSendAmountDesc = document.getElementById('lbl-send-amount-desc');
+      const selectedReviewList = document.getElementById('selected-items-review');
+
+      // Recalculations function
+      function refreshCalculations() {
+        qtyVal.textContent = `x${quantity}`;
+
+        const subtotal = product.price * quantity;
+        const deliveryFee = deliveryOption === 'delivery' ? 80 : 0;
+        const total = subtotal + deliveryFee;
+
+        // GCash versus cash percentages sums
+        let amountToPay = 0;
+        if (paymentMethod === 'gcash') {
+          amountToPay = total;
+        } else if (paymentMethod === 'cash') {
+          amountToPay = total * 0.3;
+        } else {
+          amountToPay = 0;
+        }
+
+        subtotalValCol.textContent = `₱${subtotal.toLocaleString()}.00`;
+        deliveryValCol.textContent = `₱${deliveryFee.toLocaleString()}.00`;
+        totalValCol.textContent = `₱${total.toLocaleString()}.00`;
+
+        const remainingBalance = Math.max(0, total - amountToPay);
+        document.getElementById('paid-val').textContent = `₱${amountToPay.toLocaleString()}.00`;
+        document.getElementById('remaining-val').textContent = `₱${remainingBalance.toLocaleString()}.00`;
+        
+        lblPayAmount.textContent = paymentMethod === 'none' ? 'Amount Due Now: ₱0.00 (No Payment Required)' : `Amount to Pay: ₱${amountToPay.toLocaleString()}.00`;
+        lblSendAmount.textContent = `₱${amountToPay.toLocaleString()}.00`;
+
+        if (paymentMethod === 'gcash') {
+          lblSendAmountDesc.textContent = 'FULL PAYMENT:';
+        } else if (paymentMethod === 'cash') {
+          lblSendAmountDesc.textContent = '30% DEPOSIT DUE VIA GCASH:';
+        } else {
+          lblSendAmountDesc.textContent = 'NO PAYMENT REQUIRED NOW:';
+        }
+
+        selectedReviewList.innerHTML = `
+          <div class="flex justify-between items-center text-sm sm:text-[15px] py-1 border-b border-gray-100 dark:border-slate-800 pb-2">
+            <span class="font-normal text-black dark:text-gray-200 truncate max-w-[200px]">${product.name} × ${quantity}</span>
+            <span class="font-normal text-black dark:text-gray-200">₱${subtotal.toLocaleString()}.00</span>
+          </div>
+        `;
+      }
+
+      // Initial execution
+      refreshCalculations();
+
+      // Qty adjustments
+      btnDec.addEventListener('click', () => {
+        if (quantity > 1) {
+          quantity--;
+          refreshCalculations();
+        }
+      });
+
+      btnInc.addEventListener('click', () => {
+        quantity++;
+        refreshCalculations();
+      });
+
+      // Delivery Toggles
+      divDel.addEventListener('click', () => {
+        deliveryOption = 'delivery';
+        radDel.checked = true;
+        divDel.className = "flex items-center space-x-3 rounded-2xl p-4 border border-[#1E6C02] cursor-pointer bg-[#F8FAF8] transition-all";
+        divPic.className = "flex items-center space-x-3 rounded-2xl p-4 border border-gray-200 cursor-pointer bg-white transition-all hover:bg-gray-50";
+        
+        infoHeader.textContent = "Delivery Information";
+        addressCont.classList.remove('hidden');
+        pickupCont.classList.add('hidden');
+        addressInput.required = true;
+
+        refreshCalculations();
+      });
+
+      divPic.addEventListener('click', () => {
+        deliveryOption = 'pickup';
+        radPic.checked = true;
+        divPic.className = "flex items-center space-x-3 rounded-2xl p-4 border border-[#1E6C02] cursor-pointer bg-[#F8FAF8] transition-all";
+        divDel.className = "flex items-center space-x-3 rounded-2xl p-4 border border-gray-200 cursor-pointer bg-white transition-all hover:bg-gray-50";
+        
+        infoHeader.textContent = "Pick-Up Operations Contact";
+        addressCont.classList.add('hidden');
+        pickupCont.classList.remove('hidden');
+        addressInput.required = false;
+
+        refreshCalculations();
+      });
+
+      // Payment Preferences switches
+      divPmGcash.addEventListener('click', () => {
+        paymentMethod = 'gcash';
+        radGcash.checked = true;
+        divPmGcash.className = "flex items-center space-x-3 rounded-2xl p-4 border border-[#1E6C02] cursor-pointer bg-[#F8FAF8] transition-all";
+        divPmCash.className = "flex items-center space-x-3 rounded-2xl p-4 border border-gray-200 cursor-pointer bg-white transition-all hover:bg-gray-50";
+        if (divPmNone) divPmNone.className = "flex items-center space-x-3 rounded-2xl p-4 border border-gray-200 cursor-pointer bg-white transition-all hover:bg-gray-50";
+
+        payReqTitle.textContent = "Full Payment Required";
+        payReqDesc.textContent = "Please send the FULL payment amount via GCash and upload your screenshot for verification.";
+
+        refreshCalculations();
+      });
+
+      divPmCash.addEventListener('click', () => {
+        paymentMethod = 'cash';
+        radCash.checked = true;
+        divPmCash.className = "flex items-center space-x-3 rounded-2xl p-4 border border-[#1E6C02] cursor-pointer bg-[#F8FAF8] transition-all";
+        divPmGcash.className = "flex items-center space-x-3 rounded-2xl p-4 border border-gray-200 cursor-pointer bg-white transition-all hover:bg-gray-50";
+        if (divPmNone) divPmNone.className = "flex items-center space-x-3 rounded-2xl p-4 border border-gray-200 cursor-pointer bg-white transition-all hover:bg-gray-50";
+
+        payReqTitle.textContent = "30% Down Payment Required";
+        payReqDesc.textContent = "Secures your allocation in our delivery systems. Please pay the 30% deposit via GCash and upload the receipt verification screenshot.";
+
+        refreshCalculations();
+      });
+
+      if (divPmNone) {
+        divPmNone.addEventListener('click', () => {
+          paymentMethod = 'none';
+          radNone.checked = true;
+          divPmNone.className = "flex items-center space-x-3 rounded-2xl p-4 border border-[#1E6C02] cursor-pointer bg-[#F8FAF8] transition-all";
+          divPmGcash.className = "flex items-center space-x-3 rounded-2xl p-4 border border-gray-200 cursor-pointer bg-white transition-all hover:bg-gray-50";
+          divPmCash.className = "flex items-center space-x-3 rounded-2xl p-4 border border-gray-200 cursor-pointer bg-white transition-all hover:bg-gray-50";
+
+          payReqTitle.textContent = "No Payment Required Now";
+          payReqDesc.textContent = "Your reservation will be added to the queue in Waiting status. You will be notified to pay within 48 hours once warehouse stock arrives.";
+
+          refreshCalculations();
+        });
+      }
+
+      let paymentProofBase64 = null;
+
+      function processAndCompressImage(file, callback) {
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+          const img = new Image();
+          img.onload = function() {
+            const canvas = document.createElement('canvas');
+            let width = img.width;
+            let height = img.height;
+            const maxDim = 600;
+            if (width > maxDim || height > maxDim) {
+              if (width > height) {
+                height = Math.round((height * maxDim) / width);
+                width = maxDim;
+              } else {
+                width = Math.round((width * maxDim) / height);
+                height = maxDim;
+              }
+            }
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, width, height);
+            const compressed = canvas.toDataURL('image/jpeg', 0.7);
+            callback(compressed);
+          };
+          img.src = evt.target.result;
+        };
+        reader.readAsDataURL(file);
+      }
+
+      // Screenshot handles
+      screenshotInput.addEventListener('change', (e) => {
+        if (e.target.files && e.target.files[0]) {
+          paymentProofFile = e.target.files[0];
+          screenshotFn.textContent = paymentProofFile.name;
+          
+          processAndCompressImage(paymentProofFile, (compressed) => {
+            screenshotMiniPreview.src = compressed;
+            paymentProofBase64 = compressed;
+            screenshotSuccess.classList.remove('hidden');
+            showToast('Payment screenshot attached!');
+          });
+        }
+      });
+
+      // Dropzone support
+      const dropzone = document.getElementById('dropzone');
+      dropzone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropzone.classList.add('border-[#1E6C02]', 'bg-emerald-50/10');
+      });
+      dropzone.addEventListener('dragleave', () => {
+        dropzone.classList.remove('border-[#1E6C02]', 'bg-emerald-50/10');
+      });
+      dropzone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropzone.classList.remove('border-[#1E6C02]', 'bg-emerald-50/10');
+        if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+          paymentProofFile = e.dataTransfer.files[0];
+          screenshotFn.textContent = paymentProofFile.name;
+          
+          processAndCompressImage(paymentProofFile, (compressed) => {
+            screenshotMiniPreview.src = compressed;
+            paymentProofBase64 = compressed;
+            screenshotSuccess.classList.remove('hidden');
+            showToast('Payment screenshot dropped!');
+          });
+        }
+      });
+
+      // Form submission with FCFS computation and database storage
+      let orderSubmitted = false;
+      let pendingNavigationUrl = null;
+
+      const confirmOrderModal = document.getElementById('confirm-order-modal');
+      const btnCancelConfirm = document.getElementById('btn-cancel-confirm');
+      const btnSubmitConfirm = document.getElementById('btn-submit-confirm');
+
+      function triggerOrderConfirmation() {
+        confirmOrderModal.classList.remove('hidden');
+      }
+
+      btnCancelConfirm.addEventListener('click', () => {
+        confirmOrderModal.classList.add('hidden');
+      });
+
+      btnSubmitConfirm.addEventListener('click', () => {
+        confirmOrderModal.classList.add('hidden');
+        submitReservationToDB();
+      });
+
+      function hasUnsavedChanges() {
+        if (orderSubmitted) return false;
+        
+        if (paymentProofFile) return true;
+        
+        const fullName = document.getElementById('inp-fullName').value;
+        if (fullName !== (user.fullName || '')) return true;
+        
+        const phone = document.getElementById('inp-phone').value;
+        if (phone !== (user.phone || '')) return true;
+        
+        if (deliveryOption === 'delivery') {
+          const address = addressInput.value;
+          if (address && address !== (user.address || '')) return true;
+        } else if (deliveryOption === 'pickup') {
+          const notes = document.getElementById('inp-notes').value;
+          if (notes) return true;
+        }
+        
+        if (parseInt(document.getElementById('inp-quantity').value) !== 1) return true;
+        
+        return false;
+      }
+
+      // Exit Confirmation Modal wiring
+      document.body.addEventListener('click', (e) => {
+        const anchor = e.target.closest('a');
+        if (anchor) {
+          const href = anchor.getAttribute('href');
+          const target = anchor.getAttribute('target');
+          
+          if (!href || href.startsWith('#') || href.startsWith('javascript:') || target === '_blank') {
+            return;
+          }
+          
+          if (hasUnsavedChanges()) {
+            e.preventDefault();
+            pendingNavigationUrl = href;
+            document.getElementById('exit-confirm-modal').classList.remove('hidden');
+          }
+        }
+      });
+
+      document.getElementById('btn-stay-checkout').addEventListener('click', () => {
+        document.getElementById('exit-confirm-modal').classList.add('hidden');
+        pendingNavigationUrl = null;
+      });
+
+      document.getElementById('btn-leave-page').addEventListener('click', () => {
+        if (pendingNavigationUrl) {
+          window.location.href = pendingNavigationUrl;
+        }
+      });
+
+      // Browser event handler for leaving tab or reloading
+      window.addEventListener('beforeunload', (e) => {
+        if (hasUnsavedChanges()) {
+          e.preventDefault();
+          e.returnValue = 'You have unsaved changes. Are you sure you want to leave?';
+          return e.returnValue;
+        }
+      });
+
+      const btnSubmit = document.getElementById('btn-submit-order');
+
+      // Phone Verification OTP Modal elements
+      const phoneOtpModal = document.getElementById('phone-otp-modal');
+      const btnClosePhoneModal = document.getElementById('btn-close-phone-modal');
+      const otpPhoneDisplay = document.getElementById('otp-phone-display');
+      const btnOtpChangePhone = document.getElementById('btn-otp-change-phone');
+      const otpStepSend = document.getElementById('otp-step-send');
+      const btnSendOtp = document.getElementById('btn-send-otp');
+      const btnSendOtpText = document.getElementById('btn-send-otp-text');
+      const btnSendOtpSpinner = document.getElementById('btn-send-otp-spinner');
+      const otpStepVerify = document.getElementById('otp-step-verify');
+      const inpOtpCode = document.getElementById('inp-otp-code');
+      const otpErrorMsg = document.getElementById('otp-error-msg');
+      const btnResendOtp = document.getElementById('btn-resend-otp');
+      const btnVerifyOtp = document.getElementById('btn-verify-otp');
+      const btnVerifyOtpText = document.getElementById('btn-verify-otp-text');
+      const btnVerifyOtpSpinner = document.getElementById('btn-verify-otp-spinner');
+      const otpCountdown = document.getElementById('otp-countdown');
+
+      let currentConfirmationResult = null;
+      let resendTimerInterval = null;
+      let pendingNormPhone = null;
+
+      function startOtpCountdown(seconds = 60) {
+        if (resendTimerInterval) clearInterval(resendTimerInterval);
+        btnResendOtp.disabled = true;
+        btnResendOtp.className = "flex-1 h-12 border border-gray-200 dark:border-slate-700 text-gray-400 dark:text-gray-500 bg-gray-50 dark:bg-slate-800 font-bold rounded-2xl transition-all text-xs cursor-not-allowed";
+        
+        let remaining = seconds;
+        otpCountdown.textContent = remaining;
+        
+        resendTimerInterval = setInterval(() => {
+          remaining--;
+          if (remaining <= 0) {
+            clearInterval(resendTimerInterval);
+            resendTimerInterval = null;
+            otpCountdown.textContent = '0';
+            btnResendOtp.disabled = false;
+            btnResendOtp.className = "flex-1 h-12 border border-[#1E6C02] text-[#1E6C02] dark:text-emerald-400 bg-emerald-50/50 dark:bg-emerald-950/40 font-bold rounded-2xl transition-all text-xs cursor-pointer hover:bg-emerald-100/50";
+          } else {
+            otpCountdown.textContent = remaining;
+          }
+        }, 1000);
+      }
+
+      function openPhoneVerification(normPhone) {
+        pendingNormPhone = normPhone;
+        otpPhoneDisplay.textContent = `${normPhone.canonical} (${normPhone.e164})`;
+        otpErrorMsg.classList.add('hidden');
+        inpOtpCode.value = '';
+        
+        // Show send step
+        otpStepSend.classList.remove('hidden');
+        otpStepVerify.classList.add('hidden');
+        phoneOtpModal.classList.remove('hidden');
+      }
+
+      function closePhoneVerification() {
+        phoneOtpModal.classList.add('hidden');
+        if (resendTimerInterval) {
+          clearInterval(resendTimerInterval);
+          resendTimerInterval = null;
+        }
+      }
+
+      if (btnClosePhoneModal) {
+        btnClosePhoneModal.addEventListener('click', closePhoneVerification);
+      }
+
+      if (btnOtpChangePhone) {
+        btnOtpChangePhone.addEventListener('click', () => {
+          closePhoneVerification();
+          const phoneInput = document.getElementById('inp-phone');
+          if (phoneInput) {
+            phoneInput.focus();
+            phoneInput.select();
+          }
+        });
+      }
+
+      async function triggerSendOtp() {
+        if (!pendingNormPhone || !pendingNormPhone.isValid) {
+          showToast('Invalid phone number.', 'error');
+          return;
+        }
+
+        btnSendOtp.disabled = true;
+        btnSendOtpText.textContent = 'Sending SMS Code...';
+        btnSendOtpSpinner.classList.remove('hidden');
+        otpErrorMsg.classList.add('hidden');
+
+        try {
+          currentConfirmationResult = await sendFirebasePhoneVerification(pendingNormPhone.e164, 'recaptcha-container');
+          showToast(`Verification code sent to ${pendingNormPhone.canonical}!`, 'success');
+          
+          otpStepSend.classList.add('hidden');
+          otpStepVerify.classList.remove('hidden');
+          inpOtpCode.value = '';
+          inpOtpCode.focus();
+          startOtpCountdown(60);
+        } catch (err) {
+          console.error('[PHONE AUTH ERROR]', err);
+          showToast(err.message || 'Failed to send SMS code. Please check the number and try again.', 'error');
+          otpErrorMsg.textContent = err.message || 'Failed to send SMS code. Please try again.';
+          otpErrorMsg.classList.remove('hidden');
+        } finally {
+          btnSendOtp.disabled = false;
+          btnSendOtpText.textContent = 'Send Verification Code (SMS)';
+          btnSendOtpSpinner.classList.add('hidden');
+        }
+      }
+
+      if (btnSendOtp) {
+        btnSendOtp.addEventListener('click', triggerSendOtp);
+      }
+
+      if (btnResendOtp) {
+        btnResendOtp.addEventListener('click', async () => {
+          if (btnResendOtp.disabled) return;
+          btnResendOtp.disabled = true;
+          await triggerSendOtp();
+        });
+      }
+
+      if (btnVerifyOtp) {
+        btnVerifyOtp.addEventListener('click', async () => {
+          const code = inpOtpCode.value.trim();
+          if (!code || code.length !== 6) {
+            otpErrorMsg.textContent = 'Please enter the full 6-digit verification code.';
+            otpErrorMsg.classList.remove('hidden');
+            inpOtpCode.focus();
+            return;
+          }
+
+          if (!currentConfirmationResult) {
+            otpErrorMsg.textContent = 'Verification session expired. Please request a new code.';
+            otpErrorMsg.classList.remove('hidden');
+            return;
+          }
+
+          btnVerifyOtp.disabled = true;
+          btnVerifyOtpText.textContent = 'Verifying...';
+          btnVerifyOtpSpinner.classList.remove('hidden');
+          otpErrorMsg.classList.add('hidden');
+
+          try {
+            await verifyAndLinkPhoneCredential(currentConfirmationResult, code, pendingNormPhone.e164);
+            
+            // Mark user verified in local database, session, and cloud
+            const updated = updateUserPhoneVerified(user.id || user.email, pendingNormPhone);
+            if (updated) {
+              user = updated;
+            } else {
+              user.phone = pendingNormPhone.canonical;
+              user.phoneE164 = pendingNormPhone.e164;
+              user.phoneVerified = true;
+            }
+
+            showToast('Phone number verified successfully!', 'success');
+            closePhoneVerification();
+
+            // Proceed automatically to order confirmation
+            triggerOrderConfirmation();
+          } catch (err) {
+            console.error('[PHONE VERIFY ERROR]', err);
+            otpErrorMsg.textContent = 'Invalid verification code. Please check the SMS and try again.';
+            otpErrorMsg.classList.remove('hidden');
+            showToast('Invalid verification code. Please try again.', 'error');
+          } finally {
+            btnVerifyOtp.disabled = false;
+            btnVerifyOtpText.textContent = 'Verify & Reserve';
+            btnVerifyOtpSpinner.classList.add('hidden');
+          }
+        });
+      }
+
+      // Auto-format OTP digits input
+      if (inpOtpCode) {
+        inpOtpCode.addEventListener('input', (e) => {
+          e.target.value = e.target.value.replace(/[^0-9]/g, '').slice(0, 6);
+          if (e.target.value.length === 6) {
+            btnVerifyOtp.click();
+          }
+        });
+      }
+
+      function validateReservationAndProceed() {
+        // Check if address selected but not filled
+        if (deliveryOption === 'delivery' && !addressInput.value.trim()) {
+          showToast('Please type your delivery address!', 'error');
+          return;
+        }
+
+        // Verify that payment proof screenshot is loaded for GCash/Cash options
+        if (paymentMethod !== 'none' && !paymentProofFile) {
+          showToast('Please upload your GCash payment screenshot!', 'error');
+          return;
+        }
+
+        const phoneInput = document.getElementById('inp-phone');
+        const phoneVal = (phoneInput ? phoneInput.value : '').trim();
+        const normPhone = normalizePhilippinePhone(phoneVal);
+        if (!normPhone.isValid) {
+          showToast('Please enter a valid Philippine contact number (e.g. 09XXXXXXXXX or +639XXXXXXXXX).', 'error');
+          if (phoneInput) phoneInput.focus();
+          return;
+        }
+
+        const isDuplicate = checkPhoneExists(normPhone.canonical, user.id || user.email);
+        if (isDuplicate) {
+          showToast('This contact number is already registered to another account. Please use a different number.', 'error');
+          if (phoneInput) phoneInput.focus();
+          return;
+        }
+
+        triggerOrderConfirmation();
+      }
+
+      btnSubmit.addEventListener('click', (e) => {
+        e.preventDefault();
+        validateReservationAndProceed();
+      });
+
+      function submitReservationToDB() {
+        orderSubmitted = true;
+
+        const subtotal = product.price * quantity;
+        const deliveryFee = deliveryOption === 'delivery' ? 80 : 0;
+        const total = subtotal + deliveryFee;
+
+        let amountPaid = 0;
+        if (paymentMethod === 'gcash') {
+          amountPaid = total;
+        } else if (paymentMethod === 'cash') {
+          amountPaid = Math.round(total * 0.3 * 100) / 100;
+        }
+        const remainingAmount = Math.max(0, total - amountPaid);
+        const hasPayment = paymentMethod !== 'none' && Boolean(paymentProofFile || paymentProofBase64);
+
+        const reservationRecord = {
+          items: [{ product, quantity, isReservation: true }],
+          total,
+          status: hasPayment ? 'payment_verification' : 'pre-order',
+          paymentMethod: paymentMethod,
+          paymentType: paymentMethod === 'cash' ? 'deposit' : (paymentMethod === 'gcash' ? 'full' : 'none'),
+          amountPaid: amountPaid,
+          remainingAmount: remainingAmount,
+          paymentProof: paymentProofFile ? (paymentProofFile.name || 'payment_proof.jpg') : null,
+          paymentProofDataUrl: paymentProofBase64 || '',
+          paymentVerified: false,
+          referenceNumber: paymentProofFile ? ('REF' + Date.now().toString().slice(-8)) : null,
+          paymentUploadedAt: paymentProofFile ? new Date().toISOString() : null,
+          fullName: document.getElementById('inp-fullName').value,
+          phone: document.getElementById('inp-phone').value,
+          deliveryOption,
+          address: deliveryOption === 'delivery' ? addressInput.value : undefined,
+          pickupNotes: deliveryOption === 'pickup' ? document.getElementById('inp-notes').value : undefined,
+          isPreOrder: true,
+          estimatedRestockDate: product.restockDate || null,
+          estimatedAvailability: product.restockDate || null,
+          stockDeducted: false
+        };
+
+        const initialEst = getEstimatedArrivalDate(reservationRecord);
+        if (initialEst && initialEst !== 'Waiting for Restock' && initialEst !== 'Not yet scheduled') {
+          reservationRecord.estimatedFulfillmentDate = initialEst;
+        } else {
+          reservationRecord.estimatedFulfillmentDate = null;
+        }
+
+        // Add to database via existing addOrder flow
+        const savedOrder = addOrder(reservationRecord);
+
+        // Recalculate after addOrder so the final saved reservation state is used.
+        const finalReservation = savedOrder || reservationRecord;
+        const finalEstDate = getEstimatedArrivalDate(finalReservation);
+        if (
+  finalEstDate &&
+  finalEstDate !== 'Waiting for Restock' &&
+  finalEstDate !== 'Not yet scheduled'
+) {
+  finalReservation.estimatedFulfillmentDate = finalEstDate;
+
+  const refreshedOrders = getOrders();
+  const refreshedIdx = refreshedOrders.findIndex(
+    o => o.id === finalReservation.id
+  );
+
+  if (refreshedIdx !== -1) {
+    refreshedOrders[refreshedIdx].estimatedFulfillmentDate = finalEstDate;
+    saveOrders(refreshedOrders);
+  }
+} else {
+  // Keep the existing reservation estimate if one was already
+  // legitimately assigned. Do not overwrite a valid date with
+  // "Waiting for Restock".
+  const existingEstimate =
+    finalReservation.estimatedFulfillmentDate;
+
+  if (
+    existingEstimate &&
+    existingEstimate !== 'Waiting for Restock' &&
+    existingEstimate !== 'Not yet scheduled'
+  ) {
+    const refreshedOrders = getOrders();
+    const refreshedIdx = refreshedOrders.findIndex(
+      o => o.id === finalReservation.id
+    );
+
+    if (refreshedIdx !== -1) {
+      refreshedOrders[refreshedIdx].estimatedFulfillmentDate =
+        existingEstimate;
+
+      saveOrders(refreshedOrders);
+    }
+  }
+}
+
+        // Calculate queue position using the centralized getReservationQueuePosition()
+        const finalQueuePosition = getReservationQueuePosition(savedOrder || reservationRecord) || savedOrder?.queuePosition || reservationRecord.queuePosition || 1;
+
+        if (savedOrder && savedOrder.queuePosition !== finalQueuePosition) {
+          savedOrder.queuePosition = finalQueuePosition;
+          const currentOrders = getOrders();
+          const orderIdx = currentOrders.findIndex(o => o.id === savedOrder.id);
+          if (orderIdx !== -1) {
+            currentOrders[orderIdx].queuePosition = finalQueuePosition;
+            saveOrders(currentOrders);
+          }
+        }
+
+        // Remove from standard shopping cart if it was listed there
+        clearCartItems([product.id]);
+
+        // Transition views
+        document.getElementById('checkout-form-container').classList.add('hidden');
+        
+        // Show success values log details
+        document.getElementById('success-queue-badge').innerHTML = `<span class="text-2xl font-black">#${finalQueuePosition}</span>`;
+        document.getElementById('success-queue-pos').textContent = `Queue Position #${finalQueuePosition}`;
+        document.getElementById('success-date').textContent = new Date().toLocaleDateString(undefined, {month: 'long', day: 'numeric', year: 'numeric'});
+        const estDate = getEstimatedArrivalDate(finalReservation) || product.restockDate || 'Waiting for Restock';
+        const estLabelEl = document.getElementById('success-est-label');
+        if (estLabelEl) {
+          estLabelEl.textContent = (reservationRecord.deliveryOption === 'pickup') ? 'Estimated Pickup:' : 'Estimated Delivery:';
+        }
+        const estEl = document.getElementById('success-est-avail');
+        if (estEl) estEl.textContent = estDate;
+        
+        document.getElementById('success-splash').classList.remove('hidden');
+        showToast('Reservation submitted successfully!');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    });
+  </script>
+</body>
+</html>

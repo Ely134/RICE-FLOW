@@ -1,0 +1,85 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isStaffOrAdmin() {
+      return isSignedIn() && (
+        exists(/databases/$(database)/documents/adminUsers/$(request.auth.uid)) ||
+        (request.auth.token.email != null && exists(/databases/$(database)/documents/adminUsers/$(request.auth.token.email)))
+      );
+    }
+
+    // Public catalog & settings
+    match /products/{id} {
+      allow read: if true;
+      allow write: if isStaffOrAdmin();
+    }
+
+    match /storeSettings/{id} {
+      allow read: if true;
+      allow write: if isStaffOrAdmin();
+    }
+
+    match /inventoryHistory/{id} {
+      allow read: if true;
+      allow write: if isStaffOrAdmin();
+    }
+
+    // Reviews - Publicly viewable; created by verified buyers; managed by admin
+    match /reviews/{id} {
+      allow read: if true;
+      allow create: if true;
+      allow update, delete: if isStaffOrAdmin();
+    }
+
+    // Contact Messages - Inquiries submitted by customers; managed by staff/admin
+    match /contactMessages/{id} {
+      allow create: if true;
+      allow read, update, delete: if isStaffOrAdmin();
+    }
+
+    // Customer accounts
+    match /users/{id} {
+      allow read, write: if isSignedIn();
+    }
+
+    // Customer records ledger
+    match /customers/{id} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn();
+    }
+
+    // Admin Users directory
+    match /adminUsers/{id} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn() && (request.auth.uid == id || isStaffOrAdmin());
+    }
+
+    // Orders & reservations
+    match /orders/{id} {
+      allow read: if true;
+      allow create: if true;
+      allow update, delete: if isStaffOrAdmin() || isSignedIn();
+    }
+
+    // Activity Logs - Restricted to authorized Admin / Staff only
+    match /activityLogs/{id} {
+      allow read, write: if isStaffOrAdmin();
+    }
+
+    // Notifications
+    match /notifications/{id} {
+      allow read, write: if isSignedIn() || isStaffOrAdmin();
+    }
+
+    // Default catch-all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

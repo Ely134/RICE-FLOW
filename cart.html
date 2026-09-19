@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shopping Cart | RiceFlow</title>
+  <link rel="stylesheet" href="src/styles/index.css">
+</head>
+<body class="bg-[#F5F5F5] min-h-screen">
+
+  <!-- Dynamic Header Bar -->
+  <div id="navbar-container"></div>
+
+  <!-- MAIN CART MAIN WRAPPER -->
+  <main class="py-12 max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 min-h-screen" id="cart-screen">
+    <!-- Loaded dynamically by Javascript -->
+  </main>
+
+  <!-- RESERVATION NOTICE BLOCKER MODAL DIALOG -->
+  <div id="cart-agreement-dialog" class="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl p-6 border border-gray-100 animate-in fade-in zoom-in duration-200">
+      <div class="flex items-center gap-3 pb-4 border-b">
+        <div class="bg-orange-100 p-2.5 rounded-xl text-orange-600">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-6 h-6"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+        </div>
+        <h3 class="text-xl font-extrabold text-[#222222] tracking-tight">Reservation Notice</h3>
+      </div>
+      <div class="py-5 space-y-4">
+        <p class="text-xs font-semibold text-gray-500">
+          Some items in your current selection are backordered (pre-order).
+        </p>
+        <div class="bg-[#FFF8F0] border border-[#FFE4C4] rounded-xl p-4 text-xs font-semibold leading-relaxed text-[#8B4513]">
+          <p class="font-bold mb-1">Estimated Restock Fulfillments:</p>
+          <p class="text-[#A0522D]">Our warehouse logistics team reviews GCash screenshot uploads continuously. Once verified, pre-order queues receive priority fulfillment.</p>
+        </div>
+        <div class="bg-[#EBF5FF] border border-[#CCE5FF] rounded-xl p-4 text-xs font-semibold flex gap-3 text-[#004085] leading-relaxed">
+          <span>📌</span>
+          <p>Real-time updates on queue index positioning will activate on your profile page after checkout submission.</p>
+        </div>
+
+        <!-- Agreement Terms -->
+        <div class="bg-gray-100 rounded-xl p-4 flex items-start gap-3">
+          <input 
+            type="checkbox" 
+            id="cart-agreement-check" 
+            class="mt-1 h-4 w-4 text-[#1E6C02] rounded border-gray-300 focus:ring-[#1E6C02]"
+          />
+          <label htmlFor="cart-agreement-check" class="text-xs text-gray-600 font-semibold select-none cursor-pointer leading-relaxed">
+            I understand that these items will be scheduled for fulfillment as warehouse stocks replenish.
+          </label>
+        </div>
+      </div>
+      <div class="flex gap-3 pt-4 border-t">
+        <button id="cart-close-dialog-btn" class="flex-1 py-3 text-gray-600 hover:bg-gray-50 border rounded-xl font-bold transition-all cursor-pointer">Cancel</button>
+        <button id="cart-proceed-btn" disabled class="flex-1 py-3 bg-gray-300 text-gray-500 rounded-xl font-bold cursor-not-allowed transition-all" style="cursor: not-allowed;">Proceed Checkout</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dynamic Footer Bar -->
+  <div id="footer-container"></div>
+
+  <!-- Shared database, layout helper -->
+  <script type="module" src="src/app/shared.js"></script>
+
+  <!-- Interactive JavaScript -->
+  <script type="module">
+    import { getCart, removeFromCart, updateCartQty, showToast } from './src/app/shared.js';
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const cartScreen = document.getElementById('cart-screen');
+      const agreementDialog = document.getElementById('cart-agreement-dialog');
+      const agreeCheck = document.getElementById('cart-agreement-check');
+      const proceedBtn = document.getElementById('cart-proceed-btn');
+
+      let selectedItemIds = [];
+      let isFirstLoad = true;
+
+      function renderCart() {
+        const cart = getCart();
+
+        if (cart.length === 0) {
+          cartScreen.innerHTML = `
+            <div class="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
+              <div class="bg-white rounded-[32px] border border-gray-100 p-12 sm:p-20 text-center shadow-xs max-w-4xl mx-auto flex flex-col items-center justify-center">
+                <svg class="w-20 h-20 text-slate-300 mb-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M5 8h14a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-9a2 2 0 0 1 2-2z" />
+                  <path d="M9 8a3 3 0 0 0 6 0" />
+                  <path d="M10 13a2 2 0 0 0 4 0" />
+                </svg>
+                <h2 class="text-3xl font-black text-[#222222] mb-3 tracking-tight">Your cart is empty</h2>
+                <p class="text-gray-500 font-semibold text-sm mb-8 leading-relaxed">Add some rice products to get started!</p>
+                <a href="products.html" class="inline-flex items-center justify-center bg-[#1E6C02] hover:bg-[#145001] text-white font-black px-8 py-3.5 rounded-xl transition-colors shadow-sm cursor-pointer select-none">
+                  Browse Products
+                </a>
+              </div>
+            </div>
+          `;
+          return;
+        }
+
+        // Initialize selection with all items on first load
+        if (isFirstLoad) {
+          selectedItemIds = cart.map(i => i.product.id);
+          isFirstLoad = false;
+        }
+
+        // Calculations
+        const selectedItems = cart.filter(item => selectedItemIds.includes(item.product.id));
+        const subtotal = selectedItems.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
+        const deliveryFee = selectedItemIds.length > 0 ? 80 : 0;
+        const total = subtotal + deliveryFee;
+
+        const hasReservations = selectedItems.some(item => item.isReservation);
+
+        // Core Layout structure template
+        cartScreen.innerHTML = `
+          <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+            <div>
+              <h1 class="text-3xl lg:text-4xl font-black text-[#222222] tracking-tight">My Basket</h1>
+              <p class="text-gray-500 font-semibold text-sm mt-1">Check and adjust your local orders prior to downpayment.</p>
+            </div>
+            <button 
+              id="btn-select-all" 
+              class="flex items-center gap-2 px-5 py-3 bg-white border border-gray-200 rounded-xl text-sm font-semibold text-gray-700 hover:text-[#1E6C02] hover:border-gray-300 transition-colors cursor-pointer shadow-sm"
+            >
+              <div class="flex-shrink-0">
+                ${selectedItemIds.length === cart.length ? `
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" class="w-5 h-5 text-[#1E6C02]"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                ` : `
+                  <div class="w-5 h-5 rounded border border-gray-300 bg-white"></div>
+                `}
+              </div>
+              Select All (${cart.length} items)
+            </button>
+          </div>
+
+          <div class="grid lg:grid-cols-3 gap-8">
+            <!-- Left Grid Column: Cart items -->
+            <div class="lg:col-span-2 space-y-4">
+              ${hasReservations ? `
+                <div class="bg-orange-50 border border-orange-200 rounded-2xl p-5 flex items-start gap-3 shadow-sm shadow-orange-900/5">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-5 h-5 text-orange-600 flex-shrink-0 mt-0.5"><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                  <div>
+                    <h4 class="text-sm font-black text-orange-850">Pre-Order Reservation tagged list</h4>
+                    <p class="text-xs text-orange-700 font-semibold mt-1">Some selected rows are backordered and will require credit screening prior to restock line placement.</p>
+                  </div>
+                </div>
+              ` : ''}
+
+              <!-- Item cards mapper -->
+              ${cart.map(item => {
+                const isSelected = selectedItemIds.includes(item.product.id);
+                return `
+                  <div class="bg-white rounded-2xl p-5 border-2 transition-all duration-300 flex flex-col sm:flex-row gap-4 items-stretch sm:items-center ${isSelected ? 'border-[#1E6C02]/80 shadow-md' : 'border-transparent shadow-sm'}">
+                    <button 
+                      data-id="${item.product.id}"
+                      class="card-select-btn flex-shrink-0 py-2"
+                    >
+                      ${isSelected ? `
+                        <div class="w-6 h-6 rounded-lg bg-[#1E6C02] flex items-center justify-center text-white">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" class="w-4 h-4"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        </div>
+                      ` : `
+                        <div class="w-6 h-6 rounded-lg border-2 border-gray-200 bg-white hover:border-gray-300 transition-colors"></div>
+                      `}
+                    </button>
+
+                    <div class="w-20 h-20 bg-gray-50 rounded-xl overflow-hidden flex items-center justify-center p-1 border">
+                      <img 
+                        src="${item.product.image}" 
+                        alt="${item.product.name}" 
+                        class="w-full h-full object-cover rounded-lg"
+                      />
+                    </div>
+
+                    <div class="flex-grow flex flex-col">
+                      <div class="flex justify-between items-start">
+                        <div>
+                          <h4 class="font-bold text-gray-800 leading-tight text-base mb-1">${item.product.name}</h4>
+                          <p class="text-xs text-gray-400 font-semibold uppercase tracking-wider">${item.product.type} Variety</p>
+                          ${item.isReservation ? `
+                            <span class="inline-block mt-2 font-black text-[9px] uppercase tracking-wider bg-orange-100 text-orange-800 px-2.5 py-1 rounded-md">QUEUE RESERVATION</span>
+                          ` : ''}
+                        </div>
+                        <button 
+                          data-id="${item.product.id}"
+                          class="card-remove-btn text-red-500 hover:text-red-700 p-2 hover:bg-red-50 rounded-xl transition-all"
+                        >
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-5 h-5"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                        </button>
+                      </div>
+
+                      <div class="flex items-center justify-between mt-4">
+                        <div class="flex items-center gap-2.5 bg-gray-50 p-1 border border-gray-150 rounded-xl">
+                          <button 
+                            data-id="${item.product.id}" 
+                            data-qty="${item.quantity - 1}"
+                            class="card-qty-btn w-8 h-8 rounded-lg hover:bg-white text-gray-600 flex items-center justify-center font-bold border border-transparent hover:border-gray-200 cursor-pointer"
+                          >-</button>
+                          <span class="font-extrabold text-[#222222] w-8 text-center text-sm">${item.quantity}</span>
+                          <button 
+                            data-id="${item.product.id}" 
+                            data-qty="${item.quantity + 1}"
+                            class="card-qty-btn w-8 h-8 rounded-lg hover:bg-white text-gray-600 flex items-center justify-center font-bold border border-transparent hover:border-gray-200 cursor-pointer"
+                          >+</button>
+                        </div>
+                        <div class="text-right">
+                          <p class="text-[#1E6C02] text-lg font-black">₱${(item.product.price * item.quantity).toLocaleString()}.00</p>
+                          <p class="text-[9px] text-gray-400 font-bold uppercase tracking-widest">${item.quantity} Sacks x ₱${item.product.price}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+
+            <!-- Right Grid Column: Order sums -->
+            <div class="lg:col-span-1">
+              <div class="bg-white rounded-2xl border border-gray-150 p-6 sticky top-24 shadow-sm">
+                <h3 class="text-lg font-black text-gray-800 mb-6 pb-3 border-b border-gray-50 tracking-tight">Order Summary</h3>
+                <div class="space-y-4 mb-6 font-semibold text-sm text-gray-600">
+                  <div class="flex justify-between">
+                    <span>Rows Selections</span>
+                    <span class="font-extrabold text-gray-800">${selectedItemIds.length} items</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span>Total Sacks count</span>
+                    <span class="font-extrabold text-gray-800">${selectedItems.reduce((acc, i) => acc + i.quantity, 0)} sacks</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span>Product Subtotal</span>
+                    <span class="font-extrabold text-gray-800">₱${subtotal.toLocaleString()}.00</span>
+                  </div>
+                  <div class="flex justify-between text-gray-400">
+                    <span class="flex items-center gap-1.5">Delivery Flat Charge</span>
+                    <span class="font-extrabold">₱${deliveryFee.toLocaleString()}.00</span>
+                  </div>
+                  <div class="border-t border-gray-100 pt-4 flex justify-between font-black text-lg text-gray-800 tracking-tight">
+                    <span>Final Amount</span>
+                    <span class="text-[#1E6C02] text-xl">₱${total.toLocaleString()}.00</span>
+                  </div>
+                </div>
+
+                <button 
+                  id="btn-checkout-trigger"
+                  ${selectedItemIds.length === 0 ? 'disabled' : ''}
+                  class="w-full py-4 bg-[#1E6C02] hover:bg-[#145001] text-white font-extrabold rounded-2xl transition-all shadow-lg text-base disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                >
+                  Proceed to Checkout
+                </button>
+                <a href="products.html" class="block text-center w-full py-3.5 border-2 border-gray-200 mt-3 text-gray-600 font-extrabold rounded-2xl hover:bg-gray-50 text-sm transition-all">
+                  Keep Browsing Shop
+                </a>
+              </div>
+            </div>
+          </div>
+        `;
+
+        // Atach Card events
+        // 1. Select all trigger
+        document.getElementById('btn-select-all').addEventListener('click', () => {
+          if (selectedItemIds.length === cart.length) {
+            selectedItemIds = [];
+          } else {
+            selectedItemIds = cart.map(i => i.product.id);
+          }
+          renderCart();
+        });
+
+        // 2. Select card trigger
+        document.querySelectorAll('.card-select-btn').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const id = btn.getAttribute('data-id');
+            if (selectedItemIds.includes(id)) {
+              selectedItemIds = selectedItemIds.filter(i => i !== id);
+            } else {
+              selectedItemIds.push(id);
+            }
+            renderCart();
+          });
+        });
+
+        // 3. Remove card trigger
+        document.querySelectorAll('.card-remove-btn').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const id = btn.getAttribute('data-id');
+            removeFromCart(id);
+            selectedItemIds = selectedItemIds.filter(i => i !== id);
+            showToast('Item removed from basket');
+            renderCart();
+            updateNavbarCartCount();
+          });
+        });
+
+        // 4. Quantity update trigger
+        document.querySelectorAll('.card-qty-btn').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const id = btn.getAttribute('data-id');
+            const qty = parseInt(btn.getAttribute('data-qty'));
+            updateCartQty(id, qty);
+            renderCart();
+            updateNavbarCartCount();
+          });
+        });
+
+        // 5. Checkout click trigger
+        const checkoutBtn = document.getElementById('btn-checkout-trigger');
+        if (checkoutBtn) {
+          checkoutBtn.addEventListener('click', () => {
+            if (hasReservations) {
+              agreementDialog.classList.remove('hidden');
+            } else {
+              // Direct navigate to checkout with selection query
+              window.location.href = `checkout.html?selection=${selectedItemIds.join(',')}`;
+            }
+          });
+        }
+      }
+
+      // Checkbox confirmation logic inside modal dialog
+      agreeCheck.addEventListener('change', () => {
+        if (agreeCheck.checked) {
+          proceedBtn.disabled = false;
+          proceedBtn.className = "flex-1 py-3 bg-[#1E6C02] hover:bg-[#145001] text-white rounded-xl font-bold transition-all cursor-pointer";
+          proceedBtn.style.cursor = "pointer";
+        } else {
+          proceedBtn.disabled = true;
+          proceedBtn.className = "flex-1 py-3 bg-gray-300 text-gray-500 rounded-xl font-bold cursor-not-allowed transition-all";
+          proceedBtn.style.cursor = "not-allowed";
+        }
+      });
+
+      document.getElementById('cart-close-dialog-btn').addEventListener('click', () => {
+        agreementDialog.classList.add('hidden');
+      });
+
+      proceedBtn.addEventListener('click', () => {
+        if (!agreeCheck.checked) return;
+        agreementDialog.classList.add('hidden');
+        window.location.href = `checkout.html?selection=${selectedItemIds.join(',')}`;
+      });
+
+      // Initial card compilation
+      renderCart();
+
+      function updateNavbarCartCount() {
+        const list = getCart();
+        const tot = list.reduce((t, i) => t + i.quantity, 0);
+        const badge = document.querySelector('a[href*="cart.html"] span');
+        if (badge) {
+          badge.textContent = tot;
+        } else if (tot > 0) {
+          const cartBtn = document.querySelector('a[href*="cart.html"]');
+          if (cartBtn) {
+            const b = document.createElement('span');
+            b.className = "absolute -top-1.5 -right-1.5 bg-[#1E6C02] text-white font-bold text-[11px] w-5.5 h-5.5 rounded-full flex items-center justify-center animate-pulse border-2 border-white";
+            b.textContent = tot;
+            cartBtn.appendChild(b);
+          }
+        } else if (badge) {
+          badge.remove();
+        }
+      }
+    });
+  </script>
+</body>
+</html>

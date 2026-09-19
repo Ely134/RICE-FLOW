@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Settings | RiceFlow</title>
+  <link rel="stylesheet" href="../src/styles/index.css">
+</head>
+<body class="bg-[#F5F5F5] min-h-screen">
+
+  <div id="admin-layout-container"></div>
+
+  <!-- Reusable Confirmation Modal -->
+  <div id="confirmation-modal" class="fixed inset-0 z-[100] flex items-center justify-center hidden">
+    <!-- Backdrop -->
+    <div id="modal-backdrop" class="absolute inset-0 bg-black/60 backdrop-blur-xs transition-opacity duration-300"></div>
+    <!-- Modal Panel -->
+    <div id="modal-panel" class="bg-white rounded-3xl border border-gray-200 shadow-2xl max-w-md w-full mx-4 p-8 relative z-10 transform scale-95 opacity-0 transition-all duration-300">
+      <div class="space-y-6">
+        <div class="flex items-center justify-between pb-3 border-b border-gray-200">
+          <h4 id="modal-title" class="text-xl font-black text-gray-950 tracking-tight">Save Changes</h4>
+          <button id="btn-close-modal-x" class="text-black hover:text-gray-900 font-extrabold text-lg select-none cursor-pointer">✕</button>
+        </div>
+        
+        <div id="modal-message" class="text-base text-black font-bold leading-relaxed">
+          Are you sure you want to save these changes? These updates will immediately be applied to the storefront.
+        </div>
+        
+        <div class="flex flex-col sm:flex-row sm:items-center justify-end gap-3 pt-4 border-t border-gray-200">
+          <button id="btn-cancel-modal" class="px-5 py-3 bg-gray-150 hover:bg-gray-200 text-black font-black text-sm uppercase tracking-wider rounded-xl cursor-pointer transition-all select-none w-full sm:w-auto text-center border border-transparent">
+            No, Cancel
+          </button>
+          <button id="btn-confirm-modal" class="px-5 py-3 bg-[#1E6C02] hover:bg-[#145001] active:scale-[0.98] text-white font-black text-sm uppercase tracking-wider rounded-xl cursor-pointer shadow-md transition-all select-none w-full sm:w-auto text-center border border-transparent">
+            Yes, Save Changes
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="../src/app/shared.js"></script>
+
+  <!-- Interactive administrative settings script -->
+  <script type="module">
+    import { renderAdminLayout, addActivityLog, showToast, getStoreSettings } from '../src/app/shared.js';
+    import { auth, saveFirestoreDoc } from '../src/lib/firebase.js';
+    import { updatePassword } from 'firebase/auth';
+
+    document.addEventListener('DOMContentLoaded', () => {
+      renderAdminLayout('settings');
+
+      const targetSpace = document.getElementById('admin-main-content');
+      if (!targetSpace) return;
+
+      // Load initial settings
+      const settings = getStoreSettings();
+
+      let storeName = settings.storeName;
+      let description = settings.description;
+      let contactNumber = settings.contactNumber;
+      let storeAddress = settings.storeAddress;
+      let facebookLink = settings.facebookLink;
+      let businessHours = settings.businessHours;
+      let logoBase64 = settings.logo;
+      let bannerBase64 = settings.banner;
+      let gcashName = settings.gcashName;
+      let gcashNumber = settings.gcashNumber;
+      let gcashQrBase64 = settings.gcashQr;
+      const fallbackQrSvg = `data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='150' height='150' viewBox='0 0 150 150'><rect width='100%' height='100%' fill='%23f9fafb' rx='12'/><rect x='8' y='8' width='134' height='134' fill='none' stroke='%23e5e7eb' stroke-width='2' stroke-dasharray='6,4' rx='8'/><text x='50%' y='45%' dominant-baseline='middle' text-anchor='middle' font-family='system-ui, -apple-system, sans-serif' font-size='10' font-weight='bold' fill='%239ca3af'>No GCash QR</text><text x='50%' y='60%' dominant-baseline='middle' text-anchor='middle' font-family='system-ui, -apple-system, sans-serif' font-size='10' font-weight='bold' fill='%239ca3af'>Code Available</text></svg>`;
+
+      // Reusable confirmation modal functions
+      const confModal = document.getElementById('confirmation-modal');
+      const modalBackdrop = document.getElementById('modal-backdrop');
+      const modalPanel = document.getElementById('modal-panel');
+      const modalTitle = document.getElementById('modal-title');
+      const modalMessage = document.getElementById('modal-message');
+      const btnCancelModal = document.getElementById('btn-cancel-modal');
+      const btnConfirmModal = document.getElementById('btn-confirm-modal');
+      const btnCloseModalX = document.getElementById('btn-close-modal-x');
+
+      let confirmCallback = null;
+
+      function showConfirmationModal({ title, message, cancelText, confirmText, onConfirm }) {
+        modalTitle.textContent = title;
+        modalMessage.innerHTML = message;
+        btnCancelModal.textContent = cancelText || 'No, Cancel';
+        btnConfirmModal.textContent = confirmText || 'Yes, Save Changes';
+        confirmCallback = onConfirm;
+
+        confModal.classList.remove('hidden');
+        
+        // Trigger reflow to start transition
+        void confModal.offsetHeight;
+
+        modalPanel.classList.remove('opacity-0', 'scale-95');
+        modalPanel.classList.add('opacity-100', 'scale-100');
+      }
+
+      function hideConfirmationModal() {
+        modalPanel.classList.remove('opacity-100', 'scale-100');
+        modalPanel.classList.add('opacity-0', 'scale-95');
+        setTimeout(() => {
+          confModal.classList.add('hidden');
+        }, 300);
+      }
+
+      if (btnCancelModal) btnCancelModal.addEventListener('click', hideConfirmationModal);
+      if (btnCloseModalX) btnCloseModalX.addEventListener('click', hideConfirmationModal);
+      if (modalBackdrop) modalBackdrop.addEventListener('click', hideConfirmationModal);
+
+      if (btnConfirmModal) {
+        btnConfirmModal.addEventListener('click', () => {
+          if (confirmCallback) {
+            confirmCallback();
+          }
+          hideConfirmationModal();
+        });
+      }
+
+      function saveCurrentInputStates() {
+        const inpStoreName = document.getElementById('inp-store-name');
+        if (inpStoreName) storeName = inpStoreName.value.trim();
+
+        const inpStoreDesc = document.getElementById('inp-store-desc');
+        if (inpStoreDesc) description = inpStoreDesc.value.trim();
+
+        const inpContactPhone = document.getElementById('inp-contact-phone');
+        if (inpContactPhone) contactNumber = inpContactPhone.value.trim();
+
+        const inpBusinessHours = document.getElementById('inp-business-hours');
+        if (inpBusinessHours) businessHours = inpBusinessHours.value.trim();
+
+        const inpFacebookLink = document.getElementById('inp-facebook-link');
+        if (inpFacebookLink) facebookLink = inpFacebookLink.value.trim();
+
+        const inpStoreAddress = document.getElementById('inp-store-address');
+        if (inpStoreAddress) storeAddress = inpStoreAddress.value.trim();
+
+        const inpGcashName = document.getElementById('inp-gcash-name');
+        if (inpGcashName) gcashName = inpGcashName.value.trim();
+
+        const inpGcashPhone = document.getElementById('inp-gcash-phone');
+        if (inpGcashPhone) gcashNumber = inpGcashPhone.value.trim();
+      }
+
+      function renderSettingsPanel() {
+        targetSpace.innerHTML = `
+          <div class="max-w-4xl mx-auto space-y-10 pb-20">
+            
+            <!-- Storefront Customization Section -->
+            <div class="bg-white rounded-3xl border border-gray-200 shadow-sm p-8 sm:p-10 space-y-8">
+              <div class="pb-6 border-b border-gray-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <p class="text-base text-black font-semibold leading-relaxed">Customize the branding and assets of your customer-facing storefront homepage.</p>
+                </div>
+                <a href="../index.html" target="_blank" id="btn-view-storefront" class="px-5 py-3 bg-white hover:bg-green-50/50 border border-[#1E6C02] text-[#1E6C02] active:scale-[0.98] font-black text-sm uppercase tracking-wider rounded-xl cursor-pointer shadow-xs inline-flex items-center justify-center gap-2 transition-all hover:scale-[1.01] select-none shrink-0">
+                  👁️ View Storefront
+                </a>
+              </div>
+
+              <div class="space-y-8 font-bold text-gray-900">
+                
+                <!-- Logo & Banner Upload Row -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <div class="space-y-3">
+                    <label class="text-base font-bold text-gray-900 tracking-wide block mb-1">Store Logo Image</label>
+                    <div class="flex items-center gap-5 mt-2">
+                      <div class="w-24 h-24 rounded-full overflow-hidden flex items-center justify-center border-2 border-gray-200 shadow-sm shrink-0 bg-gray-50">
+                        <img id="img-logo-current" src="${logoBase64}" alt="Logo" class="w-full h-full object-cover" />
+                      </div>
+                      <div class="space-y-2.5">
+                        <input type="file" id="inp-store-logo-file" class="hidden" accept="image/png, image/jpeg, image/webp" />
+                        <button type="button" id="btn-upload-logo" class="px-4 py-2.5 bg-white hover:bg-green-50/50 border border-[#1E6C02] text-[#1E6C02] active:scale-[0.98] font-bold text-xs uppercase tracking-wider rounded-xl cursor-pointer shadow-xs inline-flex items-center justify-center gap-2 transition-all hover:scale-[1.01] select-none">
+                          📤 Upload Logo
+                        </button>
+                        <span class="block text-sm text-black font-bold leading-tight">PNG, JPG, WEBP. Max 5 MB.</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Banner Upload -->
+                  <div class="space-y-3">
+                    <label class="text-base font-bold text-gray-900 tracking-wide block mb-1">Homepage Hero Banner</label>
+                    <div class="flex items-center gap-5 mt-2">
+                      <div class="w-32 h-20 rounded-xl overflow-hidden flex items-center justify-center border-2 border-gray-200 shadow-sm shrink-0 bg-gray-50">
+                        <img id="img-banner-current" src="${bannerBase64}" alt="Banner" class="w-full h-full object-cover" />
+                      </div>
+                      <div class="space-y-2.5">
+                        <input type="file" id="inp-store-banner-file" class="hidden" accept="image/png, image/jpeg, image/webp" />
+                        <button type="button" id="btn-upload-banner" class="px-4 py-2.5 bg-white hover:bg-green-50/50 border border-[#1E6C02] text-[#1E6C02] active:scale-[0.98] font-bold text-xs uppercase tracking-wider rounded-xl cursor-pointer shadow-xs inline-flex items-center justify-center gap-2 transition-all hover:scale-[1.01] select-none">
+                          📤 Upload Banner
+                        </button>
+                        <span class="block text-sm text-black font-bold leading-tight">PNG, JPG, WEBP. Max 10 MB.</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Store Name -->
+                <div class="space-y-3">
+                  <label class="text-base font-bold text-gray-900 tracking-wide block">Store Brand Name</label>
+                  <input type="text" id="inp-store-name" value="${storeName}" placeholder="e.g. Aurora Rice Store" class="w-full bg-gray-50 border-2 border-gray-200 text-lg font-bold text-gray-950 px-5 py-4 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-[#1E6C02]/20 focus:border-[#1E6C02] placeholder-gray-500 transition-all duration-200" />
+                </div>
+
+                <!-- Store Description -->
+                <div class="space-y-3">
+                  <label class="text-base font-bold text-gray-900 tracking-wide block">Store Introduction / About Description</label>
+                  <textarea id="inp-store-desc" rows="4" placeholder="Describe your store and value propositions..." class="w-full bg-gray-50 border-2 border-gray-200 text-lg font-bold text-gray-950 p-5 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-[#1E6C02]/20 focus:border-[#1E6C02] placeholder-gray-500 transition-all duration-200">${description}</textarea>
+                </div>
+              </div>
+
+              <!-- Storefront Save Row -->
+              <div class="pt-6 border-t border-gray-200 flex items-center justify-between">
+                <button id="btn-save-storefront" class="px-6 py-4 bg-[#1E6C02] hover:bg-[#145001] active:scale-[0.98] text-white font-black text-sm uppercase tracking-wider rounded-xl cursor-pointer shadow-md inline-flex items-center justify-center gap-2.5 transition-all hover:scale-[1.01] border border-transparent select-none w-full sm:w-auto">
+                  💾 Save Changes
+                </button>
+              </div>
+            </div>
+
+            <!-- Contact Information Section -->
+            <div class="bg-white rounded-3xl border border-gray-200 shadow-sm p-8 sm:p-10 space-y-8">
+              <div class="pb-6 border-b border-gray-200">
+                <h3 class="text-2xl font-black text-gray-950 tracking-tight">Contact Information</h3>
+                <p class="text-base text-black font-semibold mt-2 leading-relaxed">Customize default address, contact lines, and active communication links.</p>
+              </div>
+
+              <div class="space-y-6 font-bold text-gray-900">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div class="space-y-3">
+                    <label class="text-base font-bold text-gray-900 tracking-wide block">Official Mobile Contact Point</label>
+                    <input type="text" id="inp-contact-phone" value="${contactNumber}" class="w-full bg-gray-50 border-2 border-gray-200 text-lg font-bold text-gray-950 px-5 py-4 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-[#1E6C02]/20 focus:border-[#1E6C02] placeholder-gray-500 transition-all duration-200" />
+                  </div>
+
+                  <div class="space-y-3">
+                    <label class="text-base font-bold text-gray-900 tracking-wide block">Business Hours <span class="text-black font-medium">(Optional)</span></label>
+                    <input type="text" id="inp-business-hours" value="${businessHours}" placeholder="e.g. 8:00 AM - 5:00 PM (Mon - Sat)" class="w-full bg-gray-50 border-2 border-gray-200 text-lg font-bold text-gray-950 px-5 py-4 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-[#1E6C02]/20 focus:border-[#1E6C02] placeholder-gray-500 transition-all duration-200" />
+                  </div>
+                </div>
+
+                <div class="space-y-3">
+                  <label class="text-base font-bold text-gray-900 tracking-wide block">Facebook Page Link <span class="text-black font-medium">(Optional)</span></label>
+                  <input type="url" id="inp-facebook-link" value="${facebookLink}" placeholder="e.g. https://facebook.com/auroralocalrice" class="w-full bg-gray-50 border-2 border-gray-200 text-lg font-bold text-gray-950 px-5 py-4 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-[#1E6C02]/20 focus:border-[#1E6C02] placeholder-gray-500 transition-all duration-200" />
+                </div>
+
+                <div class="space-y-3">
+                  <label class="text-base font-bold text-gray-900 tracking-wide block">Physical Store / Supplier Address</label>
+                  <textarea id="inp-store-address" rows="3" class="w-full bg-gray-50 border-2 border-gray-200 text-lg font-bold text-gray-950 p-5 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-[#1E6C02]/20 focus:border-[#1E6C02] placeholder-gray-500 transition-all duration-200">${storeAddress}</textarea>
+                </div>
+              </div>
+
+              <!-- Contact Save Row -->
+              <div class="pt-6 border-t border-gray-200 flex items-center justify-between">
+                <button id="btn-save-contact" class="px-6 py-4 bg-[#1E6C02] hover:bg-[#145001] active:scale-[0.98] text-white font-black text-sm uppercase tracking-wider rounded-xl cursor-pointer shadow-md inline-flex items-center justify-center gap-2.5 transition-all hover:scale-[1.01] border border-transparent select-none w-full sm:w-auto">
+                  💾 Save Changes
+                </button>
+              </div>
+            </div>
+
+            <!-- GCash Payment Information Section -->
+            <div class="bg-white rounded-3xl border border-gray-200 shadow-sm p-8 sm:p-10 space-y-8">
+              <div class="pb-6 border-b border-gray-200">
+                <h3 class="text-2xl font-black text-gray-950 tracking-tight">GCash Payment Information</h3>
+              </div>
+
+              <div class="space-y-6 font-bold text-gray-900">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div class="space-y-3">
+                    <label class="text-base font-bold text-gray-900 tracking-wide block">GCash Beneficiary Match Name</label>
+                    <input type="text" id="inp-gcash-name" value="${gcashName}" class="w-full bg-gray-50 border-2 border-gray-200 text-lg font-bold text-gray-950 px-5 py-4 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-[#1E6C02]/20 focus:border-[#1E6C02] placeholder-gray-500 transition-all duration-200" />
+                  </div>
+                  <div class="space-y-3">
+                    <label class="text-base font-bold text-gray-900 tracking-wide block">Registered GCash Number</label>
+                    <input type="text" id="inp-gcash-phone" value="${gcashNumber}" class="w-full bg-gray-50 border-2 border-gray-200 text-lg font-bold text-gray-950 px-5 py-4 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-[#1E6C02]/20 focus:border-[#1E6C02] placeholder-gray-500 transition-all duration-200" />
+                  </div>
+                </div>
+
+                <!-- QR Upload -->
+                <div class="space-y-3">
+                  <label class="text-base font-bold text-gray-900 tracking-wide block">GCash Merchant QR Code Badge</label>
+                  <div class="flex flex-col sm:flex-row items-center gap-6 p-6 border-2 border-gray-200 rounded-2xl bg-gray-50/50">
+                    <div class="w-28 h-28 bg-white border border-gray-200 rounded-2xl overflow-hidden flex items-center justify-center p-2 shrink-0 shadow-sm">
+                      <img id="img-gcash-qr" src="${gcashQrBase64 || fallbackQrSvg}" alt="GCash QR Code" class="w-full h-full object-contain" />
+                    </div>
+                    <div class="text-center sm:text-left space-y-3">
+                      <input type="file" id="inp-gcash-qr-file" class="hidden" accept="image/png, image/jpeg, image/webp" />
+                      <div class="flex flex-wrap gap-3.5 justify-center sm:justify-start">
+                        <button type="button" id="btn-upload-gcash" class="px-4 py-2.5 bg-white hover:bg-green-50/50 border border-[#1E6C02] text-[#1E6C02] active:scale-[0.98] font-bold text-xs uppercase tracking-wider rounded-xl cursor-pointer shadow-xs inline-flex items-center justify-center gap-2 transition-all hover:scale-[1.01] select-none">
+                          📤 Upload GCash QR
+                        </button>
+                        ${gcashQrBase64 ? `
+                          <button type="button" id="btn-reset-gcash" class="px-4 py-2.5 bg-red-50 hover:bg-red-100 text-red-650 font-bold text-xs uppercase tracking-wider rounded-xl transition-all cursor-pointer border border-red-200">
+                            ❌ Remove QR Code
+                          </button>
+                        ` : ''}
+                      </div>
+                      <p class="text-sm text-black font-bold leading-normal">Loads a dedicated merchant QR code. Acceptable: JPG, PNG, WEBP. Max size 5 MB.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- GCash Save Row -->
+              <div class="pt-6 border-t border-gray-200 flex items-center justify-between">
+                <button id="btn-save-gcash" class="px-6 py-4 bg-[#1E6C02] hover:bg-[#145001] active:scale-[0.98] text-white font-black text-sm uppercase tracking-wider rounded-xl cursor-pointer shadow-md inline-flex items-center justify-center gap-2.5 transition-all hover:scale-[1.01] border border-transparent select-none w-full sm:w-auto">
+                  💾 Save Changes
+                </button>
+              </div>
+            </div>
+
+            <!-- Change Password Card -->
+            <div class="bg-white rounded-3xl border border-gray-200 shadow-sm p-8 sm:p-10 space-y-8">
+              <div class="pb-6 border-b border-gray-200">
+                <h3 class="text-2xl font-black text-gray-950 tracking-tight">Change Password</h3>
+              </div>
+              
+              <div class="space-y-6 max-w-lg font-bold text-gray-900">
+                <div class="space-y-3">
+                  <label class="text-base font-bold text-gray-900 tracking-wide block">Current Password</label>
+                  <input type="password" id="inp-pass-current" placeholder="Enter current password" class="w-full bg-gray-50 border-2 border-gray-200 text-lg font-bold text-gray-950 px-5 py-4 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-[#1E6C02]/20 focus:border-[#1E6C02] placeholder-gray-500 transition-all duration-200" />
+                </div>
+
+                <div class="space-y-3">
+                  <label class="text-base font-bold text-gray-900 tracking-wide block">New Password</label>
+                  <input type="password" id="inp-pass-new" placeholder="Enter new password" class="w-full bg-gray-50 border-2 border-gray-200 text-lg font-bold text-gray-950 px-5 py-4 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-[#1E6C02]/20 focus:border-[#1E6C02] placeholder-gray-500 transition-all duration-200" />
+                </div>
+
+                <div class="space-y-3">
+                  <label class="text-base font-bold text-gray-900 tracking-wide block">Confirm New Password</label>
+                  <input type="password" id="inp-pass-confirm" placeholder="Confirm new password" class="w-full bg-gray-50 border-2 border-gray-200 text-lg font-bold text-gray-950 px-5 py-4 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-[#1E6C02]/20 focus:border-[#1E6C02] placeholder-gray-500 transition-all duration-200" />
+                </div>
+
+                <div class="pt-2">
+                  <button id="btn-change-password" class="px-6 py-4 bg-[#1E6C02] hover:bg-[#145001] active:scale-[0.98] text-white font-black text-sm uppercase tracking-wider rounded-xl cursor-pointer shadow-md inline-flex items-center justify-center gap-2.5 transition-all hover:scale-[1.01] border border-transparent select-none w-full sm:w-auto">
+                    Change Password
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+
+        // Attach events
+        bindSettingsActions();
+      }
+
+      function bindSettingsActions() {
+        // Logo upload handlers
+        document.getElementById('btn-upload-logo').addEventListener('click', () => {
+          document.getElementById('inp-store-logo-file').click();
+        });
+
+        document.getElementById('inp-store-logo-file').addEventListener('change', (e) => {
+          const file = e.target.files[0];
+          if (!file) return;
+
+          const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+          if (!allowedTypes.includes(file.type)) {
+            showToast('Invalid file format! Please upload JPG, PNG, or WEBP.', 'error');
+            return;
+          }
+
+          if (file.size > 5 * 1024 * 1024) {
+            showToast('Logo file size exceeds the 5MB limit!', 'error');
+            return;
+          }
+
+          const reader = new FileReader();
+          reader.onload = function(evt) {
+            logoBase64 = evt.target.result;
+            document.getElementById('img-logo-current').src = logoBase64;
+            showToast('Logo loaded successfully!');
+          };
+          reader.readAsDataURL(file);
+        });
+
+        // Banner upload handlers
+        document.getElementById('btn-upload-banner').addEventListener('click', () => {
+          document.getElementById('inp-store-banner-file').click();
+        });
+
+        document.getElementById('inp-store-banner-file').addEventListener('change', (e) => {
+          const file = e.target.files[0];
+          if (!file) return;
+
+          const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+          if (!allowedTypes.includes(file.type)) {
+            showToast('Invalid file format! Please upload JPG, PNG, or WEBP.', 'error');
+            return;
+          }
+
+          if (file.size > 10 * 1024 * 1024) {
+            showToast('Banner file size exceeds the 10MB limit!', 'error');
+            return;
+          }
+
+          const reader = new FileReader();
+          reader.onload = function(evt) {
+            bannerBase64 = evt.target.result;
+            document.getElementById('img-banner-current').src = bannerBase64;
+            showToast('Banner loaded successfully!');
+          };
+          reader.readAsDataURL(file);
+        });
+
+        // GCash QR upload handlers
+        document.getElementById('btn-upload-gcash').addEventListener('click', () => {
+          document.getElementById('inp-gcash-qr-file').click();
+        });
+
+        document.getElementById('inp-gcash-qr-file').addEventListener('change', (e) => {
+          const file = e.target.files[0];
+          if (!file) return;
+
+          const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+          if (!allowedTypes.includes(file.type)) {
+            showToast('Invalid file format! Please upload JPG, PNG, or WEBP.', 'error');
+            return;
+          }
+
+          if (file.size > 5 * 1024 * 1024) {
+            showToast('QR Code file size exceeds the 5MB limit!', 'error');
+            return;
+          }
+
+          const reader = new FileReader();
+          reader.onload = function(evt) {
+            gcashQrBase64 = evt.target.result;
+            document.getElementById('img-gcash-qr').src = gcashQrBase64;
+            showToast('GCash QR loaded successfully!');
+            saveCurrentInputStates();
+            renderSettingsPanel(); // Rerender to show reset button
+          };
+          reader.readAsDataURL(file);
+        });
+
+        // Reset GCash QR Code (falls back to placeholder)
+        const btnResetGcash = document.getElementById('btn-reset-gcash');
+        if (btnResetGcash) {
+          btnResetGcash.addEventListener('click', () => {
+            gcashQrBase64 = '';
+            document.getElementById('img-gcash-qr').src = fallbackQrSvg;
+            showToast('GCash QR cleared successfully!');
+            saveCurrentInputStates();
+            renderSettingsPanel();
+          });
+        }
+
+        // Action 1: Save Storefront Customization
+        const btnSaveStorefront = document.getElementById('btn-save-storefront');
+        if (btnSaveStorefront) {
+          btnSaveStorefront.addEventListener('click', () => {
+            const sName = document.getElementById('inp-store-name').value.trim();
+            const sDesc = document.getElementById('inp-store-desc').value.trim();
+
+            if (!sName) {
+              showToast('Store Brand Name is required!', 'error');
+              return;
+            }
+
+            showConfirmationModal({
+              title: 'Save Changes',
+              message: 'Are you sure you want to save these changes?<br><br>These updates will immediately be applied to the storefront.',
+              cancelText: 'No, Cancel',
+              confirmText: 'Yes, Save Changes',
+              onConfirm: () => {
+                // Save to localStorage
+                localStorage.setItem('settings-store-name', sName);
+                localStorage.setItem('settings-store-description', sDesc);
+                localStorage.setItem('settings-store-logo', logoBase64);
+                localStorage.setItem('settings-store-banner', bannerBase64);
+
+                storeName = sName;
+                description = sDesc;
+
+                addActivityLog('System', 'Updated Storefront Information');
+                showToast('Storefront updated successfully.', 'success');
+
+                // Re-render admin sidebar layout and panel
+                renderAdminLayout('settings');
+                renderSettingsPanel();
+              }
+            });
+          });
+        }
+
+        // Action 2: Save Contact Information
+        const btnSaveContact = document.getElementById('btn-save-contact');
+        if (btnSaveContact) {
+          btnSaveContact.addEventListener('click', () => {
+            const sPhone = document.getElementById('inp-contact-phone').value.trim();
+            const sHours = document.getElementById('inp-business-hours').value.trim();
+            const sFb = document.getElementById('inp-facebook-link').value.trim();
+            const sAddr = document.getElementById('inp-store-address').value.trim();
+
+            if (!sPhone || !sAddr) {
+              showToast('Official Contact Point and Physical Store Address are required!', 'error');
+              return;
+            }
+
+            showConfirmationModal({
+              title: 'Save Changes',
+              message: 'Are you sure you want to save these changes?<br><br>These updates will immediately be applied to the storefront.',
+              cancelText: 'No, Cancel',
+              confirmText: 'Yes, Save Changes',
+              onConfirm: () => {
+                localStorage.setItem('settings-contact-number', sPhone);
+                localStorage.setItem('settings-business-hours', sHours);
+                localStorage.setItem('settings-facebook-link', sFb);
+                localStorage.setItem('settings-store-address', sAddr);
+
+                contactNumber = sPhone;
+                businessHours = sHours;
+                facebookLink = sFb;
+                storeAddress = sAddr;
+
+                addActivityLog('System', 'Updated storefront contact details and address');
+                showToast('Contact information updated successfully.', 'success');
+
+                renderSettingsPanel();
+              }
+            });
+          });
+        }
+
+        // Action 3: Save GCash Payment Information
+        const btnSaveGcash = document.getElementById('btn-save-gcash');
+        if (btnSaveGcash) {
+          btnSaveGcash.addEventListener('click', () => {
+            const gName = document.getElementById('inp-gcash-name').value.trim();
+            const gPhone = document.getElementById('inp-gcash-phone').value.trim();
+
+            if (!gName || !gPhone) {
+              showToast('GCash Beneficiary Match Name and Registered GCash Number are required!', 'error');
+              return;
+            }
+
+            showConfirmationModal({
+              title: 'Save Changes',
+              message: 'Are you sure you want to save these changes?<br><br>These updates will immediately be applied to the storefront.',
+              cancelText: 'No, Cancel',
+              confirmText: 'Yes, Save Changes',
+              onConfirm: () => {
+                localStorage.setItem('settings-gcash-name', gName);
+                localStorage.setItem('settings-gcash-number', gPhone);
+                localStorage.setItem('settings-gcash-qr', gcashQrBase64);
+
+                gcashName = gName;
+                gcashNumber = gPhone;
+
+                const currentSettings = getStoreSettings();
+                saveFirestoreDoc('storeSettings', 'main', currentSettings);
+                if (typeof window !== 'undefined') {
+                  window.dispatchEvent(new CustomEvent('aurora-sync-event', { detail: { key: 'settings-gcash' } }));
+                }
+
+                addActivityLog('System', 'Updated GCash payment configurations');
+                showToast('GCash payment information updated successfully.', 'success');
+
+                renderSettingsPanel();
+              }
+            });
+          });
+        }
+
+        // Action 4: Change Password
+        const btnChangePassword = document.getElementById('btn-change-password');
+        if (btnChangePassword) {
+          btnChangePassword.addEventListener('click', () => {
+            const cur = document.getElementById('inp-pass-current').value;
+            const nPass = document.getElementById('inp-pass-new').value;
+            const conf = document.getElementById('inp-pass-confirm').value;
+
+            if (!cur || !nPass || !conf) {
+              showToast('Kindly fill all parameters!', 'error');
+              return;
+            }
+
+            if (nPass !== conf) {
+              showToast('Passwords do not match!', 'error');
+              return;
+            }
+
+            if (nPass.length < 3) {
+              showToast('Password is too short!', 'error');
+              return;
+            }
+
+            showConfirmationModal({
+              title: 'Change Password',
+              message: 'Are you sure you want to update your administrator password?<br><br>You will need to use your new password the next time you log in.',
+              cancelText: 'No',
+              confirmText: 'Yes, Change Password',
+              onConfirm: async () => {
+                try {
+                  if (auth && auth.currentUser) {
+                    await updatePassword(auth.currentUser, nPass);
+                  }
+                  addActivityLog('Authentication', 'Changed administrative login credentials key');
+                  showToast('Password changed successfully in Firebase Authentication.', 'success');
+
+                  document.getElementById('inp-pass-current').value = '';
+                  document.getElementById('inp-pass-new').value = '';
+                  document.getElementById('inp-pass-confirm').value = '';
+                } catch (err) {
+                  console.error('[SETTINGS] Password change error:', err);
+                  if (err.code === 'auth/requires-recent-login') {
+                    showToast('For security reasons, please log out and log back in before updating your password.', 'error');
+                  } else {
+                    showToast(err.message || 'Failed to update password.', 'error');
+                  }
+                }
+              }
+            });
+          });
+        }
+      }
+
+      // Initial loading render Settings Panel
+      renderSettingsPanel();
+    });
+  </script>
+</body>
+</html>
