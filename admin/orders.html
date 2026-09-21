@@ -37,6 +37,18 @@
       max-width: 100%;
       max-height: 100%;
     }
+    /* Make QR camera feed 100% visible and unobstructed by removing dark masking */
+    #qr-shaded-region {
+      border-color: transparent !important;
+      box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, 0.4) !important;
+      pointer-events: none !important;
+    }
+    /* Clean, crisp corner brackets directly aligned with actual detection bounds */
+    #qr-shaded-region > div {
+      border-radius: 2px !important;
+      box-shadow: 0 0 4px rgba(0, 0, 0, 0.6) !important;
+      pointer-events: none !important;
+    }
   </style>
   <!-- HTML5 QR Code Library CDN -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js" crossorigin="anonymous"></script>
@@ -87,19 +99,6 @@
             <!-- Default Normal Scanner state -->
             <div id="camera-active-container" class="absolute inset-0 w-full h-full flex items-center justify-center">
               <div id="qr-reader" class="w-full h-full"></div>
-              
-              <!-- Green scanning target frame overlay -->
-              <div class="absolute inset-0 pointer-events-none flex items-center justify-center">
-                <div class="w-56 h-56 border border-dashed border-white/50 rounded-2xl relative flex items-center justify-center">
-                  <div class="absolute top-0 left-0 w-6 h-6 border-t-4 border-l-4 border-emerald-500 -mt-0.5 -ml-0.5 rounded-tl-md"></div>
-                  <div class="absolute top-0 right-0 w-6 h-6 border-t-4 border-r-4 border-emerald-500 -mt-0.5 -mr-0.5 rounded-tr-md"></div>
-                  <div class="absolute bottom-0 left-0 w-6 h-6 border-b-4 border-l-4 border-emerald-500 -mb-0.5 -ml-0.5 rounded-bl-md"></div>
-                  <div class="absolute bottom-0 right-0 w-6 h-6 border-b-4 border-r-4 border-emerald-500 -mb-0.5 -mr-0.5 rounded-br-md"></div>
-                  
-                  <!-- Scanning green bounce line -->
-                  <div class="absolute w-full h-0.5 bg-emerald-400/80 shadow-[0_0_8px_rgba(52,211,153,0.8)] animate-bounce"></div>
-                </div>
-              </div>
               
               <!-- Active Camera Floating Pill -->
               <div class="absolute top-3 left-3 bg-black/70 px-3 py-1.5 rounded-full flex items-center gap-1.5 text-[10px] text-white font-extrabold tracking-wider">
@@ -2383,7 +2382,7 @@
           }
         };
 
-        // Mobile video playback enforcer
+        // Mobile video playback and clear view enforcer
         const enforceVideoPlayback = () => {
           const video = document.querySelector('#qr-reader video');
           if (video) {
@@ -2398,6 +2397,10 @@
                 console.warn('[DEBUG] video.play() deferred:', e);
               });
             }
+          }
+          const shadedRegion = document.getElementById('qr-shaded-region');
+          if (shadedRegion) {
+            shadedRegion.style.borderColor = 'transparent';
           }
         };
 
