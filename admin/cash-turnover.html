@@ -5,8 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Cash Turnover Verification | Aurora Rice Admin</title>
   <link rel="stylesheet" href="../src/styles/index.css">
+  <style id="auth-guard-style">body { visibility: hidden !important; }</style>
 </head>
 <body class="bg-[#F5F5F5] min-h-screen">
+  <div id="auth-guard-loader" class="fixed inset-0 bg-[#F5F5F5] z-[99999] flex flex-col items-center justify-center font-sans">
+    <div class="w-9 h-9 border-3 border-[#1E6C02]/20 border-t-[#1E6C02] rounded-full animate-spin mb-3"></div>
+    <p class="text-xs font-semibold text-gray-700">Verifying administrative access...</p>
+  </div>
 
   <div id="admin-layout-container"></div>
 
@@ -93,6 +98,7 @@
 
   <script type="module">
     import {
+      protectAdminPage,
       renderAdminLayout,
       getCurrentAdmin,
       getOrders,
@@ -103,20 +109,16 @@
       addActivityLog
     } from '../src/app/shared.js';
 
-    document.addEventListener('DOMContentLoaded', () => {
-      // Initialize Sidebar
+    document.addEventListener('DOMContentLoaded', async () => {
+      // 1. Authoritative access control check (Admin only)
+      const authResult = await protectAdminPage({ requiredRole: 'admin' });
+      if (!authResult || !authResult.ok) return;
+
+      // 2. Initialize Sidebar
       renderAdminLayout('cash-turnover');
 
       const targetSpace = document.getElementById('admin-main-content');
       if (!targetSpace) return;
-
-      // Verify Administrator Access Only
-      const cAdmin = getCurrentAdmin();
-      if (!cAdmin || cAdmin.role !== 'admin') {
-        alert('Access Restrained: Cash Turnover Verification requires system administrator clearance.');
-        window.location.href = '../admin/dashboard.html';
-        return;
-      }
 
       let activeFilterTab = 'all'; // 'all', 'pending', 'verified', 'no-collection'
       let selectedDateFilter = '';

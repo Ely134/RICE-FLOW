@@ -23,8 +23,13 @@
       background: #145001;
     }
   </style>
+  <style id="auth-guard-style">body { visibility: hidden !important; }</style>
 </head>
 <body class="bg-[#F5F5F5] min-h-screen">
+  <div id="auth-guard-loader" class="fixed inset-0 bg-[#F5F5F5] z-[99999] flex flex-col items-center justify-center font-sans">
+    <div class="w-9 h-9 border-3 border-[#1E6C02]/20 border-t-[#1E6C02] rounded-full animate-spin mb-3"></div>
+    <p class="text-xs font-semibold text-gray-700">Verifying administrative access...</p>
+  </div>
 
   <div id="admin-layout-container"></div>
 
@@ -402,10 +407,14 @@
 
   <!-- Products Controller logic -->
   <script type="module">
-    import { renderAdminLayout, getProducts, saveProducts, addActivityLog, showToast, allocateStockToReservations, addInventoryHistory, getCurrentAdmin } from '../src/app/shared.js';
+    import { protectAdminPage, renderAdminLayout, getProducts, saveProducts, addActivityLog, showToast, allocateStockToReservations, addInventoryHistory, getCurrentAdmin } from '../src/app/shared.js';
     import { storage, storageRef, uploadBytes, getDownloadURL } from '../src/lib/firebase.js';
 
-    document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener('DOMContentLoaded', async () => {
+      // 1. Authoritative access control check
+      const authResult = await protectAdminPage({ requiredRole: 'any' });
+      if (!authResult || !authResult.ok) return;
+
       renderAdminLayout('products');
 
       const currentAdmin = getCurrentAdmin() || { role: 'staff' };

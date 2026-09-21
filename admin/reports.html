@@ -35,8 +35,13 @@
       transform: rotateX(180deg);
     }
   </style>
+  <style id="auth-guard-style">body { visibility: hidden !important; }</style>
 </head>
 <body class="bg-[#F8FAF9] min-h-screen text-slate-800 antialiased">
+  <div id="auth-guard-loader" class="fixed inset-0 bg-[#F5F5F5] z-[99999] flex flex-col items-center justify-center font-sans">
+    <div class="w-9 h-9 border-3 border-[#1E6C02]/20 border-t-[#1E6C02] rounded-full animate-spin mb-3"></div>
+    <p class="text-xs font-semibold text-gray-700">Verifying administrative access...</p>
+  </div>
 
   <div id="admin-layout-container"></div>
 
@@ -44,10 +49,14 @@
 
   <!-- Complete Redesigned Interactive Analytical Reporting System -->
   <script type="module">
-    import { renderAdminLayout, getAllOrders, showToast, addActivityLog, getVerifiedCustomerPaymentInfo, isReservationOrder, isCancelledOrRejectedOrder } from '../src/app/shared.js';
+    import { protectAdminPage, renderAdminLayout, getAllOrders, showToast, addActivityLog, getVerifiedCustomerPaymentInfo, isReservationOrder, isCancelledOrRejectedOrder } from '../src/app/shared.js';
 
-    document.addEventListener('DOMContentLoaded', () => {
-      // 1. Initialise the standard admin layout
+    document.addEventListener('DOMContentLoaded', async () => {
+      // 1. Authoritative access control check
+      const authResult = await protectAdminPage({ requiredRole: 'any' });
+      if (!authResult || !authResult.ok) return;
+
+      // 2. Initialise the standard admin layout
       renderAdminLayout('reports');
 
       const targetSpace = document.getElementById('admin-main-content');

@@ -42,6 +42,27 @@ export {
   storage
 };
 import {
+  waitForAuthState,
+  fetchAuthoritativeAdminRecord,
+  checkAdminAuth,
+  protectAdminPage,
+  checkCustomerAuth,
+  protectCustomerPage,
+  revealProtectedPage,
+  getGuardPathPrefix
+} from '../lib/auth-guard.js';
+
+export {
+  waitForAuthState,
+  fetchAuthoritativeAdminRecord,
+  checkAdminAuth,
+  protectAdminPage,
+  checkCustomerAuth,
+  protectCustomerPage,
+  revealProtectedPage,
+  getGuardPathPrefix
+};
+import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signOut,
@@ -661,6 +682,13 @@ export function initDB() {
 
   if (auth && typeof onAuthStateChanged === 'function') {
     onAuthStateChanged(auth, async (fbUser) => {
+      if (!fbUser) {
+        localStorage.removeItem('aurora-user');
+        localStorage.setItem('aurora-logged-in', 'false');
+        localStorage.removeItem('aurora-admin-user');
+        localStorage.setItem('aurora-admin-logged-in', 'false');
+        return;
+      }
       if (fbUser && fbUser.email) {
         const fbEmailClean = String(fbUser.email).toLowerCase();
         
@@ -7446,9 +7474,17 @@ export function renderAdminLayout(activeTabId) {
 
   const p = getPathPrefix();
   const currentAdmin = getCurrentAdmin();
-  if (!currentAdmin) {
-    alert('Unauthorized: Access denied. Please log in as an administrator.');
-    window.location.href = p + 'login.html';
+  if (!currentAdmin || currentAdmin.isArchived) {
+    window.location.replace(p + 'login.html');
+    return;
+  }
+
+  // Preserve existing distinction between Admin and Staff permissions
+  if ((activeTabId === 'staff' || activeTabId === 'settings' || activeTabId === 'cash-turnover') && currentAdmin.role !== 'admin') {
+    try {
+      sessionStorage.setItem('admin-toast-message', 'Access denied: System administrator clearance is required.');
+    } catch (_) {}
+    window.location.replace(p + 'admin/dashboard.html');
     return;
   }
 

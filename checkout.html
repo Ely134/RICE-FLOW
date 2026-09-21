@@ -5,8 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Secured Checkout | RiceFlow</title>
   <link rel="stylesheet" href="src/styles/index.css">
+  <style id="auth-guard-style">body { visibility: hidden !important; }</style>
 </head>
 <body class="bg-[#F5F5F7] min-h-screen font-sans">
+  <div id="auth-guard-loader" class="fixed inset-0 bg-[#F5F5F5] z-[99999] flex flex-col items-center justify-center font-sans">
+    <div class="w-9 h-9 border-3 border-[#1E6C02]/20 border-t-[#1E6C02] rounded-full animate-spin mb-3"></div>
+    <p class="text-xs font-semibold text-gray-700">Verifying account access...</p>
+  </div>
 
   <!-- Dynamic Header Bar -->
   <div id="navbar-container"></div>
@@ -470,6 +475,7 @@
   <!-- Secured Checkout interactive JS -->
   <script type="module">
     import { 
+      protectCustomerPage,
       getCart, 
       clearCartItems, 
       addOrder, 
@@ -493,16 +499,13 @@
       verifyAndLinkPhoneCredential 
     } from './src/lib/firebase.js';
 
-    document.addEventListener('DOMContentLoaded', () => {
-      // 1. Authorization check
-      let user = getCurrentUser();
-      if (!user) {
-        showToast('Login is required to checkout bags', 'error');
-        setTimeout(() => {
-          window.location.href = 'login.html';
-        }, 1200);
-        return;
-      }
+    document.addEventListener('DOMContentLoaded', async () => {
+      // 1. Authoritative customer access control check
+      const authResult = await protectCustomerPage();
+      if (!authResult || !authResult.ok) return;
+
+      let user = authResult.user || getCurrentUser();
+      if (!user) return;
 
       // Prepopulate form values
       const inpFullName = document.getElementById('inp-fullName');

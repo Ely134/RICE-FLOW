@@ -9,8 +9,11 @@ service cloud.firestore {
 
     function isStaffOrAdmin() {
       return isSignedIn() && (
-        exists(/databases/$(database)/documents/adminUsers/$(request.auth.uid)) ||
-        (request.auth.token.email != null && exists(/databases/$(database)/documents/adminUsers/$(request.auth.token.email)))
+        (exists(/databases/$(database)/documents/adminUsers/$(request.auth.uid)) &&
+         get(/databases/$(database)/documents/adminUsers/$(request.auth.uid)).data.isArchived != true) ||
+        (request.auth.token.email != null &&
+         exists(/databases/$(database)/documents/adminUsers/$(request.auth.token.email)) &&
+         get(/databases/$(database)/documents/adminUsers/$(request.auth.token.email)).data.isArchived != true)
       );
     }
 

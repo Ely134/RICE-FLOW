@@ -394,8 +394,11 @@
           if (tryCustomer) {
             showToast('Logged in successfully!');
             setTimeout(() => {
-              const redirectPath = (sessionStorage.getItem('login-redirect') || 'index.html').replace(/^\//, '');
+              let redirectPath = (sessionStorage.getItem('login-redirect') || 'index.html').replace(/^\//, '');
               sessionStorage.removeItem('login-redirect');
+              if (redirectPath.includes('admin/')) {
+                redirectPath = 'profile.html';
+              }
               window.location.href = redirectPath;
             }, 800);
             return;
