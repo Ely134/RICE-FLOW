@@ -19,6 +19,7 @@
       position: relative;
       width: 100% !important;
       height: 100% !important;
+      min-height: 240px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -960,6 +961,7 @@
       let statusFilter = 'all';
       let focusedOrderInModal = null;
       let html5QrScanner = null;
+      let scannerObserver = null;
       let pendingAcceptOrderId = null;
       let pendingRejectOrderId = null;
       let pendingPrepareOrderId = null;
@@ -2312,9 +2314,11 @@
         } else {
           navigator.mediaDevices.getUserMedia({ video: true })
             .then(stream => {
-              // Permission verified! Stop dummy stream and launch scanner
+              // Permission verified! Stop dummy stream and launch scanner with small delay for mobile hardware release
               stream.getTracks().forEach(track => track.stop());
-              startCameraScanner();
+              setTimeout(() => {
+                startCameraScanner();
+              }, 80);
             })
             .catch(err => {
               console.warn('[DEBUG] Camera hardware permission denied:', err);
@@ -2345,7 +2349,9 @@
           navigator.mediaDevices.getUserMedia({ video: true })
             .then(stream => {
               stream.getTracks().forEach(track => track.stop());
-              startCameraScanner();
+              setTimeout(() => {
+                startCameraScanner();
+              }, 80);
             })
             .catch(err => {
               console.warn('[DEBUG] Camera permission retry denied:', err);
@@ -2371,11 +2377,41 @@
           fps: 15, 
           qrbox: (viewfinderWidth, viewfinderHeight) => {
             const minEdge = Math.min(viewfinderWidth, viewfinderHeight);
-            const edge = Math.max(140, Math.min(240, Math.floor(minEdge * 0.7)));
-            const safeEdge = Math.min(edge, Math.floor(minEdge * 0.85));
-            return { width: safeEdge, height: safeEdge };
+            const desired = Math.floor(minEdge * 0.7);
+            const safeBox = Math.max(60, Math.min(desired, Math.floor(minEdge * 0.85)));
+            return { width: safeBox, height: safeBox };
           }
         };
+
+        // Mobile video playback enforcer
+        const enforceVideoPlayback = () => {
+          const video = document.querySelector('#qr-reader video');
+          if (video) {
+            if (!video.hasAttribute('playsinline')) video.setAttribute('playsinline', 'true');
+            if (!video.hasAttribute('webkit-playsinline')) video.setAttribute('webkit-playsinline', 'true');
+            if (!video.hasAttribute('muted')) video.setAttribute('muted', 'true');
+            if (!video.hasAttribute('autoplay')) video.setAttribute('autoplay', 'true');
+            video.playsInline = true;
+            video.muted = true;
+            if (video.paused) {
+              video.play().catch(e => {
+                console.warn('[DEBUG] video.play() deferred:', e);
+              });
+            }
+          }
+        };
+
+        // Watch for video element injection to apply mobile inline attributes immediately
+        if (scannerObserver) {
+          try { scannerObserver.disconnect(); } catch (_) {}
+        }
+        const qrContainer = document.getElementById('qr-reader');
+        if (qrContainer) {
+          scannerObserver = new MutationObserver(() => {
+            enforceVideoPlayback();
+          });
+          scannerObserver.observe(qrContainer, { childList: true, subtree: true });
+        }
 
         const selectCameraAndStart = async () => {
           if (html5QrScanner) {
@@ -2386,9 +2422,19 @@
             }
           }
 
-          const qrContainer = document.getElementById('qr-reader');
-          qrContainer.innerHTML = ''; 
-          html5QrScanner = new Html5Qrcode("qr-reader");
+          // Wait for browser layout to settle so #qr-reader has valid non-zero dimensions
+          await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+
+          const container = document.getElementById('qr-reader');
+          if (container) container.innerHTML = '';
+
+          // Cross-device environment detection
+          const isMobileDevice = () => {
+            const ua = (navigator.userAgent || navigator.vendor || window.opera || '').toLowerCase();
+            const hasTouch = (navigator.maxTouchPoints && navigator.maxTouchPoints > 0) || ('ontouchstart' in window);
+            return /android|iphone|ipad|ipod|mobile|blackberry|iemobile|opera mini|webos/i.test(ua) || (hasTouch && /macintosh/i.test(ua));
+          };
+          const isMobile = isMobileDevice();
 
           let devices = [];
           try {
@@ -2409,37 +2455,65 @@
             : [];
           const candidatePool = suitableDevices.length > 0 ? suitableDevices : (devices || []);
 
-          let preferredTarget = null;
-          if (candidatePool.length > 0) {
+          const rawAttempts = [];
+
+          if (isMobile) {
+            // MOBILE STRATEGY:
+            // Mobile browsers natively select the primary rear camera when requested with { facingMode: "environment" }.
+            // Requesting device IDs directly on multi-lens Android phones often opens depth/macro/telephoto sensors which output black frames.
             if (currentFacingMode === "environment") {
-              // 1. Look for explicit rear/back camera (smartphones/tablets)
-              const rearCam = candidatePool.find(d => /back|rear|environment/i.test(d.label));
-              if (rearCam) {
-                preferredTarget = rearCam.id;
-              } else {
-                // 2. On laptops/desktops without a rear camera, prefer a standard optical webcam
-                const webcam = candidatePool.find(d => /integrated|webcam|facetime|front|hd|usb|camera/i.test(d.label));
-                preferredTarget = webcam ? webcam.id : candidatePool[0].id;
+              rawAttempts.push({ facingMode: "environment" });
+              const rearDevice = candidatePool.find(d => /back|rear|environment/i.test(d.label));
+              if (rearDevice && rearDevice.id) {
+                rawAttempts.push(rearDevice.id);
+              }
+              rawAttempts.push({ facingMode: "user" });
+              if (candidatePool.length > 0 && candidatePool[0].id) {
+                rawAttempts.push(candidatePool[0].id);
               }
             } else {
-              // User facing mode
-              const frontCam = candidatePool.find(d => /front|user|facing/i.test(d.label));
-              if (frontCam) {
-                preferredTarget = frontCam.id;
-              } else {
-                const webcam = candidatePool.find(d => /integrated|webcam|facetime|hd|usb|camera/i.test(d.label));
-                preferredTarget = webcam ? webcam.id : candidatePool[0].id;
+              rawAttempts.push({ facingMode: "user" });
+              const frontDevice = candidatePool.find(d => /front|user|facing/i.test(d.label));
+              if (frontDevice && frontDevice.id) {
+                rawAttempts.push(frontDevice.id);
+              }
+              rawAttempts.push({ facingMode: "environment" });
+              if (candidatePool.length > 0 && candidatePool[0].id) {
+                rawAttempts.push(candidatePool[0].id);
               }
             }
+          } else {
+            // DESKTOP / LAPTOP STRATEGY:
+            // Desktops/laptops generally lack a rear camera. Prioritize the optical webcam ID first to preserve the verified working laptop fix.
+            let preferredWebcamId = null;
+            if (candidatePool.length > 0) {
+              const webcam = candidatePool.find(d => /integrated|webcam|facetime|front|hd|usb|camera/i.test(d.label));
+              preferredWebcamId = webcam ? webcam.id : candidatePool[0].id;
+            }
+
+            if (currentFacingMode === "user") {
+              if (preferredWebcamId) rawAttempts.push(preferredWebcamId);
+              rawAttempts.push({ facingMode: "user" });
+              rawAttempts.push({ facingMode: "environment" });
+            } else {
+              if (preferredWebcamId) rawAttempts.push(preferredWebcamId);
+              rawAttempts.push({ facingMode: "user" });
+              rawAttempts.push({ facingMode: "environment" });
+            }
+            candidatePool.forEach(d => {
+              if (d.id) rawAttempts.push(d.id);
+            });
           }
 
+          // Deduplicate camera targets
           const attempts = [];
-          if (preferredTarget) {
-            attempts.push(preferredTarget);
-          }
-          attempts.push({ facingMode: { ideal: currentFacingMode } });
-          if (currentFacingMode !== "user") {
-            attempts.push({ facingMode: "user" });
+          const seen = new Set();
+          for (const att of rawAttempts) {
+            const key = typeof att === 'string' ? `id:${att}` : `facing:${att.facingMode}`;
+            if (!seen.has(key)) {
+              seen.add(key);
+              attempts.push(att);
+            }
           }
 
           let started = false;
@@ -2447,12 +2521,24 @@
 
           for (const target of attempts) {
             try {
+              const el = document.getElementById('qr-reader');
+              if (el) el.innerHTML = '';
+              html5QrScanner = new Html5Qrcode("qr-reader");
+
               await html5QrScanner.start(target, config, qrSuccessCallback);
               started = true;
+              enforceVideoPlayback();
+              console.log('[DEBUG] Camera successfully started with target:', target);
               break;
             } catch (err) {
               console.warn('[DEBUG] Camera start attempt failed for target:', target, err);
               lastErr = err;
+              try {
+                if (html5QrScanner && html5QrScanner.isScanning) {
+                  await html5QrScanner.stop();
+                }
+              } catch (_) {}
+              html5QrScanner = null;
             }
           }
 
@@ -2465,6 +2551,7 @@
           document.getElementById('camera-loading-container').classList.add('hidden');
           document.getElementById('camera-active-container').classList.remove('hidden');
           document.getElementById('camera-denied-container').classList.add('hidden');
+          enforceVideoPlayback();
         }).catch(err => {
           console.warn('[DEBUG] Html5Qrcode engine launch failure:', err);
           document.getElementById('camera-loading-container').classList.add('hidden');
@@ -2474,14 +2561,24 @@
       }
 
       function stopCameraScanner() {
+        if (scannerObserver) {
+          try { scannerObserver.disconnect(); } catch (_) {}
+          scannerObserver = null;
+        }
         if (html5QrScanner) {
-          return html5QrScanner.stop().then(() => {
-            html5QrScanner = null;
+          const scanner = html5QrScanner;
+          html5QrScanner = null;
+          return scanner.stop().then(() => {
+            const qrContainer = document.getElementById('qr-reader');
+            if (qrContainer) qrContainer.innerHTML = '';
           }).catch(err => {
             console.warn('[DEBUG] Camera stop error:', err);
-            html5QrScanner = null;
+            const qrContainer = document.getElementById('qr-reader');
+            if (qrContainer) qrContainer.innerHTML = '';
           });
         }
+        const qrContainer = document.getElementById('qr-reader');
+        if (qrContainer) qrContainer.innerHTML = '';
         return Promise.resolve();
       }
 
@@ -2495,8 +2592,10 @@
       });
 
       document.getElementById('btn-switch-camera').addEventListener('click', () => {
-        if (!html5QrScanner) return;
         currentFacingMode = currentFacingMode === "environment" ? "user" : "environment";
+        document.getElementById('camera-loading-container').classList.remove('hidden');
+        document.getElementById('camera-active-container').classList.remove('hidden');
+        document.getElementById('camera-denied-container').classList.add('hidden');
         stopCameraScanner().then(() => {
           startCameraScanner();
         });
