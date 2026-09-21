@@ -2470,11 +2470,22 @@ export async function updateUser(updatedFields) {
 
   const sanitizedFields = {};
   for (const key in updatedFields) {
-    if (typeof updatedFields[key] === 'string') {
+    if (key === 'profilePicture' || key === 'avatar') {
+      // Preserve base64 image data strings and URLs without corrupting forward slashes via HTML entity escaping
+      sanitizedFields[key] = updatedFields[key];
+    } else if (typeof updatedFields[key] === 'string') {
       sanitizedFields[key] = sanitizeInput(updatedFields[key]);
     } else {
       sanitizedFields[key] = updatedFields[key];
     }
+  }
+
+  // If profilePicture was not provided or is null without an explicit removal request, preserve existing profilePicture
+  if (
+    (sanitizedFields.profilePicture === undefined || (sanitizedFields.profilePicture === null && !updatedFields.removeProfilePicture)) &&
+    user.profilePicture
+  ) {
+    sanitizedFields.profilePicture = user.profilePicture;
   }
 
   const updatedAt = new Date().toISOString();

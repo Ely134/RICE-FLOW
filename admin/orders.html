@@ -14,6 +14,28 @@
     .top-scrollbar-container > table {
       transform: rotateX(180deg);
     }
+    /* QR Scanner Video Display Fix */
+    #qr-reader {
+      position: relative;
+      width: 100% !important;
+      height: 100% !important;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      border-radius: 1rem;
+    }
+    #qr-reader video {
+      width: 100% !important;
+      height: 100% !important;
+      object-fit: cover !important;
+      border-radius: 1rem;
+      display: block !important;
+    }
+    #qr-reader canvas {
+      max-width: 100%;
+      max-height: 100%;
+    }
   </style>
   <!-- HTML5 QR Code Library CDN -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js" crossorigin="anonymous"></script>
@@ -85,7 +107,7 @@
             </div>
 
             <!-- Denied Camera Permission Friendly State -->
-            <div id="camera-denied-container" class="hidden absolute inset-0 w-full h-full bg-gray-50 p-6 flex flex-col items-center justify-center text-center space-y-3 z-10">
+            <div id="camera-denied-container" class="hidden absolute inset-0 w-full h-full bg-gray-50 p-6 flex flex-col items-center justify-center text-center space-y-3 z-30">
               <div class="w-12 h-12 bg-red-50 text-red-650 rounded-full flex items-center justify-center text-xl font-bold">⚠️</div>
               <h4 class="text-[15px] font-bold text-black">Camera Access Denied</h4>
               <p class="text-[14px] text-black leading-normal max-w-xs font-normal">
@@ -102,9 +124,9 @@
             </div>
             
             <!-- Camera Loading placeholder / No Camera State -->
-            <div id="camera-loading-container" class="absolute inset-0 w-full h-full bg-gray-900 p-6 flex flex-col items-center justify-center text-center space-y-3">
+            <div id="camera-loading-container" class="absolute inset-0 w-full h-full bg-gray-900 p-6 flex flex-col items-center justify-center text-center space-y-3 z-20">
               <div class="w-10 h-10 border-4 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin"></div>
-              <p class="text-[14px] text-black font-normal">Initializing hardware camera...</p>
+              <p class="text-[14px] text-white font-normal">Initializing hardware camera...</p>
             </div>
           </div>
 
@@ -2311,7 +2333,7 @@
       // Denied View Try Again Trigger
       document.getElementById('btn-try-camera-again').addEventListener('click', () => {
         document.getElementById('camera-loading-container').classList.remove('hidden');
-        document.getElementById('camera-active-container').classList.add('hidden');
+        document.getElementById('camera-active-container').classList.remove('hidden');
         document.getElementById('camera-denied-container').classList.add('hidden');
         
         if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
@@ -2337,13 +2359,8 @@
       // HTML5 Camera Operations
       function startCameraScanner() {
         document.getElementById('camera-loading-container').classList.remove('hidden');
-        document.getElementById('camera-active-container').classList.add('hidden');
+        document.getElementById('camera-active-container').classList.remove('hidden');
         document.getElementById('camera-denied-container').classList.add('hidden');
-
-        const qrContainer = document.getElementById('qr-reader');
-        qrContainer.innerHTML = ''; 
-
-        html5QrScanner = new Html5Qrcode("qr-reader");
 
         const qrSuccessCallback = (decodedText, decodedResult) => {
           console.log('[DEBUG] Decoded text successfully:', decodedText);
@@ -2352,14 +2369,99 @@
 
         const config = { 
           fps: 15, 
-          qrbox: { width: 220, height: 220 }
+          qrbox: (viewfinderWidth, viewfinderHeight) => {
+            const minEdge = Math.min(viewfinderWidth, viewfinderHeight);
+            const edge = Math.max(140, Math.min(240, Math.floor(minEdge * 0.7)));
+            const safeEdge = Math.min(edge, Math.floor(minEdge * 0.85));
+            return { width: safeEdge, height: safeEdge };
+          }
         };
 
-        html5QrScanner.start(
-          { facingMode: currentFacingMode }, 
-          config, 
-          qrSuccessCallback
-        ).then(() => {
+        const selectCameraAndStart = async () => {
+          if (html5QrScanner) {
+            try {
+              await stopCameraScanner();
+            } catch (e) {
+              console.warn('[DEBUG] Previous scanner stop warning:', e);
+            }
+          }
+
+          const qrContainer = document.getElementById('qr-reader');
+          qrContainer.innerHTML = ''; 
+          html5QrScanner = new Html5Qrcode("qr-reader");
+
+          let devices = [];
+          try {
+            devices = await Html5Qrcode.getCameras();
+          } catch (enumErr) {
+            console.warn('[DEBUG] Camera enumeration error:', enumErr);
+          }
+
+          // Filter out IR (Infrared) or Virtual cameras that often output black/non-standard frames on laptops
+          const isLikelyUnsuitable = (d) => {
+            const label = (d.label || '').toLowerCase();
+            return label.includes('ir ') || label.includes(' ir') || label.includes('infrared') || 
+                   label.includes('virtual') || label.includes('software') || label.includes('hello');
+          };
+
+          const suitableDevices = (devices && devices.length > 0)
+            ? devices.filter(d => !isLikelyUnsuitable(d))
+            : [];
+          const candidatePool = suitableDevices.length > 0 ? suitableDevices : (devices || []);
+
+          let preferredTarget = null;
+          if (candidatePool.length > 0) {
+            if (currentFacingMode === "environment") {
+              // 1. Look for explicit rear/back camera (smartphones/tablets)
+              const rearCam = candidatePool.find(d => /back|rear|environment/i.test(d.label));
+              if (rearCam) {
+                preferredTarget = rearCam.id;
+              } else {
+                // 2. On laptops/desktops without a rear camera, prefer a standard optical webcam
+                const webcam = candidatePool.find(d => /integrated|webcam|facetime|front|hd|usb|camera/i.test(d.label));
+                preferredTarget = webcam ? webcam.id : candidatePool[0].id;
+              }
+            } else {
+              // User facing mode
+              const frontCam = candidatePool.find(d => /front|user|facing/i.test(d.label));
+              if (frontCam) {
+                preferredTarget = frontCam.id;
+              } else {
+                const webcam = candidatePool.find(d => /integrated|webcam|facetime|hd|usb|camera/i.test(d.label));
+                preferredTarget = webcam ? webcam.id : candidatePool[0].id;
+              }
+            }
+          }
+
+          const attempts = [];
+          if (preferredTarget) {
+            attempts.push(preferredTarget);
+          }
+          attempts.push({ facingMode: { ideal: currentFacingMode } });
+          if (currentFacingMode !== "user") {
+            attempts.push({ facingMode: "user" });
+          }
+
+          let started = false;
+          let lastErr = null;
+
+          for (const target of attempts) {
+            try {
+              await html5QrScanner.start(target, config, qrSuccessCallback);
+              started = true;
+              break;
+            } catch (err) {
+              console.warn('[DEBUG] Camera start attempt failed for target:', target, err);
+              lastErr = err;
+            }
+          }
+
+          if (!started) {
+            throw lastErr || new Error('No camera stream could be started');
+          }
+        };
+
+        selectCameraAndStart().then(() => {
           document.getElementById('camera-loading-container').classList.add('hidden');
           document.getElementById('camera-active-container').classList.remove('hidden');
           document.getElementById('camera-denied-container').classList.add('hidden');

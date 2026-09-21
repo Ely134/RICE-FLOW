@@ -907,13 +907,32 @@
         return;
       }
 
-      // Authoritative check against Firestore to block archived customers from accessing dashboard
-      if (user && user.email) {
+      // Instant check: block immediately if cached customer profile is already marked archived
+      if (user && user.isArchived === true) {
+        localStorage.removeItem('aurora-user');
+        localStorage.removeItem('aurora-logged-in');
+        localStorage.removeItem('riceflow_customer_active_order_id');
+        localStorage.removeItem('riceflow_customer_active_tab');
+        if (auth && typeof auth.signOut === 'function') {
+          await auth.signOut().catch(() => {});
+        }
+        sessionStorage.setItem('login-message', 'Your account has been archived. Login access is blocked.');
+        window.location.href = 'login.html';
+        return;
+      }
+
+      // Background asynchronous verification: Authoritative Firestore archive check & profile synchronization
+      (async () => {
+        if (!user || !user.email) return;
+
         try {
+          // Authoritative check against Firestore to block archived customers from accessing dashboard
           const archCheck = await checkCustomerArchivedInFirestore(user.email, user.firebaseUid || user.uid);
           if (archCheck && archCheck.isArchived === true) {
             localStorage.removeItem('aurora-user');
             localStorage.removeItem('aurora-logged-in');
+            localStorage.removeItem('riceflow_customer_active_order_id');
+            localStorage.removeItem('riceflow_customer_active_tab');
             if (auth && typeof auth.signOut === 'function') {
               await auth.signOut().catch(() => {});
             }
@@ -921,25 +940,25 @@
             window.location.href = 'login.html';
             return;
           }
-        } catch (_) {}
-      }
 
-      // Authoritative synchronization with Firestore customer profile
-      if (user && user.email) {
-        try {
+          // Authoritative synchronization with Firestore customer profile
           const freshProfile = await fetchCustomerProfileFromFirestore(user.email, user.firebaseUid || user.uid);
           if (freshProfile) {
             const remoteTime = freshProfile.updatedAt ? new Date(freshProfile.updatedAt).getTime() : 0;
             const localTime = user.updatedAt ? new Date(user.updatedAt).getTime() : 0;
             if (remoteTime >= localTime || (!user.phone && freshProfile.phone) || (!user.address && freshProfile.address)) {
-              user = { ...user, ...freshProfile };
+              const preservedPic = freshProfile.profilePicture || user.profilePicture || null;
+              user = { ...user, ...freshProfile, profilePicture: preservedPic };
               localStorage.setItem('aurora-user', JSON.stringify(user));
+              if (typeof renderHeaderCard === 'function') {
+                renderHeaderCard();
+              }
             }
           }
         } catch (fetchErr) {
-          console.warn('[PROFILE] Remote profile sync notice:', fetchErr);
+          console.warn('[PROFILE] Background profile/archive sync notice:', fetchErr);
         }
-      }
+      })();
 
       // Ensure top navbar search inputs and URL parameters are clean on profile page
       try {
@@ -1126,6 +1145,8 @@
       const avatarBox = document.getElementById('modal-avatar-box');
       const fileInp = document.getElementById('modal-avatar-file');
       let previewImageUrl = null;
+      let newPictureSelected = false;
+      let pictureExplicitlyRemoved = false;
 
       // 2. Render Header Account details
       function renderHeaderCard() {
@@ -4512,6 +4533,7 @@
 
       // 4. Update Profile Details modal Dialog
       function openEditModal() {
+        user = getCurrentUser() || user;
         const inpFullName = document.getElementById('modal-inp-fullName');
         const inpGender = document.getElementById('modal-inp-gender');
         const inpPhone = document.getElementById('modal-inp-phone');
@@ -4524,7 +4546,9 @@
         if (inpEmail) inpEmail.value = user.email || '';
         if (inpAddress) inpAddress.value = user.address || '';
 
-        previewImageUrl = user.profilePicture || null;
+        newPictureSelected = false;
+        pictureExplicitlyRemoved = false;
+        previewImageUrl = (user && user.profilePicture) ? user.profilePicture : null;
         renderAvatarBox();
 
         if (editDialog) editDialog.classList.remove('hidden');
@@ -4545,6 +4569,8 @@
       fileInp.addEventListener('change', async (e) => {
         const file = e.target.files?.[0];
         if (file) {
+          newPictureSelected = true;
+          pictureExplicitlyRemoved = false;
           try {
             const compressed = await compressImageFile(file, 160, 0.75);
             if (compressed) {
@@ -4762,6 +4788,22 @@
             btnSave.disabled = true;
             btnSave.innerHTML = '<span class="inline-block animate-spin mr-2">⏳</span> Saving...';
           }
+
+          // Preserve existing profile picture if customer did not select a new one or remove it
+          const currentCachedUser = getCurrentUser() || user;
+          const existingPicture = (currentCachedUser && currentCachedUser.profilePicture) || (user && user.profilePicture) || null;
+
+          let targetProfilePicture;
+          if (pictureExplicitlyRemoved) {
+            targetProfilePicture = null;
+          } else if (newPictureSelected && previewImageUrl) {
+            targetProfilePicture = previewImageUrl;
+          } else if (existingPicture) {
+            targetProfilePicture = existingPicture;
+          } else {
+            targetProfilePicture = previewImageUrl || null;
+          }
+
           await updateUser({
             fullName,
             gender,
@@ -4769,8 +4811,12 @@
             phoneE164,
             phoneVerified,
             address,
-            profilePicture: previewImageUrl
+            profilePicture: targetProfilePicture,
+            removeProfilePicture: pictureExplicitlyRemoved
           });
+
+          newPictureSelected = false;
+          pictureExplicitlyRemoved = false;
 
           // Reload fresh active user
           user = getCurrentUser();

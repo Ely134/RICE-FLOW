@@ -147,10 +147,6 @@
           <!-- Populated dynamically -->
         </button>
         <div class="flex items-center gap-3">
-          <button id="btn-modal-login-as-customer" class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] text-white rounded-xl text-xs font-bold uppercase tracking-wider cursor-pointer transition-all flex items-center gap-2 select-none shadow-xs" title="Open Storefront Profile as this customer">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-4 h-4"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path><polyline points="10 17 15 12 10 7"></polyline><line x1="15" y1="12" x2="3" y2="12"></line></svg>
-            Login as Customer
-          </button>
           <button id="btn-customer-close-footer" class="px-6 py-2.5 bg-gray-900 hover:bg-black text-white dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-white rounded-xl text-xs font-bold uppercase tracking-wider cursor-pointer transition-colors">
             Close
           </button>
@@ -683,21 +679,6 @@
           }
         }
 
-        // Configure Modal Login as Customer Button
-        const modalLoginBtn = document.getElementById('btn-modal-login-as-customer');
-        if (modalLoginBtn) {
-          if (match.isArchived) {
-            modalLoginBtn.disabled = true;
-            modalLoginBtn.classList.add('opacity-40', 'cursor-not-allowed');
-            modalLoginBtn.classList.remove('hover:bg-emerald-700', 'active:scale-[0.98]');
-            modalLoginBtn.title = 'Cannot login: This account is currently archived';
-          } else {
-            modalLoginBtn.disabled = false;
-            modalLoginBtn.classList.remove('opacity-40', 'cursor-not-allowed');
-            modalLoginBtn.classList.add('hover:bg-emerald-700', 'active:scale-[0.98]');
-            modalLoginBtn.title = 'Open Storefront Profile as this customer';
-          }
-        }
 
         // Populate Customer Info
         const femaleNames = ['Maria', 'Leni', 'Gloria', 'Corazon', 'Imelda', 'Grace', 'Sarah', 'Katarina', 'Rica', 'Cherry', 'Teresa', 'Leah', 'Danica', 'Patricia', 'Angela', 'Cristina', 'Jovelyn', 'Nora', 'Vilma', 'Sharon', 'Judy', 'Regine', 'Ana', 'Clara', 'Rosa', 'Elena', 'Sofia', 'Isabel', 'Jessica', 'Jane', 'Michelle', 'Mary', 'Anna', 'Joy'];
@@ -950,47 +931,6 @@
         });
       }
 
-      // Modal Login as Customer Button Handler
-      const modalLoginBtn = document.getElementById('btn-modal-login-as-customer');
-      if (modalLoginBtn) {
-        modalLoginBtn.addEventListener('click', () => {
-          if (!selectedCustomerInModal) return;
-          if (selectedCustomerInModal.isArchived) {
-            showToast('Cannot login: This customer account is currently archived.', 'error');
-            return;
-          }
-          const customerDisplayName = selectedCustomerInModal.name || selectedCustomerInModal.fullName || selectedCustomerInModal.email || 'Customer';
-          
-          // Prepare customer session object while preserving administrative session
-          const customerSession = {
-            id: selectedCustomerInModal.id || `user-${selectedCustomerInModal.customerId || Date.now()}`,
-            firebaseUid: selectedCustomerInModal.firebaseUid || selectedCustomerInModal.uid || '',
-            customerId: selectedCustomerInModal.customerId || selectedCustomerInModal.id || '',
-            fullName: selectedCustomerInModal.name || selectedCustomerInModal.fullName || customerDisplayName,
-            email: selectedCustomerInModal.email || '',
-            phone: selectedCustomerInModal.phone || '',
-            address: selectedCustomerInModal.shippingAddress || selectedCustomerInModal.address || '',
-            gender: selectedCustomerInModal.gender || 'Other',
-            profilePicture: selectedCustomerInModal.profilePicture || '',
-            role: 'customer',
-            isImpersonated: true,
-            impersonatedBy: getCurrentAdmin()?.email || 'admin'
-          };
-          localStorage.setItem('aurora-user', JSON.stringify(customerSession));
-          localStorage.setItem('aurora-logged-in', 'true');
-
-          addActivityLog({
-            action: `Admin logged in as customer: ${customerDisplayName}`,
-            category: 'User Management',
-            target: customerDisplayName
-          });
-
-          showToast(`Switching view to customer: ${customerDisplayName}...`, 'info');
-          setTimeout(() => {
-            window.open('../profile.html', '_blank');
-          }, 300);
-        });
-      }
 
       // Initial board rendering
       renderCustomersBoard();
