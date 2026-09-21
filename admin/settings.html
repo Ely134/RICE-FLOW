@@ -43,7 +43,7 @@
   <!-- Interactive administrative settings script -->
   <script type="module">
     import { renderAdminLayout, addActivityLog, showToast, getStoreSettings } from '../src/app/shared.js';
-    import { auth, saveFirestoreDoc } from '../src/lib/firebase.js';
+    import { auth, saveFirestoreDoc, storage, storageRef, uploadBytes, getDownloadURL } from '../src/lib/firebase.js';
     import { updatePassword } from 'firebase/auth';
 
     document.addEventListener('DOMContentLoaded', () => {
@@ -66,6 +66,9 @@
       let gcashName = settings.gcashName;
       let gcashNumber = settings.gcashNumber;
       let gcashQrBase64 = settings.gcashQr;
+      let selectedLogoFile = null;
+      let selectedBannerFile = null;
+      let selectedGcashQrFile = null;
       const fallbackQrSvg = `data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='150' height='150' viewBox='0 0 150 150'><rect width='100%' height='100%' fill='%23f9fafb' rx='12'/><rect x='8' y='8' width='134' height='134' fill='none' stroke='%23e5e7eb' stroke-width='2' stroke-dasharray='6,4' rx='8'/><text x='50%' y='45%' dominant-baseline='middle' text-anchor='middle' font-family='system-ui, -apple-system, sans-serif' font-size='10' font-weight='bold' fill='%239ca3af'>No GCash QR</text><text x='50%' y='60%' dominant-baseline='middle' text-anchor='middle' font-family='system-ui, -apple-system, sans-serif' font-size='10' font-weight='bold' fill='%239ca3af'>Code Available</text></svg>`;
 
       // Reusable confirmation modal functions
@@ -364,13 +367,17 @@
             return;
           }
 
-          const reader = new FileReader();
-          reader.onload = function(evt) {
-            logoBase64 = evt.target.result;
-            document.getElementById('img-logo-current').src = logoBase64;
-            showToast('Logo loaded successfully!');
-          };
-          reader.readAsDataURL(file);
+          selectedLogoFile = file;
+          try {
+            logoBase64 = URL.createObjectURL(file);
+          } catch (err) {
+            const reader = new FileReader();
+            reader.onload = (evt) => { logoBase64 = evt.target.result; };
+            reader.readAsDataURL(file);
+          }
+          const logoImg = document.getElementById('img-logo-current');
+          if (logoImg) logoImg.src = logoBase64;
+          showToast('Store logo selected. Click "Save Changes" to apply.', 'success');
         });
 
         // Banner upload handlers
@@ -393,13 +400,17 @@
             return;
           }
 
-          const reader = new FileReader();
-          reader.onload = function(evt) {
-            bannerBase64 = evt.target.result;
-            document.getElementById('img-banner-current').src = bannerBase64;
-            showToast('Banner loaded successfully!');
-          };
-          reader.readAsDataURL(file);
+          selectedBannerFile = file;
+          try {
+            bannerBase64 = URL.createObjectURL(file);
+          } catch (err) {
+            const reader = new FileReader();
+            reader.onload = (evt) => { bannerBase64 = evt.target.result; };
+            reader.readAsDataURL(file);
+          }
+          const bannerImg = document.getElementById('img-banner-current');
+          if (bannerImg) bannerImg.src = bannerBase64;
+          showToast('Hero banner selected. Click "Save Changes" to apply.', 'success');
         });
 
         // GCash QR upload handlers
@@ -422,21 +433,26 @@
             return;
           }
 
-          const reader = new FileReader();
-          reader.onload = function(evt) {
-            gcashQrBase64 = evt.target.result;
-            document.getElementById('img-gcash-qr').src = gcashQrBase64;
-            showToast('GCash QR loaded successfully!');
-            saveCurrentInputStates();
-            renderSettingsPanel(); // Rerender to show reset button
-          };
-          reader.readAsDataURL(file);
+          selectedGcashQrFile = file;
+          try {
+            gcashQrBase64 = URL.createObjectURL(file);
+          } catch (err) {
+            const reader = new FileReader();
+            reader.onload = (evt) => { gcashQrBase64 = evt.target.result; };
+            reader.readAsDataURL(file);
+          }
+          const qrImg = document.getElementById('img-gcash-qr');
+          if (qrImg) qrImg.src = gcashQrBase64;
+          showToast('GCash QR selected. Click "Save Changes" to apply.', 'success');
+          saveCurrentInputStates();
+          renderSettingsPanel();
         });
 
         // Reset GCash QR Code (falls back to placeholder)
         const btnResetGcash = document.getElementById('btn-reset-gcash');
         if (btnResetGcash) {
           btnResetGcash.addEventListener('click', () => {
+            selectedGcashQrFile = null;
             gcashQrBase64 = '';
             document.getElementById('img-gcash-qr').src = fallbackQrSvg;
             showToast('GCash QR cleared successfully!');
@@ -459,25 +475,94 @@
 
             showConfirmationModal({
               title: 'Save Changes',
-              message: 'Are you sure you want to save these changes?<br><br>These updates will immediately be applied to the storefront.',
+              message: 'Are you sure you want to save these changes?<br><br>These updates will immediately be uploaded to Firebase Storage and applied to the storefront.',
               cancelText: 'No, Cancel',
               confirmText: 'Yes, Save Changes',
-              onConfirm: () => {
-                // Save to localStorage
-                localStorage.setItem('settings-store-name', sName);
-                localStorage.setItem('settings-store-description', sDesc);
-                localStorage.setItem('settings-store-logo', logoBase64);
-                localStorage.setItem('settings-store-banner', bannerBase64);
+              onConfirm: async () => {
+                const btnConfirm = document.getElementById('btn-confirm-modal');
+                if (btnConfirm) {
+                  btnConfirm.disabled = true;
+                  btnConfirm.textContent = 'Uploading...';
+                }
 
-                storeName = sName;
-                description = sDesc;
+                try {
+                  // Upload Logo to Firebase Storage if newly selected
+                  if (selectedLogoFile) {
+                    const timestamp = Date.now();
+                    const rand = Math.random().toString(36).substring(2, 9);
+                    const ext = (selectedLogoFile.name.split('.').pop() || 'png').toLowerCase();
+                    const safeName = selectedLogoFile.name.replace(/\.[^/.]+$/, '').replace(/[^a-zA-Z0-9_-]/g, '_').substring(0, 30);
+                    const storagePath = `store_branding/logo_${timestamp}_${rand}_${safeName}.${ext}`;
+                    const imgRef = storageRef(storage, storagePath);
+                    const uploadSnap = await uploadBytes(imgRef, selectedLogoFile, {
+                      contentType: selectedLogoFile.type || 'image/png',
+                      customMetadata: {
+                        originalName: selectedLogoFile.name,
+                        uploadedAt: new Date().toISOString(),
+                        type: 'store_logo'
+                      }
+                    });
+                    logoBase64 = await getDownloadURL(uploadSnap.ref);
+                    selectedLogoFile = null;
+                  }
 
-                addActivityLog('System', 'Updated Storefront Information');
-                showToast('Storefront updated successfully.', 'success');
+                  // Upload Banner to Firebase Storage if newly selected
+                  if (selectedBannerFile) {
+                    const timestamp = Date.now();
+                    const rand = Math.random().toString(36).substring(2, 9);
+                    const ext = (selectedBannerFile.name.split('.').pop() || 'jpg').toLowerCase();
+                    const safeName = selectedBannerFile.name.replace(/\.[^/.]+$/, '').replace(/[^a-zA-Z0-9_-]/g, '_').substring(0, 30);
+                    const storagePath = `store_branding/banner_${timestamp}_${rand}_${safeName}.${ext}`;
+                    const imgRef = storageRef(storage, storagePath);
+                    const uploadSnap = await uploadBytes(imgRef, selectedBannerFile, {
+                      contentType: selectedBannerFile.type || 'image/jpeg',
+                      customMetadata: {
+                        originalName: selectedBannerFile.name,
+                        uploadedAt: new Date().toISOString(),
+                        type: 'store_banner'
+                      }
+                    });
+                    bannerBase64 = await getDownloadURL(uploadSnap.ref);
+                    selectedBannerFile = null;
+                  }
 
-                // Re-render admin sidebar layout and panel
-                renderAdminLayout('settings');
-                renderSettingsPanel();
+                  // Save to localStorage
+                  localStorage.setItem('settings-store-name', sName);
+                  localStorage.setItem('settings-store-description', sDesc);
+                  localStorage.setItem('settings-store-logo', logoBase64);
+                  localStorage.setItem('settings-store-banner', bannerBase64);
+
+                  storeName = sName;
+                  description = sDesc;
+
+                  // Update Firestore document storeSettings/main
+                  const currentSettings = getStoreSettings();
+                  currentSettings.storeName = sName;
+                  currentSettings.description = sDesc;
+                  currentSettings.logo = logoBase64;
+                  currentSettings.banner = bannerBase64;
+
+                  await saveFirestoreDoc('storeSettings', 'main', currentSettings);
+                  localStorage.setItem('aurora-store-settings', JSON.stringify([currentSettings]));
+                  if (typeof window !== 'undefined') {
+                    window.dispatchEvent(new CustomEvent('aurora-sync-event', { detail: { key: 'aurora-store-settings' } }));
+                  }
+
+                  addActivityLog('System', 'Updated Storefront branding and images');
+                  showToast('Storefront updated and synced successfully.', 'success');
+
+                  // Re-render admin sidebar layout and panel
+                  renderAdminLayout('settings');
+                  renderSettingsPanel();
+                } catch (uploadErr) {
+                  console.error('[SETTINGS] Error uploading store assets:', uploadErr);
+                  showToast('Failed to upload store image to Firebase Storage: ' + (uploadErr.message || uploadErr), 'error');
+                } finally {
+                  if (btnConfirm) {
+                    btnConfirm.disabled = false;
+                    btnConfirm.textContent = 'Yes, Save Changes';
+                  }
+                }
               }
             });
           });
@@ -536,27 +621,69 @@
 
             showConfirmationModal({
               title: 'Save Changes',
-              message: 'Are you sure you want to save these changes?<br><br>These updates will immediately be applied to the storefront.',
+              message: 'Are you sure you want to save these changes?<br><br>These updates will immediately be uploaded to Firebase Storage and applied to the storefront.',
               cancelText: 'No, Cancel',
               confirmText: 'Yes, Save Changes',
-              onConfirm: () => {
-                localStorage.setItem('settings-gcash-name', gName);
-                localStorage.setItem('settings-gcash-number', gPhone);
-                localStorage.setItem('settings-gcash-qr', gcashQrBase64);
-
-                gcashName = gName;
-                gcashNumber = gPhone;
-
-                const currentSettings = getStoreSettings();
-                saveFirestoreDoc('storeSettings', 'main', currentSettings);
-                if (typeof window !== 'undefined') {
-                  window.dispatchEvent(new CustomEvent('aurora-sync-event', { detail: { key: 'settings-gcash' } }));
+              onConfirm: async () => {
+                const btnConfirm = document.getElementById('btn-confirm-modal');
+                if (btnConfirm) {
+                  btnConfirm.disabled = true;
+                  btnConfirm.textContent = 'Uploading...';
                 }
 
-                addActivityLog('System', 'Updated GCash payment configurations');
-                showToast('GCash payment information updated successfully.', 'success');
+                try {
+                  // Upload GCash QR Code to Firebase Storage if newly selected
+                  if (selectedGcashQrFile) {
+                    const timestamp = Date.now();
+                    const rand = Math.random().toString(36).substring(2, 9);
+                    const ext = (selectedGcashQrFile.name.split('.').pop() || 'png').toLowerCase();
+                    const safeName = selectedGcashQrFile.name.replace(/\.[^/.]+$/, '').replace(/[^a-zA-Z0-9_-]/g, '_').substring(0, 30);
+                    const storagePath = `store_branding/gcash_qr_${timestamp}_${rand}_${safeName}.${ext}`;
+                    const imgRef = storageRef(storage, storagePath);
+                    const uploadSnap = await uploadBytes(imgRef, selectedGcashQrFile, {
+                      contentType: selectedGcashQrFile.type || 'image/png',
+                      customMetadata: {
+                        originalName: selectedGcashQrFile.name,
+                        uploadedAt: new Date().toISOString(),
+                        type: 'gcash_qr'
+                      }
+                    });
+                    gcashQrBase64 = await getDownloadURL(uploadSnap.ref);
+                    selectedGcashQrFile = null;
+                  }
 
-                renderSettingsPanel();
+                  localStorage.setItem('settings-gcash-name', gName);
+                  localStorage.setItem('settings-gcash-number', gPhone);
+                  localStorage.setItem('settings-gcash-qr', gcashQrBase64);
+
+                  gcashName = gName;
+                  gcashNumber = gPhone;
+
+                  const currentSettings = getStoreSettings();
+                  currentSettings.gcashName = gName;
+                  currentSettings.gcashNumber = gPhone;
+                  currentSettings.gcashQr = gcashQrBase64;
+
+                  await saveFirestoreDoc('storeSettings', 'main', currentSettings);
+                  localStorage.setItem('aurora-store-settings', JSON.stringify([currentSettings]));
+                  if (typeof window !== 'undefined') {
+                    window.dispatchEvent(new CustomEvent('aurora-sync-event', { detail: { key: 'settings-gcash' } }));
+                    window.dispatchEvent(new CustomEvent('aurora-sync-event', { detail: { key: 'aurora-store-settings' } }));
+                  }
+
+                  addActivityLog('System', 'Updated GCash payment configurations and QR');
+                  showToast('GCash payment information updated successfully.', 'success');
+
+                  renderSettingsPanel();
+                } catch (uploadErr) {
+                  console.error('[SETTINGS] Error uploading GCash QR code:', uploadErr);
+                  showToast('Failed to upload GCash QR to Firebase Storage: ' + (uploadErr.message || uploadErr), 'error');
+                } finally {
+                  if (btnConfirm) {
+                    btnConfirm.disabled = false;
+                    btnConfirm.textContent = 'Yes, Save Changes';
+                  }
+                }
               }
             });
           });

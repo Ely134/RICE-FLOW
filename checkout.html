@@ -484,6 +484,11 @@
       getEstimatedArrivalDate
     } from './src/app/shared.js';
     import { 
+      auth,
+      storage,
+      storageRef,
+      uploadBytes,
+      getDownloadURL,
       sendFirebasePhoneVerification, 
       verifyAndLinkPhoneCredential 
     } from './src/lib/firebase.js';
@@ -814,18 +819,41 @@
         reader.readAsDataURL(file);
       }
 
+      function handlePaymentProofFile(file) {
+        if (!file) return;
+
+        const maxSizeBytes = 5 * 1024 * 1024;
+        if (file.size > maxSizeBytes) {
+          showToast('Payment screenshot file size exceeds 5MB limit. Please upload a smaller image.', 'error');
+          screenshotInput.value = '';
+          return;
+        }
+
+        const validTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
+        const fileExt = (file.name.split('.').pop() || '').toLowerCase();
+        const isValidType = validTypes.includes((file.type || '').toLowerCase()) || ['jpg', 'jpeg', 'png', 'webp'].includes(fileExt);
+
+        if (!isValidType) {
+          showToast('Please upload a valid image file (PNG, JPG, JPEG, or WEBP).', 'error');
+          screenshotInput.value = '';
+          return;
+        }
+
+        paymentProofFile = file;
+        screenshotFn.textContent = file.name;
+
+        processAndCompressImage(file, (compressed) => {
+          screenshotMiniPreview.src = compressed;
+          paymentProofBase64 = compressed;
+          screenshotSuccess.classList.remove('hidden');
+          showToast('Payment screenshot attached!');
+        });
+      }
+
       // File Screenshots input with visual preview
       screenshotInput.addEventListener('change', (e) => {
         if (e.target.files && e.target.files[0]) {
-          paymentProofFile = e.target.files[0];
-          screenshotFn.textContent = paymentProofFile.name;
-          
-          processAndCompressImage(paymentProofFile, (compressed) => {
-            screenshotMiniPreview.src = compressed;
-            paymentProofBase64 = compressed;
-            screenshotSuccess.classList.remove('hidden');
-            showToast('Payment screenshot attached!');
-          });
+          handlePaymentProofFile(e.target.files[0]);
         }
       });
 
@@ -842,15 +870,7 @@
         e.preventDefault();
         dropzone.classList.remove('border-[#1E6C02]', 'bg-emerald-50/10');
         if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-          paymentProofFile = e.dataTransfer.files[0];
-          screenshotFn.textContent = paymentProofFile.name;
-          
-          processAndCompressImage(paymentProofFile, (compressed) => {
-            screenshotMiniPreview.src = compressed;
-            paymentProofBase64 = compressed;
-            screenshotSuccess.classList.remove('hidden');
-            showToast('Payment screenshot dropped!');
-          });
+          handlePaymentProofFile(e.dataTransfer.files[0]);
         }
       });
 
@@ -1193,6 +1213,20 @@
           return;
         }
 
+        const maxSizeBytes = 5 * 1024 * 1024;
+        if (paymentProofFile.size > maxSizeBytes) {
+          showToast('Payment screenshot file size exceeds 5MB limit. Please upload a smaller image.', 'error');
+          return;
+        }
+
+        const validTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
+        const fileExt = (paymentProofFile.name.split('.').pop() || '').toLowerCase();
+        const isValidType = validTypes.includes((paymentProofFile.type || '').toLowerCase()) || ['jpg', 'jpeg', 'png', 'webp'].includes(fileExt);
+        if (!isValidType) {
+          showToast('Please upload a valid image file (PNG, JPG, JPEG, or WEBP).', 'error');
+          return;
+        }
+
         const phoneVal = inpPhone.value.trim();
         const normPhone = normalizePhilippinePhone(phoneVal);
         if (!normPhone.isValid) {
@@ -1237,7 +1271,85 @@
         validateOrderAndProceed();
       });
 
-      function submitOrderToDB(options = {}) {
+      let isSubmitting = false;
+
+      async function submitOrderToDB(options = {}) {
+        if (isSubmitting) return;
+
+        if (!paymentProofFile) {
+          showToast('Please attach your GCash payment confirmation screenshot!', 'error');
+          return;
+        }
+
+        const maxSizeBytes = 5 * 1024 * 1024;
+        if (paymentProofFile.size > maxSizeBytes) {
+          showToast('Payment screenshot file size exceeds 5MB limit. Please upload a smaller image.', 'error');
+          return;
+        }
+
+        const validTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
+        const fileExt = (paymentProofFile.name.split('.').pop() || '').toLowerCase();
+        const isValidType = validTypes.includes((paymentProofFile.type || '').toLowerCase()) || ['jpg', 'jpeg', 'png', 'webp'].includes(fileExt);
+        if (!isValidType) {
+          showToast('Please upload a valid image file (PNG, JPG, JPEG, or WEBP).', 'error');
+          return;
+        }
+
+        let firebaseAuthUid = auth?.currentUser?.uid;
+        if (!firebaseAuthUid && auth && typeof auth.authStateReady === 'function') {
+          try {
+            await auth.authStateReady();
+            firebaseAuthUid = auth?.currentUser?.uid;
+          } catch (_) {}
+        }
+        if (!firebaseAuthUid) {
+          showToast('Authentication session not found. Please log in to complete your order.', 'error');
+          return;
+        }
+
+        isSubmitting = true;
+        const originalBtnText = btnSubmit ? btnSubmit.textContent : 'Submit Order';
+        if (btnSubmit) {
+          btnSubmit.disabled = true;
+          btnSubmit.innerHTML = `<svg class="animate-spin -ml-1 mr-2 h-5 w-5 text-white inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg> Uploading Payment Proof...`;
+        }
+
+        let downloadUrl = '';
+        let storagePath = '';
+
+        try {
+          const timestamp = Date.now();
+          const randSuffix = Math.random().toString(36).substring(2, 9);
+          const ext = (fileExt || 'jpg').toLowerCase();
+          const safeBaseName = paymentProofFile.name.replace(/\.[^/.]+$/, '').replace(/[^a-zA-Z0-9_-]/g, '_').substring(0, 30);
+          storagePath = `payment_proofs/orders/${firebaseAuthUid}/${timestamp}_${randSuffix}_${safeBaseName}.${ext}`;
+
+          const proofRef = storageRef(storage, storagePath);
+          const metadata = {
+            contentType: paymentProofFile.type || 'image/jpeg',
+            customMetadata: {
+              originalFileName: paymentProofFile.name,
+              uploadedAt: new Date().toISOString(),
+              userId: firebaseAuthUid,
+              userPhone: String(document.getElementById('inp-phone')?.value || ''),
+              orderType: 'normal'
+            }
+          };
+
+          const uploadSnapshot = await uploadBytes(proofRef, paymentProofFile, metadata);
+          downloadUrl = await getDownloadURL(uploadSnapshot.ref);
+          console.log('[STORAGE] Normal order payment proof uploaded successfully:', downloadUrl);
+        } catch (uploadError) {
+          console.error('[STORAGE] Normal order payment proof upload failed:', uploadError);
+          isSubmitting = false;
+          if (btnSubmit) {
+            btnSubmit.disabled = false;
+            btnSubmit.textContent = originalBtnText;
+          }
+          showToast('Failed to upload payment screenshot to Firebase Storage: ' + (uploadError.message || 'Please try again.'), 'error');
+          return;
+        }
+
         orderSubmitted = true;
         // Construct final payloads
         const fullName = document.getElementById('inp-fullName').value;
@@ -1256,6 +1368,7 @@
 
         const amountPaid = paymentMethod === 'gcash' ? total : total * 0.3;
         const remainingAmount = Math.max(0, total - amountPaid);
+        const refNumber = 'REF' + Date.now().toString().slice(-8);
 
         const res = addOrder({
           items: checkoutItems,
@@ -1266,7 +1379,11 @@
           amountPaid,
           remainingAmount,
           paymentProof: paymentProofFile ? paymentProofFile.name : 'screenshot.png',
-          paymentProofDataUrl: paymentProofBase64 || '',
+          paymentProofDataUrl: downloadUrl || '',
+          paymentProofUrl: downloadUrl || '',
+          storagePath: storagePath || null,
+          paymentUploadedAt: new Date().toISOString(),
+          referenceNumber: refNumber,
           paymentVerified: false,
           fullName,
           phone,

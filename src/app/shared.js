@@ -21,10 +21,12 @@ import {
   checkCustomerArchivedInFirestore,
   fetchCustomerProfileFromFirestore,
   saveCustomerProfileToFirestore,
-  auth 
+  auth,
+  storage 
 } from '../lib/firebase.js';
 
 export { 
+  saveFirestoreDoc,
   createStaffAuthAccount, 
   sendFirebasePhoneVerification, 
   verifyAndLinkPhoneCredential, 
@@ -36,7 +38,8 @@ export {
   setCustomerArchiveStatusInFirestore,
   checkCustomerArchivedInFirestore,
   fetchCustomerProfileFromFirestore,
-  saveCustomerProfileToFirestore
+  saveCustomerProfileToFirestore,
+  storage
 };
 import {
   signInWithEmailAndPassword,
@@ -101,11 +104,11 @@ export function performEmergencyStorageCleanup() {
         if (Array.isArray(orders)) {
           let modified = false;
           orders.forEach(o => {
-            if (o.paymentProofDataUrl && o.paymentProofDataUrl.length > 500) {
+            if (o.paymentProofDataUrl && typeof o.paymentProofDataUrl === 'string' && o.paymentProofDataUrl.startsWith('data:') && o.paymentProofDataUrl.length > 500) {
               o.paymentProofDataUrl = '';
               modified = true;
             }
-            if (o.qrProof && o.qrProof.length > 500) {
+            if (o.qrProof && typeof o.qrProof === 'string' && o.qrProof.startsWith('data:') && o.qrProof.length > 500) {
               o.qrProof = '';
               modified = true;
             }
@@ -235,10 +238,10 @@ export function sanitizeStoragePayload(key, value) {
         });
       } else if (key === 'aurora-orders') {
         parsed.forEach(o => {
-          if (o.paymentProofDataUrl && typeof o.paymentProofDataUrl === 'string' && o.paymentProofDataUrl.length > 1000) {
+          if (o.paymentProofDataUrl && typeof o.paymentProofDataUrl === 'string' && o.paymentProofDataUrl.startsWith('data:') && o.paymentProofDataUrl.length > 1000) {
             o.paymentProofDataUrl = '';
           }
-          if (o.qrProof && typeof o.qrProof === 'string' && o.qrProof.length > 1000) {
+          if (o.qrProof && typeof o.qrProof === 'string' && o.qrProof.startsWith('data:') && o.qrProof.length > 1000) {
             o.qrProof = '';
           }
         });
@@ -3935,7 +3938,7 @@ export function saveOrders(orders, targetDocInfo = null) {
       let cleaned = false;
       // Start from the oldest completed or cancelled orders and strip paymentProofDataUrl only if finished
       for (let i = orders.length - 1; i >= 0; i--) {
-        if ((orders[i].status === 'completed' || orders[i].status === 'cancelled') && orders[i].paymentProofDataUrl) {
+        if ((orders[i].status === 'completed' || orders[i].status === 'cancelled') && orders[i].paymentProofDataUrl && typeof orders[i].paymentProofDataUrl === 'string' && orders[i].paymentProofDataUrl.startsWith('data:')) {
           orders[i].paymentProofDataUrl = ''; // Strip the large base64 image of completed/cancelled order only
           cleaned = true;
           try {
@@ -7769,9 +7772,20 @@ function handleNotificationClick(notifId, currentUserId = null, currentRole = nu
     }
   } else {
     // Customer
-    const scrollPayParam = (n.scrollPayment || (n.title && (n.title.includes('Failed') || n.title.includes('Rejected')))) ? '&scrollPayment=1' : '';
-    const destTab = n.destinationTab || n.tab || '';
+    const scrollPayParam = (n.scrollPayment || (n.title && (n.title.includes('Failed') || n.title.includes('Rejected') || n.title.includes('Correction') || n.title.includes('Needs Correction')))) ? '&scrollPayment=1' : '';
+    const destTab = n.destinationTab || n.tab || (scrollPayParam ? (targetType === 'reservation' ? 'reservations' : 'to-pay') : '');
     const tabQuery = destTab ? `&tab=${encodeURIComponent(destTab)}` : '';
+
+    // If customer is already on profile.html, use immediate in-page opener
+    if (typeof window !== 'undefined' && window.location.pathname.includes('profile.html') && typeof window.openCustomerOrderFromNotif === 'function') {
+      const url = new URL(window.location.href);
+      url.searchParams.set('orderId', targetId);
+      if (destTab) url.searchParams.set('tab', destTab);
+      if (scrollPayParam) url.searchParams.set('scrollPayment', '1');
+      window.history.pushState({ orderId: targetId }, '', url);
+      window.openCustomerOrderFromNotif(targetId, destTab, Boolean(scrollPayParam));
+      return;
+    }
 
     if (targetType === 'reservation') {
       window.location.href = `${getPagePath('profile.html')}?fromNotif=1&targetType=reservation&targetId=${encodeURIComponent(targetId)}&reservationId=${encodeURIComponent(targetId)}&recordType=reservation${tabQuery}${scrollPayParam}`;

@@ -952,34 +952,34 @@ html:not(.dark) button[disabled]:not(.bg-\[\#1E6C02\]):not(.disabled\:bg-\[\#A3D
 }
 
 /* Values and descriptions inside modals */
-.dark .fixed.inset-0 p:not([class*="text-green"]):not([class*="text-red"]):not([class*="text-emerald"]):not([class*="text-amber"]):not([class*="text-orange"]):not([class*="text-blue"]),
-.dark .fixed.inset-0 li:not([class*="text-green"]):not([class*="text-red"]):not([class*="text-emerald"]):not([class*="text-amber"]):not([class*="text-orange"]):not([class*="text-blue"]),
-.dark .fixed.inset-0 td:not([class*="text-green"]):not([class*="text-red"]):not([class*="text-emerald"]):not([class*="text-amber"]):not([class*="text-orange"]):not([class*="text-blue"]),
-.dark .fixed.inset-0 span:not([class*="text-green"]):not([class*="text-red"]):not([class*="text-emerald"]):not([class*="text-amber"]):not([class*="text-orange"]):not([class*="text-blue"]):not([class*="text-[#1E6C02]"]),
-.dark .fixed.inset-0 div:not([class*="text-green"]):not([class*="text-red"]):not([class*="text-emerald"]):not([class*="text-amber"]):not([class*="text-orange"]):not([class*="text-blue"]):not([class*="text-[#1E6C02]"]):not([class*="bg-green"]):not([class*="bg-red"]):not([class*="bg-emerald"]):not([class*="bg-amber"]):not([class*="bg-orange"]):not([class*="bg-blue"]),
-.dark [id*="modal"] p:not([class*="text-green"]):not([class*="text-red"]):not([class*="text-emerald"]):not([class*="text-amber"]):not([class*="text-orange"]):not([class*="text-blue"]),
-.dark [id*="modal"] li:not([class*="text-green"]):not([class*="text-red"]):not([class*="text-emerald"]):not([class*="text-amber"]):not([class*="text-orange"]):not([class*="text-blue"]),
-.dark [id*="modal"] td:not([class*="text-green"]):not([class*="text-red"]):not([class*="text-emerald"]):not([class*="text-amber"]):not([class*="text-orange"]):not([class*="text-blue"]),
-.dark [id*="modal"] span:not([class*="text-green"]):not([class*="text-red"]):not([class*="text-emerald"]):not([class*="text-amber"]):not([class*="text-orange"]):not([class*="text-blue"]):not([class*="text-[#1E6C02]"]),
-.dark [id*="modal"] div:not([class*="text-green"]):not([class*="text-red"]):not([class*="text-emerald"]):not([class*="text-amber"]):not([class*="text-orange"]):not([class*="text-blue"]):not([class*="text-[#1E6C02]"]):not([class*="bg-green"]):not([class*="bg-red"]):not([class*="bg-emerald"]):not([class*="bg-amber"]):not([class*="bg-orange"]):not([class*="bg-blue"]),
-.dark [id*="dialog"] p:not([class*="text-green"]):not([class*="text-red"]):not([class*="text-emerald"]):not([class*="text-amber"]):not([class*="text-orange"]):not([class*="text-blue"]),
-.dark [id*="dialog"] li:not([class*="text-green"]):not([class*="text-red"]):not([class*="text-emerald"]):not([class*="text-amber"]):not([class*="text-orange"]):not([class*="text-blue"]),
-.dark [id*="dialog"] td:not([class*="text-green"]):not([class*="text-red"]):not([class*="text-emerald"]):not([class*="text-amber"]):not([class*="text-orange"]):not([class*="text-blue"]),
-.dark [id*="dialog"] span:not([class*="text-green"]):not([class*="text-red"]):not([class*="text-emerald"]):not([class*="text-amber"]):not([class*="text-orange"]):not([class*="text-blue"]):not([class*="text-[#1E6C02]"]),
-.dark [id*="dialog"] div:not([class*="text-green"]):not([class*="text-red"]):not([class*="text-emerald"]):not([class*="text-amber"]):not([class*="text-orange"]):not([class*="text-blue"]):not([class*="text-[#1E6C02]"]):not([class*="bg-green"]):not([class*="bg-red"]):not([class*="bg-emerald"]):not([class*="bg-amber"]):not([class*="bg-orange"]):not([class*="bg-blue"]) {
+.dark .fixed.inset-0 p:not([class*="text-green"]):not([class*="text-red"]):not([class*="text-emerald"]):not([class*="text-amber"]):not([class*="text-orange"]):not([class*="text-blue"]):not([class*="text-rose"]):not([class*="text-yellow"]),
+.dark .fixed.inset-0 li:not([class*="text-green"]):not([class*="text-red"]):not([class*="text-emerald"]):not([class*="text-amber"]):not([class*="text-orange"]):not([class*="text-blue"]):not([class*="text-rose"]):not([class*="text-yellow"]),
+.dark .fixed.inset-0 td:not([class*="text-green"]):not([class*="text-red"]):not([class*="text-emerald"]):not([class*="text-amber"]):not([class*="text-orange"]):not([class*="text-blue"]):not([class*="text-rose"]):not([class*="text-yellow"]),
+.dark .fixed.inset-0 span:not([class*="text-green"]):not([class*="text-red"]):not([class*="text-emerald"]):not([class*="text-amber"]):not([class*="text-orange"]):not([class*="text-blue"]):not([class*="text-[#1E6C02]"]):not([class*="text-rose"]):not([class*="text-yellow"]),
+.dark .fixed.inset-0 div:not([class*="text-green"]):not([class*="text-red"]):not([class*="text-emerald"]):not([class*="text-amber"]):not([class*="text-orange"]):not([class*="text-blue"]):not([class*="text-[#1E6C02]"]):not([class*="text-rose"]):not([class*="text-yellow"]):not([class*="bg-green"]):not([class*="bg-red"]):not([class*="bg-emerald"]):not([class*="bg-amber"]):not([class*="bg-orange"]):not([class*="bg-blue"]):not([class*="bg-rose"]):not([class*="bg-yellow"]),
+.dark [id*="modal"] p:not([class*="text-green"]):not([class*="text-red"]):not([class*="text-emerald"]):not([class*="text-amber"]):not([class*="text-orange"]):not([class*="text-blue"]):not([class*="text-rose"]):not([class*="text-yellow"]),
+.dark [id*="modal"] li:not([class*="text-green"]):not([class*="text-red"]):not([class*="text-emerald"]):not([class*="text-amber"]):not([class*="text-orange"]):not([class*="text-blue"]):not([class*="text-rose"]):not([class*="text-yellow"]),
+.dark [id*="modal"] td:not([class*="text-green"]):not([class*="text-red"]):not([class*="text-emerald"]):not([class*="text-amber"]):not([class*="text-orange"]):not([class*="text-blue"]):not([class*="text-rose"]):not([class*="text-yellow"]),
+.dark [id*="modal"] span:not([class*="text-green"]):not([class*="text-red"]):not([class*="text-emerald"]):not([class*="text-amber"]):not([class*="text-orange"]):not([class*="text-blue"]):not([class*="text-[#1E6C02]"]):not([class*="text-rose"]):not([class*="text-yellow"]),
+.dark [id*="modal"] div:not([class*="text-green"]):not([class*="text-red"]):not([class*="text-emerald"]):not([class*="text-amber"]):not([class*="text-orange"]):not([class*="text-blue"]):not([class*="text-[#1E6C02]"]):not([class*="text-rose"]):not([class*="text-yellow"]):not([class*="bg-green"]):not([class*="bg-red"]):not([class*="bg-emerald"]):not([class*="bg-amber"]):not([class*="bg-orange"]):not([class*="bg-blue"]):not([class*="bg-rose"]):not([class*="bg-yellow"]),
+.dark [id*="dialog"] p:not([class*="text-green"]):not([class*="text-red"]):not([class*="text-emerald"]):not([class*="text-amber"]):not([class*="text-orange"]):not([class*="text-blue"]):not([class*="text-rose"]):not([class*="text-yellow"]),
+.dark [id*="dialog"] li:not([class*="text-green"]):not([class*="text-red"]):not([class*="text-emerald"]):not([class*="text-amber"]):not([class*="text-orange"]):not([class*="text-blue"]):not([class*="text-rose"]):not([class*="text-yellow"]),
+.dark [id*="dialog"] td:not([class*="text-green"]):not([class*="text-red"]):not([class*="text-emerald"]):not([class*="text-amber"]):not([class*="text-orange"]):not([class*="text-blue"]):not([class*="text-rose"]):not([class*="text-yellow"]),
+.dark [id*="dialog"] span:not([class*="text-green"]):not([class*="text-red"]):not([class*="text-emerald"]):not([class*="text-amber"]):not([class*="text-orange"]):not([class*="text-blue"]):not([class*="text-[#1E6C02]"]):not([class*="text-rose"]):not([class*="text-yellow"]),
+.dark [id*="dialog"] div:not([class*="text-green"]):not([class*="text-red"]):not([class*="text-emerald"]):not([class*="text-amber"]):not([class*="text-orange"]):not([class*="text-blue"]):not([class*="text-[#1E6C02]"]):not([class*="text-rose"]):not([class*="text-yellow"]):not([class*="bg-green"]):not([class*="bg-red"]):not([class*="bg-emerald"]):not([class*="bg-amber"]):not([class*="bg-orange"]):not([class*="bg-blue"]):not([class*="bg-rose"]):not([class*="bg-yellow"]) {
   color: rgba(255, 255, 255, 0.92) !important;
 }
 
 /* Override all hardcoded Tailwind text-gray and text-black classes inside modals, turning them into pure White */
-.dark .fixed.inset-0 [class*="text-black"]:not([class*="text-green"]):not([class*="text-red"]):not([class*="text-emerald"]):not([class*="text-amber"]):not([class*="text-orange"]):not([class*="text-blue"]),
-.dark .fixed.inset-0 [class*="text-gray-"]:not([class*="text-green"]):not([class*="text-red"]):not([class*="text-emerald"]):not([class*="text-amber"]):not([class*="text-orange"]):not([class*="text-blue"]),
-.dark .fixed.inset-0 [class*="text-slate-"]:not([class*="text-green"]):not([class*="text-red"]):not([class*="text-emerald"]):not([class*="text-amber"]):not([class*="text-orange"]):not([class*="text-blue"]),
-.dark [id*="modal"] [class*="text-black"]:not([class*="text-green"]):not([class*="text-red"]):not([class*="text-emerald"]):not([class*="text-amber"]):not([class*="text-orange"]):not([class*="text-blue"]),
-.dark [id*="modal"] [class*="text-gray-"]:not([class*="text-green"]):not([class*="text-red"]):not([class*="text-emerald"]):not([class*="text-amber"]):not([class*="text-orange"]):not([class*="text-blue"]),
-.dark [id*="modal"] [class*="text-slate-"]:not([class*="text-green"]):not([class*="text-red"]):not([class*="text-emerald"]):not([class*="text-amber"]):not([class*="text-orange"]):not([class*="text-blue"]),
-.dark [id*="dialog"] [class*="text-black"]:not([class*="text-green"]):not([class*="text-red"]):not([class*="text-emerald"]):not([class*="text-amber"]):not([class*="text-orange"]):not([class*="text-blue"]),
-.dark [id*="dialog"] [class*="text-gray-"]:not([class*="text-green"]):not([class*="text-red"]):not([class*="text-emerald"]):not([class*="text-amber"]):not([class*="text-orange"]):not([class*="text-blue"]),
-.dark [id*="dialog"] [class*="text-slate-"]:not([class*="text-green"]):not([class*="text-red"]):not([class*="text-emerald"]):not([class*="text-amber"]):not([class*="text-orange"]):not([class*="text-blue"]) {
+.dark .fixed.inset-0 [class*="text-black"]:not([class*="text-green"]):not([class*="text-red"]):not([class*="text-emerald"]):not([class*="text-amber"]):not([class*="text-orange"]):not([class*="text-blue"]):not([class*="text-rose"]):not([class*="text-yellow"]),
+.dark .fixed.inset-0 [class*="text-gray-"]:not([class*="text-green"]):not([class*="text-red"]):not([class*="text-emerald"]):not([class*="text-amber"]):not([class*="text-orange"]):not([class*="text-blue"]):not([class*="text-rose"]):not([class*="text-yellow"]),
+.dark .fixed.inset-0 [class*="text-slate-"]:not([class*="text-green"]):not([class*="text-red"]):not([class*="text-emerald"]):not([class*="text-amber"]):not([class*="text-orange"]):not([class*="text-blue"]):not([class*="text-rose"]):not([class*="text-yellow"]),
+.dark [id*="modal"] [class*="text-black"]:not([class*="text-green"]):not([class*="text-red"]):not([class*="text-emerald"]):not([class*="text-amber"]):not([class*="text-orange"]):not([class*="text-blue"]):not([class*="text-rose"]):not([class*="text-yellow"]),
+.dark [id*="modal"] [class*="text-gray-"]:not([class*="text-green"]):not([class*="text-red"]):not([class*="text-emerald"]):not([class*="text-amber"]):not([class*="text-orange"]):not([class*="text-blue"]):not([class*="text-rose"]):not([class*="text-yellow"]),
+.dark [id*="modal"] [class*="text-slate-"]:not([class*="text-green"]):not([class*="text-red"]):not([class*="text-emerald"]):not([class*="text-amber"]):not([class*="text-orange"]):not([class*="text-blue"]):not([class*="text-rose"]):not([class*="text-yellow"]),
+.dark [id*="dialog"] [class*="text-black"]:not([class*="text-green"]):not([class*="text-red"]):not([class*="text-emerald"]):not([class*="text-amber"]):not([class*="text-orange"]):not([class*="text-blue"]):not([class*="text-rose"]):not([class*="text-yellow"]),
+.dark [id*="dialog"] [class*="text-gray-"]:not([class*="text-green"]):not([class*="text-red"]):not([class*="text-emerald"]):not([class*="text-amber"]):not([class*="text-orange"]):not([class*="text-blue"]):not([class*="text-rose"]):not([class*="text-yellow"]),
+.dark [id*="dialog"] [class*="text-slate-"]:not([class*="text-green"]):not([class*="text-red"]):not([class*="text-emerald"]):not([class*="text-amber"]):not([class*="text-orange"]):not([class*="text-blue"]):not([class*="text-rose"]):not([class*="text-yellow"]) {
   color: #FFFFFF !important;
 }
 
@@ -1122,6 +1122,80 @@ html:not(.dark) button[disabled]:not(.bg-\[\#1E6C02\]):not(.disabled\:bg-\[\#A3D
 .dark [id*="dialog"] td {
   color: #FFFFFF !important;
   border-bottom: 1px solid rgba(255, 255, 255, 0.15) !important;
+}
+
+/* 10. Rejection Modal Rejection Reasons Options (Hover, Selected, and Keyboard Focus) */
+#reject-reasons-container label {
+  transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+/* Light mode hover, selected, and focus states */
+#reject-reasons-container label:hover {
+  background-color: #fef2f2 !important; /* Soft rose-50 / red-50 tint, NOT pure white */
+  border-color: #fca5a5 !important; /* Gentle red-300 border */
+}
+
+#reject-reasons-container label:has(input:checked) {
+  background-color: #fee2e2 !important; /* Distinct red-100 highlight */
+  border-color: #ef4444 !important; /* Solid red-500 border */
+}
+
+#reject-reasons-container label:has(input:checked):hover {
+  background-color: #fecaca !important; /* red-200 */
+  border-color: #dc2626 !important; /* red-600 */
+}
+
+#reject-reasons-container label:focus-within {
+  outline: 2px solid #ef4444 !important;
+  outline-offset: 1px !important;
+  border-color: #ef4444 !important;
+}
+
+/* Dark mode overrides for rejection reasons */
+.dark #reject-reasons-container label {
+  background-color: #1e293b !important; /* slate-800 dark surface */
+  border-color: #334155 !important; /* slate-700 border */
+  color: #f1f5f9 !important; /* Crisp slate-100 text */
+}
+
+.dark #reject-reasons-container label span {
+  color: #f1f5f9 !important;
+}
+
+.dark #reject-reasons-container label:hover {
+  background-color: #334155 !important; /* Elevated slate-700 hover - definitely NOT white */
+  border-color: #64748b !important; /* slate-500 */
+  color: #ffffff !important;
+}
+
+.dark #reject-reasons-container label:hover span {
+  color: #ffffff !important;
+}
+
+.dark #reject-reasons-container label:has(input:checked) {
+  background-color: rgba(153, 27, 27, 0.45) !important; /* High-contrast dark red background */
+  border-color: #ef4444 !important; /* Vibrant red-500 border */
+  color: #fecaca !important;
+}
+
+.dark #reject-reasons-container label:has(input:checked) span {
+  color: #fecaca !important;
+}
+
+.dark #reject-reasons-container label:has(input:checked):hover {
+  background-color: rgba(153, 27, 27, 0.65) !important;
+  border-color: #f87171 !important;
+  color: #ffffff !important;
+}
+
+.dark #reject-reasons-container label:has(input:checked):hover span {
+  color: #ffffff !important;
+}
+
+.dark #reject-reasons-container label:focus-within {
+  outline: 2px solid #f87171 !important;
+  outline-offset: 1px !important;
+  border-color: #f87171 !important;
 }
 
 /* ==========================================================================

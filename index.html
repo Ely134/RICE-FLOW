@@ -160,23 +160,26 @@
 
     document.addEventListener('DOMContentLoaded', () => {
       // 0. Dynamic Store Settings Updates
-      const settings = getStoreSettings();
-      const heroTitle = document.getElementById('hero-title');
-      if (heroTitle) {
-        heroTitle.innerHTML = `${settings.storeName}<br /><span class="text-[#1E6C02]">Online Ordering</span>`;
+      function applyStoreSettings() {
+        const settings = getStoreSettings();
+        const heroTitle = document.getElementById('hero-title');
+        if (heroTitle) {
+          heroTitle.innerHTML = `${settings.storeName}<br /><span class="text-[#1E6C02]">Online Ordering</span>`;
+        }
+        const heroDesc = document.getElementById('hero-desc');
+        if (heroDesc) {
+          heroDesc.textContent = settings.description;
+        }
+        const heroImage = document.getElementById('hero-image');
+        if (heroImage) {
+          heroImage.src = settings.banner;
+        }
+        const whyChooseTitle = document.getElementById('why-choose-title');
+        if (whyChooseTitle) {
+          whyChooseTitle.textContent = `Why Choose ${settings.storeName}?`;
+        }
       }
-      const heroDesc = document.getElementById('hero-desc');
-      if (heroDesc) {
-        heroDesc.textContent = settings.description;
-      }
-      const heroImage = document.getElementById('hero-image');
-      if (heroImage) {
-        heroImage.src = settings.banner;
-      }
-      const whyChooseTitle = document.getElementById('why-choose-title');
-      if (whyChooseTitle) {
-        whyChooseTitle.textContent = `Why Choose ${settings.storeName}?`;
-      }
+      applyStoreSettings();
 
       // 1. Featured Products
       function renderFeaturedProducts() {
@@ -220,6 +223,9 @@
       window.addEventListener('aurora-sync-event', (e) => {
         if (!e.detail || !e.detail.key || e.detail.key === 'aurora-products') {
           renderFeaturedProducts();
+        }
+        if (!e.detail || !e.detail.key || e.detail.key === 'aurora-store-settings' || e.detail.key.startsWith('settings-')) {
+          applyStoreSettings();
         }
       });
 

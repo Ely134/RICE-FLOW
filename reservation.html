@@ -290,9 +290,9 @@
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-5 h-5 text-gray-500 dark:text-gray-300"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
                     </div>
                     <p class="text-sm font-bold text-gray-800 dark:text-gray-200">Upload payment screenshot here</p>
-                    <p class="text-xs text-gray-400 dark:text-gray-400 mt-1">JPEG, PNG, and PDF formats, up to 10MB</p>
+                    <p class="text-xs text-gray-400 dark:text-gray-400 mt-1">JPEG, PNG, or WEBP images, up to 5MB</p>
                     <span class="mt-3 inline-block px-4 py-2 border border-gray-200 dark:border-slate-600 text-xs font-bold text-[#222222] dark:text-gray-100 bg-white dark:bg-slate-700 rounded-xl shadow-xs group-hover:bg-gray-50 dark:group-hover:bg-slate-600 transition-colors">Browse File</span>
-                    <input required type="file" accept="image/*" name="screenshot" id="inp-screenshot" class="hidden" />
+                    <input required type="file" accept="image/jpeg,image/png,image/webp,image/jpg" name="screenshot" id="inp-screenshot" class="hidden" />
                   </label>
 
                   <!-- Image Preview Block -->
@@ -515,7 +515,11 @@
     import { 
       sendFirebasePhoneVerification, 
       verifyAndLinkPhoneCredential,
-      initFirestoreSync
+      initFirestoreSync,
+      storage,
+      storageRef,
+      uploadBytes,
+      getDownloadURL
     } from './src/lib/firebase.js';
 
     document.addEventListener('DOMContentLoaded', async () => {
@@ -750,50 +754,54 @@
         });
       }
 
-      let paymentProofBase64 = null;
+      function handleSelectedPaymentFile(file) {
+        if (!file) return;
 
-      function processAndCompressImage(file, callback) {
-        const reader = new FileReader();
-        reader.onload = function(evt) {
-          const img = new Image();
-          img.onload = function() {
-            const canvas = document.createElement('canvas');
-            let width = img.width;
-            let height = img.height;
-            const maxDim = 600;
-            if (width > maxDim || height > maxDim) {
-              if (width > height) {
-                height = Math.round((height * maxDim) / width);
-                width = maxDim;
-              } else {
-                width = Math.round((width * maxDim) / height);
-                height = maxDim;
-              }
-            }
-            canvas.width = width;
-            canvas.height = height;
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(img, 0, 0, width, height);
-            const compressed = canvas.toDataURL('image/jpeg', 0.7);
-            callback(compressed);
-          };
-          img.src = evt.target.result;
-        };
-        reader.readAsDataURL(file);
+        // 1. Validate file format
+        const validMimeTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
+        const isImage = validMimeTypes.includes(file.type.toLowerCase()) || 
+          file.type.startsWith('image/') || 
+          /\.(jpe?g|png|webp)$/i.test(file.name);
+
+        if (!isImage) {
+          showToast('Invalid file format. Please attach an image (JPG, PNG, or WEBP).', 'error');
+          screenshotInput.value = '';
+          return;
+        }
+
+        // 2. Validate file size (max 5 MB)
+        const maxSizeBytes = 5 * 1024 * 1024;
+        if (file.size > maxSizeBytes) {
+          const actualMb = (file.size / (1024 * 1024)).toFixed(1);
+          showToast(`File is too large (${actualMb}MB). Maximum allowed size is 5MB.`, 'error');
+          screenshotInput.value = '';
+          return;
+        }
+
+        // 3. Keep selected file reference for upload upon confirmation
+        paymentProofFile = file;
+        screenshotFn.textContent = file.name;
+
+        // 4. Instant local preview using ObjectURL (avoids heavy Base64 strings)
+        try {
+          if (screenshotMiniPreview.dataset.blobUrl) {
+            URL.revokeObjectURL(screenshotMiniPreview.dataset.blobUrl);
+          }
+          const blobUrl = URL.createObjectURL(file);
+          screenshotMiniPreview.dataset.blobUrl = blobUrl;
+          screenshotMiniPreview.src = blobUrl;
+        } catch (previewErr) {
+          console.warn('[RESERVATION] Local preview fallback:', previewErr);
+        }
+
+        screenshotSuccess.classList.remove('hidden');
+        showToast('Payment screenshot attached!');
       }
 
-      // Screenshot handles
+      // Screenshot input listener
       screenshotInput.addEventListener('change', (e) => {
         if (e.target.files && e.target.files[0]) {
-          paymentProofFile = e.target.files[0];
-          screenshotFn.textContent = paymentProofFile.name;
-          
-          processAndCompressImage(paymentProofFile, (compressed) => {
-            screenshotMiniPreview.src = compressed;
-            paymentProofBase64 = compressed;
-            screenshotSuccess.classList.remove('hidden');
-            showToast('Payment screenshot attached!');
-          });
+          handleSelectedPaymentFile(e.target.files[0]);
         }
       });
 
@@ -810,15 +818,7 @@
         e.preventDefault();
         dropzone.classList.remove('border-[#1E6C02]', 'bg-emerald-50/10');
         if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-          paymentProofFile = e.dataTransfer.files[0];
-          screenshotFn.textContent = paymentProofFile.name;
-          
-          processAndCompressImage(paymentProofFile, (compressed) => {
-            screenshotMiniPreview.src = compressed;
-            paymentProofBase64 = compressed;
-            screenshotSuccess.classList.remove('hidden');
-            showToast('Payment screenshot dropped!');
-          });
+          handleSelectedPaymentFile(e.dataTransfer.files[0]);
         }
       });
 
@@ -838,9 +838,23 @@
         confirmOrderModal.classList.add('hidden');
       });
 
-      btnSubmitConfirm.addEventListener('click', () => {
-        confirmOrderModal.classList.add('hidden');
-        submitReservationToDB();
+      btnSubmitConfirm.addEventListener('click', async () => {
+        btnSubmitConfirm.disabled = true;
+        const originalText = btnSubmitConfirm.textContent;
+        btnSubmitConfirm.textContent = 'Uploading Proof...';
+
+        try {
+          const success = await submitReservationToDB();
+          if (success) {
+            confirmOrderModal.classList.add('hidden');
+          }
+        } catch (err) {
+          console.error('[RESERVATION] Confirmation submission error:', err);
+          showToast('An unexpected error occurred while placing your reservation.', 'error');
+        } finally {
+          btnSubmitConfirm.disabled = false;
+          btnSubmitConfirm.textContent = originalText;
+        }
       });
 
       function hasUnsavedChanges() {
@@ -1130,9 +1144,7 @@
         validateReservationAndProceed();
       });
 
-      function submitReservationToDB() {
-        orderSubmitted = true;
-
+      async function submitReservationToDB() {
         const subtotal = product.price * quantity;
         const deliveryFee = deliveryOption === 'delivery' ? 80 : 0;
         const total = subtotal + deliveryFee;
@@ -1144,7 +1156,65 @@
           amountPaid = Math.round(total * 0.3 * 100) / 100;
         }
         const remainingAmount = Math.max(0, total - amountPaid);
-        const hasPayment = paymentMethod !== 'none' && Boolean(paymentProofFile || paymentProofBase64);
+
+        let downloadUrl = '';
+        let storagePath = null;
+
+        // Upload to Firebase Storage if a payment screenshot is attached
+        if (paymentProofFile && paymentMethod !== 'none') {
+          if (!storage) {
+            showToast('Firebase Storage is currently not initialized. Please verify your connection.', 'error');
+            return false;
+          }
+
+          // Strict validation before upload
+          const validMimeTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
+          const isImage = validMimeTypes.includes(paymentProofFile.type.toLowerCase()) || 
+            paymentProofFile.type.startsWith('image/') || 
+            /\.(jpe?g|png|webp)$/i.test(paymentProofFile.name);
+
+          if (!isImage) {
+            showToast('Invalid file format. Please attach a JPG, PNG, or WEBP image.', 'error');
+            return false;
+          }
+
+          const maxSizeBytes = 5 * 1024 * 1024;
+          if (paymentProofFile.size > maxSizeBytes) {
+            showToast('File size exceeds 5MB limit. Please upload a smaller image.', 'error');
+            return false;
+          }
+
+          try {
+            const timestamp = Date.now();
+            const randSuffix = Math.random().toString(36).substring(2, 9);
+            const ext = (paymentProofFile.name.split('.').pop() || 'jpg').toLowerCase();
+            const safeBaseName = paymentProofFile.name.replace(/\.[^/.]+$/, '').replace(/[^a-zA-Z0-9_-]/g, '_').substring(0, 30);
+            storagePath = `payment_proofs/reservations/${timestamp}_${randSuffix}_${safeBaseName}.${ext}`;
+
+            const proofStorageRef = storageRef(storage, storagePath);
+            const metadata = {
+              contentType: paymentProofFile.type || 'image/jpeg',
+              customMetadata: {
+                originalFileName: paymentProofFile.name,
+                uploadedAt: new Date().toISOString(),
+                userId: String(user.uid || user.id || 'anonymous'),
+                userPhone: String(document.getElementById('inp-phone').value || ''),
+                productName: String(product.name || '')
+              }
+            };
+
+            const uploadSnapshot = await uploadBytes(proofStorageRef, paymentProofFile, metadata);
+            downloadUrl = await getDownloadURL(uploadSnapshot.ref);
+            console.log('[STORAGE] Reservation payment proof uploaded successfully:', downloadUrl);
+          } catch (uploadError) {
+            console.error('[STORAGE] Upload failed:', uploadError);
+            showToast('Failed to upload payment proof to Storage: ' + (uploadError.message || 'Please try again.'), 'error');
+            return false;
+          }
+        }
+
+        orderSubmitted = true;
+        const hasPayment = paymentMethod !== 'none' && Boolean(downloadUrl);
 
         const reservationRecord = {
           items: [{ product, quantity, isReservation: true }],
@@ -1155,7 +1225,9 @@
           amountPaid: amountPaid,
           remainingAmount: remainingAmount,
           paymentProof: paymentProofFile ? (paymentProofFile.name || 'payment_proof.jpg') : null,
-          paymentProofDataUrl: paymentProofBase64 || '',
+          paymentProofDataUrl: downloadUrl || '',
+          paymentProofUrl: downloadUrl || '',
+          storagePath: storagePath || null,
           paymentVerified: false,
           referenceNumber: paymentProofFile ? ('REF' + Date.now().toString().slice(-8)) : null,
           paymentUploadedAt: paymentProofFile ? new Date().toISOString() : null,
@@ -1259,6 +1331,7 @@
         document.getElementById('success-splash').classList.remove('hidden');
         showToast('Reservation submitted successfully!');
         window.scrollTo({ top: 0, behavior: 'smooth' });
+        return true;
       }
     });
   </script>

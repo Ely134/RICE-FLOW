@@ -403,6 +403,7 @@
   <!-- Products Controller logic -->
   <script type="module">
     import { renderAdminLayout, getProducts, saveProducts, addActivityLog, showToast, allocateStockToReservations, addInventoryHistory, getCurrentAdmin } from '../src/app/shared.js';
+    import { storage, storageRef, uploadBytes, getDownloadURL } from '../src/lib/firebase.js';
 
     document.addEventListener('DOMContentLoaded', () => {
       renderAdminLayout('products');
@@ -722,6 +723,7 @@
             const editFileInput = document.getElementById('info-file-image');
 
             if (editFileInput) editFileInput.value = '';
+            selectedEditProductImageFile = null;
 
             if (match.image) {
               uploadedEditProductImageBase64 = match.image;
@@ -872,6 +874,8 @@
       // 4. Modal submit listeners & File Uploads
       let uploadedProductImageBase64 = null;
       let uploadedEditProductImageBase64 = null;
+      let selectedProductImageFile = null;
+      let selectedEditProductImageFile = null;
 
       // Product Image Upload Area Bindings
       const imageZone = document.getElementById('add-image-upload-zone');
@@ -904,24 +908,34 @@
       }
 
       function handleProductImageFile(file) {
-        if (!file.type.match('image.*')) {
+        const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+        if (!allowedTypes.includes(file.type)) {
           showToast('Invalid file format. Please upload PNG, JPG or WEBP.', 'error');
           return;
         }
-        const reader = new FileReader();
-        reader.onload = (evt) => {
-          uploadedProductImageBase64 = evt.target.result;
-          imagePreviewImg.src = uploadedProductImageBase64;
-          imageZone.classList.add('hidden');
-          imagePreviewContainer.classList.remove('hidden');
-          document.getElementById('err-add-image').classList.add('hidden');
-          validateAddFormRealtime();
-        };
-        reader.readAsDataURL(file);
+        if (file.size > 5 * 1024 * 1024) {
+          showToast('Product image file size exceeds the 5MB limit!', 'error');
+          return;
+        }
+
+        selectedProductImageFile = file;
+        try {
+          uploadedProductImageBase64 = URL.createObjectURL(file);
+        } catch (err) {
+          const reader = new FileReader();
+          reader.onload = (evt) => { uploadedProductImageBase64 = evt.target.result; };
+          reader.readAsDataURL(file);
+        }
+        imagePreviewImg.src = uploadedProductImageBase64;
+        imageZone.classList.add('hidden');
+        imagePreviewContainer.classList.remove('hidden');
+        document.getElementById('err-add-image').classList.add('hidden');
+        validateAddFormRealtime();
       }
 
       if (imageReplaceBtn) {
         imageReplaceBtn.addEventListener('click', () => {
+          selectedProductImageFile = null;
           uploadedProductImageBase64 = null;
           imageInput.value = '';
           imagePreviewImg.src = '';
@@ -962,22 +976,32 @@
       }
 
       function handleEditProductImageFile(file) {
-        if (!file.type.match('image.*')) {
+        const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+        if (!allowedTypes.includes(file.type)) {
           showToast('Invalid file format. Please upload PNG, JPG or WEBP.', 'error');
           return;
         }
-        const reader = new FileReader();
-        reader.onload = (evt) => {
-          uploadedEditProductImageBase64 = evt.target.result;
-          infoImagePreviewImg.src = uploadedEditProductImageBase64;
-          infoImageZone.classList.add('hidden');
-          infoImagePreviewContainer.classList.remove('hidden');
-        };
-        reader.readAsDataURL(file);
+        if (file.size > 5 * 1024 * 1024) {
+          showToast('Product image file size exceeds the 5MB limit!', 'error');
+          return;
+        }
+
+        selectedEditProductImageFile = file;
+        try {
+          uploadedEditProductImageBase64 = URL.createObjectURL(file);
+        } catch (err) {
+          const reader = new FileReader();
+          reader.onload = (evt) => { uploadedEditProductImageBase64 = evt.target.result; };
+          reader.readAsDataURL(file);
+        }
+        infoImagePreviewImg.src = uploadedEditProductImageBase64;
+        infoImageZone.classList.add('hidden');
+        infoImagePreviewContainer.classList.remove('hidden');
       }
 
       if (infoImageReplaceBtn) {
         infoImageReplaceBtn.addEventListener('click', () => {
+          selectedEditProductImageFile = null;
           uploadedEditProductImageBase64 = null;
           infoImageInput.value = '';
           infoImagePreviewImg.src = '';
@@ -991,6 +1015,7 @@
         const form = document.getElementById('add-product-form');
         if (form) form.reset();
 
+        selectedProductImageFile = null;
         uploadedProductImageBase64 = null;
         if (imageInput) imageInput.value = '';
         if (imagePreviewImg) imagePreviewImg.src = '';
@@ -1089,63 +1114,102 @@
         document.getElementById('confirm-product-dialog').classList.add('hidden');
       });
 
-      document.getElementById('btn-confirm-yes').addEventListener('click', () => {
-        const name = document.getElementById('add-inp-name').value.trim();
-        const sku = document.getElementById('add-inp-sku').value.trim();
-        const variety = document.getElementById('add-inp-variety').value.trim();
-        const stock = parseInt(document.getElementById('add-inp-stock').value || '0');
-        const unit = document.getElementById('add-inp-unit').value.trim();
-        const price = parseFloat(document.getElementById('add-inp-price').value || '0');
-        const reorderLevel = parseFloat(document.getElementById('add-inp-reorder').value || '0');
-        const description = document.getElementById('add-inp-desc').value.trim();
-
-        const productsList = getProducts();
-        
-        const newProduct = {
-          id: Date.now().toString(),
-          sku,
-          name,
-          price,
-          stock,
-          image: uploadedProductImageBase64,
-          type: variety,
-          description,
-          weight: unit,
-          unit,
-          reorderLevel,
-          isArchived: false
-        };
-
-        productsList.push(newProduct);
-        saveProducts(productsList);
-
-        // Record to Inventory History
-        addInventoryHistory({
-          productId: newProduct.id,
-          productName: name,
-          quantityAdded: stock,
-          remarks: 'Initial stock seeding for new variety'
-        });
-
-        if (stock > 0) {
-          allocateStockToReservations(newProduct.id, { actualRestockedQty: stock, reason: 'initial_stock' });
+      document.getElementById('btn-confirm-yes').addEventListener('click', async () => {
+        const btnYes = document.getElementById('btn-confirm-yes');
+        if (btnYes) {
+          btnYes.disabled = true;
+          btnYes.textContent = 'Saving...';
         }
 
-        addActivityLog({
-          action: `Created new premium Rice Variety entry: '${name}'`,
-          category: 'Inventory',
-          target: name
-        });
+        try {
+          const name = document.getElementById('add-inp-name').value.trim();
+          const sku = document.getElementById('add-inp-sku').value.trim();
+          const variety = document.getElementById('add-inp-variety').value.trim();
+          const stock = parseInt(document.getElementById('add-inp-stock').value || '0');
+          const unit = document.getElementById('add-inp-unit').value.trim();
+          const price = parseFloat(document.getElementById('add-inp-price').value || '0');
+          const reorderLevel = parseFloat(document.getElementById('add-inp-reorder').value || '0');
+          const description = document.getElementById('add-inp-desc').value.trim();
 
-        // Hide both dialogs
-        document.getElementById('confirm-product-dialog').classList.add('hidden');
-        addDialog.classList.add('hidden');
-        resetAddForm();
-        
-        // Success Toast Notification
-        showToast('✔ Product added successfully.');
-        
-        renderCatalog();
+          let finalImageUrl = './rice_logo.jpg';
+          if (selectedProductImageFile) {
+            const timestamp = Date.now();
+            const rand = Math.random().toString(36).substring(2, 9);
+            const ext = (selectedProductImageFile.name.split('.').pop() || 'jpg').toLowerCase();
+            const safeName = selectedProductImageFile.name.replace(/\.[^/.]+$/, '').replace(/[^a-zA-Z0-9_-]/g, '_').substring(0, 30);
+            const storagePath = `products/product_${timestamp}_${rand}_${safeName}.${ext}`;
+            const imgRef = storageRef(storage, storagePath);
+            const uploadSnap = await uploadBytes(imgRef, selectedProductImageFile, {
+              contentType: selectedProductImageFile.type || 'image/jpeg',
+              customMetadata: {
+                originalName: selectedProductImageFile.name,
+                uploadedAt: new Date().toISOString(),
+                sku,
+                name
+              }
+            });
+            finalImageUrl = await getDownloadURL(uploadSnap.ref);
+            selectedProductImageFile = null;
+          } else if (uploadedProductImageBase64) {
+            finalImageUrl = uploadedProductImageBase64;
+          }
+
+          const productsList = getProducts();
+          
+          const newProduct = {
+            id: Date.now().toString(),
+            sku,
+            name,
+            price,
+            stock,
+            image: finalImageUrl,
+            type: variety,
+            description,
+            weight: unit,
+            unit,
+            reorderLevel,
+            isArchived: false
+          };
+
+          productsList.push(newProduct);
+          saveProducts(productsList);
+
+          // Record to Inventory History
+          addInventoryHistory({
+            productId: newProduct.id,
+            productName: name,
+            quantityAdded: stock,
+            remarks: 'Initial stock seeding for new variety'
+          });
+
+          if (stock > 0) {
+            allocateStockToReservations(newProduct.id, { actualRestockedQty: stock, reason: 'initial_stock' });
+          }
+
+          addActivityLog({
+            action: `Created new premium Rice Variety entry: '${name}'`,
+            category: 'Inventory',
+            target: name
+          });
+
+          // Hide both dialogs
+          document.getElementById('confirm-product-dialog').classList.add('hidden');
+          addDialog.classList.add('hidden');
+          resetAddForm();
+          
+          // Success Toast Notification
+          showToast('✔ Product added successfully.');
+          
+          renderCatalog();
+        } catch (addErr) {
+          console.error('[PRODUCTS] Error adding product:', addErr);
+          showToast('Failed to upload product image to Firebase Storage: ' + (addErr.message || addErr), 'error');
+        } finally {
+          if (btnYes) {
+            btnYes.disabled = false;
+            btnYes.textContent = 'Yes, Add Product';
+          }
+        }
       });
 
       // Cancel button Add dialog
@@ -1186,65 +1250,104 @@
         document.getElementById('confirm-update-product-dialog').classList.add('hidden');
       });
 
-      document.getElementById('btn-confirm-update-yes').addEventListener('click', () => {
+      document.getElementById('btn-confirm-update-yes').addEventListener('click', async () => {
         if (!selectedProductInModal) return;
 
-        const name = document.getElementById('info-inp-name').value.trim();
-        const sku = document.getElementById('info-inp-sku').value.trim();
-        const type = document.getElementById('info-inp-category').value.trim();
-        const stock = parseInt(document.getElementById('info-inp-stock').value || '0');
-        const weight = document.getElementById('info-inp-weight').value.trim();
-        const price = parseFloat(document.getElementById('info-inp-price').value);
-        const reorderLevel = parseFloat(document.getElementById('info-inp-reorder').value);
-        const description = document.getElementById('info-inp-desc').value.trim();
-
-        const productsList = getProducts();
-        const oldStock = selectedProductInModal.currentStock !== undefined ? selectedProductInModal.currentStock : selectedProductInModal.stock;
-        const stockDiff = stock - oldStock;
-        if (stockDiff !== 0) {
-          addInventoryHistory({
-            productId: selectedProductInModal.id,
-            productName: name,
-            quantityAdded: stockDiff,
-            remarks: `Physical stock updated via product editing`
-          });
+        const btnUpdateYes = document.getElementById('btn-confirm-update-yes');
+        if (btnUpdateYes) {
+          btnUpdateYes.disabled = true;
+          btnUpdateYes.textContent = 'Saving...';
         }
 
-        const updated = productsList.map(p => {
-          if (p.id === selectedProductInModal.id) {
-            return {
-              ...p,
-              sku,
-              name,
-              type,
-              stock,
-              price,
-              weight,
-              unit: weight,
-              reorderLevel,
-              description,
-              image: uploadedEditProductImageBase64
-            };
+        try {
+          const name = document.getElementById('info-inp-name').value.trim();
+          const sku = document.getElementById('info-inp-sku').value.trim();
+          const type = document.getElementById('info-inp-category').value.trim();
+          const stock = parseInt(document.getElementById('info-inp-stock').value || '0');
+          const weight = document.getElementById('info-inp-weight').value.trim();
+          const price = parseFloat(document.getElementById('info-inp-price').value);
+          const reorderLevel = parseFloat(document.getElementById('info-inp-reorder').value);
+          const description = document.getElementById('info-inp-desc').value.trim();
+
+          let finalImageUrl = selectedProductInModal.image || '';
+          if (selectedEditProductImageFile) {
+            const timestamp = Date.now();
+            const rand = Math.random().toString(36).substring(2, 9);
+            const ext = (selectedEditProductImageFile.name.split('.').pop() || 'jpg').toLowerCase();
+            const safeName = selectedEditProductImageFile.name.replace(/\.[^/.]+$/, '').replace(/[^a-zA-Z0-9_-]/g, '_').substring(0, 30);
+            const storagePath = `products/product_${timestamp}_${rand}_${safeName}.${ext}`;
+            const imgRef = storageRef(storage, storagePath);
+            const uploadSnap = await uploadBytes(imgRef, selectedEditProductImageFile, {
+              contentType: selectedEditProductImageFile.type || 'image/jpeg',
+              customMetadata: {
+                originalName: selectedEditProductImageFile.name,
+                uploadedAt: new Date().toISOString(),
+                sku,
+                name
+              }
+            });
+            finalImageUrl = await getDownloadURL(uploadSnap.ref);
+            selectedEditProductImageFile = null;
+          } else if (uploadedEditProductImageBase64) {
+            finalImageUrl = selectedProductInModal.image;
           }
-          return p;
-        });
 
-        saveProducts(updated);
+          const productsList = getProducts();
+          const oldStock = selectedProductInModal.currentStock !== undefined ? selectedProductInModal.currentStock : selectedProductInModal.stock;
+          const stockDiff = stock - oldStock;
+          if (stockDiff !== 0) {
+            addInventoryHistory({
+              productId: selectedProductInModal.id,
+              productName: name,
+              quantityAdded: stockDiff,
+              remarks: `Physical stock updated via product editing`
+            });
+          }
 
-        if (stockDiff > 0) {
-          allocateStockToReservations(selectedProductInModal.id, { actualRestockedQty: stockDiff, reason: 'restock' });
+          const updated = productsList.map(p => {
+            if (p.id === selectedProductInModal.id) {
+              return {
+                ...p,
+                sku,
+                name,
+                type,
+                stock,
+                price,
+                weight,
+                unit: weight,
+                reorderLevel,
+                description,
+                image: finalImageUrl
+              };
+            }
+            return p;
+          });
+
+          saveProducts(updated);
+
+          if (stockDiff > 0) {
+            allocateStockToReservations(selectedProductInModal.id, { actualRestockedQty: stockDiff, reason: 'restock' });
+          }
+
+          addActivityLog({
+            action: `Admin revised properties details for grain variety: ${name}`,
+            category: 'Inventory',
+            target: name
+          });
+
+          showToast('Grains details record updated perfectly!');
+          document.getElementById('confirm-update-product-dialog').classList.add('hidden');
+          infoDialog.classList.add('hidden');
+          renderCatalog();
+        } catch (updateErr) {
+          console.error('[PRODUCTS] Error updating product:', updateErr);
+          showToast('Failed to upload product image to Firebase Storage: ' + (updateErr.message || updateErr), 'error');
+        } finally {
+          if (btnUpdateYes) {
+            btnUpdateYes.disabled = false;
+            btnUpdateYes.textContent = 'Yes, Update Product';
+          }
         }
-
-        addActivityLog({
-          action: `Admin revised properties details for grain variety: ${name}`,
-          category: 'Inventory',
-          target: name
-        });
-
-        showToast('Grains details record updated perfectly!');
-        document.getElementById('confirm-update-product-dialog').classList.add('hidden');
-        infoDialog.classList.add('hidden');
-        renderCatalog();
       });
 
       document.getElementById('btn-info-cancel').addEventListener('click', () => {

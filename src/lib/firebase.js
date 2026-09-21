@@ -27,12 +27,22 @@ import {
   query,
   where
 } from 'firebase/firestore';
+import { 
+  getStorage, 
+  ref as storageRef, 
+  uploadBytes, 
+  uploadBytesResumable, 
+  getDownloadURL, 
+  deleteObject, 
+  listAll 
+} from 'firebase/storage';
 import firebaseConfig from '../../firebase-applet-config.json' with { type: 'json' };
 import { DEFAULT_PRODUCTS, safeLocalStorageSet } from '../app/shared.js';
 
 let app;
 let db;
 let auth;
+let storage;
 
 try {
   app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
@@ -58,7 +68,16 @@ try {
     auth = getAuth(app);
   }
 
-  console.log('[FIREBASE] Firestore and Auth initialized successfully with database ID:', firebaseConfig.firestoreDatabaseId);
+  // Initialize Firebase Storage reusing the existing app instance and storage bucket
+  try {
+    const bucket = firebaseConfig.storageBucket || 'rice-f0b23.firebasestorage.app';
+    storage = getStorage(app, bucket);
+    console.log('[FIREBASE] Storage initialized successfully with bucket:', bucket);
+  } catch (storageErr) {
+    console.warn('[FIREBASE] Failed to initialize Firebase Storage:', storageErr);
+  }
+
+  console.log('[FIREBASE] Firestore, Auth, and Storage initialized successfully with database ID:', firebaseConfig.firestoreDatabaseId);
 } catch (err) {
   console.error('[FIREBASE] Failed to initialize Firebase:', err);
 }
@@ -106,7 +125,18 @@ export function handleFirestoreError(error, operationType, path) {
   throw new Error(JSON.stringify(errInfo));
 }
 
-export { app, db, auth };
+export { 
+  app, 
+  db, 
+  auth, 
+  storage, 
+  storageRef, 
+  uploadBytes, 
+  uploadBytesResumable, 
+  getDownloadURL, 
+  deleteObject, 
+  listAll 
+};
 
 // Helper to save a document to Firestore
 export async function saveFirestoreDoc(colName, docId, data) {
@@ -875,6 +905,20 @@ export async function initFirestoreSync(force = false) {
         } else {
           const merged = mergeGenericCollections(col, localData, docs);
           safeLocalStorageSet(key, JSON.stringify(merged));
+          if (col === 'storeSettings' && Array.isArray(merged) && merged.length > 0) {
+            const s = merged[0];
+            if (s.logo) safeLocalStorageSet('settings-store-logo', s.logo);
+            if (s.banner) safeLocalStorageSet('settings-store-banner', s.banner);
+            if (s.storeName) safeLocalStorageSet('settings-store-name', s.storeName);
+            if (s.description) safeLocalStorageSet('settings-store-description', s.description);
+            if (s.contactNumber) safeLocalStorageSet('settings-contact-number', s.contactNumber);
+            if (s.storeAddress) safeLocalStorageSet('settings-store-address', s.storeAddress);
+            if (s.facebookLink !== undefined) safeLocalStorageSet('settings-facebook-link', s.facebookLink);
+            if (s.businessHours) safeLocalStorageSet('settings-business-hours', s.businessHours);
+            if (s.gcashName) safeLocalStorageSet('settings-gcash-name', s.gcashName);
+            if (s.gcashNumber) safeLocalStorageSet('settings-gcash-number', s.gcashNumber);
+            if (s.gcashQr !== undefined) safeLocalStorageSet('settings-gcash-qr', s.gcashQr);
+          }
           if (typeof window !== 'undefined') {
             window.dispatchEvent(new CustomEvent('aurora-sync-event', { detail: { key, remote: true } }));
           }
@@ -901,6 +945,20 @@ export async function initFirestoreSync(force = false) {
             }
           } else {
             merged = mergeGenericCollections(col, currentLocal, remoteItems);
+          }
+          if (col === 'storeSettings' && Array.isArray(merged) && merged.length > 0) {
+            const s = merged[0];
+            if (s.logo) safeLocalStorageSet('settings-store-logo', s.logo);
+            if (s.banner) safeLocalStorageSet('settings-store-banner', s.banner);
+            if (s.storeName) safeLocalStorageSet('settings-store-name', s.storeName);
+            if (s.description) safeLocalStorageSet('settings-store-description', s.description);
+            if (s.contactNumber) safeLocalStorageSet('settings-contact-number', s.contactNumber);
+            if (s.storeAddress) safeLocalStorageSet('settings-store-address', s.storeAddress);
+            if (s.facebookLink !== undefined) safeLocalStorageSet('settings-facebook-link', s.facebookLink);
+            if (s.businessHours) safeLocalStorageSet('settings-business-hours', s.businessHours);
+            if (s.gcashName) safeLocalStorageSet('settings-gcash-name', s.gcashName);
+            if (s.gcashNumber) safeLocalStorageSet('settings-gcash-number', s.gcashNumber);
+            if (s.gcashQr !== undefined) safeLocalStorageSet('settings-gcash-qr', s.gcashQr);
           }
           const newRemoteRaw = JSON.stringify(merged);
           if (localStorage.getItem(key) !== newRemoteRaw) {

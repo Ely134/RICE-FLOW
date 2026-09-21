@@ -501,41 +501,92 @@
 
   <!-- REJECT ORDER CONFIRMATION MODAL -->
   <div id="reject-confirm-modal" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-[80] flex items-center justify-center p-4 hidden" style="font-family: system-ui, -apple-system, sans-serif;">
-    <div class="bg-white rounded-3xl max-w-md w-full shadow-2xl p-7 border border-gray-200 animate-in fade-in zoom-in duration-200">
-      <div class="flex items-center gap-3.5 pb-3 border-b border-gray-200">
-        <div class="w-11 h-11 rounded-full bg-red-50 text-red-650 flex items-center justify-center text-2xl font-bold">
+    <div class="bg-white dark:bg-slate-900 rounded-3xl max-w-lg w-full shadow-2xl p-6 sm:p-7 border border-gray-200 dark:border-slate-700 overflow-y-auto max-h-[92vh] animate-in fade-in zoom-in duration-200">
+      <div class="flex items-center gap-3.5 pb-3 border-b border-gray-200 dark:border-slate-800">
+        <div class="w-11 h-11 rounded-full bg-red-50 dark:bg-red-950/60 text-red-650 dark:text-red-400 flex items-center justify-center text-2xl font-bold shrink-0">
           ⚠️
         </div>
         <div>
-          <h3 class="text-[20px] font-bold text-black leading-snug">Reject Order</h3>
-          <p class="text-[13px] text-red-600 font-bold uppercase tracking-wider mt-0.5">Payment Verification Decline</p>
+          <h3 class="text-[20px] font-bold text-black dark:text-white leading-snug">Reject Payment Proof</h3>
+          <p class="text-[13px] text-red-600 dark:text-red-400 font-bold uppercase tracking-wider mt-0.5">Normal Order Verification Decline</p>
         </div>
       </div>
       
-      <p class="text-[15px] text-black mt-4 font-normal leading-relaxed">
-        Are you sure you want to reject this order? The customer will be notified that the order has been rejected.
-      </p>
-      <p class="text-[14px] text-red-650 font-bold leading-relaxed bg-red-50 p-3 border border-red-100 rounded-xl mt-3">
-        This action should only be used for invalid payments, incorrect order details, or failed verification.
-      </p>
-
-      <div class="my-5 p-5 bg-gray-50 border border-gray-200 rounded-2xl text-left space-y-3 text-[16px] font-normal text-black">
-        <div class="flex justify-between border-b border-gray-200 pb-2">
-          <span class="text-black font-bold uppercase tracking-wide text-[12px]">Order ID</span>
-          <span id="reject-modal-order-id" class="font-normal text-black font-mono text-[17px]">#946918</span>
+      <div class="my-4 p-4 bg-gray-50 dark:bg-slate-800/70 border border-gray-200 dark:border-slate-700 rounded-2xl text-left space-y-2 text-[15px] font-normal text-black dark:text-white">
+        <div class="flex justify-between border-b border-gray-200 dark:border-slate-700 pb-2">
+          <span class="text-gray-500 dark:text-gray-400 font-bold uppercase tracking-wide text-[12px]">Order ID</span>
+          <span id="reject-modal-order-id" class="font-bold text-black dark:text-white font-mono text-[16px]">#946918</span>
         </div>
         <div class="flex justify-between">
-          <span class="text-black font-bold uppercase tracking-wide text-[12px]">Customer</span>
-          <span id="reject-modal-customer" class="font-normal text-black text-[17px]">Demo User</span>
+          <span class="text-gray-500 dark:text-gray-400 font-bold uppercase tracking-wide text-[12px]">Customer</span>
+          <span id="reject-modal-customer" class="font-normal text-black dark:text-white text-[16px]">Demo User</span>
         </div>
       </div>
 
+      <!-- Required Rejection Reason -->
+      <div class="text-left mt-4">
+        <label class="block text-sm font-bold text-gray-900 dark:text-gray-100 mb-2">
+          Select Rejection Reason <span class="text-red-600 dark:text-red-400">*</span>
+        </label>
+        <div class="space-y-2" id="reject-reasons-container">
+          <label class="flex items-center gap-3 p-3 rounded-xl border border-gray-200 dark:border-slate-700 bg-gray-50/50 dark:bg-slate-800/80 hover:bg-red-50/50 dark:hover:bg-slate-700/80 hover:border-red-200 dark:hover:border-slate-600 cursor-pointer transition-all has-[:checked]:bg-red-50 dark:has-[:checked]:bg-red-950/50 has-[:checked]:border-red-400 dark:has-[:checked]:border-red-500 focus-within:ring-2 focus-within:ring-red-500/50 focus-within:border-red-500">
+            <input type="radio" name="rejectReason" value="Incorrect payment amount" class="w-4 h-4 text-red-600 focus:ring-red-500 border-gray-300 dark:border-slate-600 dark:bg-slate-800" />
+            <span class="text-sm font-semibold text-gray-800 dark:text-gray-100">Incorrect payment amount</span>
+          </label>
+          <label class="flex items-center gap-3 p-3 rounded-xl border border-gray-200 dark:border-slate-700 bg-gray-50/50 dark:bg-slate-800/80 hover:bg-red-50/50 dark:hover:bg-slate-700/80 hover:border-red-200 dark:hover:border-slate-600 cursor-pointer transition-all has-[:checked]:bg-red-50 dark:has-[:checked]:bg-red-950/50 has-[:checked]:border-red-400 dark:has-[:checked]:border-red-500 focus-within:ring-2 focus-within:ring-red-500/50 focus-within:border-red-500">
+            <input type="radio" name="rejectReason" value="Invalid or unrecognized transaction" class="w-4 h-4 text-red-600 focus:ring-red-500 border-gray-300 dark:border-slate-600 dark:bg-slate-800" />
+            <span class="text-sm font-semibold text-gray-800 dark:text-gray-100">Invalid or unrecognized transaction</span>
+          </label>
+          <label class="flex items-center gap-3 p-3 rounded-xl border border-gray-200 dark:border-slate-700 bg-gray-50/50 dark:bg-slate-800/80 hover:bg-red-50/50 dark:hover:bg-slate-700/80 hover:border-red-200 dark:hover:border-slate-600 cursor-pointer transition-all has-[:checked]:bg-red-50 dark:has-[:checked]:bg-red-950/50 has-[:checked]:border-red-400 dark:has-[:checked]:border-red-500 focus-within:ring-2 focus-within:ring-red-500/50 focus-within:border-red-500">
+            <input type="radio" name="rejectReason" value="Blurry or unreadable payment proof" class="w-4 h-4 text-red-600 focus:ring-red-500 border-gray-300 dark:border-slate-600 dark:bg-slate-800" />
+            <span class="text-sm font-semibold text-gray-800 dark:text-gray-100">Blurry or unreadable payment proof</span>
+          </label>
+          <label class="flex items-center gap-3 p-3 rounded-xl border border-gray-200 dark:border-slate-700 bg-gray-50/50 dark:bg-slate-800/80 hover:bg-red-50/50 dark:hover:bg-slate-700/80 hover:border-red-200 dark:hover:border-slate-600 cursor-pointer transition-all has-[:checked]:bg-red-50 dark:has-[:checked]:bg-red-950/50 has-[:checked]:border-red-400 dark:has-[:checked]:border-red-500 focus-within:ring-2 focus-within:ring-red-500/50 focus-within:border-red-500">
+            <input type="radio" name="rejectReason" value="Incorrect recipient or account" class="w-4 h-4 text-red-600 focus:ring-red-500 border-gray-300 dark:border-slate-600 dark:bg-slate-800" />
+            <span class="text-sm font-semibold text-gray-800 dark:text-gray-100">Incorrect recipient or account</span>
+          </label>
+          <label class="flex items-center gap-3 p-3 rounded-xl border border-gray-200 dark:border-slate-700 bg-gray-50/50 dark:bg-slate-800/80 hover:bg-red-50/50 dark:hover:bg-slate-700/80 hover:border-red-200 dark:hover:border-slate-600 cursor-pointer transition-all has-[:checked]:bg-red-50 dark:has-[:checked]:bg-red-950/50 has-[:checked]:border-red-400 dark:has-[:checked]:border-red-500 focus-within:ring-2 focus-within:ring-red-500/50 focus-within:border-red-500">
+            <input type="radio" name="rejectReason" value="Duplicate payment proof" class="w-4 h-4 text-red-600 focus:ring-red-500 border-gray-300 dark:border-slate-600 dark:bg-slate-800" />
+            <span class="text-sm font-semibold text-gray-800 dark:text-gray-100">Duplicate payment proof</span>
+          </label>
+          <label class="flex items-center gap-3 p-3 rounded-xl border border-gray-200 dark:border-slate-700 bg-gray-50/50 dark:bg-slate-800/80 hover:bg-red-50/50 dark:hover:bg-slate-700/80 hover:border-red-200 dark:hover:border-slate-600 cursor-pointer transition-all has-[:checked]:bg-red-50 dark:has-[:checked]:bg-red-950/50 has-[:checked]:border-red-400 dark:has-[:checked]:border-red-500 focus-within:ring-2 focus-within:ring-red-500/50 focus-within:border-red-500">
+            <input type="radio" name="rejectReason" value="Payment proof does not match the order" class="w-4 h-4 text-red-600 focus:ring-red-500 border-gray-300 dark:border-slate-600 dark:bg-slate-800" />
+            <span class="text-sm font-semibold text-gray-800 dark:text-gray-100">Payment proof does not match the order</span>
+          </label>
+          <label class="flex items-center gap-3 p-3 rounded-xl border border-gray-200 dark:border-slate-700 bg-gray-50/50 dark:bg-slate-800/80 hover:bg-red-50/50 dark:hover:bg-slate-700/80 hover:border-red-200 dark:hover:border-slate-600 cursor-pointer transition-all has-[:checked]:bg-red-50 dark:has-[:checked]:bg-red-950/50 has-[:checked]:border-red-400 dark:has-[:checked]:border-red-500 focus-within:ring-2 focus-within:ring-red-500/50 focus-within:border-red-500">
+            <input type="radio" name="rejectReason" value="Other" class="w-4 h-4 text-red-600 focus:ring-red-500 border-gray-300 dark:border-slate-600 dark:bg-slate-800" />
+            <span class="text-sm font-semibold text-gray-800 dark:text-gray-100">Other</span>
+          </label>
+        </div>
+        <p id="reject-reason-error" class="text-xs text-red-600 dark:text-red-400 font-bold mt-2 hidden flex items-center gap-1.5">
+          <span>⚠️</span> Please select a rejection reason before confirming.
+        </p>
+      </div>
+
+      <!-- Optional Explanation -->
+      <div class="text-left mt-4">
+        <label for="reject-modal-explanation" class="block text-sm font-bold text-gray-900 dark:text-gray-100 mb-1.5">
+          Additional Explanation <span class="text-gray-400 dark:text-gray-500 font-normal text-xs">(Optional)</span>
+        </label>
+        <textarea id="reject-modal-explanation" rows="2" class="w-full text-sm p-3 border border-gray-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none text-gray-800 dark:text-gray-100 bg-white dark:bg-slate-800 placeholder-gray-400 dark:placeholder-gray-500" placeholder="Provide extra details for the customer (e.g., Short by ₱250, wrong reference number)..."></textarea>
+      </div>
+
+      <!-- 48-Hour Deadline Notice -->
+      <div class="mt-4 p-3.5 bg-amber-50 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-900/80 rounded-xl text-left text-xs text-amber-900 dark:text-amber-200 leading-relaxed">
+        <p class="font-bold flex items-center gap-1.5 text-amber-950 dark:text-amber-100">
+          <span>⏱️</span> 48-Hour Correction Window
+        </p>
+        <p class="mt-1 text-amber-800 dark:text-amber-300">
+          The customer will be notified and given 48 hours to upload a corrected payment proof. The order will remain in the queue with its original timestamp preserved.
+        </p>
+      </div>
+
       <div class="flex gap-3 justify-end mt-6">
-        <button id="btn-reject-confirm-cancel" class="px-5 py-3 text-[15px] font-bold text-gray-550 border border-gray-200 rounded-xl hover:bg-gray-55 transition-colors cursor-pointer">
+        <button id="btn-reject-confirm-cancel" class="px-5 py-3 text-[15px] font-bold text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-slate-700 rounded-xl hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors cursor-pointer">
           Cancel
         </button>
         <button id="btn-reject-confirm-commit" class="px-6 py-3 text-[15px] font-bold bg-red-600 hover:bg-red-700 text-white rounded-xl shadow-xs cursor-pointer transition-all">
-          Reject Order
+          Confirm Rejection
         </button>
       </div>
     </div>
@@ -850,6 +901,7 @@
   <!-- INTERACTION CONTROLLER -->
   <script type="module">
     import { renderAdminLayout, getAllOrders, verifyPayment, updateOrderStatus, addActivityLog, showToast, saveOrders, addNotification, getCashToAudit, evaluateOrderCompletion, verifyCashTurnover, getCurrentAdmin, processOrderStockAndSplitIfNeeded, getEstimatedArrivalDate, getReservationQueuePosition, isReservationOrder } from '../src/app/shared.js';
+    import { saveFirestoreDoc } from '../src/lib/firebase.js';
 
     window.getCurrentAdmin = getCurrentAdmin;
 
@@ -947,11 +999,27 @@
         return order;
       }
 
+      function isPaymentWaitingForReuploadOrder(order) {
+        if (!order) return false;
+        const isResOrder = isReservationOrder(order);
+        const isNormalCustomerOrder = !isResOrder;
+        return isNormalCustomerOrder && 
+          !order.paymentVerified && 
+          (order.paymentRejected === true || order.paymentStatus === 'rejected') && 
+          order.paymentStatus !== 'pending_verification';
+      }
+      window.isPaymentWaitingForReuploadOrder = isPaymentWaitingForReuploadOrder;
+      window.isPaymentWaitingForReupload = isPaymentWaitingForReuploadOrder;
+
       // Modals controllers
       function openAcceptConfirmModal(orderId) {
         const orders = getAllOrders();
         const order = orders.find(o => o.id === orderId);
         if (!order) return;
+        if (isPaymentWaitingForReuploadOrder(order)) {
+          showToast('Cannot approve order while waiting for customer payment re-upload.', 'error');
+          return;
+        }
         pendingAcceptOrderId = orderId;
         document.getElementById('accept-modal-order-id').textContent = `#${order.id}`;
         document.getElementById('accept-modal-customer').textContent = order.fullName || 'N/A';
@@ -962,9 +1030,26 @@
         const orders = getAllOrders();
         const order = orders.find(o => o.id === orderId);
         if (!order) return;
+        if (isPaymentWaitingForReuploadOrder(order)) {
+          showToast('Cannot reject order while waiting for customer payment re-upload.', 'error');
+          return;
+        }
         pendingRejectOrderId = orderId;
         document.getElementById('reject-modal-order-id').textContent = `#${order.id}`;
         document.getElementById('reject-modal-customer').textContent = order.fullName || 'N/A';
+
+        // Clear previous selections and errors
+        document.querySelectorAll('input[name="rejectReason"]').forEach(r => { r.checked = false; });
+        const explEl = document.getElementById('reject-modal-explanation');
+        if (explEl) explEl.value = '';
+        const errEl = document.getElementById('reject-reason-error');
+        if (errEl) errEl.classList.add('hidden');
+        const btnCommit = document.getElementById('btn-reject-confirm-commit');
+        if (btnCommit) {
+          btnCommit.disabled = false;
+          btnCommit.textContent = 'Confirm Rejection';
+        }
+
         document.getElementById('reject-confirm-modal').classList.remove('hidden');
       }
 
@@ -1188,48 +1273,99 @@
         renderOrdersBoard();
       };
 
-      document.getElementById('btn-reject-confirm-commit').onclick = () => {
+      document.getElementById('btn-reject-confirm-commit').onclick = async () => {
         if (!pendingRejectOrderId) return;
+
+        const selectedRadio = document.querySelector('input[name="rejectReason"]:checked');
+        const errorEl = document.getElementById('reject-reason-error');
+        if (!selectedRadio) {
+          if (errorEl) errorEl.classList.remove('hidden');
+          return;
+        }
+        if (errorEl) errorEl.classList.add('hidden');
+
+        const btnCommit = document.getElementById('btn-reject-confirm-commit');
+        if (btnCommit) {
+          btnCommit.disabled = true;
+          btnCommit.innerHTML = `
+            <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white inline" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            Rejecting...
+          `;
+        }
+
         const ordersList = getAllOrders();
-        const idx = ordersList.findIndex(o => o.id === pendingRejectOrderId);
+        const idx = ordersList.findIndex(o => String(o.id) === String(pendingRejectOrderId));
         if (idx !== -1) {
           const order = ordersList[idx];
           const now = new Date();
           const admin = window.RiceFlow.getCurrentAdmin();
           const changerName = admin ? admin.name : 'System Admin';
 
+          const selectedReason = selectedRadio.value;
+          const explanation = document.getElementById('reject-modal-explanation')?.value.trim() || '';
+          const deadlineIso = new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString();
+
           order.paymentVerified = false;
           order.paymentRejected = true;
-          order.status = 'to-pay'; // Set to 'to-pay' so they can re-upload
+          order.status = 'to-pay'; // Set to 'to-pay' so customer can re-upload
+          order.paymentStatus = 'rejected';
           order.staffName = changerName;
           order.assignedStaff = changerName;
           order.cancellationDate = null;
           order.cancelledBy = null;
-          order.paymentRejectionReason = 'Payment screenshot declined after audit review';
+          order.paymentRejectionReason = selectedReason;
+          order.paymentRejectionExplanation = explanation;
+          order.paymentRejectionDetails = explanation ? `${selectedReason} - ${explanation}` : selectedReason;
+          order.paymentRejectedAt = now.toISOString();
+          order.reuploadRequestedAt = now.toISOString();
+          order.reuploadDeadline = deadlineIso;
 
           const historyItem = {
             id: 'hist-reject-' + Date.now(),
             status: 'Payment Pending',
             changedBy: changerName,
             changedAt: now.toLocaleString(),
-            note: 'Payment screenshot declined. Awaiting re-upload.'
+            note: `Payment proof rejected: ${selectedReason}${explanation ? ` (${explanation})` : ''}. 48-hour correction window set.`
           };
           order.statusHistory = [...(order.statusHistory || []), historyItem];
 
+          // Save to Firestore and local storage
+          const docId = String(order.id);
+          try {
+            await saveFirestoreDoc('orders', docId, order);
+          } catch (err) {
+            console.error('[REJECT PAYMENT] Firestore save error:', err);
+          }
           ordersList[idx] = order;
-          saveOrders(ordersList);
+          saveOrders(ordersList, { colName: 'orders', docId, docData: order });
 
-          // Send "⚠ Payment Verification Failed" notification to customer
+          // Send "⚠ Payment Proof Needs Correction" notification to customer with full details
+          const reasonMsg = explanation ? `${selectedReason} (Note: ${explanation})` : selectedReason;
           addNotification(
             order.userId || order.customerId || '',
-            '⚠ Payment Verification Failed',
-            'Your payment proof was rejected. Please upload a new payment receipt.',
-            { role: 'customer', type: 'order', orderId: order.id, scrollPayment: 1 }
+            '⚠ Payment Proof Needs Correction',
+            `Your payment proof was rejected: ${reasonMsg}. Please submit a corrected payment proof within 48 hours.`,
+            {
+              role: 'customer',
+              type: 'order',
+              targetType: 'order',
+              orderId: String(order.id),
+              targetId: String(order.id),
+              tab: 'to-pay',
+              scrollPayment: 1,
+              rejectionReason: selectedReason,
+              rejectionExplanation: explanation,
+              reuploadDeadline: deadlineIso
+            }
           );
 
-          addActivityLog('Payments', `Rejected payment reference for Order #${order.id}. Awaiting re-upload.`, `Order #${order.id}`);
-          showToast('Payment rejected and returned to To-Pay stage successfully.', 'success');
+          addActivityLog('Payments', `Rejected payment proof for Order #${order.id}. Reason: ${selectedReason}. 48-hour re-upload window granted.`, `Order #${order.id}`);
+          showToast('Payment proof rejected. Customer notified with 48-hour re-upload window.', 'success');
         }
+
         document.getElementById('reject-confirm-modal').classList.add('hidden');
         document.getElementById('details-modal').classList.add('hidden');
         pendingRejectOrderId = null;
@@ -1321,7 +1457,7 @@
         if (statusFilter === 'all') {
           filtered = orders;
         } else if (statusFilter === 'to-pay') {
-          filtered = orders.filter(o => o.status === 'to-pay');
+          filtered = orders.filter(o => o.status === 'to-pay' || o.status === 'pending_verification' || o.status === 'payment_verification');
         } else if (statusFilter === 'processing') {
           filtered = orders.filter(o => o.status === 'processing');
         } else if (statusFilter === 'to-ship') {
@@ -1638,8 +1774,22 @@
                       let statusBadge = '';
                       let statusDetails = '';
 
-                      if (order.status === 'to-pay') {
-                        statusBadge = `<span class="${bClass} bg-yellow-100 text-yellow-900 border border-yellow-300">Pending Payment</span>`;
+                      if (order.status === 'to-pay' || order.status === 'pending_verification' || order.status === 'payment_verification') {
+                        if (order.paymentRejected) {
+                          const deadlineMs = order.reuploadDeadline 
+                            ? new Date(order.reuploadDeadline).getTime() 
+                            : (order.paymentRejectedAt ? new Date(order.paymentRejectedAt).getTime() + 48 * 60 * 60 * 1000 : null);
+                          const isExpired = deadlineMs && Date.now() > deadlineMs;
+                          if (isExpired) {
+                            statusBadge = `<span class="${bClass} bg-red-100 text-red-900 border border-red-300" title="48-hour re-upload window expired">⚠️ Re-upload Expired</span>`;
+                          } else {
+                            statusBadge = `<span class="${bClass} bg-orange-100 text-orange-900 border border-orange-300" title="Awaiting corrected payment proof">Awaiting Re-upload</span>`;
+                          }
+                        } else if (order.paymentReuploadedAt || order.hasCorrectedProof || order.paymentStatus === 'pending_verification') {
+                          statusBadge = `<span class="${bClass} bg-blue-100 text-blue-900 border border-blue-300" title="Customer submitted corrected payment proof">Payment Verification</span>`;
+                        } else {
+                          statusBadge = `<span class="${bClass} bg-yellow-100 text-yellow-900 border border-yellow-300">Pending Payment</span>`;
+                        }
                       } else if (order.status === 'processing') {
                         statusBadge = `<span class="${bClass} bg-blue-100 text-blue-900 border border-blue-300">Processing</span>`;
                       } else if (order.status === 'to-ship') {
@@ -1742,7 +1892,7 @@
 
                       // Actions column buttons strip builder
                       let actionButton = '';
-                      if (order.status === 'to-pay') {
+                      if (order.status === 'to-pay' || order.status === 'pending_verification' || order.status === 'payment_verification') {
                         actionButton = `
                           <button data-id="${order.id}" class="btn-grid-action-trigger bg-[#1E6C02] hover:bg-[#145001] text-white font-bold rounded-lg px-4.5 py-2.5 transition-all duration-250 cursor-pointer shadow-xs text-[15px] whitespace-nowrap">
                             Review Order
@@ -2923,6 +3073,8 @@
         // Shared variables
         const totalVal = Number(order.total || 0);
         const isResOrder = isReservationOrder(order);
+        const isNormalCustomerOrder = !isResOrder;
+        const isPaymentWaitingForReupload = isPaymentWaitingForReuploadOrder(order);
         const isFullPayment = order.paymentType === 'full' || 
                               order.paymentType === 'full_advance' || 
                               order.paymentOption === 'Full Payment' || 
@@ -3068,9 +3220,11 @@
         let icon = '';
         let templateHtml = '';
 
-        if (order.status === 'to-pay') {
+        if (order.status === 'to-pay' || order.status === 'pending_verification' || order.status === 'payment_verification') {
           title = `Review Order #${order.id}`;
-          subtitle = 'Verify payment deposit and buyer details to approve or reject order';
+          subtitle = isPaymentWaitingForReupload 
+            ? 'Payment proof was rejected. Awaiting customer to upload corrected proof.' 
+            : 'Verify payment deposit and buyer details to approve or reject order';
           icon = '📄';
 
           templateHtml = `
@@ -3188,15 +3342,57 @@
                 ${renderPaymentSection()}
 
                 <!-- 7. Payment Proof -->
-                <div class="bg-gray-50/70 p-6 border border-gray-200 rounded-2xl space-y-4">
-                  <h4 class="text-[21px] font-bold text-black uppercase tracking-wider flex items-center gap-1.5">
-                    <span>📱</span> Payment Proof
-                  </h4>
-                  <div class="border border-gray-200 bg-white rounded-xl p-4 flex flex-col items-center justify-center space-y-4">
-                    <div class="w-full border border-gray-100 rounded-xl overflow-hidden shadow-xs bg-gray-50 flex items-center justify-center">
+                <div class="bg-gray-50/70 dark:bg-slate-900/60 p-6 border border-gray-200 dark:border-slate-800 rounded-2xl space-y-4">
+                  <div class="flex items-center justify-between">
+                    <h4 class="text-[21px] font-bold text-black dark:text-white uppercase tracking-wider flex items-center gap-1.5">
+                      <span>📱</span> Payment Proof
+                    </h4>
+                    ${order.paymentRejected ? (() => {
+                      const dlMs = order.reuploadDeadline ? new Date(order.reuploadDeadline).getTime() : (order.paymentRejectedAt ? new Date(order.paymentRejectedAt).getTime() + 48*3600*1000 : null);
+                      const isExp = dlMs && Date.now() > dlMs;
+                      return `<span class="px-2.5 py-1 text-xs font-black rounded-lg ${isExp ? 'bg-red-100 text-red-900 border border-red-300 dark:bg-red-950/80 dark:text-red-300 dark:border-red-800' : 'bg-orange-100 text-orange-900 border border-orange-300 dark:bg-orange-950/80 dark:text-orange-300 dark:border-orange-800'}">${isExp ? '⚠️ RE-UPLOAD EXPIRED' : 'AWAITING RE-UPLOAD'}</span>`;
+                    })() : (order.paymentReuploadedAt ? `<span class="px-2.5 py-1 text-xs font-black rounded-lg bg-blue-100 text-blue-900 border border-blue-300 dark:bg-blue-950/80 dark:text-blue-300 dark:border-blue-800">CORRECTED PROOF SUBMITTED</span>` : '')}
+                  </div>
+
+                  ${order.paymentRejected ? (() => {
+                    const dlMs = order.reuploadDeadline ? new Date(order.reuploadDeadline).getTime() : (order.paymentRejectedAt ? new Date(order.paymentRejectedAt).getTime() + 48*3600*1000 : null);
+                    const isExp = dlMs && Date.now() > dlMs;
+                    const diff = dlMs ? dlMs - Date.now() : 0;
+                    const hLeft = Math.max(0, Math.floor(diff / (1000 * 60 * 60)));
+                    const mLeft = Math.max(0, Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)));
+                    const dlDate = dlMs ? new Date(dlMs) : null;
+                    const formattedDl = dlDate ? `${dlDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })} at ${dlDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` : 'N/A';
+
+                    return `
+                      <div class="p-4 rounded-xl border ${isExp ? 'bg-red-50 dark:bg-red-950/50 border-red-200 dark:border-red-900/80 text-red-950 dark:text-red-200' : 'bg-amber-50 dark:bg-amber-950/50 border-amber-200 dark:border-amber-900/80 text-amber-950 dark:text-amber-200'} space-y-2.5 text-xs text-left">
+                        <div class="flex items-center justify-between font-bold border-b pb-2 ${isExp ? 'border-red-200 dark:border-red-900/60' : 'border-amber-200 dark:border-amber-900/60'}">
+                          <span class="text-sm font-bold flex items-center gap-1.5 text-gray-950 dark:text-white">
+                            <span>${isExp ? '⚠️' : '⏱️'}</span>
+                            ${isExp ? '48-Hour Correction Window Expired' : 'Active 48-Hour Correction Window'}
+                          </span>
+                          <span class="px-2.5 py-0.5 rounded-md font-black ${isExp ? 'bg-red-200 text-red-900 dark:bg-red-900/80 dark:text-red-100 dark:border dark:border-red-700/60' : 'bg-amber-200 text-amber-900 dark:bg-amber-900/80 dark:text-amber-100 dark:border dark:border-amber-700/60'}">
+                            ${isExp ? 'Expired' : `${hLeft}h ${mLeft}m remaining`}
+                          </span>
+                        </div>
+                        <p class="text-gray-900 dark:text-gray-100"><strong class="font-bold text-red-600 dark:text-red-400">Rejection Reason:</strong> ${order.paymentRejectionReason || 'Payment declined by staff'}</p>
+                        ${order.paymentRejectionExplanation ? `<p class="text-gray-800 dark:text-gray-200 bg-white/80 dark:bg-slate-900/70 p-2.5 rounded-lg border border-amber-200/80 dark:border-amber-900/60"><strong class="font-bold text-gray-900 dark:text-gray-100">Staff Explanation:</strong> ${order.paymentRejectionExplanation}</p>` : ''}
+                        <p class="text-gray-700 dark:text-gray-300"><strong class="font-bold text-gray-900 dark:text-gray-100">Deadline:</strong> <span class="font-semibold text-gray-800 dark:text-amber-200">${formattedDl}</span></p>
+                        ${isExp ? `<p class="text-red-700 dark:text-red-300 font-bold mt-1 bg-red-100/60 dark:bg-red-950/60 p-2 rounded-lg border border-transparent dark:border-red-900/60">⚠️ The correction deadline has expired. Final cancellation decision is left to Admin/Staff for manual review. Do not automatically cancel.</p>` : ''}
+                      </div>
+                    `;
+                  })() : ''}
+
+                  ${(!order.paymentRejected && order.paymentReuploadedAt) ? `
+                    <div class="p-3 bg-blue-50 dark:bg-blue-950/50 border border-blue-200 dark:border-blue-900/80 rounded-xl text-xs text-blue-900 dark:text-blue-200 font-semibold flex items-center gap-2 text-left">
+                      <span>ℹ️</span> <span>Customer submitted a corrected payment proof. Please review and verify.</span>
+                    </div>
+                  ` : ''}
+
+                  <div class="border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-900 rounded-xl p-4 flex flex-col items-center justify-center space-y-4">
+                    <div class="w-full border border-gray-100 dark:border-slate-800 rounded-xl overflow-hidden shadow-xs bg-gray-50 dark:bg-slate-800 flex items-center justify-center">
                       <img id="review-payment-proof-image" src="${order.paymentProofDataUrl || '../gcash_demo.jpg'}" alt="GCash Receipt" class="max-h-56 w-auto object-contain cursor-zoom-in transition-all hover:scale-102" />
                     </div>
-                    <button id="btn-zoom-proof" class="px-6 py-3 bg-gray-100 hover:bg-gray-200 text-black text-[15px] font-bold rounded-lg transition-all flex items-center gap-1.5 cursor-pointer shadow-none">
+                    <button id="btn-zoom-proof" class="px-6 py-3 bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700 text-black dark:text-white text-[15px] font-bold rounded-lg transition-all flex items-center gap-1.5 cursor-pointer shadow-none">
                       <span>🔍</span> View Full Image
                     </button>
                   </div>
@@ -3213,13 +3409,22 @@
             </div>
 
             <!-- Bottom Action Buttons -->
-            <div class="flex flex-wrap gap-2.5 pt-5 border-t border-gray-200 justify-between mt-6">
+            <div class="flex flex-wrap gap-2.5 pt-5 border-t border-gray-200 justify-between mt-6 items-center">
               <div>
                 <button id="btn-details-close-modal" class="px-5 py-3 text-[15px] font-bold text-gray-500 border border-gray-200 rounded-xl hover:bg-gray-55 cursor-pointer transition-colors">Close</button>
               </div>
-              <div class="flex gap-2.5">
-                <button id="btn-det-action-reject" class="px-5 py-3 text-[15px] font-bold bg-red-50 hover:bg-red-100 border border-red-200 text-red-700 rounded-xl cursor-pointer transition-colors">Reject Order</button>
-                <button id="btn-det-action-accept" class="px-6 py-3 text-[15px] font-black bg-[#1E6C02] text-white hover:bg-[#145001] rounded-xl cursor-pointer transition-colors shadow-xs">Approve Order</button>
+              <div class="flex gap-2.5 items-center">
+                ${isPaymentWaitingForReupload ? `
+                  <div id="awaiting-reupload-notice" class="inline-flex items-center gap-2 px-4 py-2.5 bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800/80 rounded-xl text-amber-800 dark:text-amber-200 text-xs font-bold">
+                    <span>⏱️</span>
+                    <span>Waiting for customer to re-upload payment proof</span>
+                  </div>
+                  <button id="btn-det-action-reject" disabled class="hidden px-5 py-3 text-[15px] font-bold bg-gray-100 text-gray-400 border border-gray-200 rounded-xl cursor-not-allowed opacity-50">Reject Order</button>
+                  <button id="btn-det-action-accept" disabled class="hidden px-6 py-3 text-[15px] font-black bg-gray-200 text-gray-400 rounded-xl cursor-not-allowed opacity-50">Approve Order</button>
+                ` : `
+                  <button id="btn-det-action-reject" class="px-5 py-3 text-[15px] font-bold bg-red-50 hover:bg-red-100 border border-red-200 text-red-700 rounded-xl cursor-pointer transition-colors">Reject Order</button>
+                  <button id="btn-det-action-accept" class="px-6 py-3 text-[15px] font-black bg-[#1E6C02] text-white hover:bg-[#145001] rounded-xl cursor-pointer transition-colors shadow-xs">Approve Order</button>
+                `}
               </div>
             </div>
           `;
@@ -4450,6 +4655,7 @@
       }
 
       function bindDetailsModalInteractiveTriggers(order) {
+        const isPaymentWaitingForReupload = isPaymentWaitingForReuploadOrder(order);
         const closeFn = () => {
           document.getElementById('details-modal').classList.add('hidden');
           focusedOrderInModal = null;
@@ -4563,6 +4769,7 @@ if (freshEst && freshEst !== 'Waiting for Restock' && freshEst !== 'Not yet sche
         const acceptBtn = document.getElementById('btn-det-action-accept');
         if (acceptBtn) {
           acceptBtn.onclick = () => {
+            if (isPaymentWaitingForReuploadOrder(order)) return;
             openAcceptConfirmModal(order.id);
           };
         }
@@ -4570,6 +4777,7 @@ if (freshEst && freshEst !== 'Waiting for Restock' && freshEst !== 'Not yet sche
         const rejectBtn = document.getElementById('btn-det-action-reject');
         if (rejectBtn) {
           rejectBtn.onclick = () => {
+            if (isPaymentWaitingForReuploadOrder(order)) return;
             openRejectConfirmModal(order.id);
           };
         }

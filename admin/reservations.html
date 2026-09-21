@@ -96,6 +96,143 @@
     </div>
   </div>
 
+  <!-- PAYMENT REJECTION CONFIRMATION MODAL (FOR RESERVATIONS) -->
+  <div id="reject-reservation-confirm-modal" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-[75] flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-3xl max-w-lg w-full shadow-2xl p-6 md:p-7 border border-gray-150 animate-in fade-in zoom-in duration-150 text-left max-h-[92vh] overflow-y-auto">
+      <div class="flex items-center justify-between pb-4 border-b border-gray-100">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-2xl bg-red-100 flex items-center justify-center text-red-600 font-bold shrink-0">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="15" y1="9" x2="9" y2="15"></line>
+              <line x1="9" y1="9" x2="15" y2="15"></line>
+            </svg>
+          </div>
+          <div>
+            <h3 class="text-lg font-black text-gray-900 leading-tight">Reject Payment Proof</h3>
+            <p class="text-xs text-gray-500 font-semibold">Reservation Payment Proof Decline</p>
+          </div>
+        </div>
+        <button id="btn-reject-reservation-confirm-x" class="text-gray-400 hover:text-gray-700 w-8 h-8 rounded-full flex items-center justify-center cursor-pointer transition-colors text-lg font-bold">✕</button>
+      </div>
+
+      <div class="mt-4 space-y-4">
+        <!-- Target Info -->
+        <div class="p-3.5 bg-gray-50 rounded-2xl border border-gray-100 flex items-center justify-between text-xs font-semibold">
+          <div class="space-y-0.5">
+            <span class="text-gray-400 font-bold uppercase text-[10px] block">Target Reservation</span>
+            <span class="font-extrabold text-gray-900" id="reject-modal-reservation-id">#RES-000</span>
+          </div>
+          <div class="text-right space-y-0.5">
+            <span class="text-gray-400 font-bold uppercase text-[10px] block">Customer</span>
+            <span class="font-extrabold text-gray-900" id="reject-modal-reservation-customer">Customer Name</span>
+          </div>
+        </div>
+
+        <!-- 48-Hour Correction Notice -->
+        <div class="p-3.5 bg-amber-50 rounded-2xl border border-amber-200 text-amber-900 text-xs flex gap-2.5 items-start">
+          <span class="text-base shrink-0">⏳</span>
+          <div>
+            <p class="font-black text-amber-950">48-Hour Correction Window</p>
+            <p class="text-amber-800 font-medium mt-0.5 leading-relaxed">
+              Rejecting will notify the customer with your selected reason and explanation. The customer will be given a 48-hour window to submit a corrected payment proof.
+            </p>
+          </div>
+        </div>
+
+        <!-- Reason Radio List (7 Standardized Reasons) -->
+        <div>
+          <label class="block text-xs font-black text-gray-700 uppercase tracking-wider mb-2">
+            Select Rejection Reason <span class="text-red-500">*</span>
+          </label>
+          <div class="space-y-2" id="reject-reservation-reason-group">
+            <label class="flex items-start gap-3 p-3 rounded-xl border border-gray-200 hover:border-gray-400 cursor-pointer transition-colors bg-white">
+              <input type="radio" name="reservation_reject_reason" value="Incorrect payment amount" class="mt-0.5 text-[#1E6C02] focus:ring-[#1E6C02]" />
+              <div class="text-xs">
+                <span class="font-bold text-gray-900 block">Incorrect payment amount</span>
+                <span class="text-gray-500 text-[11px]">The paid amount does not match the required reservation billing or deposit amount.</span>
+              </div>
+            </label>
+            <label class="flex items-start gap-3 p-3 rounded-xl border border-gray-200 hover:border-gray-400 cursor-pointer transition-colors bg-white">
+              <input type="radio" name="reservation_reject_reason" value="Invalid or unrecognized transaction" class="mt-0.5 text-[#1E6C02] focus:ring-[#1E6C02]" />
+              <div class="text-xs">
+                <span class="font-bold text-gray-900 block">Invalid or unrecognized transaction</span>
+                <span class="text-gray-500 text-[11px]">Reference number or transaction hash cannot be verified in merchant records.</span>
+              </div>
+            </label>
+            <label class="flex items-start gap-3 p-3 rounded-xl border border-gray-200 hover:border-gray-400 cursor-pointer transition-colors bg-white">
+              <input type="radio" name="reservation_reject_reason" value="Blurry or unreadable payment proof" class="mt-0.5 text-[#1E6C02] focus:ring-[#1E6C02]" />
+              <div class="text-xs">
+                <span class="font-bold text-gray-900 block">Blurry or unreadable payment proof</span>
+                <span class="text-gray-500 text-[11px]">The image resolution or lighting is insufficient to read transaction details clearly.</span>
+              </div>
+            </label>
+            <label class="flex items-start gap-3 p-3 rounded-xl border border-gray-200 hover:border-gray-400 cursor-pointer transition-colors bg-white">
+              <input type="radio" name="reservation_reject_reason" value="Incorrect recipient or account" class="mt-0.5 text-[#1E6C02] focus:ring-[#1E6C02]" />
+              <div class="text-xs">
+                <span class="font-bold text-gray-900 block">Incorrect recipient or account</span>
+                <span class="text-gray-500 text-[11px]">Funds were sent to an unrecognized merchant account or wrong bank number.</span>
+              </div>
+            </label>
+            <label class="flex items-start gap-3 p-3 rounded-xl border border-gray-200 hover:border-gray-400 cursor-pointer transition-colors bg-white">
+              <input type="radio" name="reservation_reject_reason" value="Duplicate payment proof" class="mt-0.5 text-[#1E6C02] focus:ring-[#1E6C02]" />
+              <div class="text-xs">
+                <span class="font-bold text-gray-900 block">Duplicate payment proof</span>
+                <span class="text-gray-500 text-[11px]">This receipt was already submitted or matched to another existing order.</span>
+              </div>
+            </label>
+            <label class="flex items-start gap-3 p-3 rounded-xl border border-gray-200 hover:border-gray-400 cursor-pointer transition-colors bg-white">
+              <input type="radio" name="reservation_reject_reason" value="Payment proof does not match the reservation" class="mt-0.5 text-[#1E6C02] focus:ring-[#1E6C02]" />
+              <div class="text-xs">
+                <span class="font-bold text-gray-900 block">Payment proof does not match the reservation</span>
+                <span class="text-gray-500 text-[11px]">Receipt dates, recipient, or order references do not match this reservation.</span>
+              </div>
+            </label>
+            <label class="flex items-start gap-3 p-3 rounded-xl border border-gray-200 hover:border-gray-400 cursor-pointer transition-colors bg-white">
+              <input type="radio" name="reservation_reject_reason" value="Other" class="mt-0.5 text-[#1E6C02] focus:ring-[#1E6C02]" />
+              <div class="text-xs">
+                <span class="font-bold text-gray-900 block">Other</span>
+                <span class="text-gray-500 text-[11px]">Other administrative or verification concern (specify details below).</span>
+              </div>
+            </label>
+          </div>
+          <p id="reject-reservation-error-msg" class="text-xs text-red-600 font-bold mt-1 hidden">Please select a rejection reason before proceeding.</p>
+        </div>
+
+        <!-- Optional Explanation Textarea -->
+        <div>
+          <label for="reject-reservation-explanation" class="block text-xs font-black text-gray-700 uppercase tracking-wider mb-1">
+            Staff Note / Clarification to Customer <span class="text-gray-400 font-medium lowercase">(optional)</span>
+          </label>
+          <textarea 
+            id="reject-reservation-explanation" 
+            rows="3" 
+            maxlength="400"
+            placeholder="e.g., The screenshot was cut off at the transaction number. Please re-upload a full screenshot showing the GCash reference."
+            class="w-full p-3 rounded-xl border border-gray-200 text-xs text-gray-900 focus:ring-2 focus:ring-[#1E6C02] focus:border-[#1E6C02] outline-none"
+          ></textarea>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-end gap-3 mt-6 pt-4 border-t border-gray-100">
+        <button 
+          id="btn-reject-reservation-confirm-cancel" 
+          type="button" 
+          class="px-4 py-2.5 rounded-xl border border-gray-200 text-xs font-bold text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer"
+        >
+          Cancel
+        </button>
+        <button 
+          id="btn-reject-reservation-confirm-commit" 
+          type="button" 
+          class="px-5 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-bold transition-colors cursor-pointer shadow-sm flex items-center gap-1.5"
+        >
+          Confirm Rejection & Set 48h Window
+        </button>
+      </div>
+    </div>
+  </div>
+
   <script type="module" src="../src/app/shared.js"></script>
 
   <!-- Reservation Queue Controller -->
@@ -104,6 +241,7 @@
       renderAdminLayout, 
       getAllOrders, 
       saveOrders, 
+      saveFirestoreDoc,
       getProducts, 
       saveProducts, 
       addActivityLog, 
@@ -128,6 +266,140 @@
       let statusFilter = 'all'; 
       let searchQuery = '';
       let selectedOrderInModal = null;
+      let pendingRejectReservationId = null;
+
+      function isReservationWaitingForReupload(order) {
+        if (!order) return false;
+        if (order.paymentVerified) return false;
+        if (!order.paymentRejected && order.paymentStatus !== 'rejected') return false;
+        if (order.hasCorrectedProof) return false;
+        if (order.paymentStatus === 'pending_verification') return false;
+        return true;
+      }
+
+      function openRejectReservationConfirmModal(reservationId) {
+        pendingRejectReservationId = reservationId;
+        const modal = document.getElementById('reject-reservation-confirm-modal');
+        const err = document.getElementById('reject-reservation-error-msg');
+        const explanation = document.getElementById('reject-reservation-explanation');
+        if (err) err.classList.add('hidden');
+        if (explanation) explanation.value = '';
+        
+        // Reset radio buttons
+        const radios = document.querySelectorAll('input[name="reservation_reject_reason"]');
+        radios.forEach(r => r.checked = false);
+
+        // Populate Target Reservation Info
+        const orders = getAllOrders();
+        const targetOrder = orders.find(o => String(o.id) === String(reservationId));
+        const resIdEl = document.getElementById('reject-modal-reservation-id');
+        const resCustEl = document.getElementById('reject-modal-reservation-customer');
+        if (resIdEl) resIdEl.textContent = '#' + reservationId;
+        if (resCustEl) resCustEl.textContent = targetOrder ? (targetOrder.customerName || targetOrder.fullName || targetOrder.name || targetOrder.userEmail || 'Customer') : 'Customer';
+
+        if (modal) {
+          modal.classList.remove('hidden');
+        }
+      }
+
+      function closeRejectReservationConfirmModal() {
+        pendingRejectReservationId = null;
+        const modal = document.getElementById('reject-reservation-confirm-modal');
+        if (modal) {
+          modal.classList.add('hidden');
+        }
+      }
+
+      // Rejection confirm modal close (x) button
+      const closeRejectXBtn = document.getElementById('btn-reject-reservation-confirm-x');
+      if (closeRejectXBtn) {
+        closeRejectXBtn.onclick = closeRejectReservationConfirmModal;
+      }
+
+      // Rejection confirm modal cancel button
+      const cancelRejectBtn = document.getElementById('btn-reject-reservation-confirm-cancel');
+      if (cancelRejectBtn) {
+        cancelRejectBtn.onclick = closeRejectReservationConfirmModal;
+      }
+
+      // Rejection confirm modal commit button
+      const commitRejectBtn = document.getElementById('btn-reject-reservation-confirm-commit');
+      if (commitRejectBtn) {
+        commitRejectBtn.onclick = () => {
+          const selectedRadio = document.querySelector('input[name="reservation_reject_reason"]:checked');
+          const errEl = document.getElementById('reject-reservation-error-msg');
+          if (!selectedRadio) {
+            if (errEl) errEl.classList.remove('hidden');
+            return;
+          }
+          if (errEl) errEl.classList.add('hidden');
+
+          const reservationId = pendingRejectReservationId;
+          if (!reservationId) return;
+
+          const reason = selectedRadio.value;
+          const explanation = (document.getElementById('reject-reservation-explanation')?.value || '').trim();
+
+          const orders = getAllOrders();
+          const matchIdx = orders.findIndex(o => String(o.id) === String(reservationId));
+          if (matchIdx === -1) {
+            showToast('Reservation record not found.', 'error');
+            closeRejectReservationConfirmModal();
+            return;
+          }
+
+          const changer = window.RiceFlow?.getCurrentAdmin()?.name || 'Admin User';
+          const now = new Date();
+          const deadlineDate = new Date(now.getTime() + 48 * 60 * 60 * 1000);
+
+          orders[matchIdx].paymentRejected = true;
+          orders[matchIdx].paymentStatus = 'rejected';
+          orders[matchIdx].paymentRejectionReason = reason;
+          orders[matchIdx].paymentRejectionExplanation = explanation;
+          orders[matchIdx].paymentRejectedAt = now.toISOString();
+          orders[matchIdx].reuploadDeadline = deadlineDate.toISOString();
+          orders[matchIdx].hasCorrectedProof = false;
+          orders[matchIdx].status = 'payment_verification';
+
+          orders[matchIdx].statusHistory = [
+            ...(orders[matchIdx].statusHistory || []),
+            {
+              id: 'hist-pay-reject-' + Date.now(),
+              status: 'Payment Proof Rejected',
+              changedBy: changer,
+              changedAt: now.toLocaleString(),
+              note: `Payment proof rejected: ${reason}${explanation ? ` - "${explanation}"` : ''}. 48-hour correction window set.`
+            }
+          ];
+
+          saveOrders(orders);
+          try {
+            saveFirestoreDoc('orders', String(reservationId), orders[matchIdx]);
+          } catch (e) {
+            console.warn('[RESERVATION REJECT] Firestore sync failed:', e);
+          }
+
+          // Send notification to customer directing them to reservation tab
+          const custId = orders[matchIdx].userId || orders[matchIdx].customerId || '';
+          if (custId) {
+            addNotification(
+              custId,
+              '⚠️ Action Required: Reservation Payment Proof Rejected',
+              `Your reservation payment proof was declined (${reason}). Please submit a replacement proof within 48 hours to secure your reservation.`,
+              { role: 'customer', type: 'reservation', reservationId: reservationId, tab: 'reservations' }
+            );
+          }
+
+          showToast('Payment proof rejected. 48-hour correction window set and customer notified.', 'info');
+          closeRejectReservationConfirmModal();
+
+          // Close details modal as well
+          const detailsModal = document.getElementById('details-modal');
+          if (detailsModal) detailsModal.classList.add('hidden');
+
+          renderQueueTable();
+        };
+      }
 
       // Draw Main Page Content
       function drawContentLayout() {
@@ -292,23 +564,24 @@
 
           const isCancelled = (order.status === 'cancelled' || order.status === 'Cancelled' || order.status === 'rejected');
           const isReady = (order.status === 'ready_for_processing' || order.status === 'ready');
-          const isPaymentVerification = !isCancelled && !isReady && (
+          const isReuploadWaiting = isReservationWaitingForReupload(order);
+          const isPaymentVerification = !isCancelled && !isReady && !isReuploadWaiting && (
             order.status === 'payment_verification' || 
             order.paymentStatus === 'pending_verification' || 
             Boolean((order.paymentProofDataUrl && order.paymentProofDataUrl.length > 20) || (order.paymentProof && String(order.paymentProof).startsWith('data:')))
           );
-          const isWaiting = !isCancelled && !isReady && !isPaymentVerification;
+          const isWaiting = !isCancelled && !isReady && !isPaymentVerification && !isReuploadWaiting;
 
           if (statusFilter === 'all') return true;
           if (statusFilter === 'waiting') return isWaiting;
-          if (statusFilter === 'payment_verification') return isPaymentVerification;
+          if (statusFilter === 'payment_verification') return isPaymentVerification || isReuploadWaiting;
           if (statusFilter === 'ready') return isReady;
           if (statusFilter === 'cancelled') return isCancelled;
           return true;
         });
 
         // Priority Rules for Admin/Staff Reservation List:
-        // 1. Payment Verification (action required by staff)
+        // 1. Payment Verification or Re-upload Waiting (action required by staff/customer)
         // 2. Waiting Reservations (sorted by Queue Position #1, #2, #3... / FCFS)
         // 3. Ready for Processing (sorted by Queue Position / FCFS)
         // 4. Completed Reservations
@@ -318,6 +591,7 @@
           if (st === 'cancelled') return 5;
           if (st === 'completed' || st === 'delivered') return 4;
           if (st === 'ready_for_processing' || st === 'ready') return 3;
+          if (isReservationWaitingForReupload(order)) return 1;
           if (st === 'payment_verification' || order.paymentStatus === 'pending_verification' || Boolean((order.paymentProofDataUrl && order.paymentProofDataUrl.length > 20) || (order.paymentProof && String(order.paymentProof).startsWith('data:')))) return 1;
           return 2; // Waiting / Pre-order
         }
@@ -369,12 +643,13 @@
 
           const isCancelled = (order.status === 'cancelled' || order.status === 'Cancelled' || order.status === 'rejected');
           const isReady = (order.status === 'ready_for_processing' || order.status === 'ready');
-          const isPaymentVerification = !isCancelled && !isReady && (
+          const isReuploadWaiting = isReservationWaitingForReupload(order);
+          const isPaymentVerification = !isCancelled && !isReady && !isReuploadWaiting && (
             order.status === 'payment_verification' || 
             order.paymentStatus === 'pending_verification' || 
             Boolean((order.paymentProofDataUrl && order.paymentProofDataUrl.length > 20) || (order.paymentProof && String(order.paymentProof).startsWith('data:')))
           );
-          const isWaiting = !isCancelled && !isReady && !isPaymentVerification;
+          const isWaiting = !isCancelled && !isReady && !isPaymentVerification && !isReuploadWaiting;
 
           // Highlight position #1 for waiting reservations as Next
           const isNext = isWaiting && pos === 1;
@@ -384,7 +659,7 @@
             : 'hover:bg-gray-50/50 transition-colors';
 
           let queuePosHtml = '';
-          if (pos && (isWaiting || isPaymentVerification)) {
+          if (pos && (isWaiting || isPaymentVerification || isReuploadWaiting)) {
             if (isNext) {
               queuePosHtml = `
                 <div class="flex items-center gap-2">
@@ -404,7 +679,29 @@
           let statusBadge = '';
           let dateAndAvailabilityHtml = '';
 
-          if (isPaymentVerification) {
+          if (isReuploadWaiting) {
+            const dlMs = order.reuploadDeadline ? new Date(order.reuploadDeadline).getTime() : (order.paymentRejectedAt ? new Date(order.paymentRejectedAt).getTime() + 48*3600*1000 : null);
+            const isExp = dlMs && Date.now() > dlMs;
+            const diff = dlMs ? dlMs - Date.now() : 0;
+            const hLeft = Math.max(0, Math.floor(diff / (1000 * 60 * 60)));
+            const mLeft = Math.max(0, Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)));
+
+            statusBadge = `
+              <div class="space-y-1 text-left">
+                <span class="px-2.5 py-1 rounded-full ${isExp ? 'bg-red-100 border border-red-300 text-red-900' : 'bg-amber-100 border border-amber-300 text-amber-900'} font-bold text-xs inline-block">
+                  ${isExp ? '⚠️ Window Expired' : '⏱️ Proof Rejected'}
+                </span>
+                <p class="text-xs text-red-700 font-semibold truncate max-w-[200px]" title="${order.paymentRejectionReason || 'Proof declined'}">${order.paymentRejectionReason || 'Proof declined'}</p>
+                <p class="text-[11px] text-gray-600 font-medium">${isExp ? '48h window expired' : `${hLeft}h ${mLeft}m to re-upload`}</p>
+              </div>
+            `;
+            dateAndAvailabilityHtml = `
+              <div>
+                <p class="font-bold text-gray-950 text-sm">${dateStr}</p>
+                <p class="text-xs text-gray-500 font-normal mt-0.5">${timeStr}</p>
+              </div>
+            `;
+          } else if (isPaymentVerification) {
             const allocatedQty = Number(order.allocatedQuantity || 0);
             const waitingQty = Math.max(0, qty - allocatedQty);
             const isFullyAllocated = allocatedQty >= qty;
@@ -413,7 +710,7 @@
             statusBadge = `
               <div class="space-y-1 text-left">
                 <span class="px-2.5 py-1 rounded-full bg-blue-100 border border-blue-300 text-blue-900 font-bold text-xs inline-block">🔵 Payment Verification</span>
-                <p class="text-xs text-blue-800 font-semibold">Receipt Uploaded — Review Required</p>
+                <p class="text-xs text-blue-800 font-semibold">${order.hasCorrectedProof ? 'Replacement Proof — Review Required' : 'Receipt Uploaded — Review Required'}</p>
                 ${isFullyAllocated ? `
                   <p class="text-xs text-emerald-850 font-bold">Allocated: ${allocatedQty} Sacks</p>
                 ` : isPartiallyAllocated ? `
@@ -501,6 +798,16 @@
                 class="btn-process-order w-[150px] inline-flex items-center justify-center bg-[#1E6C02] hover:bg-[#145001] text-white font-bold rounded-lg px-3 py-2 transition-all duration-250 cursor-pointer shadow-xs text-xs whitespace-nowrap text-center"
               >
                 Process Order
+              </button>
+            `;
+          } else if (isReuploadWaiting) {
+            secondaryActionHtml = ``;
+            primaryActionHtml = `
+              <button 
+                data-id="${order.id}"
+                class="btn-view-details w-[150px] inline-flex items-center justify-center bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-lg px-3 py-2 transition-all duration-250 cursor-pointer shadow-xs text-xs whitespace-nowrap text-center"
+              >
+                Review Status
               </button>
             `;
           } else if (isPaymentVerification) {
@@ -820,12 +1127,13 @@
 
         const isCancelledModal = (order.status === 'cancelled' || order.status === 'Cancelled' || order.status === 'rejected');
         const isReadyModal = (order.status === 'ready_for_processing' || order.status === 'ready');
-        const isPaymentVerificationModal = !isCancelledModal && !isReadyModal && (
+        const isReuploadWaitingModal = isReservationWaitingForReupload(order);
+        const isPaymentVerificationModal = !isCancelledModal && !isReadyModal && !isReuploadWaitingModal && (
           order.status === 'payment_verification' || 
           order.paymentStatus === 'pending_verification' || 
           Boolean((order.paymentProofDataUrl && order.paymentProofDataUrl.length > 20) || (order.paymentProof && String(order.paymentProof).startsWith('data:')))
         );
-        const isWaitingModal = !isCancelledModal && !isReadyModal && !isPaymentVerificationModal;
+        const isWaitingModal = !isCancelledModal && !isReadyModal && !isPaymentVerificationModal && !isReuploadWaitingModal;
 
         let statusBadge = '';
         const modalAllocatedQty = Number(order.allocatedQuantity || 0);
@@ -833,10 +1141,18 @@
         const isModalFullyAllocated = modalAllocatedQty >= pQty;
         const isModalPartiallyAllocated = modalAllocatedQty > 0 && modalAllocatedQty < pQty;
 
+        const dlMs = order.reuploadDeadline ? new Date(order.reuploadDeadline).getTime() : (order.paymentRejectedAt ? new Date(order.paymentRejectedAt).getTime() + 48*3600*1000 : null);
+        const isExp = dlMs && Date.now() > dlMs;
+        const diff = dlMs ? dlMs - Date.now() : 0;
+        const hLeft = Math.max(0, Math.floor(diff / (1000 * 60 * 60)));
+        const mLeft = Math.max(0, Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)));
+
         if (isCancelledModal) {
           statusBadge = `<span class="px-2.5 py-1 rounded bg-red-50 border border-red-200 text-red-700 text-xs font-semibold uppercase">🔴 Cancelled</span>`;
         } else if (isReadyModal) {
           statusBadge = `<span class="px-2.5 py-1 rounded bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold uppercase">🟢 Ready for Processing</span>`;
+        } else if (isReuploadWaitingModal) {
+          statusBadge = `<span class="px-2.5 py-1 rounded ${isExp ? 'bg-red-50 border border-red-200 text-red-700' : 'bg-amber-50 border border-amber-200 text-amber-700'} text-xs font-semibold uppercase">${isExp ? '⚠️ Re-upload Window Expired' : '⏱️ Proof Rejected — Awaiting Re-upload'}</span>`;
         } else if (isPaymentVerificationModal) {
           statusBadge = `<span class="px-2.5 py-1 rounded bg-blue-50 border border-blue-200 text-blue-700 text-xs font-semibold uppercase">🔵 Payment Verification</span>`;
         } else if (isModalFullyAllocated) {
@@ -966,20 +1282,38 @@
               </div>
               ` : ''}
 
-              <!-- Payment Proof (Only rendered during Payment Verification stage) -->
-              ${isPaymentVerificationModal ? `
+              <!-- Payment Proof (Rendered during Payment Verification or Re-upload waiting or when proof exists) -->
+              ${(isPaymentVerificationModal || isReuploadWaitingModal || order.paymentProof || order.paymentProofDataUrl) ? `
               <div class="bg-gray-50/70 p-6 border border-gray-200 rounded-2xl space-y-4">
-                <h4 class="text-[18px] font-bold text-black uppercase tracking-wider flex items-center gap-1.5">
-                  <span>📱</span> Payment Proof
-                </h4>
+                <div class="flex items-center justify-between">
+                  <h4 class="text-[18px] font-bold text-black uppercase tracking-wider flex items-center gap-1.5">
+                    <span>📱</span> Payment Proof
+                  </h4>
+                  ${order.hasCorrectedProof ? `
+                    <span class="px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 text-[10px] font-bold uppercase">Corrected Proof</span>
+                  ` : ''}
+                </div>
+
+                ${isReuploadWaitingModal ? `
+                  <div class="p-4 rounded-xl border ${isExp ? 'bg-red-50 border-red-200 text-red-900' : 'bg-amber-50 border-amber-200 text-amber-900'} space-y-2">
+                    <div class="flex items-center gap-2 font-bold text-xs uppercase tracking-wider">
+                      <span>${isExp ? '⚠️' : '⏱️'}</span>
+                      <span>${isExp ? '48-Hour Correction Window Expired' : '48-Hour Correction Window Active'}</span>
+                    </div>
+                    <p class="text-xs font-bold"><span class="text-gray-600">Rejection Reason:</span> ${order.paymentRejectionReason || 'Proof declined'}</p>
+                    ${order.paymentRejectionExplanation ? `<p class="text-xs text-gray-700 italic font-medium">"${order.paymentRejectionExplanation}"</p>` : ''}
+                    <p class="text-[11px] text-gray-600">${isExp ? 'The 48-hour correction window has expired. Awaiting customer submission or manual staff cancellation.' : `Customer has ${hLeft}h ${mLeft}m remaining to upload replacement proof.`}</p>
+                  </div>
+                ` : ''}
+
                 <div class="border border-gray-200 bg-white rounded-xl p-4 flex flex-col items-center justify-center space-y-4">
                   <div class="w-full border border-gray-100 rounded-xl overflow-hidden shadow-xs bg-gray-50 flex items-center justify-center">
-                    <img id="review-payment-proof-image" src="${order.paymentProofDataUrl || order.paymentProof || ''}" alt="GCash Receipt" class="max-h-56 w-auto object-contain cursor-zoom-in transition-all hover:scale-102" />
+                    <img id="review-payment-proof-image" src="${order.paymentProofUrl || order.paymentProofDataUrl || order.paymentProof || ''}" alt="Payment Proof" class="max-h-56 w-auto object-contain cursor-zoom-in transition-all hover:scale-102" />
                   </div>
                   <div class="text-xs text-gray-700 font-medium text-center space-y-1 w-full border-t border-gray-100 pt-3">
                     <p><span class="font-bold text-black">Payment Amount:</span> <span class="text-emerald-700 font-bold">₱${paidVal.toLocaleString()}.00</span></p>
                     <p><span class="font-bold text-black">Uploaded Date:</span> ${order.paymentUploadedAt || 'N/A'}</p>
-                    <p><span class="font-bold text-black">Verification Status:</span> <span class="text-blue-700 font-bold">Pending Review</span></p>
+                    <p><span class="font-bold text-black">Verification Status:</span> <span class="${isReuploadWaitingModal ? 'text-amber-700' : 'text-blue-700'} font-bold">${isReuploadWaitingModal ? 'Proof Rejected — Awaiting Re-upload' : 'Pending Review'}</span></p>
                   </div>
                   <button id="btn-zoom-proof" class="px-6 py-3 bg-gray-100 hover:bg-gray-200 text-black text-[14px] font-bold rounded-lg transition-all flex items-center gap-1.5 cursor-pointer">
                     <span>🔍</span> View Full Image
@@ -1004,9 +1338,17 @@
             <div class="flex flex-wrap gap-2">
               ${isPaymentVerificationModal ? `
                 <button id="btn-det-action-verify-payment" class="px-5 py-3 text-[15px] font-bold bg-[#1E6C02] hover:bg-[#145001] text-white rounded-xl cursor-pointer transition-colors shadow-xs">✔ Verify Reservation</button>
-                <button id="btn-det-action-reject-payment" class="px-5 py-3 text-[15px] font-bold bg-rose-600 hover:bg-rose-700 text-white rounded-xl cursor-pointer transition-colors shadow-xs">❌ Cancel Reservation</button>
+                <button id="btn-det-action-reject-payment" class="px-5 py-3 text-[15px] font-bold bg-red-50 hover:bg-red-100 border border-red-200 text-red-700 rounded-xl cursor-pointer transition-colors shadow-xs">Reject Payment Proof</button>
+                <button id="btn-det-action-cancel" class="px-5 py-3 text-[15px] font-bold bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-xl cursor-pointer transition-colors shadow-2xs">Cancel Reservation</button>
               ` : ''}
-              ${(!isCancelledModal && !isPaymentVerificationModal) ? `
+              ${isReuploadWaitingModal ? `
+                <div class="inline-flex items-center gap-2 px-4 py-2.5 bg-amber-50 border border-amber-200 rounded-xl text-amber-800 text-xs font-bold">
+                  <span>⏱️</span>
+                  <span>Waiting for customer to re-upload payment proof</span>
+                </div>
+                <button id="btn-det-action-cancel" class="px-5 py-3 text-[15px] font-bold bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-xl cursor-pointer transition-colors shadow-2xs">Cancel Reservation</button>
+              ` : ''}
+              ${(!isCancelledModal && !isPaymentVerificationModal && !isReuploadWaitingModal) ? `
                 <button id="btn-det-action-cancel" class="px-5 py-3 text-[15px] font-bold bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-xl cursor-pointer transition-colors shadow-2xs">Cancel Reservation</button>
               ` : ''}
               ${(isReadyModal) ? `
@@ -1167,6 +1509,7 @@ if (freshEst && freshEst !== 'Waiting for Restock' && freshEst !== 'Not yet sche
             if (matchIdx !== -1) {
               const changer = window.RiceFlow?.getCurrentAdmin()?.name || 'Admin User';
               list[matchIdx].paymentVerified = true;
+              list[matchIdx].paymentRejected = false;
               list[matchIdx].paymentStatus = 'verified';
               list[matchIdx].status = 'ready_for_processing';
               list[matchIdx].statusHistory = [
@@ -1180,6 +1523,11 @@ if (freshEst && freshEst !== 'Waiting for Restock' && freshEst !== 'Not yet sche
                 }
               ];
               saveOrders(list);
+              try {
+                saveFirestoreDoc('orders', String(order.id), list[matchIdx]);
+              } catch (e) {
+                console.warn('[RESERVATION VERIFY] Firestore sync failed:', e);
+              }
 
               // Send notification to customer
               addNotification(
@@ -1200,43 +1548,11 @@ if (freshEst && freshEst !== 'Waiting for Restock' && freshEst !== 'Not yet sche
           };
         }
 
-        // Cancel Reservation action (from Payment Verification modal)
+        // Reject Payment Proof action (opens rejection reason modal)
         const rejectPayBtn = document.getElementById('btn-det-action-reject-payment');
         if (rejectPayBtn) {
           rejectPayBtn.onclick = () => {
-            const list = getAllOrders();
-            const matchIdx = list.findIndex(o => o.id === order.id);
-            if (matchIdx !== -1) {
-              const changer = window.RiceFlow?.getCurrentAdmin()?.name || 'Admin User';
-              list[matchIdx].status = 'cancelled';
-              list[matchIdx].allocatedQuantity = 0;
-              list[matchIdx].statusHistory = [
-                ...(list[matchIdx].statusHistory || []),
-                {
-                  id: 'hist-cancel-' + Date.now(),
-                  status: 'Cancelled',
-                  changedBy: changer,
-                  changedAt: new Date().toLocaleString(),
-                  note: 'Reservation cancelled by staff during Payment Verification.'
-                }
-              ];
-              saveOrders(list);
-
-              // Send notification to customer
-              addNotification(
-                list[matchIdx].userId || list[matchIdx].customerId || '',
-                '❌ Reservation Cancelled',
-                'Your reservation was cancelled by store administration.',
-                { role: 'customer', type: 'reservation', reservationId: order.id }
-              );
-
-              allocateStockToReservations();
-
-              showToast('Reservation cancelled and allocated stock released.', 'info');
-
-              closeFn();
-              renderQueueTable();
-            }
+            openRejectReservationConfirmModal(order.id);
           };
         }
 
@@ -1248,6 +1564,7 @@ if (freshEst && freshEst !== 'Waiting for Restock' && freshEst !== 'Not yet sche
             const matchIdx = list.findIndex(o => o.id === order.id);
             if (matchIdx !== -1) {
               list[matchIdx].status = 'cancelled';
+              list[matchIdx].allocatedQuantity = 0;
               const changer = window.RiceFlow?.getCurrentAdmin()?.name || 'Admin User';
               list[matchIdx].statusHistory = [
                 ...(list[matchIdx].statusHistory || []),
@@ -1260,7 +1577,22 @@ if (freshEst && freshEst !== 'Waiting for Restock' && freshEst !== 'Not yet sche
                 }
               ];
               saveOrders(list);
-              showToast('✔ Reservation cancelled successfully.', 'success');
+              try {
+                saveFirestoreDoc('orders', String(order.id), list[matchIdx]);
+              } catch (e) {
+                console.warn('[RESERVATION CANCEL] Firestore sync failed:', e);
+              }
+
+              // Send notification to customer
+              addNotification(
+                list[matchIdx].userId || list[matchIdx].customerId || '',
+                '❌ Reservation Cancelled',
+                'Your reservation was cancelled by store administration.',
+                { role: 'customer', type: 'reservation', reservationId: order.id }
+              );
+
+              allocateStockToReservations();
+              showToast('✔ Reservation cancelled successfully and allocated stock released.', 'info');
               closeFn();
               renderQueueTable();
             }
@@ -1282,7 +1614,7 @@ if (freshEst && freshEst !== 'Waiting for Restock' && freshEst !== 'Not yet sche
           if (lbModal && targetContainer) {
             targetContainer.innerHTML = `
               <div class="w-full flex items-center justify-center p-2 animate-in fade-in zoom-in duration-200">
-                <img src="${order.paymentProofDataUrl || '../gcash_demo.jpg'}" alt="GCash Receipt Full" class="max-h-[80vh] max-w-full object-contain rounded-xl shadow-lg border border-gray-150" />
+                <img src="${order.paymentProofUrl || order.paymentProofDataUrl || '../gcash_demo.jpg'}" alt="GCash Receipt Full" class="max-h-[80vh] max-w-full object-contain rounded-xl shadow-lg border border-gray-150" />
               </div>
             `;
             lbModal.classList.remove('hidden');
