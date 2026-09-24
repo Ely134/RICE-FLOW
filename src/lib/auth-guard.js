@@ -20,23 +20,39 @@ export function getGuardPathPrefix() {
 
 /**
  * Robustly waits for Firebase Auth to resolve its initial authentication state.
- * Uses authStateReady() when available, falling back to onAuthStateChanged.
+ * Uses authStateReady() when available, falling back to onAuthStateChanged,
+ * with a safety timeout so slow networks do not freeze the UI indefinitely.
  */
-export async function waitForAuthState() {
+export async function waitForAuthState(timeoutMs = 8000) {
   if (!auth) return null;
-  try {
-    if (typeof auth.authStateReady === 'function') {
-      await auth.authStateReady();
-      return auth.currentUser;
-    }
-  } catch (_) {}
 
-  return new Promise((resolve) => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      unsubscribe();
-      resolve(user);
+  const authPromise = (async () => {
+    try {
+      if (typeof auth.authStateReady === 'function') {
+        await auth.authStateReady();
+        return auth.currentUser;
+      }
+    } catch (_) {}
+
+    return new Promise((resolve) => {
+      let resolved = false;
+      const unsubscribe = onAuthStateChanged(auth, (user) => {
+        if (!resolved) {
+          resolved = true;
+          unsubscribe();
+          resolve(user);
+        }
+      });
     });
+  })();
+
+  const timeoutPromise = new Promise((resolve) => {
+    setTimeout(() => {
+      resolve(auth.currentUser || null);
+    }, timeoutMs);
   });
+
+  return Promise.race([authPromise, timeoutPromise]);
 }
 
 /**
@@ -44,10 +60,31 @@ export async function waitForAuthState() {
  * Inspects both UID document reference and full collection scan matching UID or email.
  */
 export async function fetchAuthoritativeAdminRecord(firebaseUid, email) {
-  if (!db) return { exists: false, isArchived: false, role: 'none', data: null };
-
   const cleanEmail = String(email || '').toLowerCase().trim();
   const cleanUid = String(firebaseUid || '').trim();
+
+  if (!db) {
+    // Check cached admin directory if Firestore is offline
+    try {
+      const cachedAdmins = JSON.parse(localStorage.getItem('aurora-admin-users') || '[]');
+      const cached = cachedAdmins.find(a => {
+        if (!a) return false;
+        const aUid = String(a.firebaseUid || a.id || '').trim();
+        const aEmail = String(a.email || '').toLowerCase().trim();
+        return (cleanUid && aUid === cleanUid) || (cleanEmail && aEmail === cleanEmail);
+      });
+      if (cached) {
+        const role = cached.role === 'admin' ? 'admin' : (cached.role === 'staff' ? 'staff' : 'none');
+        return {
+          exists: true,
+          isArchived: cached.isArchived === true,
+          role,
+          data: cached
+        };
+      }
+    } catch (_) {}
+    return { exists: false, isArchived: false, role: 'none', data: null };
+  }
 
   try {
     // 1. Direct document lookup by Firebase UID
@@ -108,6 +145,26 @@ export async function fetchAuthoritativeAdminRecord(firebaseUid, email) {
     } catch (err) {
       console.warn('[AUTH GUARD] adminUsers collection scan notice:', err);
     }
+
+    // 3. Resilient fallback to local adminUsers directory matching verified auth credentials
+    try {
+      const cachedAdmins = JSON.parse(localStorage.getItem('aurora-admin-users') || '[]');
+      const cached = cachedAdmins.find(a => {
+        if (!a) return false;
+        const aUid = String(a.firebaseUid || a.id || '').trim();
+        const aEmail = String(a.email || '').toLowerCase().trim();
+        return (cleanUid && aUid === cleanUid) || (cleanEmail && aEmail === cleanEmail);
+      });
+      if (cached) {
+        const role = cached.role === 'admin' ? 'admin' : (cached.role === 'staff' ? 'staff' : 'none');
+        return {
+          exists: true,
+          isArchived: cached.isArchived === true,
+          role,
+          data: cached
+        };
+      }
+    } catch (_) {}
 
     return { exists: false, isArchived: false, role: 'none', data: null };
   } catch (err) {
@@ -248,15 +305,10 @@ export async function checkCustomerAuth() {
     return { ok: false, reason: 'archived' };
   }
 
-  // 2. Check if this is an Admin/Staff account attempting customer access
+  // 2. Check if this is an Admin/Staff account
   const adminStatus = await fetchAuthoritativeAdminRecord(fbUser.uid, fbUser.email);
-  if (adminStatus.exists && (adminStatus.role === 'admin' || adminStatus.role === 'staff')) {
-    // If user is registered as admin/staff, check whether they also have a genuine customer profile
-    const customerProfile = await fetchCustomerProfileFromFirestore(cleanEmail, fbUser.uid);
-    if (!customerProfile) {
-      // User is an administrative account with no customer profile
-      return { ok: false, reason: 'admin_not_customer' };
-    }
+  if (adminStatus.exists && adminStatus.isArchived === true) {
+    return { ok: false, reason: 'archived' };
   }
 
   // 3. Fetch authoritative customer profile from Firestore
@@ -266,30 +318,46 @@ export async function checkCustomerAuth() {
   }
 
   if (!profile) {
-    // Fallback: check local storage customer directory for existing customer record
-    const localUsers = JSON.parse(localStorage.getItem('aurora-users') || '[]');
-    const localCusts = JSON.parse(localStorage.getItem('aurora-customers') || '[]');
-    const found = localUsers.find(u => u && (String(u.email || '').toLowerCase().trim() === cleanEmail || u.firebaseUid === fbUser.uid)) ||
-                  localCusts.find(c => c && (String(c.email || '').toLowerCase().trim() === cleanEmail || c.uid === fbUser.uid));
-
-    if (found) {
-      if (found.isArchived === true) {
-        return { ok: false, reason: 'archived' };
-      }
-      profile = found;
-    } else {
-      // Create new customer profile for authenticated customer
+    // If user is an active administrative user, grant seamless customer access
+    if (adminStatus.exists && adminStatus.data) {
       profile = {
         id: `user-${fbUser.uid}`,
         firebaseUid: fbUser.uid,
         email: cleanEmail,
-        fullName: fbUser.displayName || cleanEmail.split('@')[0] || 'Customer',
-        phone: fbUser.phoneNumber || '',
+        fullName: adminStatus.data.name || adminStatus.data.fullName || fbUser.displayName || 'Administrator',
+        phone: adminStatus.data.phone || '',
         address: '',
         role: 'customer',
+        adminRole: adminStatus.role,
         isArchived: false,
-        createdAt: new Date().toISOString()
+        createdAt: adminStatus.data.createdAt || new Date().toISOString()
       };
+    } else {
+      // Fallback: check local storage customer directory for existing customer record
+      const localUsers = JSON.parse(localStorage.getItem('aurora-users') || '[]');
+      const localCusts = JSON.parse(localStorage.getItem('aurora-customers') || '[]');
+      const found = localUsers.find(u => u && (String(u.email || '').toLowerCase().trim() === cleanEmail || u.firebaseUid === fbUser.uid)) ||
+                    localCusts.find(c => c && (String(c.email || '').toLowerCase().trim() === cleanEmail || c.uid === fbUser.uid));
+
+      if (found) {
+        if (found.isArchived === true) {
+          return { ok: false, reason: 'archived' };
+        }
+        profile = found;
+      } else {
+        // Create new customer profile for authenticated customer
+        profile = {
+          id: `user-${fbUser.uid}`,
+          firebaseUid: fbUser.uid,
+          email: cleanEmail,
+          fullName: fbUser.displayName || cleanEmail.split('@')[0] || 'Customer',
+          phone: fbUser.phoneNumber || '',
+          address: '',
+          role: 'customer',
+          isArchived: false,
+          createdAt: new Date().toISOString()
+        };
+      }
     }
   }
 
@@ -329,16 +397,6 @@ export async function protectCustomerPage() {
       } catch (_) {}
       window.location.replace(p + 'login.html');
       return { ok: false, reason: 'archived' };
-    }
-
-    // 3. Admin account not registered as customer
-    if (result.reason === 'admin_not_customer') {
-      try {
-        sessionStorage.setItem('login-message', 'You are signed in with an administrative account. Please log in with a customer account to access customer services.');
-        sessionStorage.setItem('login-redirect', window.location.href);
-      } catch (_) {}
-      window.location.replace(p + 'login.html');
-      return { ok: false, reason: 'admin_not_customer' };
     }
 
     window.location.replace(p + 'login.html');

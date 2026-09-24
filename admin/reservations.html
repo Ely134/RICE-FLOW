@@ -258,6 +258,7 @@
       getReservationQueuePosition,
       addNotification,
       isReservationOrder,
+      isReservationWaitingForReupload,
       addInventoryHistory
     } from '../src/app/shared.js';
 
@@ -277,15 +278,6 @@
       let searchQuery = '';
       let selectedOrderInModal = null;
       let pendingRejectReservationId = null;
-
-      function isReservationWaitingForReupload(order) {
-        if (!order) return false;
-        if (order.paymentVerified) return false;
-        if (!order.paymentRejected && order.paymentStatus !== 'rejected') return false;
-        if (order.hasCorrectedProof) return false;
-        if (order.paymentStatus === 'pending_verification') return false;
-        return true;
-      }
 
       function openRejectReservationConfirmModal(reservationId) {
         pendingRejectReservationId = reservationId;
@@ -572,9 +564,15 @@
           
           if (!matchSearch) return false;
 
-          const isCancelled = (order.status === 'cancelled' || order.status === 'Cancelled' || order.status === 'rejected');
-          const isReady = (order.status === 'ready_for_processing' || order.status === 'ready');
-          const isReuploadWaiting = isReservationWaitingForReupload(order);
+          const isCancelled = (
+            order.status === 'cancelled' || 
+            order.status === 'Cancelled' || 
+            order.status === 'rejected' ||
+            order.paymentStatus === 'rejected_expired' ||
+            order.autoCancelledDueToRejectionDeadline === true
+          );
+          const isReady = !isCancelled && (order.status === 'ready_for_processing' || order.status === 'ready');
+          const isReuploadWaiting = !isCancelled && isReservationWaitingForReupload(order);
           const isPaymentVerification = !isCancelled && !isReady && !isReuploadWaiting && (
             order.status === 'payment_verification' || 
             order.paymentStatus === 'pending_verification' || 
@@ -597,8 +595,8 @@
         // 4. Completed Reservations
         // 5. Cancelled Reservations (always at the bottom)
         function getReservationGroup(order) {
-          const st = String(order.status || '').toLowerCase();
-          if (st === 'cancelled') return 5;
+          const st = String(order.status || '').toLowerCase().replace(/_/g, '-');
+          if (st === 'cancelled' || st === 'rejected' || order.paymentStatus === 'rejected_expired' || order.autoCancelledDueToRejectionDeadline === true) return 5;
           if (st === 'completed' || st === 'delivered') return 4;
           if (st === 'ready_for_processing' || st === 'ready') return 3;
           if (isReservationWaitingForReupload(order)) return 1;
@@ -651,9 +649,15 @@
           const dateStr = dateObj.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
           const timeStr = dateObj.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
 
-          const isCancelled = (order.status === 'cancelled' || order.status === 'Cancelled' || order.status === 'rejected');
-          const isReady = (order.status === 'ready_for_processing' || order.status === 'ready');
-          const isReuploadWaiting = isReservationWaitingForReupload(order);
+          const isCancelled = (
+            order.status === 'cancelled' || 
+            order.status === 'Cancelled' || 
+            order.status === 'rejected' ||
+            order.paymentStatus === 'rejected_expired' ||
+            order.autoCancelledDueToRejectionDeadline === true
+          );
+          const isReady = !isCancelled && (order.status === 'ready_for_processing' || order.status === 'ready');
+          const isReuploadWaiting = !isCancelled && isReservationWaitingForReupload(order);
           const isPaymentVerification = !isCancelled && !isReady && !isReuploadWaiting && (
             order.status === 'payment_verification' || 
             order.paymentStatus === 'pending_verification' || 
@@ -689,7 +693,15 @@
           let statusBadge = '';
           let dateAndAvailabilityHtml = '';
 
-          if (isReuploadWaiting) {
+          if (isCancelled) {
+            statusBadge = `<span class="px-2.5 py-1 rounded-full bg-gray-50 border border-gray-200 text-black text-xs font-semibold">Cancelled</span>`;
+            dateAndAvailabilityHtml = `
+              <div>
+                <p class="font-bold text-gray-950 text-sm">${dateStr}</p>
+                <p class="text-xs text-gray-500 font-normal mt-0.5">${timeStr}</p>
+              </div>
+            `;
+          } else if (isReuploadWaiting) {
             const dlMs = order.reuploadDeadline ? new Date(order.reuploadDeadline).getTime() : (order.paymentRejectedAt ? new Date(order.paymentRejectedAt).getTime() + 48*3600*1000 : null);
             const isExp = dlMs && Date.now() > dlMs;
             const diff = dlMs ? dlMs - Date.now() : 0;
@@ -1650,6 +1662,16 @@ if (freshEst && freshEst !== 'Waiting for Restock' && freshEst !== 'Not yet sche
       // INIT LOAD RUN
       drawContentLayout();
       renderQueueTable();
+
+      // Real-time synchronization and auto-cancellation listener
+      window.addEventListener('aurora-sync-event', (e) => {
+        if (!e.detail?.key || e.detail?.key === 'aurora-orders') {
+          renderQueueTable();
+        }
+      });
+      window.addEventListener('aurora-orders-updated', () => {
+        renderQueueTable();
+      });
 
       // Deep Linking handler for notifications
       try {

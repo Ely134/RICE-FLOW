@@ -2216,6 +2216,12 @@
                       </button>
                     </div>
                   </div>
+                ` : (oStatus === 'cancelled' ? `
+                  <!-- CANCELLED: No payment accepted -->
+                  <div class="p-6 bg-rose-50/80 dark:bg-rose-950/40 rounded-2xl border border-rose-200 dark:border-rose-900/60 text-center space-y-2">
+                    <p class="text-sm font-black text-rose-900 dark:text-rose-200">❌ ${isReservationOrder ? 'Reservation' : 'Order'} Cancelled</p>
+                    <p class="text-xs text-rose-700 dark:text-rose-300 font-medium">This ${isReservationOrder ? 'reservation' : 'order'} has been cancelled and is no longer eligible for payment or fulfillment.</p>
+                  </div>
                 ` : (isWaitingForStock ? `
                   <!-- WAITING FOR STOCK: No payment required yet -->
                   <div class="bg-blue-50/70 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800/80 rounded-2xl p-5 text-left space-y-2">
@@ -2303,7 +2309,7 @@
                       <span>📤</span> ${order.paymentRejected ? 'Submit Corrected Payment Proof' : 'Submit Payment Proof'}
                     </button>
                   </div>
-                `)}
+                `))}
               </div>
 
             </div>

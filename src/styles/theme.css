@@ -2057,5 +2057,72 @@ html:not(.dark) button[disabled]:not(.bg-\[\#1E6C02\]):not(.disabled\:bg-\[\#A3D
   border: 1px solid rgba(239, 68, 68, 0.4) !important;
 }
 
+/* ==========================================================================
+   Inventory Analytics Section - Scoped UI & Contrast Hardening
+   ========================================================================== */
+/* Light mode: clean background matching existing light dashboard theme */
+#inventory-analytics-section #inv-movement-chart-inner {
+  background-color: #FFFFFF !important;
+  border-color: #E5E7EB !important;
+}
+
+/* Dark mode: matching existing dark dashboard card background */
+.dark #inventory-analytics-section #inv-movement-chart-inner {
+  background-color: #111827 !important;
+  border-color: #374151 !important;
+}
+
+/* Four Summary Cards Contrast Hardening in Dark Mode */
+.dark #inventory-analytics-section #card-inv-added {
+  background-color: rgba(6, 78, 59, 0.45) !important;
+  border-color: rgba(16, 185, 129, 0.4) !important;
+}
+
+.dark #inventory-analytics-section #badge-inv-inflow {
+  background-color: rgba(6, 78, 59, 0.9) !important;
+  color: #6EE7B7 !important;
+  border: 1px solid #059669 !important;
+}
+
+.dark #inventory-analytics-section #card-inv-deducted {
+  background-color: rgba(69, 26, 3, 0.45) !important;
+  border-color: rgba(245, 158, 11, 0.4) !important;
+}
+
+.dark #inventory-analytics-section #badge-inv-outflow {
+  background-color: rgba(120, 53, 15, 0.9) !important;
+  color: #FCD34D !important;
+  border: 1px solid #D97706 !important;
+}
+
+.dark #inventory-analytics-section #card-inv-net,
+.dark #inventory-analytics-section #card-inv-records {
+  background-color: rgba(30, 41, 59, 0.7) !important;
+  border-color: #334155 !important;
+}
+
+.dark #inventory-analytics-section #badge-inv-net,
+.dark #inventory-analytics-section #badge-inv-records {
+  background-color: #334155 !important;
+  color: #F1F5F9 !important;
+  border: 1px solid #475569 !important;
+}
+
+/* Chart explanation & legend contrast hardening */
+.dark #inventory-analytics-section #banner-inv-explanation {
+  background-color: rgba(6, 78, 59, 0.4) !important;
+  border-color: rgba(16, 185, 129, 0.4) !important;
+  color: #D1FAE5 !important;
+}
+
+.dark #inventory-analytics-section #banner-inv-explanation strong {
+  color: #FFFFFF !important;
+}
+
+.dark #inventory-analytics-section #legend-inv-chart {
+  background-color: #1E293B !important;
+  border-color: #334155 !important;
+}
+
 
 

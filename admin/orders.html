@@ -5401,6 +5401,16 @@ if (freshEst && freshEst !== 'Waiting for Restock' && freshEst !== 'Not yet sche
       // Initial page renders
       renderOrdersBoard();
 
+      // Real-time synchronization and auto-cancellation listener
+      window.addEventListener('aurora-sync-event', (e) => {
+        if (!e.detail?.key || e.detail?.key === 'aurora-orders') {
+          renderOrdersBoard();
+        }
+      });
+      window.addEventListener('aurora-orders-updated', () => {
+        renderOrdersBoard();
+      });
+
       // Deep Linking handler for notifications
       try {
         const urlParams = new URLSearchParams(window.location.search);

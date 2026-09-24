@@ -897,6 +897,11 @@ function scrubFakeData() {
     if (typeof allocateStockToReservations === 'function') {
       allocateStockToReservations();
     }
+
+    // Safely reconcile any missing physical stock deduction audit entries
+    if (typeof reconcileMissingOrderInventoryHistory === 'function') {
+      reconcileMissingOrderInventoryHistory();
+    }
   } catch (err) {
     console.error('Error scrubbing fake seed data:', err);
   }
@@ -987,9 +992,9 @@ export function getInventoryHistory() {
   return JSON.parse(localStorage.getItem('aurora-inventory-history') || '[]');
 }
 
-export function saveInventoryHistory(history) {
+export function saveInventoryHistory(history, targetDocInfo = null) {
   if (typeof setItemAndSync === 'function') {
-    setItemAndSync('aurora-inventory-history', JSON.stringify(history));
+    setItemAndSync('aurora-inventory-history', JSON.stringify(history), targetDocInfo);
   } else {
     localStorage.setItem('aurora-inventory-history', JSON.stringify(history));
   }
@@ -1020,20 +1025,99 @@ export function addInventoryHistory(entry, bypassRoleCheck = false) {
     if (matched) pName = matched.name;
   }
 
+  if (entry.id && history.some(h => h.id === entry.id)) {
+    return history.find(h => h.id === entry.id);
+  }
+
   const newEntry = {
-    id: entry.id || ('inv-' + Date.now()),
+    id: entry.id || ('inv-' + Date.now() + '-' + Math.random().toString(36).substr(2, 5)),
     productName: pName || entry.productName || 'Rice Variety',
     quantityAdded: parseInt(entry.quantityAdded || '0'),
     date: dateStr,
     time: timeStr,
+    timestamp: entry.timestamp || now.toISOString(),
     staffName: entry.staffName || getCurrentAdmin()?.name || 'Admin User',
     remarks: entry.remarks || 'Stock replenishment'
   };
   if (pId) newEntry.productId = String(pId);
+  if (entry.type) newEntry.type = entry.type;
 
   history.unshift(newEntry);
-  saveInventoryHistory(history);
+  saveInventoryHistory(history, { colName: 'inventoryHistory', docId: newEntry.id, docData: newEntry });
+  try {
+    saveFirestoreDoc('inventoryHistory', newEntry.id, newEntry);
+  } catch (e) {
+    console.warn('[INVENTORY] Firestore save error:', e);
+  }
   return newEntry;
+}
+
+export function reconcileMissingOrderInventoryHistory() {
+  try {
+    const orders = getOrders();
+    const history = getInventoryHistory();
+    let historyChanged = false;
+
+    orders.forEach(order => {
+      if (!order || !order.id) return;
+      // Reservations never physically deduct stock upon placement
+      const isRes = Boolean(order.isPreOrder || (order.id && String(order.id).toLowerCase().startsWith('res-')));
+      if (isRes) return;
+
+      // Only check orders that physically deducted warehouse stock
+      const hasDeducted = order.stockDeducted === true || String(order.stockDeducted) === 'true' || Number(order.consumedFromStock || 0) > 0;
+      if (!hasDeducted) return;
+
+      // Check if a negative stock movement already exists for this order
+      const orderIdStr = String(order.id).trim();
+      const existingDeduction = history.find(h => {
+        if (!h) return false;
+        const remarks = String(h.remarks || '');
+        const qty = Number(h.quantityAdded || 0);
+        return qty < 0 && (remarks.includes(`#${orderIdStr}`) || remarks.includes(orderIdStr));
+      });
+
+      if (!existingDeduction) {
+        const item = (order.items && order.items[0]) || {};
+        const pId = item.product?.id || item.productId || '';
+        const pName = item.product?.name || item.name || 'Rice Variety';
+        const qtyDeducted = Number(order.consumedFromStock || order.partialApprovedQty || item.quantity || 0);
+
+        if (qtyDeducted > 0) {
+          const createdAtDate = order.createdAt ? new Date(order.createdAt) : new Date();
+          const dateStr = !isNaN(createdAtDate.getTime()) ? createdAtDate.toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
+          const timeStr = !isNaN(createdAtDate.getTime()) ? createdAtDate.toTimeString().split(' ')[0].slice(0, 5) : '12:00';
+          const isPartial = Boolean(order.partialApprovedQty || order.createdReservation || order.linkedReservationId);
+
+          const backfillEntry = {
+            id: `inv-${createdAtDate.getTime() || Date.now()}-${orderIdStr.toLowerCase()}`,
+            productId: String(pId),
+            productName: pName,
+            quantityAdded: -qtyDeducted,
+            date: dateStr,
+            time: timeStr,
+            timestamp: order.createdAt || createdAtDate.toISOString(),
+            staffName: order.approvedByName || 'Admin User',
+            remarks: isPartial ? `Order placed (partial split): #${orderIdStr}` : `Order placed: #${orderIdStr}`
+          };
+
+          history.push(backfillEntry);
+          historyChanged = true;
+          try {
+            saveFirestoreDoc('inventoryHistory', backfillEntry.id, backfillEntry);
+          } catch (e) {
+            console.warn('[INVENTORY] Firestore save error during backfill:', e);
+          }
+        }
+      }
+    });
+
+    if (historyChanged) {
+      saveInventoryHistory(history);
+    }
+  } catch (err) {
+    console.error('Error reconciling order inventory history:', err);
+  }
 }
 
 export function getEstimatedAvailabilityDate(productIdOrName) {
@@ -3121,6 +3205,228 @@ export async function completePasswordReset(oobCode, newPassword, verifiedEmail 
   }
 }
 
+// ---------------------- 48-HOUR PAYMENT REJECTION DEADLINE CANCELLATION ----------------------
+
+export function evaluateOrderPaymentRejectionDeadline(order) {
+  if (!order) return false;
+
+  const currentStatus = String(order.status || '').toLowerCase().replace(/_/g, '-');
+  if (currentStatus === 'cancelled' || currentStatus === 'completed') {
+    return false;
+  }
+  if (order.autoCancelledDueToRejectionDeadline) {
+    return false;
+  }
+
+  // Must have paymentRejected flag true and must NOT have corrected proof uploaded
+  if (!order.paymentRejected || order.hasCorrectedProof === true) {
+    return false;
+  }
+
+  // Must have an applicable rejected-payment correction deadline
+  let deadlineMs = null;
+  if (order.reuploadDeadline) {
+    const parsed = new Date(order.reuploadDeadline).getTime();
+    if (!isNaN(parsed) && parsed > 0) deadlineMs = parsed;
+  }
+  if (!deadlineMs && order.paymentRejectedAt) {
+    const parsed = new Date(order.paymentRejectedAt).getTime();
+    if (!isNaN(parsed) && parsed > 0) deadlineMs = parsed + (48 * 60 * 60 * 1000);
+  }
+
+  // Do not cancel records that do not have an applicable rejected-payment correction deadline
+  if (!deadlineMs) {
+    return false;
+  }
+
+  const now = new Date();
+  if (now.getTime() < deadlineMs) {
+    return false; // Still within allowed 48-hour window
+  }
+
+  // 48-Hour Deadline has expired! Automatically cancel order or reservation
+  const isRes = isReservationOrder(order);
+  const nowIso = now.toISOString();
+  const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+  const formattedDate = `${months[now.getMonth()]} ${now.getDate()}, ${now.getFullYear()}`;
+  const formattedTime = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+  order.status = 'cancelled';
+  order.cancelledAt = nowIso;
+  order.cancelledBy = 'System Auto-Cancellation';
+  order.cancellationDate = `${formattedDate}, ${formattedTime}`;
+  order.cancellationReason = isRes
+    ? 'Automatically cancelled: Payment proof correction deadline expired (48 hours).'
+    : 'Automatically cancelled: Payment proof correction deadline expired (48 hours).';
+  order.autoCancelledDueToRejectionDeadline = true;
+  order.paymentStatus = 'rejected_expired';
+  order.paymentVerified = false;
+
+  if (isRes) {
+    order.allocatedQuantity = 0;
+  } else {
+    // Regular order: release / restore physical warehouse stock if stock was deducted
+    if (order.stockDeducted) {
+      const currentProducts = getProducts();
+      let prodsChanged = false;
+      if (order.items && Array.isArray(order.items)) {
+        order.items.forEach(it => {
+          if (it.isReservation) return;
+          const itId = it.product?.id || it.productId || it.id;
+          if (itId) {
+            const pIdx = currentProducts.findIndex(p => String(p.id) === String(itId));
+            if (pIdx !== -1) {
+              const qty = Number(it.quantity || 0);
+              if (qty > 0) {
+                currentProducts[pIdx].stock = Number(currentProducts[pIdx].stock || 0) + qty;
+                if (currentProducts[pIdx].currentStock !== undefined) {
+                  currentProducts[pIdx].currentStock = Number(currentProducts[pIdx].currentStock || 0) + qty;
+                }
+                addInventoryHistory({
+                  productId: currentProducts[pIdx].id,
+                  productName: currentProducts[pIdx].name,
+                  quantityAdded: qty,
+                  remarks: `Returned/Restored from cancelled order #${order.id}`
+                }, true);
+                prodsChanged = true;
+              }
+            }
+          }
+        });
+      }
+      if (prodsChanged) {
+        saveProducts(currentProducts, true);
+      }
+      order.stockDeducted = false;
+    }
+  }
+
+  if (!order.statusHistory) order.statusHistory = [];
+  order.statusHistory.push({
+    id: 'hist-deadline-cancel-' + Date.now(),
+    status: 'Cancelled',
+    changedBy: 'System Auto-Cancellation',
+    changedAt: `${formattedDate}, ${formattedTime}`,
+    note: isRes
+      ? 'Reservation automatically cancelled because the 48-hour payment proof correction deadline expired without correction.'
+      : 'Order automatically cancelled because the 48-hour payment proof correction deadline expired without correction.'
+  });
+
+  try {
+    addActivityLog(
+      isRes ? 'Reservation' : 'Order',
+      `${isRes ? 'Reservation' : 'Order'} #${order.id} automatically cancelled after the 48-hour payment correction deadline expired.`,
+      `${isRes ? 'Reservation' : 'Order'} #${order.id}`
+    );
+  } catch (e) {}
+
+  const custId = order.userId || order.customerId;
+  if (custId) {
+    if (isRes) {
+      addNotification(
+        custId,
+        '❌ Reservation Cancelled',
+        `Your reservation #${order.id} has been automatically cancelled because corrected payment proof was not submitted within the 48-hour deadline. The reservation will no longer be fulfilled.`,
+        {
+          role: 'customer',
+          type: 'reservation',
+          targetType: 'reservation',
+          reservationId: String(order.id),
+          targetId: String(order.id),
+          tab: 'reservations',
+          eventKey: `res-cancelled-deadline-${order.id}`,
+          notificationId: `notif-res-cancelled-deadline-${order.id}`
+        }
+      );
+    } else {
+      addNotification(
+        custId,
+        '❌ Order Cancelled',
+        `Your order #${order.id} has been automatically cancelled because corrected payment proof was not submitted within the 48-hour deadline. The order will no longer be fulfilled.`,
+        {
+          role: 'customer',
+          type: 'order',
+          targetType: 'order',
+          orderId: String(order.id),
+          targetId: String(order.id),
+          tab: 'cancelled',
+          eventKey: `order-cancelled-deadline-${order.id}`,
+          notificationId: `notif-order-cancelled-deadline-${order.id}`
+        }
+      );
+    }
+  }
+
+  try {
+    const rawOrd = localStorage.getItem('aurora-orders');
+    if (rawOrd) {
+      const parsedOrd = JSON.parse(rawOrd);
+      const matchIdx = parsedOrd.findIndex(o => String(o.id) === String(order.id));
+      if (matchIdx !== -1) {
+        parsedOrd[matchIdx] = { ...parsedOrd[matchIdx], ...order };
+        localStorage.setItem('aurora-orders', JSON.stringify(parsedOrd));
+      }
+    }
+    saveFirestoreDoc('orders', String(order.id), order);
+  } catch (e) {}
+
+  try {
+    if (typeof allocateStockToReservations === 'function') {
+      allocateStockToReservations();
+    }
+  } catch (e) {}
+
+  return true;
+}
+
+export function checkAndCancelExpiredPaymentRejections() {
+  if (typeof window !== 'undefined' && window._checkingExpiredRejections) return;
+  if (typeof window !== 'undefined') window._checkingExpiredRejections = true;
+  try {
+    const raw = localStorage.getItem('aurora-orders') || '[]';
+    const list = JSON.parse(raw);
+    let modified = false;
+    const modifiedOrders = [];
+
+    list.forEach(order => {
+      const changed = evaluateOrderPaymentRejectionDeadline(order);
+      if (changed) {
+        modified = true;
+        modifiedOrders.push(order);
+      }
+    });
+
+    if (modified) {
+      localStorage.setItem('aurora-orders', JSON.stringify(list));
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('aurora-sync-event', { detail: { key: 'aurora-orders' } }));
+        window.dispatchEvent(new CustomEvent('aurora-orders-updated', { detail: { orders: list } }));
+      }
+      modifiedOrders.forEach(order => {
+        try {
+          saveFirestoreDoc('orders', String(order.id), order);
+        } catch (e) {
+          console.warn('[AUTO-CANCEL] Firestore doc save error:', e);
+        }
+      });
+    }
+  } catch (err) {
+    console.error('Error checking expired rejected orders:', err);
+  } finally {
+    if (typeof window !== 'undefined') window._checkingExpiredRejections = false;
+  }
+}
+
+if (typeof window !== 'undefined' && !window.__aurora_deadline_checker_started) {
+  window.__aurora_deadline_checker_started = true;
+  setInterval(() => {
+    try {
+      checkAndCancelExpiredPaymentRejections();
+      checkAndAutoCompleteOrders();
+    } catch (e) {}
+  }, 15000);
+}
+
 // ---------------------- ORDERS & QUEUE API ----------------------
 
 export function checkAndAutoCompleteOrders() {
@@ -3272,6 +3578,7 @@ export function checkAndAutoCompleteOrders() {
 
 export function getOrders() {
   checkAndAutoCompleteOrders();
+  checkAndCancelExpiredPaymentRejections();
   const raw = localStorage.getItem('aurora-orders') || '[]';
   const list = JSON.parse(raw);
   console.log('[DEBUG] getOrders retrieved orders count:', list.length);
@@ -3445,19 +3752,41 @@ export function getOrders() {
     };
   });
 
-  // Evaluate 48-hour auto completion & dual condition fulfillment
+  // Evaluate 48-hour auto completion & dual condition fulfillment & 48-hour rejection deadline cancellation
   let autoCompletedAny = false;
+  let deadlineCancelledAny = false;
+  const deadlineModifiedOrders = [];
+
   mapped.forEach(order => {
     if (order.status === 'delivered') {
       const changed = evaluateOrderCompletion(order);
       if (changed) autoCompletedAny = true;
     }
+    const cancelled = evaluateOrderPaymentRejectionDeadline(order);
+    if (cancelled) {
+      deadlineCancelledAny = true;
+      deadlineModifiedOrders.push(order);
+    }
   });
 
-  if (autoCompletedAny) {
+  if (autoCompletedAny || deadlineCancelledAny) {
     try {
       localStorage.setItem('aurora-orders', JSON.stringify(mapped));
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('aurora-sync-event', { detail: { key: 'aurora-orders' } }));
+        window.dispatchEvent(new CustomEvent('aurora-orders-updated', { detail: { orders: mapped } }));
+      }
     } catch(e) {}
+
+    if (deadlineModifiedOrders.length > 0) {
+      deadlineModifiedOrders.forEach(ord => {
+        try {
+          saveFirestoreDoc('orders', String(ord.id), ord);
+        } catch (e) {
+          console.warn('[AUTO-CANCEL] Error saving cancelled order to Firestore:', e);
+        }
+      });
+    }
   }
 
   // Sort oldest first (ascending order) for chronological FCFS workflow prioritization
@@ -3661,6 +3990,32 @@ export function isReservationOrder(o) {
   }
 
   return false;
+}
+
+export function isReservationWaitingForReupload(order) {
+  if (!order) return false;
+  const statusClean = String(order.status || '').toLowerCase().replace(/_/g, '-');
+  if (statusClean === 'cancelled' || statusClean === 'rejected' || statusClean === 'expired') return false;
+  if (order.paymentStatus === 'rejected_expired' || order.autoCancelledDueToRejectionDeadline === true) return false;
+  if (order.paymentVerified) return false;
+  if (!order.paymentRejected && order.paymentStatus !== 'rejected') return false;
+  if (order.hasCorrectedProof) return false;
+  if (order.paymentStatus === 'pending_verification') return false;
+
+  let deadlineMs = null;
+  if (order.reuploadDeadline) {
+    const parsed = new Date(order.reuploadDeadline).getTime();
+    if (!isNaN(parsed) && parsed > 0) deadlineMs = parsed;
+  }
+  if (!deadlineMs && order.paymentRejectedAt) {
+    const parsed = new Date(order.paymentRejectedAt).getTime();
+    if (!isNaN(parsed) && parsed > 0) deadlineMs = parsed + (48 * 60 * 60 * 1000);
+  }
+  if (deadlineMs && Date.now() > deadlineMs) {
+    return false;
+  }
+
+  return true;
 }
 
 export function isCancelledOrRejectedOrder(o) {
@@ -4115,6 +4470,12 @@ export function addOrder(orderData) {
         if (p.currentStock !== undefined) {
           p.currentStock = Math.max(0, Number(p.currentStock || 0) - qty);
         }
+        addInventoryHistory({
+          productId: p.id,
+          productName: p.name,
+          quantityAdded: -qty,
+          remarks: `Order placed: #${finalOrder.id}`
+        }, true);
         prodsChanged = true;
       }
     });
@@ -4874,6 +5235,7 @@ const availStock = Math.max(
           order.partialReservedQty = remainingQty;
           affectedProductIds.add(String(p.id));
           addInventoryHistory({
+            productId: String(p.id),
             productName: p.name,
             quantityAdded: -approvedQty,
             remarks: `Order placed (partial split): #${order.id}`
@@ -5036,6 +5398,7 @@ const availStock = Math.max(
           order.consumedAt = order.createdAt || new Date().toISOString();
           affectedProductIds.add(String(p.id));
           addInventoryHistory({
+            productId: String(p.id),
             productName: p.name,
             quantityAdded: -requestedQty,
             remarks: `Order placed: #${order.id}`
@@ -6001,7 +6364,8 @@ if (typeof window !== 'undefined') {
     initReviewReminderPopup,
     saveFirestoreDoc,
     saveReviewDoc,
-    syncReviewsFromFirestore
+    syncReviewsFromFirestore,
+    isReservationWaitingForReupload
   };
 }
 
