@@ -4,6 +4,39 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin Dashboard | RiceFlow</title>
+  <script>
+    (function() {
+      try {
+        var d = document.documentElement;
+        var isDark = localStorage.getItem('aurora-dark-mode') === 'true';
+        d.classList.toggle('dark', isDark);
+        d.style.colorScheme = isDark ? 'dark' : 'light';
+      } catch (e) {}
+    })();
+  </script>
+  <style id="riceflow-theme-init">
+    html { background-color: #F5F5F5; color-scheme: light; }
+    html.dark { background-color: #1F2937 !important; color-scheme: dark; }
+    html.dark body,
+    html.dark #admin-layout-container,
+    html.dark #admin-main-content {
+      background-color: #1F2937;
+      color: #F9FAFB;
+    }
+    html.dark #auth-guard-loader {
+      background-color: #1F2937 !important;
+      color: #F9FAFB !important;
+    }
+    html.dark #admin-sidebar,
+    html.dark aside,
+    html.dark header,
+    html.dark .bg-white,
+    html.dark .bg-gray-50,
+    html.dark .bg-slate-50 {
+      background-color: #111827;
+      color: #F9FAFB;
+    }
+  </style>
   <link rel="stylesheet" href="../src/styles/index.css">
   <style id="auth-guard-style">body { visibility: hidden !important; }</style>
   <style>
@@ -822,6 +855,39 @@
     html.dark #admin-layout-container #inventory-analytics-section .ia-num-negative,
     html.dark #admin-layout-container #inventory-analytics-section .ia-num-neutral {
       color: #FFFFFF !important;
+    }
+
+    /* Consistent internal alignment across all 4 Inventory Analytics Summary Cards */
+    #admin-layout-container #inventory-analytics-section #card-inv-added,
+    #admin-layout-container #inventory-analytics-section #card-inv-deducted,
+    #admin-layout-container #inventory-analytics-section #card-inv-net,
+    #admin-layout-container #inventory-analytics-section #card-inv-records {
+      justify-content: flex-start !important;
+      gap: 0.625rem !important;
+    }
+    #admin-layout-container #inventory-analytics-section .ia-card-header {
+      display: flex !important;
+      align-items: center !important;
+      justify-content: space-between !important;
+      gap: 0.5rem !important;
+      flex-wrap: nowrap !important;
+      min-height: 2rem !important;
+    }
+    #admin-layout-container #inventory-analytics-section .ia-card-label {
+      line-height: 1.2 !important;
+    }
+    #admin-layout-container #inventory-analytics-section #inv-stat-added,
+    #admin-layout-container #inventory-analytics-section #inv-stat-deducted,
+    #admin-layout-container #inventory-analytics-section #inv-stat-net,
+    #admin-layout-container #inventory-analytics-section #inv-stat-count {
+      line-height: 1.15 !important;
+      min-height: 2.25rem !important;
+      display: flex !important;
+      align-items: center !important;
+    }
+    #admin-layout-container #inventory-analytics-section .ia-card-sub {
+      line-height: 1.35 !important;
+      margin-top: 0.375rem !important;
     }
 
     /* Stock Movement Trend Legend & Chart Stage */
@@ -1719,50 +1785,50 @@
             <!-- Key Summary Metric Cards (Stock Added, Stock Deducted, Net Movement, Movement Operations) -->
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 shrink-0">
               <!-- Stock Added Card -->
-              <div id="card-inv-added" class="p-4 sm:p-5 rounded-xl flex flex-col justify-between gap-2.5 shadow-2xs">
-                <div class="flex items-center justify-between gap-2 flex-wrap">
+              <div id="card-inv-added" class="p-4 sm:p-5 rounded-xl flex flex-col justify-start gap-2.5 shadow-2xs">
+                <div class="ia-card-header flex items-center justify-between gap-2 min-h-8">
                   <span class="ia-card-label text-xs font-extrabold uppercase tracking-wider">Stock Added</span>
-                  <span id="badge-inv-inflow" class="text-[11px] font-bold text-emerald-900 dark:text-emerald-200 bg-emerald-100/90 dark:bg-emerald-900/80 border border-emerald-300 dark:border-emerald-600/70 px-2.5 py-0.5 rounded-lg shrink-0">📈 Inflow</span>
+                  <span id="badge-inv-inflow" class="text-[11px] font-bold text-emerald-900 dark:text-emerald-200 bg-emerald-100/90 dark:bg-emerald-900/80 border border-emerald-300 dark:border-emerald-600/70 px-2.5 py-0.5 rounded-lg shrink-0 whitespace-nowrap">📈 Inflow</span>
                 </div>
                 <div>
                   <p id="inv-stat-added" class="text-2xl sm:text-3xl font-black tabular-nums tracking-tight">0 Sacks</p>
-                  <p class="ia-card-sub text-xs font-semibold mt-1">Restocks &amp; warehouse additions</p>
+                  <p class="ia-card-sub text-xs font-semibold mt-1.5">Restocks &amp; warehouse additions</p>
                 </div>
               </div>
 
               <!-- Stock Deducted Card -->
-              <div id="card-inv-deducted" class="p-4 sm:p-5 rounded-xl flex flex-col justify-between gap-2.5 shadow-2xs">
-                <div class="flex items-center justify-between gap-2 flex-wrap">
+              <div id="card-inv-deducted" class="p-4 sm:p-5 rounded-xl flex flex-col justify-start gap-2.5 shadow-2xs">
+                <div class="ia-card-header flex items-center justify-between gap-2 min-h-8">
                   <span class="ia-card-label text-xs font-extrabold uppercase tracking-wider">Stock Deducted</span>
-                  <span id="badge-inv-outflow" class="text-[11px] font-bold text-indigo-950 dark:text-white bg-indigo-100/90 dark:bg-indigo-900/80 border border-indigo-300 dark:border-indigo-500/70 px-2.5 py-0.5 rounded-lg shrink-0">📉 Outflow</span>
+                  <span id="badge-inv-outflow" class="text-[11px] font-bold text-indigo-950 dark:text-white bg-indigo-100/90 dark:bg-indigo-900/80 border border-indigo-300 dark:border-indigo-500/70 px-2.5 py-0.5 rounded-lg shrink-0 whitespace-nowrap">📉 Outflow</span>
                 </div>
                 <div>
                   <p id="inv-stat-deducted" class="text-2xl sm:text-3xl font-black tabular-nums tracking-tight">0 Sacks</p>
-                  <p class="ia-card-sub text-xs font-semibold mt-1">Order fulfillments &amp; deductions</p>
+                  <p class="ia-card-sub text-xs font-semibold mt-1.5">Order fulfillments &amp; deductions</p>
                 </div>
               </div>
 
               <!-- Net Movement Card -->
-              <div id="card-inv-net" class="p-4 sm:p-5 rounded-xl flex flex-col justify-between gap-2.5 shadow-2xs">
-                <div class="flex items-center justify-between gap-2 flex-wrap">
-                  <span class="ia-card-label text-xs font-extrabold uppercase tracking-wider">Net Movement</span>
-                  <span id="badge-inv-net" class="text-[11px] font-bold text-slate-900 dark:text-slate-100 bg-slate-200/90 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 px-2.5 py-0.5 rounded-lg shrink-0">⚖️ Net</span>
+              <div id="card-inv-net" class="p-4 sm:p-5 rounded-xl flex flex-col justify-start gap-2.5 shadow-2xs" title="The overall change in stock after new additions, deductions, and returned stock.">
+                <div class="ia-card-header flex items-center justify-between gap-2 min-h-8">
+                  <span class="ia-card-label text-xs font-extrabold uppercase tracking-wider">Overall Stock Change</span>
+                  <span id="badge-inv-net" class="text-[11px] font-bold text-slate-900 dark:text-slate-100 bg-slate-200/90 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 px-2.5 py-0.5 rounded-lg shrink-0 whitespace-nowrap">⚖️ Net</span>
                 </div>
                 <div>
                   <p id="inv-stat-net" class="ia-num-neutral text-2xl sm:text-3xl font-black tabular-nums tracking-tight">0 Sacks</p>
-                  <p class="ia-card-sub text-xs font-semibold mt-1">Balance for selected period</p>
+                  <p class="ia-card-sub text-xs font-semibold mt-1.5">The overall change in stock after new additions, deductions, and returned stock.</p>
                 </div>
               </div>
 
               <!-- Recorded Stock Changes Card -->
-              <div id="card-inv-records" class="p-4 sm:p-5 rounded-xl flex flex-col justify-between gap-2.5 shadow-2xs">
-                <div class="flex items-center justify-between gap-2 flex-wrap">
+              <div id="card-inv-records" class="p-4 sm:p-5 rounded-xl flex flex-col justify-start gap-2.5 shadow-2xs">
+                <div class="ia-card-header flex items-center justify-between gap-2 min-h-8">
                   <span class="ia-card-label text-xs font-extrabold uppercase tracking-wider">Movement Operations</span>
-                  <span id="badge-inv-records" class="text-[11px] font-bold text-slate-900 dark:text-slate-100 bg-slate-200/90 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 px-2.5 py-0.5 rounded-lg shrink-0">📋 Records</span>
+                  <span id="badge-inv-records" class="text-[11px] font-bold text-slate-900 dark:text-slate-100 bg-slate-200/90 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 px-2.5 py-0.5 rounded-lg shrink-0 whitespace-nowrap">📋 Records</span>
                 </div>
                 <div>
                   <p id="inv-stat-count" class="text-2xl sm:text-3xl font-black tabular-nums tracking-tight">0 Entries</p>
-                  <p class="ia-card-sub text-xs font-semibold mt-1">Total logged movement events</p>
+                  <p class="ia-card-sub text-xs font-semibold mt-1.5">Total logged movement events</p>
                 </div>
               </div>
             </div>
@@ -3346,20 +3412,41 @@
           return entryMatchesVariety(entry, currentProd, productsList);
         });
 
+        // Identify automatic stock restorations from cancelled/returned orders
+        // so Stock Added counts only genuine new stock / restocking
+        const isRestoredOrderStock = (entry) => {
+          if (!entry) return false;
+          const remarks = String(entry.remarks || entry.reason || '').toLowerCase();
+          const type = String(entry.type || entry.action || entry.source || '').toLowerCase();
+          return (
+            remarks.includes('returned/restored') ||
+            remarks.includes('cancelled order') ||
+            remarks.includes('restored from') ||
+            remarks.includes('returned from') ||
+            type === 'restoration' ||
+            type === 'order_cancelled_restore' ||
+            type === 'return'
+          );
+        };
+
         // Calculate totals using actual recorded data only
         let totalAdded = 0;
+        let totalPositive = 0;
         let totalDeducted = 0;
 
         filteredEntries.forEach(entry => {
           const qty = Number(entry.quantityAdded || 0);
           if (qty > 0) {
-            totalAdded += qty;
+            totalPositive += qty;
+            if (!isRestoredOrderStock(entry)) {
+              totalAdded += qty;
+            }
           } else if (qty < 0) {
             totalDeducted += Math.abs(qty);
           }
         });
 
-        const netMovement = totalAdded - totalDeducted;
+        const netMovement = totalPositive - totalDeducted;
         const totalOps = filteredEntries.length;
 
         // Update Summary Cards with simple, clear quantities
@@ -3451,8 +3538,14 @@
               buckets.forEach(b => {
                 if (eDate >= b.bStart && eDate <= b.bEnd) {
                   const qty = Number(entry.quantityAdded || 0);
-                  if (qty > 0) b.added += qty;
-                  else if (qty < 0) b.deducted += Math.abs(qty);
+                  if (qty > 0) {
+                    b.positive = (b.positive || 0) + qty;
+                    if (!isRestoredOrderStock(entry)) {
+                      b.added += qty;
+                    }
+                  } else if (qty < 0) {
+                    b.deducted += Math.abs(qty);
+                  }
                 }
               });
             });
@@ -3495,7 +3588,7 @@
                             <span>Stock Deducted: -${b.deducted} sacks</span>
                           </div>
                           <div class="text-white text-[11px] border-t border-slate-800 pt-1 mt-1.5 font-semibold">
-                            Net Movement: ${b.added - b.deducted > 0 ? '+' : ''}${b.added - b.deducted} sacks
+                            Overall Stock Change: ${(b.positive || 0) - b.deducted > 0 ? '+' : ''}${(b.positive || 0) - b.deducted} sacks
                           </div>
                         </div>
 

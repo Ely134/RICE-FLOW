@@ -866,11 +866,8 @@ export function mergeGenericCollections(colName, localList = [], remoteList = []
     const key = getRecordKey(rItem);
     if (!key) return;
 
-    if (colName === 'orders') {
-      pendingOrderWrites.delete(key);
-    }
-
-    const existing = localMap.get(key);
+    const pendingEntry = colName === 'orders' ? pendingOrderWrites.get(key) : null;
+    const existing = (pendingEntry && pendingEntry.data) ? pendingEntry.data : localMap.get(key);
 
     // ------------------------------------------------------------
     // Matching local record exists
@@ -920,16 +917,29 @@ export function mergeGenericCollections(colName, localList = [], remoteList = []
 
         const remoteIsCancelled =
           String(rItem.status || '').toLowerCase() === 'cancelled' ||
-          rItem.autoCancelledDueToRejectionDeadline === true;
+          rItem.autoCancelledDueToRejectionDeadline === true ||
+          rItem.autoCancelledDueToPaymentDeadline === true;
+
+        const localIsCancelled =
+          String(existing.status || '').toLowerCase() === 'cancelled' ||
+          existing.autoCancelledDueToRejectionDeadline === true ||
+          existing.autoCancelledDueToPaymentDeadline === true;
+
+        if (pendingEntry) {
+          if (remoteUpdatedAt >= localUpdatedAt || (localIsCancelled && remoteIsCancelled)) {
+            pendingOrderWrites.delete(key);
+          }
+        }
 
         const localHasMoreAllocation =
           !remoteIsCancelled &&
+          !localIsCancelled &&
           localAllocated > remoteAllocated &&
           localUpdatedAt >= remoteUpdatedAt;
 
         // Keep the local version when it contains newer
-        // allocation or state information.
-        if (localIsNewer || localHasMoreAllocation) {
+        // allocation, cancellation, or state information.
+        if (localIsNewer || localHasMoreAllocation || (localIsCancelled && !remoteIsCancelled)) {
           map.set(key, {
             ...rItem,
             ...existing,
@@ -1174,7 +1184,30 @@ export function mergeNotificationLists(localList = [], remoteList = []) {
 export async function syncOrdersFromFirestore() {
   if (!db) return [];
   try {
-    const remoteDocs = await fetchFirestoreCollection('orders');
+    const [ordersRes, notifsRes, logsRes] = await Promise.allSettled([
+      fetchFirestoreCollection('orders'),
+      fetchFirestoreCollection('notifications'),
+      fetchFirestoreCollection('activityLogs')
+    ]);
+
+    if (notifsRes.status === 'fulfilled' && Array.isArray(notifsRes.value)) {
+      try {
+        const localNotifs = JSON.parse(localStorage.getItem('aurora-notifications') || '[]');
+        const mergedNotifs = mergeNotificationLists(localNotifs, notifsRes.value);
+        safeLocalStorageSet('aurora-notifications', JSON.stringify(mergedNotifs));
+      } catch (_) {}
+    }
+
+    if (logsRes.status === 'fulfilled' && Array.isArray(logsRes.value)) {
+      try {
+        const cleanRemoteLogs = logsRes.value.filter(l => l && (l.id || l.action || l.category));
+        const localLogs = JSON.parse(localStorage.getItem('aurora-activity-logs') || '[]');
+        const mergedLogs = sortActivityLogsDesc(mergeGenericCollections('activityLogs', localLogs, cleanRemoteLogs));
+        safeLocalStorageSet('aurora-activity-logs', JSON.stringify(mergedLogs));
+      } catch (_) {}
+    }
+
+    const remoteDocs = ordersRes.status === 'fulfilled' ? ordersRes.value : null;
     if (remoteDocs !== null && Array.isArray(remoteDocs)) {
       ordersHydratedFromFirestore = true;
       const localOrders = JSON.parse(localStorage.getItem('aurora-orders') || '[]');
@@ -1405,6 +1438,9 @@ export async function initFirestoreSync(force = false) {
           const localList = JSON.parse(localStorage.getItem(key) || '[]');
           const merged = mergeGenericCollections(col, localList, cleanDocs);
           safeLocalStorageSet(key, JSON.stringify(merged));
+          if (typeof window !== 'undefined') {
+            window.dispatchEvent(new CustomEvent('aurora-sync-event', { detail: { key, remote: true } }));
+          }
         }
 
         subscribeToFirestoreCollection(col, (remoteItems) => {
@@ -1443,13 +1479,20 @@ export async function initFirestoreSync(force = false) {
   }
 
   // 3. CUSTOMER — Role-scoped targeted sync for customer's own records (e.g. notifications)
-  if (isCustomerLoggedIn || auth?.currentUser) {
-    const fbUid = auth?.currentUser?.uid || currentUser?.firebaseUid;
-    const localUserId = currentUser?.id;
+  const isCustomerStillLoggedIn = typeof localStorage !== 'undefined' && localStorage.getItem('aurora-logged-in') === 'true' && !!localStorage.getItem('aurora-user');
+  if (isCustomerStillLoggedIn) {
+    let activeCustomerUser = currentUser;
+    try {
+      const freshRaw = localStorage.getItem('aurora-user');
+      if (freshRaw) activeCustomerUser = JSON.parse(freshRaw);
+    } catch (_) {}
+    const fbUid = auth?.currentUser?.uid || activeCustomerUser?.firebaseUid;
+    const localUserId = activeCustomerUser?.id;
 
     // Helper to merge customer notifications
     const mergeCustomerNotifs = (remoteDocs) => {
       if (!remoteDocs || !Array.isArray(remoteDocs)) return;
+      if (typeof localStorage !== 'undefined' && localStorage.getItem('aurora-logged-in') !== 'true') return;
       try {
         const localNotifs = JSON.parse(localStorage.getItem('aurora-notifications') || '[]');
         const merged = mergeNotificationLists(localNotifs, remoteDocs);
@@ -1484,15 +1527,20 @@ export async function initFirestoreSync(force = false) {
     }
 
     // D. Customer Profile Real-Time Listener (Keep Device B synchronized with Firebase updates from Device A)
-    const custProfileEmail = currentUser?.email ? String(currentUser.email).trim().toLowerCase() : (auth?.currentUser?.email ? String(auth.currentUser.email).trim().toLowerCase() : '');
+    const custProfileEmail = activeCustomerUser?.email ? String(activeCustomerUser.email).trim().toLowerCase() : (auth?.currentUser?.email ? String(auth.currentUser.email).trim().toLowerCase() : '');
     const custProfileUid = fbUid;
     const custProfileLocalId = localUserId;
 
     if (custProfileLocalId || custProfileUid || custProfileEmail) {
       const applyAuthoritativeProfile = (docData) => {
         if (!docData) return;
+        if (typeof window !== 'undefined' && window.__customerLogoutInProgress) return;
+        if (typeof localStorage === 'undefined' || localStorage.getItem('aurora-logged-in') !== 'true') return;
+        const rawCurrentLocal = localStorage.getItem('aurora-user');
+        if (!rawCurrentLocal) return;
         try {
-          const currentLocal = JSON.parse(localStorage.getItem('aurora-user') || '{}');
+          const currentLocal = JSON.parse(rawCurrentLocal);
+          if (!currentLocal || (!currentLocal.id && !currentLocal.email)) return;
           const remoteTime = docData.updatedAt ? new Date(docData.updatedAt).getTime() : 0;
           const localTime = currentLocal.updatedAt ? new Date(currentLocal.updatedAt).getTime() : 0;
 

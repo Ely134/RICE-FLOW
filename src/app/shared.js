@@ -668,36 +668,40 @@ export function initDB() {
 
   if (auth && typeof onAuthStateChanged === 'function') {
     onAuthStateChanged(auth, async (fbUser) => {
-      if (!fbUser) {
-        localStorage.removeItem('aurora-user');
-        localStorage.setItem('aurora-logged-in', 'false');
-        localStorage.removeItem('aurora-admin-user');
-        localStorage.setItem('aurora-admin-logged-in', 'false');
-        return;
-      }
       if (fbUser && fbUser.email) {
+        if (typeof window !== 'undefined' && window.__customerLogoutInProgress) {
+          return;
+        }
         const fbEmailClean = String(fbUser.email).toLowerCase();
         
         // Authoritatively block session restore if customer account is archived
         const currentAdmin = getCurrentAdmin();
         const isAdmin = currentAdmin && currentAdmin.email && String(currentAdmin.email).toLowerCase() === fbEmailClean;
-        if (!isAdmin) {
+
+        if (!isAdmin && localStorage.getItem('aurora-logged-in') === 'true') {
           try {
             const archCheck = await checkCustomerArchivedInFirestore(fbEmailClean, fbUser.uid);
             if (archCheck && archCheck.isArchived === true) {
               localStorage.removeItem('aurora-user');
-              localStorage.removeItem('aurora-logged-in');
+              localStorage.setItem('aurora-logged-in', 'false');
               if (typeof signOut === 'function') {
                 await signOut(auth).catch(() => {});
+              }
+              if (typeof document !== 'undefined' && document.getElementById('navbar-container')) {
+                try { renderLayout(); } catch (_) {}
               }
               return;
             }
           } catch (_) {}
         }
 
-        if (!isAdmin) {
+        if (!isAdmin && localStorage.getItem('aurora-logged-in') === 'true') {
           try {
             const remoteProfile = await fetchCustomerProfileFromFirestore(fbEmailClean, fbUser.uid);
+            // Re-verify customer is still logged in after async Firestore calls
+            if ((typeof window !== 'undefined' && window.__customerLogoutInProgress) || localStorage.getItem('aurora-logged-in') !== 'true' || !localStorage.getItem('aurora-user')) {
+              return;
+            }
             if (remoteProfile) {
               const localUser = getCurrentUser();
               const remoteTime = remoteProfile.updatedAt ? new Date(remoteProfile.updatedAt).getTime() : 0;
@@ -719,6 +723,9 @@ export function initDB() {
                 safeLocalStorageSet('aurora-users', JSON.stringify(users));
                 syncUsersAndCustomers();
 
+                if (typeof document !== 'undefined' && document.getElementById('navbar-container')) {
+                  try { renderLayout(); } catch (_) {}
+                }
                 if (typeof window !== 'undefined') {
                   window.dispatchEvent(new CustomEvent('aurora-sync-event', { detail: { key: 'aurora-user', remote: true } }));
                 }
@@ -2070,6 +2077,12 @@ export function clearCartItems(productIds) {
 // ---------------------- AUTH API ----------------------
 
 export function getCurrentUser() {
+  if (typeof window !== 'undefined' && window.__customerLogoutInProgress) {
+    return null;
+  }
+  if (typeof localStorage === 'undefined' || localStorage.getItem('aurora-logged-in') !== 'true') {
+    return null;
+  }
   const saved = localStorage.getItem('aurora-user');
   if (!saved) return null;
   try {
@@ -2098,6 +2111,9 @@ export function getCurrentAdmin() {
 }
 
 export async function loginUser(emailOrUsername, password) {
+  if (typeof window !== 'undefined') {
+    window.__customerLogoutInProgress = false;
+  }
   const cleanEmail = (emailOrUsername || '').trim().toLowerCase();
   if (!cleanEmail || !password) return false;
 
@@ -2210,6 +2226,12 @@ export async function loginUser(emailOrUsername, password) {
       resetFailedAttempts(cleanEmail);
       localStorage.setItem('aurora-user', JSON.stringify(mergedUser));
       localStorage.setItem('aurora-logged-in', 'true');
+      if (typeof document !== 'undefined' && document.getElementById('navbar-container')) {
+        try { renderLayout(); } catch (_) {}
+      }
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('aurora-sync-event', { detail: { key: 'aurora-user' } }));
+      }
       return true;
     }
 
@@ -2250,6 +2272,12 @@ export async function loginUser(emailOrUsername, password) {
     resetFailedAttempts(cleanEmail);
     localStorage.setItem('aurora-user', JSON.stringify(restoredUser));
     localStorage.setItem('aurora-logged-in', 'true');
+    if (typeof document !== 'undefined' && document.getElementById('navbar-container')) {
+      try { renderLayout(); } catch (_) {}
+    }
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('aurora-sync-event', { detail: { key: 'aurora-user' } }));
+    }
     return true;
   }
 
@@ -2312,6 +2340,12 @@ export async function loginUser(emailOrUsername, password) {
     resetFailedAttempts(cleanEmail);
     localStorage.setItem('aurora-user', JSON.stringify(matched));
     localStorage.setItem('aurora-logged-in', 'true');
+    if (typeof document !== 'undefined' && document.getElementById('navbar-container')) {
+      try { renderLayout(); } catch (_) {}
+    }
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('aurora-sync-event', { detail: { key: 'aurora-user' } }));
+    }
     return true;
   }
 
@@ -2550,9 +2584,6 @@ export function updateUserPhoneVerified(userIdOrEmail, phoneInfo) {
 }
 
 export function logoutUser() {
-  if (auth) {
-    signOut(auth).catch(err => console.warn('[FIREBASE AUTH] Signout error:', err));
-  }
   const admin = getCurrentAdmin();
   if (admin) {
     const target = admin.role === 'admin' ? 'Admin Portal' : 'Staff Portal';
@@ -2567,6 +2598,22 @@ export function logoutUser() {
   localStorage.removeItem('riceflow_customer_active_order_id');
   sessionStorage.removeItem('riceflow_customer_active_tab');
   localStorage.removeItem('riceflow_customer_active_tab');
+
+  // Immediately refresh customer header/account UI to logged-out Login state
+  if (typeof document !== 'undefined' && document.getElementById('navbar-container')) {
+    try {
+      renderLayout();
+    } catch (_) {}
+  }
+
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('aurora-sync-event', { detail: { key: 'aurora-user', loggedOut: true } }));
+  }
+
+  if (auth && typeof signOut === 'function') {
+    return signOut(auth).catch(err => console.warn('[FIREBASE AUTH] Signout error:', err));
+  }
+  return Promise.resolve();
 }
 
 export async function loginAdmin(email, password) {
@@ -3640,6 +3687,336 @@ export function evaluateOrderPaymentRejectionDeadline(order) {
   return true;
 }
 
+export function getReservationPaymentDeadlineMs(order) {
+  if (!order) return null;
+
+  const ordId = String(order.id || '').trim();
+  const allocatedQty = Number(order.allocatedQuantity || 0);
+  let totalQtyNeeded = Number(order.quantity || 0);
+  if (Array.isArray(order.items) && order.items.length > 0) {
+    const resItem = order.items.find(it => it && (it.isReservation || it.product || it.productId)) || order.items[0];
+    if (resItem && Number(resItem.quantity || 0) > 0) {
+      totalQtyNeeded = Number(resItem.quantity);
+    }
+  }
+  const isFullyAllocated = totalQtyNeeded > 0 ? allocatedQty >= totalQtyNeeded : allocatedQty > 0;
+
+  const candidateDeadlines = [];
+  const FortyEightHoursMs = 48 * 60 * 60 * 1000;
+
+  if (order.paymentDeadline) {
+    const parsed = new Date(order.paymentDeadline).getTime();
+    if (!isNaN(parsed) && parsed > 0) {
+      candidateDeadlines.push(parsed);
+    }
+  }
+
+  if (isFullyAllocated || order.notifiedForPayment) {
+    const allocationTimestamps = [
+      order.stockAllocatedAt,
+      order.restockAllocatedAt,
+      order.actualRestockDate
+    ];
+
+    for (const ts of allocationTimestamps) {
+      if (ts) {
+        const parsed = new Date(ts).getTime();
+        if (!isNaN(parsed) && parsed > 0) {
+          candidateDeadlines.push(parsed + FortyEightHoursMs);
+        }
+      }
+    }
+  }
+
+  if (Array.isArray(order.statusHistory)) {
+    for (let i = 0; i < order.statusHistory.length; i++) {
+      const entry = order.statusHistory[i];
+      if (!entry) continue;
+      const st = String(entry.status || '').toLowerCase();
+      const note = String(entry.note || '').toLowerCase();
+      if (
+        st.includes('stock allocated') ||
+        note.includes('stock fully allocated') ||
+        note.includes('upload down payment within 48 hours')
+      ) {
+        const parsed = new Date(entry.changedAt || entry.timestamp || '').getTime();
+        if (!isNaN(parsed) && parsed > 0) {
+          candidateDeadlines.push(parsed + FortyEightHoursMs);
+        }
+      }
+    }
+  }
+
+  // Check persisted notifications and activity logs for the earliest authoritative
+  // full-allocation / 48-hour down-payment request timestamp for this reservation
+  if (ordId && typeof localStorage !== 'undefined') {
+    try {
+      const rawNotifs = localStorage.getItem('aurora-notifications');
+      if (rawNotifs) {
+        const notifs = JSON.parse(rawNotifs);
+        if (Array.isArray(notifs)) {
+          for (let i = 0; i < notifs.length; i++) {
+            const n = notifs[i];
+            if (!n) continue;
+            const matchesOrder =
+              String(n.reservationId || '').trim() === ordId ||
+              String(n.targetId || '').trim() === ordId ||
+              String(n.recordId || '').trim() === ordId ||
+              String(n.orderId || '').trim() === ordId;
+            if (!matchesOrder) continue;
+
+            const titleLower = String(n.title || '').toLowerCase();
+            const msgLower = String(n.message || '').toLowerCase();
+            if (
+              titleLower.includes('down payment required') ||
+              titleLower.includes('reserved rice available') ||
+              msgLower.includes('upload your down payment within 48 hours')
+            ) {
+              let notifMs = n.timestamp ? new Date(n.timestamp).getTime() : NaN;
+              if (isNaN(notifMs) || notifMs <= 0) {
+                const idMatch = String(n.id || n.notificationId || '').match(/^notif-(\d{10,15})/);
+                if (idMatch) notifMs = Number(idMatch[1]);
+              }
+              if ((isNaN(notifMs) || notifMs <= 0) && n.createdDate) {
+                notifMs = new Date(`${n.createdDate} ${n.createdTime || '00:00'}`).getTime();
+              }
+              if (!isNaN(notifMs) && notifMs > 0) {
+                candidateDeadlines.push(notifMs + FortyEightHoursMs);
+              }
+            }
+          }
+        }
+      }
+    } catch (e) {}
+
+    try {
+      const rawLogs = localStorage.getItem('aurora-activity-logs');
+      if (rawLogs) {
+        const logs = JSON.parse(rawLogs);
+        if (Array.isArray(logs)) {
+          for (let i = 0; i < logs.length; i++) {
+            const l = logs[i];
+            if (!l) continue;
+            const actionStr = String(l.action || '');
+            if (!actionStr.includes(ordId)) continue;
+            const allocMatch = actionStr.match(/total allocated:\s*(\d+)\s*\/\s*(\d+)/i);
+            if (allocMatch) {
+              const allocNum = Number(allocMatch[1]);
+              const neededNum = Number(allocMatch[2]);
+              if (neededNum > 0 && allocNum >= neededNum) {
+                let logMs = l.timestamp ? new Date(l.timestamp).getTime() : NaN;
+                if (isNaN(logMs) || logMs <= 0) {
+                  const idMatch = String(l.id || '').match(/^log-(\d{10,15})/);
+                  if (idMatch) logMs = Number(idMatch[1]);
+                }
+                if (!isNaN(logMs) && logMs > 0) {
+                  candidateDeadlines.push(logMs + FortyEightHoursMs);
+                }
+              }
+            }
+          }
+        }
+      }
+    } catch (e) {}
+  }
+
+  if (candidateDeadlines.length === 0) {
+    return null;
+  }
+
+  return Math.min(...candidateDeadlines);
+}
+
+export function hasValidReservationPaymentProof(order) {
+  if (!order || order.paymentRejected) return false;
+  if (order.status === 'payment_verification' || order.paymentStatus === 'pending_verification') {
+    return true;
+  }
+  if (order.paymentProofDataUrl && String(order.paymentProofDataUrl).length > 20) {
+    return true;
+  }
+  if (order.paymentProofUrl && String(order.paymentProofUrl).length > 3 && order.paymentProofUrl !== 'none') {
+    return true;
+  }
+  if (order.paymentProof) {
+    const p = String(order.paymentProof).trim();
+    if (p.startsWith('data:')) return true;
+    if (p !== 'none' && p !== 'null' && p !== 'undefined' && p.length > 3) return true;
+  }
+  return false;
+}
+
+export function evaluateReservationPaymentDeadline(order, skipReallocate = false) {
+  if (!order || isStaleOrderOrReservation(order)) return false;
+  if (!isReservationOrder(order)) return false;
+
+  const currentStatus = String(order.status || '').toLowerCase().replace(/_/g, '-');
+  if (
+    currentStatus === 'cancelled' ||
+    currentStatus === 'completed' ||
+    currentStatus === 'delivered' ||
+    currentStatus === 'processing' ||
+    currentStatus === 'to-ship' ||
+    currentStatus === 'to-receive' ||
+    currentStatus === 'ready-for-processing' ||
+    currentStatus === 'ready' ||
+    currentStatus === 'rejected'
+  ) {
+    return false;
+  }
+
+  // Payment already satisfied or proof already uploaded awaiting review
+  const isPaymentSatisfied =
+    order.paymentVerified === true ||
+    order.paymentStatus === 'verified' ||
+    order.paymentStatus === 'paid';
+  if (isPaymentSatisfied || hasValidReservationPaymentProof(order)) {
+    return false;
+  }
+
+  // Rejected-proof correction deadline is handled separately by evaluateOrderPaymentRejectionDeadline
+  if (order.paymentRejected) {
+    return false;
+  }
+
+  const deadlineMs = getReservationPaymentDeadlineMs(order);
+  if (!deadlineMs) {
+    return false;
+  }
+
+  const allocatedQty = Number(order.allocatedQuantity || 0);
+  const authoritativeDeadlineIso = new Date(deadlineMs).toISOString();
+  const authoritativeAllocIso = new Date(deadlineMs - (48 * 60 * 60 * 1000)).toISOString();
+
+  if (!order.paymentDeadline || new Date(order.paymentDeadline).getTime() > deadlineMs) {
+    order.paymentDeadline = authoritativeDeadlineIso;
+    order.notifiedForPayment = true;
+    if (!order.stockAllocatedAt || new Date(order.stockAllocatedAt).getTime() > (deadlineMs - 48 * 60 * 60 * 1000)) {
+      order.stockAllocatedAt = authoritativeAllocIso;
+    }
+  }
+
+  const now = new Date();
+  if (now.getTime() <= deadlineMs) {
+    return false;
+  }
+
+  // 48-Hour allocation payment deadline has expired without down payment submission!
+  const nowIso = now.toISOString();
+  const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+  const formattedDate = `${months[now.getMonth()]} ${now.getDate()}, ${now.getFullYear()}`;
+  const formattedTime = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+  order.paymentDeadline = authoritativeDeadlineIso;
+  order.notifiedForPayment = true;
+  if (!order.stockAllocatedAt || new Date(order.stockAllocatedAt).getTime() > (deadlineMs - 48 * 60 * 60 * 1000)) {
+    order.stockAllocatedAt = authoritativeAllocIso;
+  }
+  order.status = 'cancelled';
+  order.allocatedQuantity = 0;
+  order.cancelledAt = nowIso;
+  order.updatedAt = nowIso;
+  order.cancelledBy = 'System Auto-Cancellation';
+  order.cancellationDate = `${formattedDate}, ${formattedTime}`;
+  order.cancellationReason = 'Automatically cancelled: Down payment was not submitted within the 48-hour payment deadline.';
+  order.autoCancelledDueToPaymentDeadline = true;
+  order.paymentVerified = false;
+  order.refundStatus = 'No Refund Needed';
+  order.refundAmount = 0;
+  order.refundReason = 'Cancelled: 48-hour down payment deadline expired (no payment received)';
+
+  if (!Array.isArray(order.statusHistory)) order.statusHistory = [];
+  const alreadyHasExpiredHist = order.statusHistory.some(
+    h => h && String(h.status || '').toLowerCase() === 'cancelled (expired)'
+  );
+  if (!alreadyHasExpiredHist) {
+    order.statusHistory.push({
+      id: 'hist-exp-' + Date.now(),
+      status: 'Cancelled (Expired)',
+      changedBy: 'System Auto-Cancellation',
+      changedAt: `${formattedDate}, ${formattedTime}`,
+      note: 'Reservation automatically expired because the 48-hour payment window elapsed without payment verification or receipt upload. Allocated stock has been released.'
+    });
+  }
+
+  try {
+    const existingLogs = getActivityLogs();
+    const alreadyLogged = existingLogs.some(
+      l => l && String(l.target || '') === `Reservation #${order.id}` && String(l.action || '').includes('automatically cancelled')
+    );
+    if (!alreadyLogged) {
+      addActivityLog(
+        'Reservations',
+        `System automatically cancelled Reservation #${order.id} because the 48-hour down payment deadline expired without payment submission. Allocated stock (${allocatedQty} sacks) released.`,
+        `Reservation #${order.id}`
+      );
+    }
+  } catch (e) {}
+
+  const custId = order.userId || order.customerId || '';
+  if (custId) {
+    addNotification(
+      custId,
+      '❌ Reservation Cancelled',
+      'Your reservation was automatically cancelled because the 48-hour payment window elapsed without a payment upload. Allocated stock has been released to the next customer in line.',
+      {
+        role: 'customer',
+        type: 'reservation',
+        targetType: 'reservation',
+        reservationId: String(order.id),
+        orderId: String(order.id),
+        targetId: String(order.id),
+        tab: 'cancelled',
+        eventKey: `res-cancelled-paydeadline-${order.id}`,
+        notificationId: `notif-res-cancelled-paydeadline-${order.id}`
+      }
+    );
+  }
+
+  try {
+    addNotification(
+      'admin',
+      'Auto-Cancellation: 48-Hour Deadline Expired',
+      `Reservation #${order.id} (${order.fullName || 'Customer'}) was automatically cancelled because the 48-hour down payment deadline expired without payment submission.\n\nAllocated stock (${allocatedQty} sacks) has been released to the reservation queue.`,
+      {
+        role: 'admin',
+        type: 'reservation',
+        targetType: 'reservation',
+        orderId: String(order.id),
+        reservationId: String(order.id),
+        targetId: String(order.id),
+        isSystemAuto: true,
+        eventKey: `admin-res-auto-cancel-paydeadline-${order.id}`,
+        notificationId: `notif-admin-res-auto-cancel-paydeadline-${order.id}`
+      }
+    );
+  } catch (e) {}
+
+  try {
+    registerPendingOrderWrite(order.id, order);
+    const rawOrd = localStorage.getItem('aurora-orders');
+    if (rawOrd) {
+      const parsedOrd = JSON.parse(rawOrd);
+      const matchIdx = parsedOrd.findIndex(o => String(o.id) === String(order.id));
+      if (matchIdx !== -1) {
+        parsedOrd[matchIdx] = { ...parsedOrd[matchIdx], ...order };
+        localStorage.setItem('aurora-orders', JSON.stringify(parsedOrd));
+      }
+    }
+    saveFirestoreDoc('orders', String(order.id), order);
+  } catch (e) {}
+
+  if (!skipReallocate) {
+    try {
+      if (typeof allocateStockToReservations === 'function') {
+        allocateStockToReservations();
+      }
+    } catch (e) {}
+  }
+
+  return true;
+}
+
 export function checkAndCancelExpiredPaymentRejections() {
   if (!isOrdersHydrated()) return;
   if (typeof window !== 'undefined' && window._checkingExpiredRejections) return;
@@ -3648,29 +4025,38 @@ export function checkAndCancelExpiredPaymentRejections() {
     const raw = localStorage.getItem('aurora-orders') || '[]';
     const list = (JSON.parse(raw) || []).filter(o => !isStaleOrderOrReservation(o));
     let modified = false;
+    let reservationExpired = false;
     const modifiedOrders = [];
 
     list.forEach(order => {
-      const changed = evaluateOrderPaymentRejectionDeadline(order);
-      if (changed) {
+      const changedRejection = evaluateOrderPaymentRejectionDeadline(order);
+      const changedResDeadline = evaluateReservationPaymentDeadline(order, true);
+      if (changedRejection || changedResDeadline) {
         modified = true;
+        if (changedResDeadline) reservationExpired = true;
         modifiedOrders.push(order);
       }
     });
 
     if (modified) {
       localStorage.setItem('aurora-orders', JSON.stringify(list));
-      if (typeof window !== 'undefined') {
-        window.dispatchEvent(new CustomEvent('aurora-sync-event', { detail: { key: 'aurora-orders' } }));
-        window.dispatchEvent(new CustomEvent('aurora-orders-updated', { detail: { orders: list } }));
-      }
       modifiedOrders.forEach(order => {
         try {
+          registerPendingOrderWrite(order.id, order);
           saveFirestoreDoc('orders', String(order.id), order);
         } catch (e) {
           console.warn('[AUTO-CANCEL] Firestore doc save error:', e);
         }
       });
+      if (reservationExpired && typeof allocateStockToReservations === 'function') {
+        try {
+          allocateStockToReservations();
+        } catch (e) {}
+      }
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('aurora-sync-event', { detail: { key: 'aurora-orders' } }));
+        window.dispatchEvent(new CustomEvent('aurora-orders-updated', { detail: { orders: list } }));
+      }
     }
   } catch (err) {
     console.error('Error checking expired rejected orders:', err);
@@ -4015,9 +4401,10 @@ export function getOrders() {
     };
   });
 
-  // Evaluate 48-hour auto completion & dual condition fulfillment & 48-hour rejection deadline cancellation ONLY after Firestore orders are hydrated
+  // Evaluate 48-hour auto completion & dual condition fulfillment & 48-hour rejection/allocation payment deadline cancellation ONLY after Firestore orders are hydrated
   let autoCompletedAny = false;
   let deadlineCancelledAny = false;
+  let reservationAllocationExpiredAny = false;
   const deadlineModifiedOrders = [];
 
   if (isOrdersHydrated()) {
@@ -4027,9 +4414,11 @@ export function getOrders() {
         const changed = evaluateOrderCompletion(order);
         if (changed) autoCompletedAny = true;
       }
-      const cancelled = evaluateOrderPaymentRejectionDeadline(order);
-      if (cancelled) {
+      const cancelledRejection = evaluateOrderPaymentRejectionDeadline(order);
+      const cancelledAllocationDeadline = evaluateReservationPaymentDeadline(order, true);
+      if (cancelledRejection || cancelledAllocationDeadline) {
         deadlineCancelledAny = true;
+        if (cancelledAllocationDeadline) reservationAllocationExpiredAny = true;
         deadlineModifiedOrders.push(order);
       }
     });
@@ -4037,21 +4426,31 @@ export function getOrders() {
     if (autoCompletedAny || deadlineCancelledAny) {
       try {
         localStorage.setItem('aurora-orders', JSON.stringify(mapped));
-        if (typeof window !== 'undefined') {
-          window.dispatchEvent(new CustomEvent('aurora-sync-event', { detail: { key: 'aurora-orders' } }));
-          window.dispatchEvent(new CustomEvent('aurora-orders-updated', { detail: { orders: mapped } }));
-        }
       } catch(e) {}
 
       if (deadlineModifiedOrders.length > 0) {
         deadlineModifiedOrders.forEach(ord => {
           try {
+            registerPendingOrderWrite(ord.id, ord);
             saveFirestoreDoc('orders', String(ord.id), ord);
           } catch (e) {
             console.warn('[AUTO-CANCEL] Error saving cancelled order to Firestore:', e);
           }
         });
       }
+
+      if (reservationAllocationExpiredAny && typeof allocateStockToReservations === 'function') {
+        try {
+          allocateStockToReservations();
+        } catch (e) {}
+      }
+
+      try {
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('aurora-sync-event', { detail: { key: 'aurora-orders' } }));
+          window.dispatchEvent(new CustomEvent('aurora-orders-updated', { detail: { orders: mapped } }));
+        }
+      } catch (e) {}
     }
   }
 
@@ -6279,13 +6678,18 @@ const totalPhysical = Math.max(
                                    order.paymentStatus === 'paid';
 
         // Check if customer uploaded payment proof awaiting verification
-        const hasPaymentProof = Boolean(order.paymentProofDataUrl || order.paymentProof || order.paymentStatus === 'pending_verification');
+        const hasPaymentProof = hasValidReservationPaymentProof(order);
 
         const now = new Date();
         let isExpired = false;
-        if (prevAllocated > 0 && order.paymentDeadline && !isPaymentSatisfied && !hasPaymentProof) {
-          const deadlineTime = new Date(order.paymentDeadline).getTime();
-          if (!isNaN(deadlineTime) && now.getTime() > deadlineTime) {
+        const resolvedDeadlineMs = getReservationPaymentDeadlineMs(order);
+        if (
+          resolvedDeadlineMs &&
+          !isPaymentSatisfied &&
+          !hasPaymentProof &&
+          !order.paymentRejected
+        ) {
+          if (now.getTime() > resolvedDeadlineMs) {
             isExpired = true;
           }
         }
@@ -6295,21 +6699,52 @@ const totalPhysical = Math.max(
 
         if (isExpired) {
           // 48-hour payment window passed without payment -> Reservation automatically expires!
+          const nowIso = now.toISOString();
+          const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+          const formattedDate = `${months[now.getMonth()]} ${now.getDate()}, ${now.getFullYear()}`;
+          const formattedTime = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+          const authoritativeDeadlineIso = new Date(resolvedDeadlineMs).toISOString();
+          const authoritativeAllocIso = new Date(resolvedDeadlineMs - (48 * 60 * 60 * 1000)).toISOString();
+
           newStatus = 'cancelled';
           allocated = 0;
+          order.paymentDeadline = authoritativeDeadlineIso;
+          order.notifiedForPayment = true;
+          if (!order.stockAllocatedAt || new Date(order.stockAllocatedAt).getTime() > (resolvedDeadlineMs - 48 * 60 * 60 * 1000)) {
+            order.stockAllocatedAt = authoritativeAllocIso;
+          }
           order.status = 'cancelled';
           order.allocatedQuantity = 0;
-          order.statusHistory = [
-            ...(order.statusHistory || []),
-            {
-              id: 'hist-exp-' + Date.now() + '-' + idx,
-              status: 'Cancelled (Expired)',
-              changedBy: 'System Auto-Allocator',
-              changedAt: now.toLocaleString(),
-              note: 'Reservation automatically expired because 48-hour payment window elapsed without payment verification or receipt upload.'
-            }
-          ];
+          order.cancelledAt = nowIso;
+          order.updatedAt = nowIso;
+          order.cancelledBy = 'System Auto-Cancellation';
+          order.cancellationDate = `${formattedDate}, ${formattedTime}`;
+          order.cancellationReason = 'Automatically cancelled: Down payment was not submitted within the 48-hour payment deadline.';
+          order.autoCancelledDueToPaymentDeadline = true;
+          order.paymentVerified = false;
+          order.refundStatus = 'No Refund Needed';
+          order.refundAmount = 0;
+          order.refundReason = 'Cancelled: 48-hour down payment deadline expired (no payment received)';
+
+          if (!Array.isArray(order.statusHistory)) order.statusHistory = [];
+          const alreadyHasExpiredHist = order.statusHistory.some(
+            h => h && String(h.status || '').toLowerCase() === 'cancelled (expired)'
+          );
+          if (!alreadyHasExpiredHist) {
+            order.statusHistory = [
+              ...order.statusHistory,
+              {
+                id: 'hist-exp-' + Date.now() + '-' + idx,
+                status: 'Cancelled (Expired)',
+                changedBy: 'System Auto-Cancellation',
+                changedAt: `${formattedDate}, ${formattedTime}`,
+                note: 'Reservation automatically expired because the 48-hour payment window elapsed without payment verification or receipt upload. Allocated stock has been released.'
+              }
+            ];
+          }
           changed = true;
+          modifiedOrderIds.add(order.id);
+          registerPendingOrderWrite(order.id, order);
 
           // Release previously allocated stock back to available pool
           if (prevAllocated > 0) {
@@ -6317,12 +6752,58 @@ const totalPhysical = Math.max(
             remainingNewAllocationQuota += prevAllocated;
           }
 
-          addNotification(
-            order.userId || order.customerId || '',
-            '❌ Reservation Cancelled',
-            'Your reservation was automatically cancelled because the 48-hour payment window elapsed without a payment upload. Allocated stock has been released to the next customer in line.',
-            { role: 'customer', type: 'reservation', reservationId: order.id }
-          );
+          try {
+            const existingLogs = getActivityLogs();
+            const alreadyLogged = existingLogs.some(
+              l => l && String(l.target || '') === `Reservation #${order.id}` && String(l.action || '').includes('automatically cancelled')
+            );
+            if (!alreadyLogged) {
+              addActivityLog(
+                'Reservations',
+                `System automatically cancelled Reservation #${order.id} because the 48-hour down payment deadline expired without payment submission. Allocated stock (${prevAllocated} sacks) released.`,
+                `Reservation #${order.id}`
+              );
+            }
+          } catch (e) {}
+
+          const custId = order.userId || order.customerId || '';
+          if (custId) {
+            addNotification(
+              custId,
+              '❌ Reservation Cancelled',
+              'Your reservation was automatically cancelled because the 48-hour payment window elapsed without a payment upload. Allocated stock has been released to the next customer in line.',
+              {
+                role: 'customer',
+                type: 'reservation',
+                targetType: 'reservation',
+                reservationId: String(order.id),
+                orderId: String(order.id),
+                targetId: String(order.id),
+                tab: 'cancelled',
+                eventKey: `res-cancelled-paydeadline-${order.id}`,
+                notificationId: `notif-res-cancelled-paydeadline-${order.id}`
+              }
+            );
+          }
+
+          try {
+            addNotification(
+              'admin',
+              'Auto-Cancellation: 48-Hour Deadline Expired',
+              `Reservation #${order.id} (${order.fullName || 'Customer'}) was automatically cancelled because the 48-hour down payment deadline expired without payment submission.\n\nAllocated stock (${prevAllocated} sacks) has been released to the reservation queue.`,
+              {
+                role: 'admin',
+                type: 'reservation',
+                targetType: 'reservation',
+                orderId: String(order.id),
+                reservationId: String(order.id),
+                targetId: String(order.id),
+                isSystemAuto: true,
+                eventKey: `admin-res-auto-cancel-paydeadline-${order.id}`,
+                notificationId: `notif-admin-res-auto-cancel-paydeadline-${order.id}`
+              }
+            );
+          } catch (e) {}
         } else {
           // Calculate how much MORE can be allocated to this reservation from available unallocated stock
           const remainingWaitingQty = Math.max(0, totalQtyNeeded - prevAllocated);
@@ -6358,10 +6839,11 @@ if (isApproved && isPaymentSatisfied && isFullyAllocated) {
   newStatus = 'payment_verification';
 } else if (isApproved && isFullyAllocated) {
 
-            if (!order.notifiedForPayment) {
+            if (!order.notifiedForPayment && !resolvedDeadlineMs) {
               order.notifiedForPayment = true;
               const deadlineDate = new Date(Date.now() + 48 * 60 * 60 * 1000);
               order.paymentDeadline = deadlineDate.toISOString();
+              order.updatedAt = new Date().toISOString();
 
               addNotification(
                 order.userId || order.customerId || '',
@@ -6381,6 +6863,18 @@ if (isApproved && isPaymentSatisfied && isFullyAllocated) {
                 }
               ];
               changed = true;
+              modifiedOrderIds.add(order.id);
+              registerPendingOrderWrite(order.id, order);
+            } else if (resolvedDeadlineMs) {
+              const authoritativeDeadlineIso = new Date(resolvedDeadlineMs).toISOString();
+              if (!order.notifiedForPayment || order.paymentDeadline !== authoritativeDeadlineIso) {
+                order.notifiedForPayment = true;
+                order.paymentDeadline = authoritativeDeadlineIso;
+                order.updatedAt = new Date().toISOString();
+                changed = true;
+                modifiedOrderIds.add(order.id);
+                registerPendingOrderWrite(order.id, order);
+              }
             }
           } else {
             // Still waiting for stock (unallocated or partially allocated)
@@ -6392,21 +6886,26 @@ if (isApproved && isPaymentSatisfied && isFullyAllocated) {
           }
         }
 
-    if (allocated !== prevAllocated || newStatus !== prevStatus) {
-  order.allocatedQuantity = allocated;
-  order.status = newStatus;
-  order.updatedAt = new Date().toISOString();
+        if (!isExpired && (allocated !== prevAllocated || newStatus !== prevStatus)) {
+          order.allocatedQuantity = allocated;
+          order.status = newStatus;
+          order.updatedAt = new Date().toISOString();
 
-  if (allocated > prevAllocated) {
-    const allocationTimestamp = new Date().toISOString();
+          if (allocated > prevAllocated) {
+            const allocationTimestamp = resolvedDeadlineMs
+              ? new Date(resolvedDeadlineMs - (48 * 60 * 60 * 1000)).toISOString()
+              : new Date().toISOString();
 
-    order.actualRestockDate = allocationTimestamp;
-    order.restockAllocatedAt = allocationTimestamp;
-    order.stockAllocatedAt = allocationTimestamp;
-  }
+            order.actualRestockDate = allocationTimestamp;
+            order.restockAllocatedAt = allocationTimestamp;
+            if (allocated >= totalQtyNeeded) {
+              order.stockAllocatedAt = allocationTimestamp;
+            }
+          }
 
-  changed = true;
-  modifiedOrderIds.add(order.id);
+          changed = true;
+          modifiedOrderIds.add(order.id);
+          registerPendingOrderWrite(order.id, order);
           
           // Log status change
           const changer = 'System Auto-Allocator';
@@ -6947,8 +7446,8 @@ export function openCustomerLogoutModal() {
         <h3 class="text-base font-black text-gray-900 dark:text-gray-100 mb-2">Do you want to log out?</h3>
         <p class="text-xs text-gray-600 dark:text-gray-300 font-semibold leading-relaxed mb-6">You will need to sign in again to access your account and orders.</p>
         <div class="flex gap-2.5 justify-center">
-          <button id="cancel-customer-logout-btn" type="button" class="px-5 py-2.5 border border-gray-200 dark:border-slate-700 rounded-xl text-xs font-bold text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-slate-800 cursor-pointer transition-all bg-white dark:bg-slate-800 flex-1">Cancel</button>
-          <button id="confirm-customer-logout-btn" type="button" class="px-5 py-2.5 bg-[#EF4444] hover:bg-rose-700 text-white rounded-xl text-xs font-bold cursor-pointer transition-all flex-1">Confirm Logout</button>
+          <button id="cancel-customer-logout-btn" type="button" class="px-5 py-2.5 border border-gray-200 dark:border-slate-700 rounded-xl text-xs font-bold text-gray-700 dark:text-gray-200 hover:bg-gray-100 hover:border-gray-300 dark:hover:bg-slate-700 dark:hover:border-slate-500 cursor-pointer transition-all duration-200 bg-white dark:bg-slate-800 flex-1">Cancel</button>
+          <button id="confirm-customer-logout-btn" type="button" class="px-5 py-2.5 bg-[#EF4444] hover:bg-[#DC2626] border border-transparent hover:border-red-700 dark:hover:border-red-400 text-white rounded-xl text-xs font-bold cursor-pointer transition-all duration-200 flex-1">Confirm Logout</button>
         </div>
       </div>
     `;
@@ -6973,18 +7472,21 @@ export function openCustomerLogoutModal() {
   };
 
   if (confirmBtn) {
-    confirmBtn.onclick = (e) => {
+    confirmBtn.onclick = async (e) => {
       e.preventDefault();
       e.stopPropagation();
       if (window.__customerLogoutInProgress) return;
       window.__customerLogoutInProgress = true;
       dialog.classList.add('hidden');
       const p = getPathPrefix();
-      logoutUser();
+      const signOutPromise = logoutUser();
       showToast('Logged out successfully');
-      setTimeout(() => {
-        window.location.href = p + 'index.html';
-      }, 1000);
+      await Promise.all([
+        Promise.resolve(signOutPromise).catch(() => {}),
+        new Promise(resolve => setTimeout(resolve, 600))
+      ]);
+      window.__customerLogoutInProgress = false;
+      window.location.href = p + 'index.html';
     };
   }
 
@@ -7709,12 +8211,14 @@ export function saveNotifications(notifs, targetDocInfo = null) {
 }
 
 export function addNotification(userId, title, message, extra = {}) {
-  // Admins and Staff should NOT receive notifications for actions they themselves perform.
+  // Admins and Staff should NOT receive notifications for actions they themselves perform,
+  // except for automatic system deadline cancellations and stock alerts.
   const activeAdmin = getCurrentAdmin();
   const role = extra.role || (userId === 'admin' ? 'admin' : 'customer');
   const type = extra.type || 'info';
+  const isSystemAuto = Boolean(extra.isSystemAuto || String(title || '').includes('Auto-Cancellation'));
 
-  if (activeAdmin && (userId === 'admin' || role === 'admin' || role === 'staff') && type !== 'stock') {
+  if (activeAdmin && (userId === 'admin' || role === 'admin' || role === 'staff') && type !== 'stock' && !isSystemAuto) {
     console.log('[NOTIFICATION SUPPRESSED] Suppressed admin/staff notification for admin-initiated action:', title);
     return;
   }
@@ -7910,6 +8414,21 @@ if (typeof window !== 'undefined') {
     if (!e.detail || !e.detail.key || e.detail.key.startsWith('settings-gcash') || e.detail.key === 'aurora-store-settings') {
       applyGcashSettings();
     }
+    if (e.detail && (e.detail.key === 'aurora-user' || e.detail.key === 'aurora-logged-in')) {
+      if (typeof document !== 'undefined' && document.getElementById('navbar-container')) {
+        try { renderLayout(); } catch (_) {}
+      }
+    }
+    if (
+      e.detail &&
+      (e.detail.key === 'aurora-orders' ||
+        e.detail.key === 'aurora-notifications' ||
+        e.detail.key === 'aurora-activity-logs')
+    ) {
+      try {
+        checkAndCancelExpiredPaymentRejections();
+      } catch (_) {}
+    }
   });
 }
 
@@ -8089,12 +8608,32 @@ export function initReviewReminderPopup() {
   });
 }
 
-export function renderLayout() {
-  const isDark = typeof localStorage !== 'undefined' ? (localStorage.getItem('aurora-dark-mode') === 'true') : false;
-  if (typeof document !== 'undefined') {
-    document.documentElement.classList.toggle('dark', isDark);
+function applyThemeState(isDark, animateTransition = false) {
+  if (typeof document === 'undefined') return;
+  const root = document.documentElement;
+  if (animateTransition && root && root.classList) {
+    root.classList.add('theme-transitioning');
+    if (typeof window !== 'undefined') {
+      if (window.__riceflowThemeTransitionTimer) {
+        clearTimeout(window.__riceflowThemeTransitionTimer);
+      }
+      window.__riceflowThemeTransitionTimer = setTimeout(() => {
+        root.classList.remove('theme-transitioning');
+      }, 260);
+    }
+  }
+  if (root && root.classList) {
+    root.classList.toggle('dark', isDark);
+    root.style.colorScheme = isDark ? 'dark' : 'light';
+  }
+  if (document.body && document.body.classList) {
     document.body.classList.toggle('dark', isDark);
   }
+}
+
+export function renderLayout() {
+  const isDark = typeof localStorage !== 'undefined' ? (localStorage.getItem('aurora-dark-mode') === 'true') : false;
+  applyThemeState(isDark, false);
   const settings = getStoreSettings();
   const headerContainer = document.getElementById('navbar-container');
   const footerContainer = document.getElementById('footer-container');
@@ -8472,8 +9011,7 @@ export function renderLayout() {
       const currentDark = localStorage.getItem('aurora-dark-mode') === 'true';
       const newDark = !currentDark;
       localStorage.setItem('aurora-dark-mode', newDark ? 'true' : 'false');
-      document.documentElement.classList.toggle('dark', newDark);
-      document.body.classList.toggle('dark', newDark);
+      applyThemeState(newDark, true);
       updateCustomerDarkModeUI(newDark);
     };
 
@@ -8881,8 +9419,7 @@ export function renderAdminLayout(activeTabId) {
 
   // Set initial state
   const isDark = localStorage.getItem('aurora-dark-mode') === 'true';
-  document.documentElement.classList.toggle('dark', isDark);
-  document.body.classList.toggle('dark', isDark);
+  applyThemeState(isDark, false);
   updateDarkModeUI(isDark);
 
   const darkModeToggle = document.getElementById('admin-dark-mode-toggle');
@@ -8891,8 +9428,7 @@ export function renderAdminLayout(activeTabId) {
       const currentDark = localStorage.getItem('aurora-dark-mode') === 'true';
       const newDark = !currentDark;
       localStorage.setItem('aurora-dark-mode', newDark ? 'true' : 'false');
-      document.documentElement.classList.toggle('dark', newDark);
-      document.body.classList.toggle('dark', newDark);
+      applyThemeState(newDark, true);
       updateDarkModeUI(newDark);
     });
   }
@@ -9253,17 +9789,23 @@ export function setupAdminNotifications() {
 // Automatically apply dark mode at load time on all pages to prevent theme flashing
 if (typeof window !== 'undefined' && typeof document !== 'undefined') {
   const isDarkInit = localStorage.getItem('aurora-dark-mode') === 'true';
-  if (document.documentElement && document.documentElement.classList) {
-    document.documentElement.classList.toggle('dark', isDarkInit);
-  }
-  if (document.body && document.body.classList) {
-    document.body.classList.toggle('dark', isDarkInit);
-  }
+  applyThemeState(isDarkInit, false);
+
+  window.addEventListener('pageshow', () => {
+    const isDarkNow = localStorage.getItem('aurora-dark-mode') === 'true';
+    applyThemeState(isDarkNow, false);
+  });
 }
 
-// Automatically invoke layout render on document loader
+// Automatically invoke layout render as early as possible
 if (typeof document !== 'undefined') {
-  document.addEventListener('DOMContentLoaded', () => {
+  if (document.getElementById('navbar-container') && document.getElementById('footer-container')) {
     renderLayout();
-  });
+  } else if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+      renderLayout();
+    }, { once: true });
+  } else {
+    renderLayout();
+  }
 }

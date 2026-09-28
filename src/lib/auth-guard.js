@@ -484,6 +484,9 @@ export async function protectCustomerPage() {
 
     // Authoritative remote verification proceeds in background
     checkCustomerAuth().then(result => {
+      if (typeof window !== 'undefined' && window.__customerLogoutInProgress) {
+        return;
+      }
       if (!result.ok) {
         if (result.reason === 'archived' && auth && typeof signOut === 'function') {
           signOut(auth).catch(() => {});
@@ -500,7 +503,11 @@ export async function protectCustomerPage() {
         }
         window.location.replace(p + 'login.html');
       } else {
+        if (localStorage.getItem('aurora-logged-in') !== 'true') {
+          return;
+        }
         const activeUser = {
+          ...localUser,
           ...result.user,
           firebaseUid: auth?.currentUser?.uid || localUser.firebaseUid,
           email: (result.user.email || auth?.currentUser?.email || localUser.email || '').toLowerCase().trim()
@@ -571,17 +578,39 @@ export async function protectCustomerPage() {
  * Removes the initial anti-flash hiding style and loader overlay to reveal protected content.
  */
 export function revealProtectedPage() {
-  try {
-    const styleEl = document.getElementById('auth-guard-style');
-    if (styleEl) styleEl.remove();
+  const doReveal = () => {
+    try {
+      const isDark = typeof localStorage !== 'undefined' && localStorage.getItem('aurora-dark-mode') === 'true';
+      if (document.documentElement) {
+        document.documentElement.classList.toggle('dark', isDark);
+        document.documentElement.style.colorScheme = isDark ? 'dark' : 'light';
+      }
+      if (document.body) {
+        document.body.classList.toggle('dark', isDark);
+      }
 
+      const loaderEl = document.getElementById('auth-guard-loader');
+      if (loaderEl) loaderEl.remove();
+
+      const styleEl = document.getElementById('auth-guard-style');
+      if (styleEl) styleEl.remove();
+
+      if (document.body) {
+        document.body.style.visibility = 'visible';
+      }
+    } catch (_) {}
+  };
+
+  try {
     const loaderEl = document.getElementById('auth-guard-loader');
     if (loaderEl) loaderEl.remove();
-
-    if (document.body) {
-      document.body.style.visibility = 'visible';
-    }
   } catch (_) {}
+
+  if (typeof queueMicrotask === 'function') {
+    queueMicrotask(() => queueMicrotask(doReveal));
+  } else {
+    Promise.resolve().then(() => Promise.resolve().then(doReveal));
+  }
 }
 
 /**

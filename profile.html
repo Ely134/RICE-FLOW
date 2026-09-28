@@ -4,6 +4,43 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Customer Profile | RiceFlow</title>
+  <script>
+    (function() {
+      try {
+        var d = document.documentElement;
+        var isDark = localStorage.getItem('aurora-dark-mode') === 'true';
+        d.classList.toggle('dark', isDark);
+        d.style.colorScheme = isDark ? 'dark' : 'light';
+      } catch (e) {}
+    })();
+  </script>
+  <style id="riceflow-theme-init">
+    html { background-color: #F5F5F5; color-scheme: light; }
+    #navbar-container { min-height: 5rem; background-color: #FFFFFF; border-bottom: 1px solid #F3F4F6; }
+    html.dark { background-color: #0F172A !important; color-scheme: dark; }
+    html.dark body,
+    html.dark main,
+    html.dark section,
+    html.dark #navbar-container,
+    html.dark #footer-container {
+      background-color: #0F172A;
+      background-image: none;
+      color: #FFFFFF;
+    }
+    html.dark #auth-guard-loader {
+      background-color: #0F172A !important;
+      color: #FFFFFF !important;
+    }
+    html.dark #navbar-container {
+      border-bottom-color: rgba(255, 255, 255, 0.15);
+    }
+    html.dark .bg-white,
+    html.dark .bg-gray-50,
+    html.dark .bg-slate-50 {
+      background-color: #111827;
+      color: #FFFFFF;
+    }
+  </style>
   <link rel="stylesheet" href="src/styles/index.css">
   <style>
     /* Custom scrollbar styling for the statistics summary section */
@@ -406,8 +443,8 @@
       <h3 class="text-base font-black text-gray-900 dark:text-gray-100 mb-2">Do you want to log out?</h3>
       <p class="text-xs text-gray-600 dark:text-gray-300 font-semibold leading-relaxed mb-6">You will need to sign in again to access your account and orders.</p>
       <div class="flex gap-2.5 justify-center">
-        <button id="cancel-customer-logout-btn" type="button" class="px-5 py-2.5 border border-gray-200 dark:border-slate-700 rounded-xl text-xs font-bold text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-slate-800 cursor-pointer transition-all bg-white dark:bg-slate-800 flex-1">Cancel</button>
-        <button id="confirm-customer-logout-btn" type="button" class="px-5 py-2.5 bg-[#EF4444] hover:bg-rose-700 text-white rounded-xl text-xs font-bold cursor-pointer transition-all flex-1">Confirm Logout</button>
+        <button id="cancel-customer-logout-btn" type="button" class="px-5 py-2.5 border border-gray-200 dark:border-slate-700 rounded-xl text-xs font-bold text-gray-700 dark:text-gray-200 hover:bg-gray-100 hover:border-gray-300 dark:hover:bg-slate-700 dark:hover:border-slate-500 cursor-pointer transition-all duration-200 bg-white dark:bg-slate-800 flex-1">Cancel</button>
+        <button id="confirm-customer-logout-btn" type="button" class="px-5 py-2.5 bg-[#EF4444] hover:bg-[#DC2626] border border-transparent hover:border-red-700 dark:hover:border-red-400 text-white rounded-xl text-xs font-bold cursor-pointer transition-all duration-200 flex-1">Confirm Logout</button>
       </div>
     </div>
   </div>
@@ -981,6 +1018,9 @@
 
           // Authoritative synchronization with Firestore customer profile
           const freshProfile = await fetchCustomerProfileFromFirestore(user.email, user.firebaseUid || user.uid);
+          if (window.__customerLogoutInProgress || localStorage.getItem('aurora-logged-in') !== 'true' || !localStorage.getItem('aurora-user')) {
+            return;
+          }
           if (freshProfile) {
             const remoteTime = freshProfile.updatedAt ? new Date(freshProfile.updatedAt).getTime() : 0;
             const localTime = user.updatedAt ? new Date(user.updatedAt).getTime() : 0;
@@ -1188,11 +1228,12 @@
 
       // 2. Render Header Account details
       function renderHeaderCard() {
+        if (!user || !metaCard) return;
         metaCard.innerHTML = `
           <div class="flex flex-col sm:flex-row items-center gap-6">
             <div class="relative shrink-0 select-none">
               <div id="btn-edit-avatar-trigger" class="w-24 h-24 rounded-full overflow-hidden border border-gray-150 bg-[#1E6C02] text-white flex items-center justify-center cursor-pointer hover:opacity-95 transition-opacity text-3xl font-black select-none">
-                ${user.profilePicture ? `
+                ${user?.profilePicture ? `
                   <img src="${user.profilePicture}" class="w-full h-full object-cover" alt="Profile" />
                 ` : (() => {
                   const rawName = (user.fullName || user.name || 'User').trim();
@@ -4989,6 +5030,7 @@
       // 4. Update Profile Details modal Dialog
       function openEditModal() {
         user = getCurrentUser() || user;
+        if (!user) return;
         const inpFullName = document.getElementById('modal-inp-fullName');
         const inpGender = document.getElementById('modal-inp-gender');
         const inpPhone = document.getElementById('modal-inp-phone');
@@ -5274,7 +5316,7 @@
           pictureExplicitlyRemoved = false;
 
           // Reload fresh active user
-          user = getCurrentUser();
+          user = getCurrentUser() || user;
           showToast('Profile credentials saved successfully!');
           editDialog.classList.add('hidden');
           renderHeaderCard();
@@ -6303,7 +6345,9 @@
       // Real-time listener for profile synchronization across sessions/devices
       window.addEventListener('aurora-sync-event', (e) => {
         if (e.detail && (e.detail.key === 'aurora-user' || e.detail.key === 'aurora-customers')) {
-          user = getCurrentUser();
+          const currentUser = getCurrentUser();
+          if (!currentUser) return;
+          user = currentUser;
           renderHeaderCard();
           renderMyOrdersList();
         }

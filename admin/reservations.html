@@ -4,6 +4,39 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Reservation Queue | RiceFlow</title>
+  <script>
+    (function() {
+      try {
+        var d = document.documentElement;
+        var isDark = localStorage.getItem('aurora-dark-mode') === 'true';
+        d.classList.toggle('dark', isDark);
+        d.style.colorScheme = isDark ? 'dark' : 'light';
+      } catch (e) {}
+    })();
+  </script>
+  <style id="riceflow-theme-init">
+    html { background-color: #F5F5F5; color-scheme: light; }
+    html.dark { background-color: #1F2937 !important; color-scheme: dark; }
+    html.dark body,
+    html.dark #admin-layout-container,
+    html.dark #admin-main-content {
+      background-color: #1F2937;
+      color: #F9FAFB;
+    }
+    html.dark #auth-guard-loader {
+      background-color: #1F2937 !important;
+      color: #F9FAFB !important;
+    }
+    html.dark #admin-sidebar,
+    html.dark aside,
+    html.dark header,
+    html.dark .bg-white,
+    html.dark .bg-gray-50,
+    html.dark .bg-slate-50 {
+      background-color: #111827;
+      color: #F9FAFB;
+    }
+  </style>
   <link rel="stylesheet" href="../src/styles/index.css">
   <style>
     .top-scrollbar-container {
@@ -1014,7 +1047,8 @@
             order.status === 'Cancelled' || 
             order.status === 'rejected' ||
             order.paymentStatus === 'rejected_expired' ||
-            order.autoCancelledDueToRejectionDeadline === true
+            order.autoCancelledDueToRejectionDeadline === true ||
+            order.autoCancelledDueToPaymentDeadline === true
           );
           const isReady = !isCancelled && (order.status === 'ready_for_processing' || order.status === 'ready');
           const isReuploadWaiting = !isCancelled && isReservationWaitingForReupload(order);
@@ -1041,7 +1075,7 @@
         // 5. Cancelled Reservations (always at the bottom)
         function getReservationGroup(order) {
           const st = String(order.status || '').toLowerCase().replace(/_/g, '-');
-          if (st === 'cancelled' || st === 'rejected' || order.paymentStatus === 'rejected_expired' || order.autoCancelledDueToRejectionDeadline === true) return 5;
+          if (st === 'cancelled' || st === 'rejected' || order.paymentStatus === 'rejected_expired' || order.autoCancelledDueToRejectionDeadline === true || order.autoCancelledDueToPaymentDeadline === true) return 5;
           if (st === 'completed' || st === 'delivered') return 4;
           if (st === 'ready_for_processing' || st === 'ready') return 3;
           if (isReservationWaitingForReupload(order)) return 1;
@@ -1099,7 +1133,8 @@
             order.status === 'Cancelled' || 
             order.status === 'rejected' ||
             order.paymentStatus === 'rejected_expired' ||
-            order.autoCancelledDueToRejectionDeadline === true
+            order.autoCancelledDueToRejectionDeadline === true ||
+            order.autoCancelledDueToPaymentDeadline === true
           );
           const isReady = !isCancelled && (order.status === 'ready_for_processing' || order.status === 'ready');
           const isReuploadWaiting = !isCancelled && isReservationWaitingForReupload(order);
@@ -1829,7 +1864,7 @@
 
               ${(!isCancelledModal && (!isWaitingModal || order.paymentVerified)) ? `
               <div class="bg-white border border-gray-200 p-6 rounded-2xl shadow-inner text-[15px] font-normal text-black space-y-4">
-                <h4 class="text-[18px] font-bold text-black uppercase tracking-wider border-b pb-2 flex items-center gap-1.5">í ½í³Š Reservation Payment</h4>
+                <h4 class="text-[18px] font-bold text-black uppercase tracking-wider border-b pb-2 flex items-center gap-1.5">ðŸ“Š Reservation Payment</h4>
                 <div class="flex justify-between items-center border-b pb-3">
                   <span class="text-black font-bold">Total Bill:</span>
                   <span class="font-normal text-black text-[15px]">â‚±${totalVal.toLocaleString()}.00</span>
