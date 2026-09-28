@@ -5,6 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Rice Catalog | RiceFlow</title>
   <link rel="stylesheet" href="src/styles/index.css">
+  <style>
+    .dark #products-count {
+      color: #FFFFFF !important;
+    }
+  </style>
 </head>
 <body class="bg-[#F5F5F5] min-h-screen">
 
@@ -51,7 +56,7 @@
         </div>
       </div>
 
-      <div class="text-sm font-normal text-black" id="products-count">
+      <div class="text-sm font-normal text-black dark:text-white" id="products-count">
         0 products found
       </div>
     </div>
@@ -168,8 +173,8 @@ try {
     : [];
 }
 
-        // Exclude archived products from customer catalog
-        products = products.filter(p => !p.isArchived && !p.archived);
+        // Exclude invalid or archived products from customer catalog
+        products = products.filter(p => p && p.name && !p.isArchived && !p.archived);
         const type = filterSelect ? filterSelect.value : 'all';
         const sort = sortSelect ? sortSelect.value : 'featured';
 
@@ -179,9 +184,9 @@ try {
 
         if (query) {
           products = products.filter(p => 
-            (p.name || '').toLowerCase().includes(query) || 
-            (p.type || '').toLowerCase().includes(query) ||
-            (p.description && (p.description || '').toLowerCase().includes(query))
+            (p?.name || '').toLowerCase().includes(query) || 
+            (p?.type || '').toLowerCase().includes(query) ||
+            (p?.description && (p.description || '').toLowerCase().includes(query))
           );
         }
 
@@ -190,14 +195,14 @@ try {
           products = products.filter(p => p.type === type);
         }
 
-        // Sort items
+        // Sort items safely
         products.sort((a, b) => {
           if (sort === 'name') {
-            return a.name.localeCompare(b.name);
+            return String(a?.name || '').localeCompare(String(b?.name || ''));
           } else if (sort === 'price-low') {
-            return a.price - b.price;
+            return (Number(a?.price) || 0) - (Number(b?.price) || 0);
           } else {
-            return b.price - a.price;
+            return (Number(b?.price) || 0) - (Number(a?.price) || 0);
           }
         });
 

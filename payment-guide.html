@@ -24,7 +24,7 @@
         <span class="text-xs font-bold text-gray-400">/</span>
         <span class="text-xs font-bold text-gray-500 uppercase tracking-wider">Payment Guide</span>
       </div>
-      <a href="products.html" class="text-xs font-bold text-[#1E6C02] hover:underline">
+      <a id="btn-browse-catalog" href="products.html" class="text-xs font-bold text-[#1E6C02] hover:underline">
         Browse Grains Catalog →
       </a>
     </div>
@@ -223,7 +223,7 @@
 
     <!-- Back to Checkout Action Callout -->
     <div class="text-center py-6">
-      <a href="checkout.html" class="inline-flex items-center gap-2 px-8 h-14 bg-[#1E6C02] hover:bg-[#145001] text-white font-extrabold rounded-2xl transition-all shadow-md text-base cursor-pointer">
+      <a id="btn-proceed-checkout" href="checkout.html" class="inline-flex items-center gap-2 px-8 h-14 bg-[#1E6C02] hover:bg-[#145001] text-white font-extrabold rounded-2xl transition-all shadow-md text-base cursor-pointer">
         <span>Proceed to Checkout</span>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-5 h-5"><polyline points="9 18 15 12 9 6"></polyline></svg>
       </a>
@@ -238,18 +238,225 @@
   <script type="module" src="src/app/shared.js"></script>
 
   <script type="module">
+    import {
+      getCart,
+      getProductById,
+      getCurrentUser,
+      showToast
+    } from './src/app/shared.js';
+
     document.addEventListener('DOMContentLoaded', () => {
       const urlParams = new URLSearchParams(window.location.search);
       const from = urlParams.get('from');
       const backNav = document.getElementById('btn-back-nav');
-      if (backNav) {
-        if (from === 'reservation') {
-          backNav.href = 'reservation.html';
-        } else if (from === 'cart') {
-          backNav.href = 'cart.html';
-        } else {
-          backNav.href = 'checkout.html';
+      const browseCatalogBtn = document.getElementById('btn-browse-catalog');
+      const proceedCheckoutBtn = document.getElementById('btn-proceed-checkout');
+
+      function getSavedCheckoutContext() {
+        try {
+          const raw = sessionStorage.getItem('riceflow-checkout-context');
+          if (!raw) return null;
+          return JSON.parse(raw);
+        } catch (_) {
+          return null;
         }
+      }
+
+      function getSameOriginReferrerInfo() {
+        try {
+          if (!document.referrer) return null;
+          const refUrl = new URL(document.referrer);
+          if (refUrl.origin !== window.location.origin) return null;
+          const path = refUrl.pathname || '';
+          const fileName = path.split('/').pop() || 'index.html';
+          return {
+            fileName,
+            search: refUrl.search || '',
+            relativeUrl: fileName + (refUrl.search || '')
+          };
+        } catch (_) {
+          return null;
+        }
+      }
+
+      function buildQueryFromParams(sourceParams) {
+        const clean = new URLSearchParams();
+        ['productId', 'quantity', 'selection', 'only', 'id'].forEach(key => {
+          const val = sourceParams.get(key);
+          if (val !== null && val !== '') {
+            clean.set(key, val);
+          }
+        });
+        const qs = clean.toString();
+        return qs ? `?${qs}` : '';
+      }
+
+      function hasValidCheckoutItemsForQuery(searchStr, isReservationPage = false) {
+        const params = new URLSearchParams(searchStr || '');
+        if (isReservationPage) {
+          const pid = params.get('productId') || '8';
+          return Boolean(getProductById(pid));
+        }
+
+        const directProductId = params.get('productId');
+        if (directProductId) {
+          return Boolean(getProductById(directProductId));
+        }
+
+        const cart = getCart();
+        if (!Array.isArray(cart) || cart.length === 0) {
+          return false;
+        }
+
+        const queryOnly = params.get('only');
+        if (queryOnly) {
+          return cart.some(item => String(item.product?.id) === String(queryOnly));
+        }
+
+        const querySelection = params.get('selection');
+        if (querySelection) {
+          const ids = querySelection.split(',').map(s => s.trim()).filter(Boolean);
+          return cart.some(item => ids.includes(String(item.product?.id)));
+        }
+
+        return cart.length > 0;
+      }
+
+      function resolveNavigationState() {
+        const refInfo = getSameOriginReferrerInfo();
+        const savedCtx = getSavedCheckoutContext();
+        const urlContextQuery = buildQueryFromParams(urlParams);
+
+        // 1. Check if opened from Reservation Checkout
+        const isFromReservation =
+          from === 'reservation' ||
+          (refInfo && refInfo.fileName === 'reservation.html') ||
+          (!from && savedCtx && savedCtx.page === 'reservation.html');
+
+        if (isFromReservation) {
+          let resSearch = urlContextQuery;
+          if (!resSearch && refInfo && refInfo.fileName === 'reservation.html' && refInfo.search) {
+            resSearch = buildQueryFromParams(new URLSearchParams(refInfo.search));
+          }
+          if (!resSearch && savedCtx && savedCtx.page === 'reservation.html' && savedCtx.search) {
+            resSearch = savedCtx.search;
+          }
+          if (hasValidCheckoutItemsForQuery(resSearch, true)) {
+            const targetUrl = `reservation.html${resSearch}`;
+            return {
+              hasValidCheckout: true,
+              checkoutUrl: targetUrl,
+              backUrl: targetUrl
+            };
+          }
+        }
+
+        // 2. Check if opened from Checkout (or has checkout context)
+        const isFromCheckout =
+          from === 'checkout' ||
+          Boolean(urlContextQuery) ||
+          (refInfo && refInfo.fileName === 'checkout.html') ||
+          (!from && savedCtx && savedCtx.page === 'checkout.html');
+
+        let candidateSearch = urlContextQuery;
+        if (!candidateSearch && refInfo && refInfo.fileName === 'checkout.html' && refInfo.search) {
+          candidateSearch = buildQueryFromParams(new URLSearchParams(refInfo.search));
+        }
+        if (!candidateSearch && isFromCheckout && savedCtx && savedCtx.page === 'checkout.html' && savedCtx.search) {
+          candidateSearch = savedCtx.search;
+        }
+
+        if (candidateSearch && hasValidCheckoutItemsForQuery(candidateSearch, false)) {
+          const targetUrl = `checkout.html${candidateSearch}`;
+          return {
+            hasValidCheckout: true,
+            checkoutUrl: targetUrl,
+            backUrl: (from === 'cart') ? 'cart.html' : targetUrl
+          };
+        }
+
+        // 3. Check if cart itself has items for a standard cart checkout
+        if (hasValidCheckoutItemsForQuery('', false)) {
+          let backTarget = 'checkout.html';
+          if (from === 'cart') {
+            backTarget = 'cart.html';
+          } else if (!isFromCheckout && refInfo && refInfo.fileName && !['payment-guide.html', 'login.html', 'register.html', 'checkout.html'].includes(refInfo.fileName)) {
+            backTarget = refInfo.relativeUrl;
+          }
+          return {
+            hasValidCheckout: true,
+            checkoutUrl: 'checkout.html',
+            backUrl: backTarget
+          };
+        }
+
+        // 4. No valid checkout context exists -> determine safe Back fallback without triggering empty checkout error
+        let safeFallback = 'products.html';
+        if (from === 'cart') {
+          safeFallback = 'cart.html';
+        } else if (refInfo && refInfo.fileName && !['payment-guide.html', 'checkout.html', 'reservation.html', 'login.html', 'register.html'].includes(refInfo.fileName)) {
+          safeFallback = refInfo.relativeUrl;
+        }
+
+        return {
+          hasValidCheckout: false,
+          checkoutUrl: null,
+          backUrl: safeFallback
+        };
+      }
+
+      const initialNav = resolveNavigationState();
+
+      // 1. BACK BUTTON
+      if (backNav) {
+        backNav.href = initialNav.backUrl;
+        backNav.addEventListener('click', (e) => {
+          e.preventDefault();
+          const currentNav = resolveNavigationState();
+          window.location.href = currentNav.backUrl;
+        });
+      }
+
+      // 2. BROWSE GRAIN CATALOG BUTTON
+      if (browseCatalogBtn) {
+        browseCatalogBtn.href = 'products.html';
+        browseCatalogBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          window.location.href = 'products.html';
+        });
+      }
+
+      // 3. PROCEED TO CHECKOUT BUTTON
+      if (proceedCheckoutBtn) {
+        if (initialNav.hasValidCheckout && initialNav.checkoutUrl) {
+          proceedCheckoutBtn.href = initialNav.checkoutUrl;
+        } else {
+          proceedCheckoutBtn.href = 'products.html';
+        }
+
+        proceedCheckoutBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          const currentNav = resolveNavigationState();
+          const user = getCurrentUser();
+
+          if (currentNav.hasValidCheckout && currentNav.checkoutUrl) {
+            if (!user) {
+              sessionStorage.setItem('login-message', 'Please log in to proceed to checkout.');
+              sessionStorage.setItem('login-redirect', currentNav.checkoutUrl);
+              window.location.href = 'login.html';
+              return;
+            }
+            sessionStorage.setItem('riceflow-proceed-from-guide', 'true');
+            window.location.href = currentNav.checkoutUrl;
+            return;
+          }
+
+          // No active checkout items or cart items -> guide customer safely to select a product
+          showToast('Please select a rice variety or add items to your cart before proceeding to checkout.', 'info');
+          setTimeout(() => {
+            window.location.href = 'products.html';
+          }, 700);
+        });
       }
     });
   </script>

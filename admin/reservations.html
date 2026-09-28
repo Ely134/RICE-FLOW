@@ -238,6 +238,74 @@
     </div>
   </div>
 
+  <!-- CANCEL RESERVATION CONFIRMATION MODAL -->
+  <div id="cancel-reservation-confirm-modal" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-[75] flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-3xl max-w-lg w-full shadow-2xl p-6 md:p-7 border border-gray-150 animate-in fade-in zoom-in duration-150 text-left max-h-[92vh] overflow-y-auto">
+      <div class="flex items-center justify-between pb-4 border-b border-gray-100">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-2xl bg-red-100 flex items-center justify-center text-red-600 font-bold shrink-0">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="15" y1="9" x2="9" y2="15"></line>
+              <line x1="9" y1="9" x2="15" y2="15"></line>
+            </svg>
+          </div>
+          <div>
+            <h3 class="text-lg font-black text-gray-900 leading-tight" id="cancel-reservation-modal-title">Cancel Reservation?</h3>
+            <p class="text-xs text-gray-500 font-semibold mt-0.5" id="cancel-reservation-modal-sub">Reservation Cancellation</p>
+          </div>
+        </div>
+        <button id="btn-cancel-reservation-confirm-x" type="button" class="text-gray-400 hover:text-gray-700 hover:bg-gray-100 w-8 h-8 rounded-full flex items-center justify-center cursor-pointer transition-colors text-lg font-bold">✕</button>
+      </div>
+
+      <div class="mt-5 space-y-4">
+        <div class="p-4 bg-gray-50 rounded-2xl border border-gray-200/80 space-y-3 text-xs">
+          <div class="flex items-center justify-between gap-4">
+            <div class="space-y-0.5">
+              <span class="text-gray-500 font-bold uppercase text-[10px] tracking-wider block">Reservation</span>
+              <span class="font-black text-gray-900 text-sm" id="cancel-reservation-target-id">#RES-000</span>
+            </div>
+            <div class="text-right space-y-0.5">
+              <span class="text-gray-500 font-bold uppercase text-[10px] tracking-wider block">Customer</span>
+              <span class="font-extrabold text-gray-900 text-sm" id="cancel-reservation-target-customer">Customer Name</span>
+            </div>
+          </div>
+          <div class="pt-2.5 border-t border-gray-200/80 flex items-center justify-between gap-4">
+            <div class="space-y-0.5">
+              <span class="text-gray-500 font-bold uppercase text-[10px] tracking-wider block">Customer Paid</span>
+              <span class="font-black text-gray-900 text-sm" id="cancel-reservation-paid-amount">₱0.00</span>
+            </div>
+            <div class="text-right space-y-0.5">
+              <span class="text-gray-500 font-bold uppercase text-[10px] tracking-wider block">Refund Status</span>
+              <span class="font-extrabold text-gray-700 text-xs" id="cancel-reservation-refund-badge">No refund is needed.</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="p-4 bg-amber-50/70 border border-amber-200/80 rounded-2xl text-xs sm:text-[13px] text-amber-950 font-medium leading-relaxed whitespace-pre-line" id="cancel-reservation-modal-message">
+          <!-- Populated dynamically based on whether payment exists -->
+        </div>
+      </div>
+
+      <div class="flex items-center justify-end gap-3 mt-6 pt-4 border-t border-gray-100">
+        <button 
+          id="btn-cancel-reservation-goback" 
+          type="button" 
+          class="px-5 py-2.5 rounded-xl border border-gray-200 text-xs font-bold text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer"
+        >
+          Go Back
+        </button>
+        <button 
+          id="btn-cancel-reservation-commit" 
+          type="button" 
+          class="px-5 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-bold transition-colors cursor-pointer shadow-sm flex items-center gap-1.5"
+        >
+          Cancel Reservation
+        </button>
+      </div>
+    </div>
+  </div>
+
   <script type="module" src="../src/app/shared.js"></script>
 
   <!-- Reservation Queue Controller -->
@@ -278,6 +346,7 @@
       let searchQuery = '';
       let selectedOrderInModal = null;
       let pendingRejectReservationId = null;
+      let pendingCancelReservationId = null;
 
       function openRejectReservationConfirmModal(reservationId) {
         pendingRejectReservationId = reservationId;
@@ -359,9 +428,13 @@
           orders[matchIdx].paymentRejectionReason = reason;
           orders[matchIdx].paymentRejectionExplanation = explanation;
           orders[matchIdx].paymentRejectedAt = now.toISOString();
+          orders[matchIdx].reuploadRequestedAt = now.toISOString();
           orders[matchIdx].reuploadDeadline = deadlineDate.toISOString();
           orders[matchIdx].hasCorrectedProof = false;
+          orders[matchIdx].paymentReuploadedAt = null;
+          orders[matchIdx].autoCancelledDueToRejectionDeadline = false;
           orders[matchIdx].status = 'payment_verification';
+          orders[matchIdx].updatedAt = now.toISOString();
 
           orders[matchIdx].statusHistory = [
             ...(orders[matchIdx].statusHistory || []),
@@ -399,6 +472,378 @@
           const detailsModal = document.getElementById('details-modal');
           if (detailsModal) detailsModal.classList.add('hidden');
 
+          renderQueueTable();
+        };
+      }
+
+      // Authoritative helper to determine payment category ('none' | 'downpayment' | 'full') and actual amount paid
+      function getReservationPaymentState(order) {
+        if (!order) return { category: 'none', amountPaid: 0 };
+
+        const totalVal = Number(order.total || order.totalBill || order.totalPrice || order.totalAmount || 0);
+        const rawType = String(order.paymentType || '').trim().toLowerCase();
+        const rawOption = String(order.paymentOption || '').trim().toLowerCase();
+        const rawMethod = String(order.paymentMethod || '').trim().toLowerCase();
+        const pStatus = String(order.paymentStatus || '').trim().toLowerCase();
+        const oStatus = String(order.status || '').trim().toLowerCase();
+
+        const rawProof = String(order.paymentProofUrl || order.paymentProofDataUrl || order.paymentProof || '').trim();
+        const hasProof = Boolean(
+          (rawProof &&
+            rawProof !== 'none' &&
+            rawProof !== 'null' &&
+            rawProof !== 'undefined' &&
+            (rawProof.startsWith('http') || rawProof.startsWith('data:') || rawProof.length > 3)) ||
+          order.paymentUploadedAt ||
+          order.referenceNumber
+        );
+
+        const isVerified = Boolean(
+          order.paymentVerified === true ||
+          order.isVerifiedPayment === true ||
+          pStatus === 'verified' ||
+          pStatus === 'paid' ||
+          ['ready_for_processing', 'ready', 'processing', 'to-ship', 'to-receive', 'delivered', 'completed'].includes(oStatus)
+        );
+
+        const isPendingVerification = Boolean(
+          oStatus === 'payment_verification' ||
+          pStatus === 'pending_verification' ||
+          hasProof
+        );
+
+        const noPaymentTokens = [
+          'none',
+          'no_payment',
+          'no-payment',
+          'no payment',
+          'no payment needed',
+          'no payment required',
+          'unpaid',
+          'pay_later',
+          'pay later'
+        ];
+
+        const isExplicitNoPayment =
+          noPaymentTokens.includes(rawType) ||
+          noPaymentTokens.includes(rawOption) ||
+          (rawMethod === 'none' && (!rawType || noPaymentTokens.includes(rawType)) && (!rawOption || noPaymentTokens.includes(rawOption))) ||
+          pStatus === 'unpaid' ||
+          pStatus === 'none' ||
+          pStatus === 'no_payment';
+
+        // 1. NO PAYMENT: If reservation explicitly indicates No Payment Needed and no payment was uploaded or verified, paid amount MUST be ₱0.00
+        if (isExplicitNoPayment && !isVerified && !isPendingVerification) {
+          return { category: 'none', amountPaid: 0 };
+        }
+
+        const fullPaymentTokens = ['full', 'full_advance', 'full-advance', 'full payment', 'full_payment'];
+        const downPaymentTokens = ['deposit', 'downpayment', 'down_payment', 'down-payment', 'down', 'partial', '30%', '30% down payment', 'down payment'];
+
+        const isFullChoice = fullPaymentTokens.includes(rawType) || fullPaymentTokens.includes(rawOption);
+        const isDownChoice =
+          downPaymentTokens.includes(rawType) ||
+          downPaymentTokens.includes(rawOption) ||
+          (rawMethod === 'cash' && !isFullChoice && !isExplicitNoPayment);
+
+        const recOriginal = (order.originalAmountPaid !== undefined && order.originalAmountPaid !== null && !isNaN(Number(order.originalAmountPaid)) && Number(order.originalAmountPaid) > 0)
+          ? Number(order.originalAmountPaid)
+          : ((order.amountPaidBeforeCancellation !== undefined && order.amountPaidBeforeCancellation !== null && !isNaN(Number(order.amountPaidBeforeCancellation)) && Number(order.amountPaidBeforeCancellation) > 0)
+            ? Number(order.amountPaidBeforeCancellation)
+            : null);
+
+        const recDeposit = (order.depositAmount !== undefined && order.depositAmount !== null && !isNaN(Number(order.depositAmount)) && Number(order.depositAmount) > 0)
+          ? Number(order.depositAmount)
+          : null;
+
+        const recAmountPaid = (order.amountPaid !== undefined && order.amountPaid !== null && !isNaN(Number(order.amountPaid)) && Number(order.amountPaid) > 0)
+          ? Number(order.amountPaid)
+          : null;
+
+        const recRemaining = (order.remainingAmount !== undefined && order.remainingAmount !== null && !isNaN(Number(order.remainingAmount)) && Number(order.remainingAmount) >= 0)
+          ? Number(order.remainingAmount)
+          : ((order.remainingBalance !== undefined && order.remainingBalance !== null && !isNaN(Number(order.remainingBalance)) && Number(order.remainingBalance) >= 0)
+            ? Number(order.remainingBalance)
+            : null);
+
+        const hasConfirmedPayment = Boolean(
+          isVerified ||
+          isPendingVerification ||
+          recOriginal !== null ||
+          recDeposit !== null ||
+          ((isFullChoice || isDownChoice) && recAmountPaid !== null && !isExplicitNoPayment)
+        );
+
+        if (!hasConfirmedPayment) {
+          return { category: 'none', amountPaid: 0 };
+        }
+
+        // 2. DOWN PAYMENT: Use actual recorded deposit/down payment amount, never the full reservation total
+        if (isDownChoice || (!isFullChoice && (recDeposit !== null || (recAmountPaid !== null && totalVal > 0 && recAmountPaid < totalVal) || (recRemaining !== null && recRemaining > 0 && totalVal > recRemaining)))) {
+          let downPaid = 0;
+          if (recDeposit !== null && (totalVal <= 0 || recDeposit <= totalVal)) {
+            downPaid = recDeposit;
+          } else if (recOriginal !== null && (totalVal <= 0 || recOriginal < totalVal)) {
+            downPaid = recOriginal;
+          } else if (recAmountPaid !== null && (totalVal <= 0 || recAmountPaid < totalVal)) {
+            downPaid = recAmountPaid;
+          } else if (recRemaining !== null && recRemaining > 0 && totalVal > recRemaining) {
+            downPaid = totalVal - recRemaining;
+          } else if (totalVal > 0) {
+            downPaid = Math.round(totalVal * 0.3);
+          }
+          return {
+            category: downPaid > 0 ? 'downpayment' : 'none',
+            amountPaid: downPaid > 0 ? downPaid : 0
+          };
+        }
+
+        // 3. FULL PAYMENT: Use actual recorded full amount paid when payment state confirms full payment
+        if (isFullChoice || (recAmountPaid !== null && totalVal > 0 && recAmountPaid >= totalVal && (recRemaining === null || recRemaining === 0))) {
+          let fullPaid = 0;
+          if (recOriginal !== null) {
+            fullPaid = recOriginal;
+          } else if (recAmountPaid !== null) {
+            fullPaid = recAmountPaid;
+          } else if (isVerified || isPendingVerification) {
+            fullPaid = totalVal;
+          }
+          return {
+            category: fullPaid > 0 ? 'full' : 'none',
+            amountPaid: fullPaid > 0 ? fullPaid : 0
+          };
+        }
+
+        // Fallback when payment proof/verification exists on a reservation that originally started as 'none'
+        if (isVerified || isPendingVerification) {
+          if (recDeposit !== null) {
+            return { category: (totalVal > 0 && recDeposit >= totalVal) ? 'full' : 'downpayment', amountPaid: recDeposit };
+          }
+          if (recAmountPaid !== null) {
+            return { category: (totalVal > 0 && recAmountPaid >= totalVal) ? 'full' : 'downpayment', amountPaid: recAmountPaid };
+          }
+          const fallbackDeposit = totalVal > 0 ? Math.round(totalVal * 0.3) : 0;
+          return {
+            category: fallbackDeposit > 0 ? 'downpayment' : 'none',
+            amountPaid: fallbackDeposit
+          };
+        }
+
+        return { category: 'none', amountPaid: 0 };
+      }
+
+      // Helper to determine original actual amount paid for a reservation
+      function getReservationActualPaidAmount(order) {
+        return getReservationPaymentState(order).amountPaid;
+      }
+
+      function formatCurrencyPeso(amount) {
+        const num = Number(amount || 0);
+        return '₱' + num.toLocaleString(undefined, {
+          minimumFractionDigits: Number.isInteger(num) && num > 0 ? 0 : 2,
+          maximumFractionDigits: 2
+        });
+      }
+
+      function openCancelReservationConfirmModal(reservationId) {
+        pendingCancelReservationId = reservationId;
+        const modal = document.getElementById('cancel-reservation-confirm-modal');
+        const orders = getAllOrders();
+        const targetOrder = orders.find(o => String(o.id) === String(reservationId));
+        if (!targetOrder) return;
+
+        const paymentState = getReservationPaymentState(targetOrder);
+        const actualPaid = paymentState.amountPaid;
+        const formattedAmount = Number(actualPaid || 0).toLocaleString(undefined, {
+          minimumFractionDigits: Number.isInteger(actualPaid) && actualPaid > 0 ? 0 : 2,
+          maximumFractionDigits: 2
+        });
+
+        const titleEl = document.getElementById('cancel-reservation-modal-title');
+        const subEl = document.getElementById('cancel-reservation-modal-sub');
+        const msgEl = document.getElementById('cancel-reservation-modal-message');
+        const targetIdEl = document.getElementById('cancel-reservation-target-id');
+        const targetCustEl = document.getElementById('cancel-reservation-target-customer');
+        const paidAmountEl = document.getElementById('cancel-reservation-paid-amount');
+        const refundBadgeEl = document.getElementById('cancel-reservation-refund-badge');
+        const commitBtn = document.getElementById('btn-cancel-reservation-commit');
+
+        const custName = targetOrder.fullName || targetOrder.customerName || targetOrder.name || 'Customer';
+        if (targetIdEl) targetIdEl.textContent = '#' + reservationId;
+        if (targetCustEl) targetCustEl.textContent = custName;
+
+        if (actualPaid > 0) {
+          const paymentLabel = paymentState.category === 'full' ? 'Full Payment' : 'Down Payment';
+          if (titleEl) titleEl.textContent = 'Cancel Reservation and Start Refund?';
+          if (subEl) subEl.textContent = `Reservation Cancellation & Refund Request (${paymentLabel})`;
+          if (paidAmountEl) {
+            paidAmountEl.textContent = `₱${formattedAmount} (${paymentLabel})`;
+            paidAmountEl.className = 'font-black text-[#1E6C02] text-sm';
+          }
+          if (refundBadgeEl) {
+            refundBadgeEl.textContent = `Refund Due: ₱${formattedAmount}`;
+            refundBadgeEl.className = 'font-extrabold text-amber-800 text-xs';
+          }
+          if (msgEl) {
+            msgEl.className = 'p-4 bg-amber-50/70 border border-amber-200/80 rounded-2xl text-xs sm:text-[13px] text-amber-950 font-medium leading-relaxed whitespace-pre-line';
+            msgEl.textContent = `The customer has paid ₱${formattedAmount} (${paymentLabel.toLowerCase()}).\n\nBecause the store cannot fulfill this reservation, the customer is due a refund of ₱${formattedAmount}.\n\nThe customer will be asked to provide their GCash or bank details.\n\nThe refund will still need to be processed by the store.\n\nDo you want to continue?`;
+          }
+          if (commitBtn) {
+            commitBtn.textContent = 'Cancel and Continue';
+          }
+        } else {
+          if (titleEl) titleEl.textContent = 'Cancel Reservation?';
+          if (subEl) subEl.textContent = 'Reservation Cancellation';
+          if (paidAmountEl) {
+            paidAmountEl.textContent = '₱0.00';
+            paidAmountEl.className = 'font-black text-gray-900 text-sm';
+          }
+          if (refundBadgeEl) {
+            refundBadgeEl.textContent = 'No refund is needed.';
+            refundBadgeEl.className = 'font-extrabold text-gray-700 text-xs';
+          }
+          if (msgEl) {
+            msgEl.className = 'p-4 bg-gray-50 border border-gray-200 rounded-2xl text-xs sm:text-[13px] text-gray-800 font-medium leading-relaxed whitespace-pre-line';
+            msgEl.textContent = `No payment has been made for this reservation.\n\nNo refund is needed.\n\nThe reservation will be cancelled if you continue.`;
+          }
+          if (commitBtn) {
+            commitBtn.textContent = 'Cancel Reservation';
+          }
+        }
+
+        if (modal) {
+          modal.classList.remove('hidden');
+        }
+      }
+
+      function closeCancelReservationConfirmModal() {
+        pendingCancelReservationId = null;
+        const modal = document.getElementById('cancel-reservation-confirm-modal');
+        if (modal) {
+          modal.classList.add('hidden');
+        }
+      }
+
+      // Cancel reservation confirm modal buttons
+      const closeCancelXBtn = document.getElementById('btn-cancel-reservation-confirm-x');
+      if (closeCancelXBtn) {
+        closeCancelXBtn.onclick = closeCancelReservationConfirmModal;
+      }
+
+      const goBackCancelBtn = document.getElementById('btn-cancel-reservation-goback');
+      if (goBackCancelBtn) {
+        goBackCancelBtn.onclick = closeCancelReservationConfirmModal;
+      }
+
+      const commitCancelReservationBtn = document.getElementById('btn-cancel-reservation-commit');
+      if (commitCancelReservationBtn) {
+        commitCancelReservationBtn.onclick = () => {
+          const reservationId = pendingCancelReservationId;
+          if (!reservationId) return;
+
+          const list = getAllOrders();
+          const matchIdx = list.findIndex(o => String(o.id) === String(reservationId));
+          if (matchIdx === -1) return;
+
+          const order = list[matchIdx];
+          const paymentState = getReservationPaymentState(order);
+          const actualPaid = paymentState.amountPaid;
+          const formattedAmount = Number(actualPaid || 0).toLocaleString(undefined, {
+            minimumFractionDigits: Number.isInteger(actualPaid) && actualPaid > 0 ? 0 : 2,
+            maximumFractionDigits: 2
+          });
+
+          list[matchIdx].status = 'cancelled';
+          list[matchIdx].allocatedQuantity = 0;
+          const changer = (typeof getCurrentAdmin === 'function' ? getCurrentAdmin() : window.RiceFlow?.getCurrentAdmin?.())?.name || 'Admin User';
+
+          if (actualPaid > 0) {
+            list[matchIdx].refundStatus = 'Refund Information Needed';
+            list[matchIdx].refundAmount = actualPaid;
+            list[matchIdx].refundReason = 'Cancelled by Admin/Staff — store unable to fulfill reservation';
+            list[matchIdx].refundRequestedAt = new Date().toISOString();
+            list[matchIdx].originalAmountPaid = actualPaid;
+            list[matchIdx].amountPaidBeforeCancellation = actualPaid;
+
+            list[matchIdx].statusHistory = [
+              ...(list[matchIdx].statusHistory || []),
+              {
+                id: 'hist-cancel-' + Date.now(),
+                status: 'Cancelled',
+                changedBy: changer,
+                changedAt: new Date().toLocaleString(),
+                note: `Reservation cancelled by staff. Store unable to fulfill reservation. Refund required: ₱${formattedAmount}.`
+              }
+            ];
+
+            // Send notification to customer (Section 11)
+            addNotification(
+              list[matchIdx].userId || list[matchIdx].customerId || '',
+              'Reservation Cancelled — Refund Required',
+              `Your reservation #${order.id} was cancelled by the store.\n\nYou are due a refund of ₱${formattedAmount}.\n\nPlease submit your GCash or bank details so the store can process your refund.`,
+              { role: 'customer', type: 'reservation', reservationId: order.id, orderId: order.id }
+            );
+
+            // Activity Log (Section 19)
+            addActivityLog(
+              'Reservations',
+              `${changer} cancelled Reservation #${order.id} because the store could not fulfill the reservation. Refund required: ₱${formattedAmount}.`,
+              `Reservation #${order.id}`
+            );
+          } else {
+            list[matchIdx].amountPaid = 0;
+            list[matchIdx].refundStatus = 'No Refund Needed';
+            delete list[matchIdx].refundAmount;
+            delete list[matchIdx].refundRequestedAt;
+            list[matchIdx].refundReason = 'Cancelled by Admin/Staff — no payment received';
+
+            list[matchIdx].statusHistory = [
+              ...(list[matchIdx].statusHistory || []),
+              {
+                id: 'hist-cancel-' + Date.now(),
+                status: 'Cancelled',
+                changedBy: changer,
+                changedAt: new Date().toLocaleString(),
+                note: 'Reservation cancelled by staff. No payment received.'
+              }
+            ];
+
+            // Send notification to customer (Section 10)
+            addNotification(
+              list[matchIdx].userId || list[matchIdx].customerId || '',
+              'Reservation Cancelled',
+              `Your reservation #${order.id} was cancelled by the store.\n\nNo refund is needed because no payment was received.`,
+              { role: 'customer', type: 'reservation', reservationId: order.id, orderId: order.id }
+            );
+
+            // Activity Log (Section 19)
+            addActivityLog(
+              'Reservations',
+              `${changer} cancelled Reservation #${order.id} because the store could not fulfill the reservation. No refund required because no payment was received.`,
+              `Reservation #${order.id}`
+            );
+          }
+
+          saveOrders(list, { colName: 'orders', docId: String(order.id), docData: list[matchIdx] });
+          try {
+            saveFirestoreDoc('orders', String(order.id), list[matchIdx]);
+          } catch (e) {
+            console.warn('[RESERVATION CANCEL] Firestore sync failed:', e);
+          }
+
+          // Evaluate stock condition with auto-allocator (stock release & FCFS queue recalculation)
+          allocateStockToReservations();
+
+          showToast(
+            actualPaid > 0 
+              ? `✔ Reservation cancelled and refund of ₱${formattedAmount} initiated.`
+              : '✔ Reservation cancelled successfully and allocated stock released.',
+            'info'
+          );
+
+          closeCancelReservationConfirmModal();
+          const detailsModal = document.getElementById('details-modal');
+          if (detailsModal) detailsModal.classList.add('hidden');
           renderQueueTable();
         };
       }
@@ -793,7 +1238,47 @@
               </div>
             `;
           } else {
-            statusBadge = `<span class="px-2.5 py-1 rounded-full bg-gray-50 border border-gray-200 text-black text-xs font-semibold">Cancelled</span>`;
+            const rawRefundStatus = order.refundStatus ? String(order.refundStatus).trim() : '';
+            const refundAmt = Number(order.refundAmount || 0);
+            const formattedRefundAmt = refundAmt.toLocaleString(undefined, {
+              minimumFractionDigits: Number.isInteger(refundAmt) ? 0 : 2,
+              maximumFractionDigits: 2
+            });
+
+            if (rawRefundStatus === 'Refund Information Needed') {
+              statusBadge = `
+                <div class="space-y-1 text-left">
+                  <span class="px-2.5 py-1 rounded-full bg-red-100 border border-red-300 text-red-900 font-bold text-xs inline-block">Cancelled</span>
+                  <div class="text-xs text-amber-900 font-semibold bg-amber-50 border border-amber-200 rounded-md px-2 py-0.5 inline-block">
+                    <span class="text-gray-500 font-normal">Refund Status:</span> Waiting for Refund Details
+                  </div>
+                  <div class="text-xs text-[#1E6C02] font-black">
+                    <span class="text-gray-500 font-normal text-[11px]">Refund Amount:</span> ₱${formattedRefundAmt}
+                  </div>
+                </div>
+              `;
+            } else if (rawRefundStatus === 'Refund Information Submitted') {
+              statusBadge = `
+                <div class="space-y-1 text-left">
+                  <span class="px-2.5 py-1 rounded-full bg-red-100 border border-red-300 text-red-900 font-bold text-xs inline-block">Cancelled</span>
+                  <div class="text-xs text-blue-900 font-semibold bg-blue-50 border border-blue-200 rounded-md px-2 py-0.5 inline-block">
+                    <span class="text-gray-500 font-normal">Refund Status:</span> Refund Details Submitted
+                  </div>
+                  <div class="text-xs text-[#1E6C02] font-black">
+                    <span class="text-gray-500 font-normal text-[11px]">Refund Amount:</span> ₱${formattedRefundAmt}
+                  </div>
+                </div>
+              `;
+            } else if (rawRefundStatus === 'No Refund Needed') {
+              statusBadge = `
+                <div class="space-y-1 text-left">
+                  <span class="px-2.5 py-1 rounded-full bg-red-100 border border-red-300 text-red-900 font-bold text-xs inline-block">Cancelled</span>
+                  <p class="text-xs text-gray-500 font-medium">No Refund Needed</p>
+                </div>
+              `;
+            } else {
+              statusBadge = `<span class="px-2.5 py-1 rounded-full bg-gray-50 border border-gray-200 text-black text-xs font-semibold">Cancelled</span>`;
+            }
             dateAndAvailabilityHtml = `
               <div>
                 <p class="font-bold text-gray-950 text-sm">${dateStr}</p>
@@ -1286,9 +1771,65 @@
             </div>
 
             <div class="lg:col-span-5 space-y-6">
-              ${(!isWaitingModal || order.paymentVerified) ? `
+              ${isCancelledModal ? `
+              <div class="bg-red-50/70 border border-red-200 p-6 rounded-2xl space-y-4 text-left">
+                <div class="flex items-center justify-between border-b border-red-200 pb-3">
+                  <h4 class="text-[18px] font-bold text-red-950 uppercase tracking-wider flex items-center gap-1.5">
+                    <span>⚠️</span> Cancellation & Refund Log
+                  </h4>
+                  <span class="px-2.5 py-0.5 rounded-full bg-red-100 border border-red-300 text-red-900 font-bold text-xs uppercase">
+                    Cancelled
+                  </span>
+                </div>
+
+                <div class="space-y-2 text-[14px]">
+                  <div class="flex justify-between items-center">
+                    <span class="font-bold text-gray-700">Order/Reservation Status:</span>
+                    <span class="font-black text-red-700">Cancelled</span>
+                  </div>
+
+                  <div class="flex justify-between items-center">
+                    <span class="font-bold text-gray-700">Refund Status:</span>
+                    <span class="font-black ${order.refundStatus === 'Refunded' ? 'text-emerald-700' : (order.refundStatus === 'Refund Information Submitted' ? 'text-blue-700' : (order.refundStatus === 'Refund Information Needed' ? 'text-amber-700' : 'text-gray-700'))}">
+                      ${order.refundStatus === 'Refund Information Needed' ? 'Waiting for Refund Details' : (order.refundStatus === 'Refund Information Submitted' ? 'Refund Details Submitted' : (order.refundStatus || 'No Refund Needed'))}
+                    </span>
+                  </div>
+
+                  ${Number(order.refundAmount || 0) > 0 ? `
+                    <div class="flex justify-between items-center">
+                      <span class="font-bold text-gray-700">Refund Amount:</span>
+                      <span class="font-black text-[#1E6C02] text-base">₱${Number(order.refundAmount).toLocaleString(undefined, { minimumFractionDigits: Number.isInteger(order.refundAmount) ? 0 : 2, maximumFractionDigits: 2 })}</span>
+                    </div>
+                  ` : ''}
+
+                  <div class="pt-2 border-t border-red-100">
+                    <span class="font-bold text-gray-700 block text-xs uppercase tracking-wider mb-0.5">Reason:</span>
+                    <p class="text-sm font-semibold text-gray-900 bg-white/80 p-2.5 rounded-xl border border-red-100">
+                      ${order.refundReason || order.cancellationReason || (Number(order.refundAmount || 0) > 0 ? 'Store unable to fulfill reservation' : 'Cancelled by Admin/Staff — no payment received')}
+                    </p>
+                  </div>
+
+                  ${(order.refundAccountName || order.refundGcashNumber || order.refundAccountNumber || order.refundStatus === 'Refund Information Submitted') ? `
+                    <div class="mt-4 pt-3 border-t border-red-200 bg-white p-4 rounded-xl border space-y-2 text-xs">
+                      <p class="font-black text-gray-900 uppercase tracking-wider text-[11px] flex items-center gap-1">
+                        <span>📝</span> Customer Submitted Refund Details
+                      </p>
+                      <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-gray-700">
+                        <div><span class="font-bold">Method:</span> ${order.refundMethod || 'GCash'}</div>
+                        <div><span class="font-bold">Account Name:</span> ${order.refundAccountName || 'N/A'}</div>
+                        ${order.refundBankName ? `<div><span class="font-bold">Bank Name:</span> ${order.refundBankName}</div>` : ''}
+                        <div><span class="font-bold">${order.refundMethod === 'Bank' ? 'Account Number' : 'GCash Number'}:</span> ${order.refundGcashNumber || order.refundAccountNumber || 'N/A'}</div>
+                        ${order.refundSubmittedAt ? `<div class="sm:col-span-2 text-gray-500 font-medium">Submitted: ${new Date(order.refundSubmittedAt).toLocaleString()}</div>` : ''}
+                      </div>
+                    </div>
+                  ` : ''}
+                </div>
+              </div>
+              ` : ''}
+
+              ${(!isCancelledModal && (!isWaitingModal || order.paymentVerified)) ? `
               <div class="bg-white border border-gray-200 p-6 rounded-2xl shadow-inner text-[15px] font-normal text-black space-y-4">
-                <h4 class="text-[18px] font-bold text-black uppercase tracking-wider border-b pb-2 flex items-center gap-1.5">📊 Reservation Payment</h4>
+                <h4 class="text-[18px] font-bold text-black uppercase tracking-wider border-b pb-2 flex items-center gap-1.5">������ Reservation Payment</h4>
                 <div class="flex justify-between items-center border-b pb-3">
                   <span class="text-black font-bold">Total Bill:</span>
                   <span class="font-normal text-black text-[15px]">₱${totalVal.toLocaleString()}.00</span>
@@ -1462,7 +2003,12 @@ if (freshEst && freshEst !== 'Waiting for Restock' && freshEst !== 'Not yet sche
                   note: 'Reservation approved and payment verified by staff/admin.'
                 }
               ];
-              saveOrders(list);
+              saveOrders(list, { colName: 'orders', docId: String(order.id), docData: list[matchIdx] });
+              try {
+                saveFirestoreDoc('orders', String(order.id), list[matchIdx]);
+              } catch (e) {
+                console.warn('[RESERVATION APPROVE] Firestore sync failed:', e);
+              }
 
               // Evaluate stock condition with auto-allocator
               allocateStockToReservations();
@@ -1578,46 +2124,11 @@ if (freshEst && freshEst !== 'Waiting for Restock' && freshEst !== 'Not yet sche
           };
         }
 
-        // Cancel Reservation action
+        // Cancel Reservation action (opens confirmation modal)
         const cancelBtn = document.getElementById('btn-det-action-cancel');
         if (cancelBtn) {
           cancelBtn.onclick = () => {
-            const list = getAllOrders();
-            const matchIdx = list.findIndex(o => o.id === order.id);
-            if (matchIdx !== -1) {
-              list[matchIdx].status = 'cancelled';
-              list[matchIdx].allocatedQuantity = 0;
-              const changer = window.RiceFlow?.getCurrentAdmin()?.name || 'Admin User';
-              list[matchIdx].statusHistory = [
-                ...(list[matchIdx].statusHistory || []),
-                {
-                  id: 'hist-cancel-' + Date.now(),
-                  status: 'Cancelled',
-                  changedBy: changer,
-                  changedAt: new Date().toLocaleString(),
-                  note: 'Reservation cancelled by staff.'
-                }
-              ];
-              saveOrders(list);
-              try {
-                saveFirestoreDoc('orders', String(order.id), list[matchIdx]);
-              } catch (e) {
-                console.warn('[RESERVATION CANCEL] Firestore sync failed:', e);
-              }
-
-              // Send notification to customer
-              addNotification(
-                list[matchIdx].userId || list[matchIdx].customerId || '',
-                '❌ Reservation Cancelled',
-                'Your reservation was cancelled by store administration.',
-                { role: 'customer', type: 'reservation', reservationId: order.id }
-              );
-
-              allocateStockToReservations();
-              showToast('✔ Reservation cancelled successfully and allocated stock released.', 'info');
-              closeFn();
-              renderQueueTable();
-            }
+            openCancelReservationConfirmModal(order.id);
           };
         }
 

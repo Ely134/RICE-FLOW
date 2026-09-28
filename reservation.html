@@ -536,13 +536,10 @@
       let user = authResult.user || getCurrentUser();
       if (!user) return;
 
-      // Wait for the initial Firebase synchronization so public inventory history
-      // is available before calculating the reservation estimate.
-      try {
-        await initFirestoreSync();
-      } catch (syncErr) {
-        console.warn('[RESERVATION] Initial Firestore sync unavailable; continuing with local data:', syncErr);
-      }
+      // Non-blocking Firebase synchronization in background while rendering immediately from local cache
+      initFirestoreSync().catch((syncErr) => {
+        console.warn('[RESERVATION] Firestore sync notice:', syncErr);
+      });
 
       // 2. Fetch target out-of-stock product details
       const urlParams = new URLSearchParams(window.location.search);
@@ -874,9 +871,85 @@
           if (notes) return true;
         }
         
-        if (parseInt(document.getElementById('inp-quantity').value) !== 1) return true;
+        const inpQtyEl = document.getElementById('inp-quantity');
+        if (inpQtyEl && parseInt(inpQtyEl.value) !== 1) return true;
+        if (quantity !== initialQty) return true;
         
         return false;
+      }
+
+      // Preserve reservation context for Payment Guide navigation
+      const paymentGuideLink = document.getElementById('payment-guide-info-link');
+      function updateReservationGuideLink() {
+        if (paymentGuideLink) {
+          const pgParams = new URLSearchParams(window.location.search);
+          pgParams.set('from', 'reservation');
+          pgParams.set('productId', String(product.id));
+          pgParams.set('quantity', String(quantity));
+          paymentGuideLink.href = `payment-guide.html?${pgParams.toString()}`;
+        }
+      }
+      updateReservationGuideLink();
+
+      function saveReservationContextForGuide() {
+        try {
+          const searchStr = `?productId=${encodeURIComponent(product.id)}&quantity=${encodeURIComponent(quantity)}`;
+          const ctx = {
+            page: 'reservation.html',
+            search: searchStr,
+            url: 'reservation.html' + searchStr,
+            fullName: inpFullName ? inpFullName.value : '',
+            phone: inpPhone ? inpPhone.value : '',
+            address: addressInput ? addressInput.value : '',
+            notes: document.getElementById('inp-notes')?.value || '',
+            deliveryOption,
+            paymentMethod,
+            quantity,
+            savedAt: Date.now()
+          };
+          sessionStorage.setItem('riceflow-checkout-context', JSON.stringify(ctx));
+        } catch (err) {
+          console.warn('[RESERVATION] Unable to save reservation context:', err);
+        }
+      }
+
+      function restoreReservationContextFromGuide() {
+        try {
+          const raw = sessionStorage.getItem('riceflow-checkout-context');
+          if (!raw) return;
+          const ctx = JSON.parse(raw);
+          if (!ctx || ctx.page !== 'reservation.html') return;
+
+          if (ctx.address !== undefined && addressInput) addressInput.value = ctx.address;
+          const inpNotes = document.getElementById('inp-notes');
+          if (ctx.notes !== undefined && inpNotes) inpNotes.value = ctx.notes;
+          if (ctx.quantity && Number(ctx.quantity) >= 1) {
+            quantity = Number(ctx.quantity);
+          }
+
+          if (ctx.deliveryOption === 'pickup' && divPic) {
+            divPic.click();
+          } else if (ctx.deliveryOption === 'delivery' && divDel) {
+            divDel.click();
+          }
+
+          if (ctx.paymentMethod === 'cash' && divPmCash) {
+            divPmCash.click();
+          } else if (ctx.paymentMethod === 'none' && divPmNone) {
+            divPmNone.click();
+          } else if (ctx.paymentMethod === 'gcash' && divPmGcash) {
+            divPmGcash.click();
+          }
+
+          refreshCalculations();
+          updateReservationGuideLink();
+        } catch (_) {}
+      }
+
+      restoreReservationContextFromGuide();
+      saveReservationContextForGuide();
+      if (sessionStorage.getItem('riceflow-proceed-from-guide') === 'true') {
+        sessionStorage.removeItem('riceflow-proceed-from-guide');
       }
 
       // Exit Confirmation Modal wiring
@@ -889,11 +962,19 @@
           if (!href || href.startsWith('#') || href.startsWith('javascript:') || target === '_blank') {
             return;
           }
+
+          if (anchor.id === 'payment-guide-info-link' || href.startsWith('payment-guide.html')) {
+            updateReservationGuideLink();
+            saveReservationContextForGuide();
+            return;
+          }
           
           if (hasUnsavedChanges()) {
             e.preventDefault();
             pendingNavigationUrl = href;
             document.getElementById('exit-confirm-modal').classList.remove('hidden');
+          } else {
+            sessionStorage.removeItem('riceflow-checkout-context');
           }
         }
       });
@@ -904,6 +985,7 @@
       });
 
       document.getElementById('btn-leave-page').addEventListener('click', () => {
+        sessionStorage.removeItem('riceflow-checkout-context');
         if (pendingNavigationUrl) {
           window.location.href = pendingNavigationUrl;
         }
@@ -911,6 +993,9 @@
 
       // Browser event handler for leaving tab or reloading
       window.addEventListener('beforeunload', (e) => {
+        if (document.activeElement && (document.activeElement.id === 'payment-guide-info-link' || (document.activeElement.getAttribute && String(document.activeElement.getAttribute('href') || '').startsWith('payment-guide.html')))) {
+          return;
+        }
         if (hasUnsavedChanges()) {
           e.preventDefault();
           e.returnValue = 'You have unsaved changes. Are you sure you want to leave?';

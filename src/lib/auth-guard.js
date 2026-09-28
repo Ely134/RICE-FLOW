@@ -87,21 +87,40 @@ export async function fetchAuthoritativeAdminRecord(firebaseUid, email) {
   }
 
   try {
-    // 1. Direct document lookup by Firebase UID
-    if (cleanUid) {
+    // 1. Direct document lookups by known IDs: cached admin document ID and Firebase UID
+    const candidateDocIds = [];
+    try {
+      const cachedAdmin = JSON.parse(localStorage.getItem('aurora-admin-user') || '{}');
+      if (cachedAdmin && cachedAdmin.id && typeof cachedAdmin.id === 'string') {
+        const cId = cachedAdmin.id.trim();
+        if (cId && !candidateDocIds.includes(cId)) candidateDocIds.push(cId);
+      }
+    } catch (_) {}
+
+    if (cleanUid && !candidateDocIds.includes(cleanUid)) {
+      candidateDocIds.push(cleanUid);
+    }
+
+    for (const cDocId of candidateDocIds) {
       try {
-        const directDocRef = doc(db, 'adminUsers', cleanUid);
+        const directDocRef = doc(db, 'adminUsers', cDocId);
         const directSnap = await getDoc(directDocRef);
         if (directSnap.exists()) {
           const data = directSnap.data();
           if (data) {
-            const role = data.role === 'admin' ? 'admin' : (data.role === 'staff' ? 'staff' : 'none');
-            return {
-              exists: true,
-              isArchived: data.isArchived === true,
-              role,
-              data: { id: directSnap.id, ...data }
-            };
+            const dUid = String(data.firebaseUid || directSnap.id || '').trim();
+            const dEmail = String(data.email || '').toLowerCase().trim();
+            const matchesUid = cleanUid && dUid === cleanUid;
+            const matchesEmail = cleanEmail && dEmail === cleanEmail;
+            if (matchesUid || matchesEmail || cDocId === cleanUid) {
+              const role = data.role === 'admin' ? 'admin' : (data.role === 'staff' ? 'staff' : 'none');
+              return {
+                exists: true,
+                isArchived: data.isArchived === true,
+                role,
+                data: { id: directSnap.id, ...data }
+              };
+            }
           }
         }
       } catch (err) {
@@ -109,7 +128,7 @@ export async function fetchAuthoritativeAdminRecord(firebaseUid, email) {
       }
     }
 
-    // 2. Scan adminUsers collection for matching UID or email
+    // 2. Scan adminUsers collection for matching UID or email (fallback)
     try {
       const colRef = collection(db, 'adminUsers');
       const snapshot = await getDocs(colRef);
@@ -214,6 +233,80 @@ export async function checkAdminAuth({ requiredRole = 'any' } = {}) {
  */
 export async function protectAdminPage({ requiredRole = 'any' } = {}) {
   const p = getGuardPathPrefix();
+
+  // Fast-path: Check for an established local admin session
+  let localSession = null;
+  let hasValidLocalSession = false;
+  try {
+    const isLoggedIn = localStorage.getItem('aurora-admin-logged-in') === 'true';
+    const raw = localStorage.getItem('aurora-admin-user');
+    if (isLoggedIn && raw) {
+      localSession = JSON.parse(raw);
+      if (localSession && (localSession.role === 'admin' || localSession.role === 'staff') && !localSession.isArchived) {
+        if (requiredRole === 'admin' && localSession.role !== 'admin') {
+          try {
+            sessionStorage.setItem('admin-toast-message', 'Access denied: System administrator clearance is required.');
+          } catch (_) {}
+          window.location.replace(p + 'admin/dashboard.html');
+          return { ok: false, reason: 'requires_admin_role' };
+        }
+        hasValidLocalSession = true;
+      }
+    }
+  } catch (_) {}
+
+  // If already established and role matches, reveal UI immediately so page renders without delay
+  if (hasValidLocalSession) {
+    revealProtectedPage();
+
+    // Authoritative remote verification runs in background to prevent tampering or revoked accounts
+    checkAdminAuth({ requiredRole }).then(result => {
+      if (!result.ok) {
+        if (result.reason === 'archived' && auth && typeof signOut === 'function') {
+          signOut(auth).catch(() => {});
+        }
+        localStorage.removeItem('aurora-admin-user');
+        localStorage.setItem('aurora-admin-logged-in', 'false');
+        if (result.reason === 'archived') {
+          sessionStorage.setItem('login-message', 'Your administrator/staff account has been archived. Access is blocked.');
+          window.location.replace(p + 'login.html');
+        } else if (result.reason === 'not_admin_or_staff') {
+          sessionStorage.setItem('login-message', 'Access denied. You do not have permission to access the administrative portal.');
+          window.location.replace(p + 'index.html');
+        } else if (result.reason === 'requires_admin_role') {
+          sessionStorage.setItem('admin-toast-message', 'Access denied: System administrator clearance is required.');
+          window.location.replace(p + 'admin/dashboard.html');
+        } else {
+          sessionStorage.setItem('login-message', 'Please log in with your administrative account to access this page.');
+          window.location.replace(p + 'login.html');
+        }
+      } else {
+        const adminSession = {
+          id: result.user.id || auth?.currentUser?.uid || localSession.id,
+          firebaseUid: auth?.currentUser?.uid || localSession.firebaseUid,
+          email: (result.user.email || auth?.currentUser?.email || localSession.email || '').toLowerCase().trim(),
+          name: result.user.name || (result.role === 'admin' ? 'Administrator' : 'Staff Member'),
+          role: result.role,
+          status: result.user.status || 'Active',
+          isArchived: false,
+          phone: result.user.phone || '',
+          avatar: result.user.avatar || ''
+        };
+        localStorage.setItem('aurora-admin-user', JSON.stringify(adminSession));
+        localStorage.setItem('aurora-admin-logged-in', 'true');
+      }
+    }).catch(err => {
+      console.warn('[AUTH GUARD] Background admin verification notice:', err);
+    });
+
+    return {
+      ok: true,
+      role: localSession.role,
+      user: { id: localSession.id || localSession.firebaseUid, ...localSession }
+    };
+  }
+
+  // Otherwise (no established local session), wait for authoritative verification before revealing page
   const result = await checkAdminAuth({ requiredRole });
 
   if (!result.ok) {
@@ -370,6 +463,62 @@ export async function checkCustomerAuth() {
  */
 export async function protectCustomerPage() {
   const p = getGuardPathPrefix();
+
+  // Fast-path: Check for an established local customer session
+  let localUser = null;
+  let hasValidLocalCustomerSession = false;
+  try {
+    const isLoggedIn = localStorage.getItem('aurora-logged-in') === 'true';
+    const raw = localStorage.getItem('aurora-user');
+    if (isLoggedIn && raw) {
+      localUser = JSON.parse(raw);
+      if (localUser && (localUser.email || localUser.id) && !localUser.isArchived) {
+        hasValidLocalCustomerSession = true;
+      }
+    }
+  } catch (_) {}
+
+  // If established customer session exists, reveal UI immediately so page renders without delay
+  if (hasValidLocalCustomerSession) {
+    revealProtectedPage();
+
+    // Authoritative remote verification proceeds in background
+    checkCustomerAuth().then(result => {
+      if (!result.ok) {
+        if (result.reason === 'archived' && auth && typeof signOut === 'function') {
+          signOut(auth).catch(() => {});
+        }
+        localStorage.removeItem('aurora-user');
+        localStorage.setItem('aurora-logged-in', 'false');
+        if (result.reason === 'archived') {
+          sessionStorage.setItem('login-message', 'Your account has been archived. Access is blocked.');
+        } else {
+          sessionStorage.setItem('login-message', 'Please log in to your account to continue.');
+          if (!window.location.pathname.includes('profile.html')) {
+            sessionStorage.setItem('login-redirect', window.location.href);
+          }
+        }
+        window.location.replace(p + 'login.html');
+      } else {
+        const activeUser = {
+          ...result.user,
+          firebaseUid: auth?.currentUser?.uid || localUser.firebaseUid,
+          email: (result.user.email || auth?.currentUser?.email || localUser.email || '').toLowerCase().trim()
+        };
+        localStorage.setItem('aurora-user', JSON.stringify(activeUser));
+        localStorage.setItem('aurora-logged-in', 'true');
+      }
+    }).catch(err => {
+      console.warn('[AUTH GUARD] Background customer verification notice:', err);
+    });
+
+    return {
+      ok: true,
+      user: localUser
+    };
+  }
+
+  // Otherwise (no established local session), wait for authoritative verification before revealing page
   const result = await checkCustomerAuth();
 
   if (!result.ok) {
@@ -379,7 +528,9 @@ export async function protectCustomerPage() {
       localStorage.setItem('aurora-logged-in', 'false');
       try {
         sessionStorage.setItem('login-message', 'Please log in to your account to continue.');
-        sessionStorage.setItem('login-redirect', window.location.href);
+        if (!window.location.pathname.includes('profile.html')) {
+          sessionStorage.setItem('login-redirect', window.location.href);
+        }
       } catch (_) {}
       window.location.replace(p + 'login.html');
       return { ok: false, reason: 'unauthenticated' };

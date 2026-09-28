@@ -1187,7 +1187,7 @@
         pendingFinalizeOrderId = null;
       };
 
-      document.getElementById('btn-finalize-order-commit').onclick = () => {
+      document.getElementById('btn-finalize-order-commit').onclick = async () => {
         if (!pendingFinalizeOrderId) return;
         const targetId = pendingFinalizeOrderId;
         const ordersList = getAllOrders();
@@ -1210,7 +1210,13 @@
             note: '✔ Transaction finalized after customer confirmation and payment verification.'
           });
 
-          saveOrders(ordersList);
+          ordersList[targetIndex] = order;
+          saveOrders(ordersList, { colName: 'orders', docId: order.id, docData: order });
+          try {
+            await saveFirestoreDoc('orders', order.id, order);
+          } catch (e) {
+            console.warn('[FIREBASE] Direct finalize order write warning:', e);
+          }
 
           addActivityLog(
             'Order Finalized',
@@ -1238,7 +1244,7 @@
         }
       };
 
-      document.getElementById('btn-accept-confirm-commit').onclick = () => {
+      document.getElementById('btn-accept-confirm-commit').onclick = async () => {
         if (!pendingAcceptOrderId) return;
         const ordersList = getAllOrders();
         const idx = ordersList.findIndex(o => o.id === pendingAcceptOrderId);
@@ -1260,6 +1266,9 @@
           order.status = isRes ? 'pre-order' : 'processing';
           order.staffName = changerName;
           order.assignedStaff = changerName;
+          order.verifiedBy = changerName;
+          order.verifiedDate = now.toLocaleDateString();
+          order.verifiedTime = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
           if (isRes) {
             order.queuePosition = getReservationQueuePosition(order, ordersList) || order.queuePosition || 1;
           }
@@ -1276,7 +1285,20 @@
           order.statusHistory = [...(order.statusHistory || []), historyItem];
 
           ordersList[idx] = order;
-          saveOrders(ordersList);
+          saveOrders(ordersList, { colName: 'orders', docId: order.id, docData: order });
+          try {
+            await saveFirestoreDoc('orders', order.id, order);
+          } catch (e) {
+            console.warn('[FIREBASE] Direct order approval Firestore write warning:', e);
+          }
+
+          if (order.createdReservation && order.createdReservation.id) {
+            try {
+              await saveFirestoreDoc('orders', order.createdReservation.id, order.createdReservation);
+            } catch (resErr) {
+              console.warn('[FIREBASE] Error saving split reservation doc:', resErr);
+            }
+          }
 
           // 1. Send "💳 Payment Verified" notification to customer
           addNotification(
@@ -1342,18 +1364,24 @@
 
           order.paymentVerified = false;
           order.paymentRejected = true;
+          order.hasCorrectedProof = false;
+          order.paymentReuploadedAt = null;
+          order.autoCancelledDueToRejectionDeadline = false;
           order.status = 'to-pay'; // Set to 'to-pay' so customer can re-upload
           order.paymentStatus = 'rejected';
           order.staffName = changerName;
           order.assignedStaff = changerName;
           order.cancellationDate = null;
           order.cancelledBy = null;
+          order.cancelledAt = null;
+          order.cancellationReason = null;
           order.paymentRejectionReason = selectedReason;
           order.paymentRejectionExplanation = explanation;
           order.paymentRejectionDetails = explanation ? `${selectedReason} - ${explanation}` : selectedReason;
           order.paymentRejectedAt = now.toISOString();
           order.reuploadRequestedAt = now.toISOString();
           order.reuploadDeadline = deadlineIso;
+          order.updatedAt = now.toISOString();
 
           const historyItem = {
             id: 'hist-reject-' + Date.now(),
@@ -1364,15 +1392,15 @@
           };
           order.statusHistory = [...(order.statusHistory || []), historyItem];
 
-          // Save to Firestore and local storage
+          // Save to local storage and register pending write first, then persist to Firestore
           const docId = String(order.id);
+          ordersList[idx] = order;
+          saveOrders(ordersList, { colName: 'orders', docId, docData: order });
           try {
             await saveFirestoreDoc('orders', docId, order);
           } catch (err) {
             console.error('[REJECT PAYMENT] Firestore save error:', err);
           }
-          ordersList[idx] = order;
-          saveOrders(ordersList, { colName: 'orders', docId, docData: order });
 
           // Send "⚠ Payment Proof Needs Correction" notification to customer with full details
           const reasonMsg = explanation ? `${selectedReason} (Note: ${explanation})` : selectedReason;
@@ -1489,7 +1517,7 @@
         if (statusFilter === 'all') {
           filtered = orders;
         } else if (statusFilter === 'to-pay') {
-          filtered = orders.filter(o => o.status === 'to-pay' || o.status === 'pending_verification' || o.status === 'payment_verification');
+          filtered = orders.filter(o => o.status === 'to-pay' || o.status === 'pending_verification' || o.status === 'payment_verification' || (o.paymentRejected && o.status !== 'cancelled' && o.status !== 'completed'));
         } else if (statusFilter === 'processing') {
           filtered = orders.filter(o => o.status === 'processing');
         } else if (statusFilter === 'to-ship') {
@@ -1835,7 +1863,39 @@
                       } else if (order.status === 'completed') {
                         statusBadge = `<span class="${bClass} bg-green-800 text-white border border-green-900">Completed</span>`;
                       } else if (order.status === 'cancelled') {
-                        statusBadge = `<span class="${bClass} bg-red-100 text-red-900 border border-red-300">Cancelled</span>`;
+                        const rawRefundStatus = order.refundStatus ? String(order.refundStatus).trim() : '';
+                        const refundDisplayMap = {
+                          'No Refund Needed': 'No Refund Needed',
+                          'Refund Required': 'Refund Required',
+                          'Refund Information Needed': 'Waiting for Payment Details',
+                          'Refund Information Submitted': 'Refund Details Submitted',
+                          'Refund Processing': 'Refund Processing',
+                          'Refunded': 'Refunded'
+                        };
+
+                        const displayRefundLabel = rawRefundStatus ? (refundDisplayMap[rawRefundStatus] || '') : '';
+
+                        if (displayRefundLabel) {
+                          let refundBadgeStyle = 'bg-gray-100 text-gray-800 border-gray-300 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700';
+                          if (rawRefundStatus === 'Refund Information Needed' || rawRefundStatus === 'Refund Required') {
+                            refundBadgeStyle = 'bg-amber-100 text-amber-900 border-amber-300 dark:bg-amber-950/70 dark:text-amber-200 dark:border-amber-700';
+                          } else if (rawRefundStatus === 'Refund Information Submitted' || rawRefundStatus === 'Refund Processing') {
+                            refundBadgeStyle = 'bg-blue-100 text-blue-900 border-blue-300 dark:bg-blue-950/70 dark:text-blue-200 dark:border-blue-700';
+                          } else if (rawRefundStatus === 'Refunded') {
+                            refundBadgeStyle = 'bg-emerald-100 text-emerald-900 border-emerald-300 dark:bg-emerald-950/70 dark:text-emerald-200 dark:border-emerald-700';
+                          } else if (rawRefundStatus === 'No Refund Needed') {
+                            refundBadgeStyle = 'bg-gray-100 text-gray-800 border-gray-300 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700';
+                          }
+
+                          statusBadge = `
+                            <span class="${bClass} bg-red-100 text-red-900 border border-red-300">Cancelled</span>
+                            <span class="inline-flex items-center justify-center px-3 py-1 rounded-md text-[13px] font-bold border tracking-normal shadow-xs ${refundBadgeStyle} text-center leading-tight">
+                              ${displayRefundLabel}
+                            </span>
+                          `;
+                        } else {
+                          statusBadge = `<span class="${bClass} bg-red-100 text-red-900 border border-red-300">Cancelled</span>`;
+                        }
                       } else if (order.status === 'issue-reported') {
                         const subStatus = order.reportedIssue?.status || 'pending-review';
                         if (subStatus === 'pending-review') {

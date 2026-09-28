@@ -22,11 +22,25 @@ import {
   fetchCustomerProfileFromFirestore,
   saveCustomerProfileToFirestore,
   auth,
-  storage 
+  storage,
+  isStaleOrderOrReservation,
+  isStaleInventoryHistory,
+  isStaleNotification,
+  isStaleProduct,
+  isStaleCustomer,
+  isStaleUser,
+  isOrdersHydrated,
+  RESET_TIMESTAMP_BOUNDARY,
+  CONFIRMED_STALE_ORDER_IDS,
+  CONFIRMED_STALE_RESERVATION_IDS,
+  registerPendingOrderWrite,
+  unregisterPendingOrderWrite,
+  syncOrdersFromFirestore
 } from '../lib/firebase.js';
 
 export { 
   saveFirestoreDoc,
+  initFirestoreSync,
   createStaffAuthAccount, 
   sendFirebasePhoneVerification, 
   verifyAndLinkPhoneCredential, 
@@ -39,7 +53,13 @@ export {
   checkCustomerArchivedInFirestore,
   fetchCustomerProfileFromFirestore,
   saveCustomerProfileToFirestore,
-  storage
+  storage,
+  isStaleCustomer,
+  isStaleUser,
+  isOrdersHydrated,
+  registerPendingOrderWrite,
+  unregisterPendingOrderWrite,
+  syncOrdersFromFirestore
 };
 import {
   waitForAuthState,
@@ -195,38 +215,8 @@ export function performEmergencyStorageCleanup() {
       }
     }
 
-    // 4. Trim activity logs to 50
-    const rawLogs = localStorage.getItem('aurora-activity-logs');
-    if (rawLogs) {
-      try {
-        const logs = JSON.parse(rawLogs);
-        if (Array.isArray(logs) && logs.length > 50) {
-          localStorage.setItem('aurora-activity-logs', JSON.stringify(logs.slice(-50)));
-        }
-      } catch (err) {}
-    }
-
-    // 5. Trim notifications to 50
-    const rawNotifs = localStorage.getItem('aurora-notifications');
-    if (rawNotifs) {
-      try {
-        const notifs = JSON.parse(rawNotifs);
-        if (Array.isArray(notifs) && notifs.length > 50) {
-          localStorage.setItem('aurora-notifications', JSON.stringify(notifs.slice(-50)));
-        }
-      } catch (err) {}
-    }
-
-    // 6. Trim inventory history to 50
-    const rawInv = localStorage.getItem('aurora-inventory-history');
-    if (rawInv) {
-      try {
-        const inv = JSON.parse(rawInv);
-        if (Array.isArray(inv) && inv.length > 50) {
-          localStorage.setItem('aurora-inventory-history', JSON.stringify(inv.slice(-50)));
-        }
-      } catch (err) {}
-    }
+    // 4. Clean non-essential scratch keys if needed
+    // Business records (orders, customers, products, inventory history, notifications, activity logs) are NEVER trimmed or deleted to solve storage pressure!
   } catch (err) {
     console.warn('[STORAGE] performEmergencyStorageCleanup error:', err);
   }
@@ -266,10 +256,6 @@ export function sanitizeStoragePayload(key, value) {
             o.qrProof = '';
           }
         });
-      } else if (key === 'aurora-activity-logs' || key === 'aurora-notifications' || key === 'aurora-inventory-history') {
-        if (parsed.length > 100) {
-          return JSON.stringify(parsed.slice(-100));
-        }
       }
       return JSON.stringify(parsed);
     } else if (parsed && typeof parsed === 'object') {
@@ -810,6 +796,7 @@ function scrubFakeData() {
     let users = JSON.parse(localStorage.getItem('aurora-users') || '[]');
     users = users.filter(u => {
       if (!u) return false;
+      if (isStaleUser(u)) return false;
       const uid = String(u.id || '');
       const username = String(u.username || '').toLowerCase();
       const email = String(u.email || '').toLowerCase().trim();
@@ -827,33 +814,22 @@ function scrubFakeData() {
     });
     localStorage.setItem('aurora-users', JSON.stringify(users));
 
-    // 2. Clean Orders & Reservations (Remove ONLY fake/seeded orders and reservations)
+    // 2. Clean Orders & Reservations (Remove ONLY fake/seeded or pre-reset stale orders and reservations)
     let orders = JSON.parse(localStorage.getItem('aurora-orders') || '[]');
-    const seededProofNames = [
-      'seed_gcash_receipt.png', 'gcash_seed_proof.png', 'gcash_receipt_maria.png',
-      'receipt_juan_full.png', 'cardo_downpayment.png', 'leni_full_gcash.jpg',
-      'gloria_receipt.png', 'marcos_full_payment.png', 'duterte_fake_proof.png'
-    ];
-    orders = orders.filter(o => {
+    orders = (Array.isArray(orders) ? orders : []).filter(o => {
       if (!o) return false;
-      const oid = String(o.id || '');
-      const email = String(o.customerEmail || o.email || '').toLowerCase().trim();
-      const proof = String(o.paymentProof || '');
-
-      if (/^res-10[1-7]$/.test(oid) && (o.isSeeded || o.isFake || email.includes('customer') || seededProofNames.includes(proof))) return false;
-      if (/^customer\d+@gmail\.com$/.test(email)) return false;
-      if (seededProofNames.includes(proof)) return false;
-
+      if (isStaleOrderOrReservation(o)) return false;
       return true;
     });
     localStorage.setItem('aurora-orders', JSON.stringify(orders));
 
-    // 3. Clean Inventory History (Remove seeded inventory logs)
+    // 3. Clean Inventory History (Remove seeded or stale pre-reset inventory logs)
     let inventoryHistory = JSON.parse(localStorage.getItem('aurora-inventory-history') || '[]');
-    inventoryHistory = inventoryHistory.filter(h => {
+    inventoryHistory = (Array.isArray(inventoryHistory) ? inventoryHistory : []).filter(h => {
       if (!h) return false;
       const hid = String(h.id || '');
       if (hid.startsWith('inv-seed-')) return false;
+      if (isStaleInventoryHistory(h)) return false;
       return true;
     });
     localStorage.setItem('aurora-inventory-history', JSON.stringify(inventoryHistory));
@@ -862,6 +838,7 @@ function scrubFakeData() {
     let customers = JSON.parse(localStorage.getItem('aurora-customers') || '[]');
     customers = customers.filter(c => {
       if (!c) return false;
+      if (isStaleCustomer(c)) return false;
       const cid = String(c.id || c.customerId || '');
       const email = String(c.email || '').toLowerCase().trim();
       const name = String(c.name || c.fullName || '').trim();
@@ -888,19 +865,34 @@ function scrubFakeData() {
     });
     localStorage.setItem('aurora-reviews', JSON.stringify(reviews));
 
+    // 6. Clean Products (Remove stale legacy prototype products and invalid records)
+    let prods = JSON.parse(localStorage.getItem('aurora-products') || '[]');
+    const staleProductIds = new Set(['p1', 'prod-1', 'test_probe', 'test-prod-999', 'test-prod-jasmine']);
+    prods = prods.filter(p => p && p.name && !staleProductIds.has(String(p.id)) && !isStaleProduct(p));
+    localStorage.setItem('aurora-products', JSON.stringify(prods));
+
+    // 7. Clean Notifications (Remove confirmed stale test notifications)
+    let notifs = JSON.parse(localStorage.getItem('aurora-notifications') || '[]');
+    notifs = (Array.isArray(notifs) ? notifs : []).filter(n => {
+      if (!n) return false;
+      if (isStaleNotification(n)) return false;
+      return true;
+    });
+    localStorage.setItem('aurora-notifications', JSON.stringify(notifs));
+
     // Remove legacy seed flags
     localStorage.removeItem('aurora-users-seeded');
     localStorage.removeItem('aurora-orders-seeded');
     localStorage.removeItem('aurora-inventory-seeded');
 
-    // Recalculate stock allocations and reservation queue positions based ONLY on remaining legitimate orders
-    if (typeof allocateStockToReservations === 'function') {
-      allocateStockToReservations();
-    }
-
-    // Safely reconcile any missing physical stock deduction audit entries
-    if (typeof reconcileMissingOrderInventoryHistory === 'function') {
-      reconcileMissingOrderInventoryHistory();
+    // Only run reservation stock allocation and inventory history reconciliation AFTER Firestore orders have been hydrated
+    if (isOrdersHydrated()) {
+      if (typeof allocateStockToReservations === 'function') {
+        allocateStockToReservations();
+      }
+      if (typeof reconcileMissingOrderInventoryHistory === 'function') {
+        reconcileMissingOrderInventoryHistory();
+      }
     }
   } catch (err) {
     console.error('Error scrubbing fake seed data:', err);
@@ -989,7 +981,8 @@ export function matchesProductVariety(refA, refB, allProducts = []) {
 }
 
 export function getInventoryHistory() {
-  return JSON.parse(localStorage.getItem('aurora-inventory-history') || '[]');
+  const parsed = JSON.parse(localStorage.getItem('aurora-inventory-history') || '[]');
+  return (Array.isArray(parsed) ? parsed : []).filter(h => !isStaleInventoryHistory(h));
 }
 
 export function saveInventoryHistory(history, targetDocInfo = null) {
@@ -1010,8 +1003,15 @@ export function addInventoryHistory(entry, bypassRoleCheck = false) {
   const history = getInventoryHistory();
   const allProducts = typeof getProducts === 'function' ? getProducts() : [];
   const now = new Date();
-  const dateStr = entry.date || now.toISOString().split('T')[0];
-  const timeStr = entry.time || now.toTimeString().split(' ')[0].slice(0, 5);
+  const dateStr = entry.date || [
+    now.getFullYear(),
+    String(now.getMonth() + 1).padStart(2, '0'),
+    String(now.getDate()).padStart(2, '0')
+  ].join('-');
+  const timeStr = entry.time || [
+    String(now.getHours()).padStart(2, '0'),
+    String(now.getMinutes()).padStart(2, '0')
+  ].join(':');
 
   let pId = entry.productId;
   let pName = entry.productName;
@@ -1054,43 +1054,72 @@ export function addInventoryHistory(entry, bypassRoleCheck = false) {
 
 export function reconcileMissingOrderInventoryHistory() {
   try {
-    const orders = getOrders();
+    // Never backfill inventory history before authoritative orders have been hydrated from Firestore
+    if (!isOrdersHydrated()) return;
+
+    const orders = getOrders().filter(o => !isStaleOrderOrReservation(o));
     const history = getInventoryHistory();
     let historyChanged = false;
 
     orders.forEach(order => {
-      if (!order || !order.id) return;
+      if (!order || !order.id || isStaleOrderOrReservation(order)) return;
       // Reservations never physically deduct stock upon placement
       const isRes = Boolean(order.isPreOrder || (order.id && String(order.id).toLowerCase().startsWith('res-')));
       if (isRes) return;
 
-      // Only check orders that physically deducted warehouse stock
-      const hasDeducted = order.stockDeducted === true || String(order.stockDeducted) === 'true' || Number(order.consumedFromStock || 0) > 0;
+      // Never fabricate negative stock deductions for cancelled or rejected orders
+      const cleanStatus = String(order.status || '').toLowerCase().replace(/_/g, '-').trim();
+      if (cleanStatus === 'cancelled' || cleanStatus === 'rejected' || order.stockDeducted === false) return;
+
+      // Only check active/completed orders that currently hold deducted warehouse stock
+      const hasDeducted = order.stockDeducted === true || String(order.stockDeducted) === 'true';
       if (!hasDeducted) return;
 
-      // Check if a negative stock movement already exists for this order
       const orderIdStr = String(order.id).trim();
-      const existingDeduction = history.find(h => {
-        if (!h) return false;
-        const remarks = String(h.remarks || '');
-        const qty = Number(h.quantityAdded || 0);
-        return qty < 0 && (remarks.includes(`#${orderIdStr}`) || remarks.includes(orderIdStr));
-      });
+      const items = Array.isArray(order.items) ? order.items : [];
+      if (items.length === 0) return;
 
-      if (!existingDeduction) {
-        const item = (order.items && order.items[0]) || {};
-        const pId = item.product?.id || item.productId || '';
+      const createdAtDate = order.createdAt ? new Date(order.createdAt) : new Date();
+      const validCreatedDate = !isNaN(createdAtDate.getTime()) ? createdAtDate : new Date();
+      const dateStr = [
+        validCreatedDate.getFullYear(),
+        String(validCreatedDate.getMonth() + 1).padStart(2, '0'),
+        String(validCreatedDate.getDate()).padStart(2, '0')
+      ].join('-');
+      const timeStr = [
+        String(validCreatedDate.getHours()).padStart(2, '0'),
+        String(validCreatedDate.getMinutes()).padStart(2, '0')
+      ].join(':');
+      const isPartial = Boolean(order.partialApprovedQty || order.createdReservation || order.linkedReservationId);
+
+      items.forEach((item, itemIdx) => {
+        if (item.isReservation) return;
+        const pId = String(item.product?.id || item.productId || item.id || '').trim();
         const pName = item.product?.name || item.name || 'Rice Variety';
-        const qtyDeducted = Number(order.consumedFromStock || order.partialApprovedQty || item.quantity || 0);
+        const qtyDeducted = Number(item.quantity || 0);
 
         if (qtyDeducted > 0) {
-          const createdAtDate = order.createdAt ? new Date(order.createdAt) : new Date();
-          const dateStr = !isNaN(createdAtDate.getTime()) ? createdAtDate.toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
-          const timeStr = !isNaN(createdAtDate.getTime()) ? createdAtDate.toTimeString().split(' ')[0].slice(0, 5) : '12:00';
-          const isPartial = Boolean(order.partialApprovedQty || order.createdReservation || order.linkedReservationId);
+          // Check if a negative stock movement already exists for this order and item
+          const alreadyRecorded = history.some(h => {
+            if (!h) return false;
+            const remarks = String(h.remarks || '');
+            const qty = Number(h.quantityAdded || 0);
+            const matchesOrder = qty < 0 && (remarks.includes(`#${orderIdStr}`) || remarks.includes(orderIdStr));
+            if (!matchesOrder) return false;
+            if (items.length > 1) {
+              const hPid = String(h.productId || '').trim();
+              const hPname = String(h.productName || '').trim();
+              const matchesProd = (pId && hPid === pId) || (pName && hPname === pName) || remarks.includes(pName);
+              const matchesIdx = String(h.id || '').includes(`-${orderIdStr.toLowerCase()}-${itemIdx}`);
+              return matchesProd || matchesIdx;
+            }
+            return true;
+          });
+
+          if (alreadyRecorded) return;
 
           const backfillEntry = {
-            id: `inv-${createdAtDate.getTime() || Date.now()}-${orderIdStr.toLowerCase()}`,
+            id: `inv-${createdAtDate.getTime() || Date.now()}-${orderIdStr.toLowerCase()}${items.length > 1 ? `-${itemIdx}` : ''}`,
             productId: String(pId),
             productName: pName,
             quantityAdded: -qtyDeducted,
@@ -1101,6 +1130,8 @@ export function reconcileMissingOrderInventoryHistory() {
             remarks: isPartial ? `Order placed (partial split): #${orderIdStr}` : `Order placed: #${orderIdStr}`
           };
 
+          if (isStaleInventoryHistory(backfillEntry)) return;
+
           history.push(backfillEntry);
           historyChanged = true;
           try {
@@ -1109,7 +1140,7 @@ export function reconcileMissingOrderInventoryHistory() {
             console.warn('[INVENTORY] Firestore save error during backfill:', e);
           }
         }
-      }
+      });
     });
 
     if (historyChanged) {
@@ -1226,7 +1257,7 @@ export function getProducts() {
     );
 
     if (Array.isArray(storedProducts)) {
-      list = storedProducts;
+      list = storedProducts.filter(p => p && p.name && !isStaleProduct(p));
     }
   } catch (error) {
     console.warn('[PRODUCTS] Invalid product data in localStorage. Restoring catalog.', error);
@@ -1248,7 +1279,7 @@ export function getProducts() {
   
   let orders = [];
   try {
-    orders = JSON.parse(localStorage.getItem('aurora-orders') || '[]');
+    orders = (JSON.parse(localStorage.getItem('aurora-orders') || '[]') || []).filter(o => !isStaleOrderOrReservation(o));
   } catch (e) {
     orders = [];
   }
@@ -1350,7 +1381,7 @@ export function getProducts() {
   });
 }
 
-export function saveProducts(products, bypassRoleCheck = false) {
+export function saveProducts(products, bypassRoleCheck = false, targetDocInfo = null) {
   if (!bypassRoleCheck) {
     const admin = getCurrentAdmin();
     if (!admin || admin.role !== 'admin') {
@@ -1365,7 +1396,39 @@ export function saveProducts(products, bypassRoleCheck = false) {
       stock: finalStock // persist physical stock
     };
   });
-  setItemAndSync('aurora-products', JSON.stringify(cleanList));
+
+  // Targeted Firestore persistence for single modified or added product
+  if (targetDocInfo && (targetDocInfo.docId || targetDocInfo.id)) {
+    const docId = String(targetDocInfo.docId || targetDocInfo.id);
+    const docData = targetDocInfo.docData || targetDocInfo.data;
+    if (docData && typeof saveFirestoreDoc === 'function') {
+      saveFirestoreDoc('products', docId, docData).catch(err => {
+        console.warn(`[FIREBASE] Failed targeted stock persist for product ${docId}:`, err);
+      });
+    }
+  } else if (Array.isArray(cleanList) && typeof saveFirestoreDoc === 'function') {
+    // Auto-detect changed products to write targeted documents without bulk collection dumping
+    try {
+      const prevProds = JSON.parse(localStorage.getItem('aurora-products') || '[]');
+      const prevMap = new Map();
+      prevProds.forEach(p => { if (p && p.id) prevMap.set(String(p.id), JSON.stringify(p)); });
+
+      cleanList.forEach(p => {
+        if (!p || !p.id || isStaleProduct(p)) return;
+        const prevJson = prevMap.get(String(p.id));
+        const currentJson = JSON.stringify(p);
+        if (!prevJson || prevJson !== currentJson) {
+          saveFirestoreDoc('products', p.id, p).catch(err => {
+            console.warn(`[FIREBASE] Auto-detected product persist warning for ${p.id}:`, err);
+          });
+        }
+      });
+    } catch (diffErr) {
+      console.warn('[FIREBASE] Error auto-diffing products in saveProducts:', diffErr);
+    }
+  }
+
+  setItemAndSync('aurora-products', JSON.stringify(cleanList), targetDocInfo);
 
   // Trigger Low/Out of Stock notifications safely
   try {
@@ -1508,28 +1571,39 @@ export function isCustomerOrderOwner(order, user) {
   if (!u) return false;
 
   const uId = String(u.id || u.customerId || u.uid || '').trim();
-  const uEmail = String(u.email || '').trim().toLowerCase();
+  const uFbUid = String(u.firebaseUid || (typeof auth !== 'undefined' && auth?.currentUser?.uid) || '').trim();
+  const uEmail = String(u.email || (typeof auth !== 'undefined' && auth?.currentUser?.email) || '').trim().toLowerCase();
 
   const oUserId = String(order.userId || '').trim();
   const oCustomerId = String(order.customerId || '').trim();
+  const oFbUid = String(order.firebaseUid || '').trim();
   const oCustomerEmail = String(order.customerEmail || '').trim().toLowerCase();
+  const oUserEmail = String(order.userEmail || '').trim().toLowerCase();
   const oOwnerEmail = String(order.ownerEmail || '').trim().toLowerCase();
   const oEmail = String(order.email || '').trim().toLowerCase();
 
-  // 1. Current user ID matches order.userId
+  // 1. Current user ID matches order.userId or order.customerId
   if (uId && oUserId && uId === oUserId) return true;
-
-  // 2. Current user ID matches order.customerId
   if (uId && oCustomerId && uId === oCustomerId) return true;
 
-  // 3. Current user email matches order.customerEmail
-  if (uEmail && oCustomerEmail && uEmail === oCustomerEmail) return true;
+  // 2. Firebase Auth UID matching
+  if (uFbUid && oFbUid && uFbUid === oFbUid) return true;
+  if (uFbUid && oUserId && (uFbUid === oUserId || `user-${uFbUid}` === oUserId || uFbUid === oUserId.replace(/^user-/, ''))) return true;
+  if (uFbUid && oCustomerId && (uFbUid === oCustomerId || `user-${uFbUid}` === oCustomerId || uFbUid === oCustomerId.replace(/^user-/, ''))) return true;
+  if (uId && oFbUid && (uId === oFbUid || uId.replace(/^user-/, '') === oFbUid || `user-${oFbUid}` === uId)) return true;
 
-  // 4. Current user email matches order.ownerEmail
-  if (uEmail && oOwnerEmail && uEmail === oOwnerEmail) return true;
+  // 3. ID prefix normalization match (e.g. user-XXXX vs XXXX)
+  if (uId && oUserId && uId.replace(/^user-/, '') === oUserId.replace(/^user-/, '')) return true;
+  if (uId && oCustomerId && uId.replace(/^user-/, '') === oCustomerId.replace(/^user-/, '')) return true;
 
-  // Safe fallback if order stored customer email in order.email
-  if (uEmail && oEmail && uEmail === oEmail) return true;
+  // 4. Storage path containing authenticated Firebase UID
+  if (uFbUid && order.storagePath && typeof order.storagePath === 'string' && order.storagePath.includes(`/${uFbUid}/`)) {
+    return true;
+  }
+
+  // 5. Customer email matching (customerEmail / userEmail / ownerEmail / email)
+  const oEmails = [oCustomerEmail, oUserEmail, oOwnerEmail, oEmail].filter(Boolean);
+  if (uEmail && oEmails.includes(uEmail)) return true;
 
   return false;
 }
@@ -2356,6 +2430,75 @@ export async function registerUser(userData) {
   // Instantly synchronize with customer ledger
   syncUsersAndCustomers();
 
+  // Persist newly generated customer record directly to Firestore customers collection
+  try {
+    const allCustomers = JSON.parse(localStorage.getItem('aurora-customers') || '[]');
+    const cleanEmail = String(email || '').trim().toLowerCase();
+    const matchedCustomer = allCustomers.find(c => {
+      if (!c) return false;
+      const cid = String(c.id || c.customerId || '').trim();
+      const cUid = String(c.uid || c.firebaseUid || '').trim();
+      const cEmail = String(c.email || '').trim().toLowerCase();
+      return (cleanEmail && cEmail === cleanEmail) ||
+             (fbUid && (cUid === fbUid || cid === fbUid)) ||
+             (newUser.id && (cid === newUser.id || cUid === newUser.id));
+    });
+
+    let maxCusNum = 0;
+    allCustomers.forEach(cust => {
+      const match = String(cust.customerId || '').match(/^CUS-(\d+)$/);
+      if (match) {
+        const num = parseInt(match[1], 10);
+        if (num > maxCusNum) maxCusNum = num;
+      }
+    });
+    const nextCustomerId = `CUS-${String(maxCusNum + 1).padStart(6, '0')}`;
+
+    const custPayload = matchedCustomer ? {
+      ...matchedCustomer,
+      isVIP: matchedCustomer.isVIP ?? false
+    } : {
+      id: newUser.id,
+      customerId: nextCustomerId,
+      uid: fbUid || newUser.id,
+      firebaseUid: fbUid || null,
+      name: newUser.fullName,
+      fullName: newUser.fullName,
+      email: newUser.email,
+      phone: newUser.phone,
+      phoneE164: newUser.phoneE164,
+      phoneVerified: false,
+      address: newUser.address,
+      shippingAddress: newUser.address,
+      gender: newUser.gender || 'Female',
+      profilePicture: null,
+      totalSpent: 0,
+      status: 'Active',
+      isActive: true,
+      isArchived: false,
+      isVIP: false,
+      recentOrders: [],
+      createdAt: newUser.createdAt,
+      updatedAt: newUser.createdAt
+    };
+
+    const custDocId = custPayload.id || newUser.id;
+    await saveFirestoreDoc('customers', custDocId, custPayload);
+  } catch (custErr) {
+    console.warn('[FIREBASE] Notice saving customer to Firestore:', custErr);
+  }
+
+  // Also persist user document to Firestore users collection
+  try {
+    const userDocId = newUser.id || fbUid;
+    if (userDocId) {
+      await saveFirestoreDoc('users', userDocId, newUser);
+      if (fbUid && fbUid !== userDocId) {
+        saveFirestoreDoc('users', fbUid, newUser).catch(() => {});
+      }
+    }
+  } catch (_) {}
+
   // Set session cache
   localStorage.setItem('aurora-user', JSON.stringify(newUser));
   localStorage.setItem('aurora-logged-in', 'true');
@@ -2381,7 +2524,11 @@ export function updateUserPhoneVerified(userIdOrEmail, phoneInfo) {
     users[userIdx].phoneVerified = true;
     users[userIdx].phoneVerifiedAt = new Date().toISOString();
     updatedUser = users[userIdx];
-    setItemAndSync('aurora-users', JSON.stringify(users));
+    const uDocId = updatedUser.id || updatedUser.firebaseUid || String(userIdOrEmail);
+    setItemAndSync('aurora-users', JSON.stringify(users), { colName: 'users', docId: uDocId, docData: updatedUser });
+    if (typeof saveFirestoreDoc === 'function') {
+      saveFirestoreDoc('users', uDocId, updatedUser).catch(e => console.warn('[FIREBASE] updateUserPhoneVerified write error:', e));
+    }
   }
   
   // Update active session if matching
@@ -2415,6 +2562,7 @@ export function logoutUser() {
   localStorage.setItem('aurora-logged-in', 'false');
   localStorage.removeItem('aurora-admin-user');
   localStorage.setItem('aurora-admin-logged-in', 'false');
+  sessionStorage.removeItem('login-redirect');
   sessionStorage.removeItem('riceflow_customer_active_order_id');
   localStorage.removeItem('riceflow_customer_active_order_id');
   sessionStorage.removeItem('riceflow_customer_active_tab');
@@ -2709,11 +2857,12 @@ export function updateUserFromCustomer(client) {
 export function syncUsersAndCustomers() {
   let rawCustomers = JSON.parse(localStorage.getItem('aurora-customers') || '[]');
   const users = JSON.parse(localStorage.getItem('aurora-users') || '[]');
-  const orders = JSON.parse(localStorage.getItem('aurora-orders') || '[]');
+  const orders = (JSON.parse(localStorage.getItem('aurora-orders') || '[]') || []).filter(o => !isStaleOrderOrReservation(o));
   
-  // 1. Filter out corrupted or dummy template records
+  // 1. Filter out corrupted, dummy, or stale records
   const validRaw = rawCustomers.filter(c => {
     if (!c) return false;
+    if (isStaleCustomer(c)) return false;
     const cid = String(c.id || c.customerId || '');
     const email = String(c.email || '').toLowerCase().trim();
     const name = String(c.name || c.fullName || '').trim();
@@ -2726,18 +2875,25 @@ export function syncUsersAndCustomers() {
   });
 
   // 2. Authoritatively deduplicate customers by UID or Email or ID
-  const custMap = new Map();
+  const deduplicatedCustomers = [];
   validRaw.forEach(c => {
     const uid = String(c.uid || c.firebaseUid || '').trim();
     const email = String(c.email || '').trim().toLowerCase();
     const id = String(c.id || c.customerId || '').trim();
-    const key = (uid ? `uid_${uid}` : '') || (email ? `email_${email}` : '') || id;
-    if (!key) return;
 
-    if (!custMap.has(key)) {
-      custMap.set(key, { ...c });
+    const existingIdx = deduplicatedCustomers.findIndex(existing => {
+      const exUid = String(existing.uid || existing.firebaseUid || '').trim();
+      const exEmail = String(existing.email || '').trim().toLowerCase();
+      const exId = String(existing.id || existing.customerId || '').trim();
+      return (uid && exUid && uid === exUid) ||
+             (email && exEmail && email === exEmail) ||
+             (id && exId && id === exId);
+    });
+
+    if (existingIdx === -1) {
+      deduplicatedCustomers.push({ ...c });
     } else {
-      const existing = custMap.get(key);
+      const existing = deduplicatedCustomers[existingIdx];
       const existingTime = existing.updatedAt ? new Date(existing.updatedAt).getTime() : 0;
       const cTime = c.updatedAt ? new Date(c.updatedAt).getTime() : 0;
       const cIsNewer = cTime > existingTime;
@@ -2749,10 +2905,21 @@ export function syncUsersAndCustomers() {
       // Prefer customerId e.g. CUS-000001
       const canonicalCustomerId = (existing.customerId && existing.customerId.startsWith('CUS-')) ? existing.customerId : (c.customerId || existing.customerId);
 
-      // Deduplicate recent orders by ID
+      // Deduplicate recent orders by ID (excluding stale pre-reset orders)
       const ordersMap = new Map();
-      (existing.recentOrders || []).forEach(o => { if (o && o.id) ordersMap.set(String(o.id), o); });
-      (c.recentOrders || []).forEach(o => { if (o && o.id) ordersMap.set(String(o.id), o); });
+      const isRecentStale = (o) => {
+        if (!o || !o.id) return true;
+        const oid = String(o.id).trim();
+        if (CONFIRMED_STALE_ORDER_IDS.has(oid) || CONFIRMED_STALE_RESERVATION_IDS.has(oid)) return true;
+        if (o.date) {
+          const dMs = new Date(`${o.date} 23:59:59`).getTime();
+          const bMs = new Date(RESET_TIMESTAMP_BOUNDARY).getTime();
+          if (!isNaN(dMs) && !isNaN(bMs) && dMs < bMs) return true;
+        }
+        return false;
+      };
+      (existing.recentOrders || []).forEach(o => { if (!isRecentStale(o)) ordersMap.set(String(o.id), o); });
+      (c.recentOrders || []).forEach(o => { if (!isRecentStale(o)) ordersMap.set(String(o.id), o); });
 
       const primary = cIsNewer ? c : existing;
       const fallback = cIsNewer ? existing : c;
@@ -2778,11 +2945,11 @@ export function syncUsersAndCustomers() {
         recentOrders: Array.from(ordersMap.values()),
         updatedAt: primary.updatedAt || fallback.updatedAt || new Date().toISOString()
       };
-      custMap.set(key, merged);
+      deduplicatedCustomers[existingIdx] = merged;
     }
   });
 
-  let customers = Array.from(custMap.values());
+  let customers = deduplicatedCustomers;
   let changed = (customers.length !== rawCustomers.length);
 
   customers = customers.map((c, index) => {
@@ -2888,11 +3055,21 @@ export function syncUsersAndCustomers() {
       shippingAddress: finalAddress,
       address: finalAddress,
       profilePicture: (u && u.profilePicture) ? u.profilePicture : (c.profilePicture || null),
-      totalSpent: userOrders.length > 0 ? totalSpent : (parseFloat(c.totalSpent) || 0),
+      totalSpent: userOrders.length > 0 ? totalSpent : 0,
       status: accountStatus,
       isActive: isActive,
       isArchived: isArchived,
-      recentOrders: recentOrders.length > 0 ? recentOrders : (c.recentOrders || [])
+      recentOrders: recentOrders.length > 0 ? recentOrders : (c.recentOrders || []).filter(o => {
+        if (!o || !o.id) return false;
+        const oid = String(o.id).trim();
+        if (CONFIRMED_STALE_ORDER_IDS.has(oid) || CONFIRMED_STALE_RESERVATION_IDS.has(oid)) return false;
+        if (o.date) {
+          const dMs = new Date(`${o.date} 23:59:59`).getTime();
+          const bMs = new Date(RESET_TIMESTAMP_BOUNDARY).getTime();
+          if (!isNaN(dMs) && !isNaN(bMs) && dMs < bMs) return false;
+        }
+        return orders.some(validOrd => String(validOrd.id) === oid);
+      })
     };
 
     if (JSON.stringify(c) !== JSON.stringify(updatedClient)) {
@@ -2905,6 +3082,7 @@ export function syncUsersAndCustomers() {
   // Ensure all registered customer users exist in aurora-customers ledger
   users.forEach((u) => {
     if (!u) return;
+    if (isStaleUser(u)) return;
     const uid = String(u.id || u.uid || u.firebaseUid || '');
     const uEmail = String(u.email || '').trim().toLowerCase();
     
@@ -2931,10 +3109,20 @@ export function syncUsersAndCustomers() {
       const isActive = !isSuspended && !isArchived;
 
       const uName = String(u.fullName || u.name || '').trim() || (uEmail ? uEmail.split('@')[0] : 'Customer');
-      const nextIndex = customers.length + 1;
+
+      let maxCusNum = 0;
+      customers.forEach(cust => {
+        const match = String(cust.customerId || '').match(/^CUS-(\d+)$/);
+        if (match) {
+          const num = parseInt(match[1], 10);
+          if (num > maxCusNum) maxCusNum = num;
+        }
+      });
+      const nextCustomerId = `CUS-${String(maxCusNum + 1).padStart(6, '0')}`;
+
       const newCustomerEntry = {
-        id: uid || `CUS-${String(nextIndex).padStart(6, '0')}`,
-        customerId: `CUS-${String(nextIndex).padStart(6, '0')}`,
+        id: uid || nextCustomerId,
+        customerId: nextCustomerId,
         uid: u.firebaseUid || uid,
         name: uName,
         fullName: uName,
@@ -2958,16 +3146,6 @@ export function syncUsersAndCustomers() {
 
   if (changed) {
     safeLocalStorageSet('aurora-customers', JSON.stringify(customers));
-    // When an administrator is active, synchronize changes to Firestore
-    const currentAdmin = getCurrentAdmin();
-    if (currentAdmin) {
-      customers.forEach(cust => {
-        const docId = cust.id || cust.customerId || cust.uid;
-        if (docId) {
-          saveFirestoreDoc('customers', docId, cust);
-        }
-      });
-    }
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new CustomEvent('aurora-sync-event', { detail: { key: 'aurora-customers' } }));
     }
@@ -3208,13 +3386,13 @@ export async function completePasswordReset(oobCode, newPassword, verifiedEmail 
 // ---------------------- 48-HOUR PAYMENT REJECTION DEADLINE CANCELLATION ----------------------
 
 export function evaluateOrderPaymentRejectionDeadline(order) {
-  if (!order) return false;
+  if (!order || isStaleOrderOrReservation(order)) return false;
 
   const currentStatus = String(order.status || '').toLowerCase().replace(/_/g, '-');
   if (currentStatus === 'cancelled' || currentStatus === 'completed') {
     return false;
   }
-  if (order.autoCancelledDueToRejectionDeadline) {
+  if (order.autoCancelledDueToRejectionDeadline && currentStatus === 'cancelled') {
     return false;
   }
 
@@ -3223,16 +3401,21 @@ export function evaluateOrderPaymentRejectionDeadline(order) {
     return false;
   }
 
-  // Must have an applicable rejected-payment correction deadline
-  let deadlineMs = null;
+  // Must have an applicable rejected-payment correction deadline (use latest of reuploadDeadline, paymentRejectedAt + 48h, reuploadRequestedAt + 48h)
+  const candidateDeadlines = [];
   if (order.reuploadDeadline) {
     const parsed = new Date(order.reuploadDeadline).getTime();
-    if (!isNaN(parsed) && parsed > 0) deadlineMs = parsed;
+    if (!isNaN(parsed) && parsed > 0) candidateDeadlines.push(parsed);
   }
-  if (!deadlineMs && order.paymentRejectedAt) {
+  if (order.paymentRejectedAt) {
     const parsed = new Date(order.paymentRejectedAt).getTime();
-    if (!isNaN(parsed) && parsed > 0) deadlineMs = parsed + (48 * 60 * 60 * 1000);
+    if (!isNaN(parsed) && parsed > 0) candidateDeadlines.push(parsed + (48 * 60 * 60 * 1000));
   }
+  if (order.reuploadRequestedAt) {
+    const parsed = new Date(order.reuploadRequestedAt).getTime();
+    if (!isNaN(parsed) && parsed > 0) candidateDeadlines.push(parsed + (48 * 60 * 60 * 1000));
+  }
+  const deadlineMs = candidateDeadlines.length > 0 ? Math.max(...candidateDeadlines) : null;
 
   // Do not cancel records that do not have an applicable rejected-payment correction deadline
   if (!deadlineMs) {
@@ -3253,6 +3436,7 @@ export function evaluateOrderPaymentRejectionDeadline(order) {
 
   order.status = 'cancelled';
   order.cancelledAt = nowIso;
+  order.updatedAt = nowIso;
   order.cancelledBy = 'System Auto-Cancellation';
   order.cancellationDate = `${formattedDate}, ${formattedTime}`;
   order.cancellationReason = isRes
@@ -3262,42 +3446,89 @@ export function evaluateOrderPaymentRejectionDeadline(order) {
   order.paymentStatus = 'rejected_expired';
   order.paymentVerified = false;
 
+  // Determine actual recorded refundable payment
+  let actualPaid = 0;
+  if (order.amountPaid !== undefined && order.amountPaid !== null && !isNaN(Number(order.amountPaid)) && Number(order.amountPaid) > 0) {
+    actualPaid = Number(order.amountPaid);
+  } else if (order.depositAmount !== undefined && order.depositAmount !== null && !isNaN(Number(order.depositAmount)) && Number(order.depositAmount) > 0) {
+    actualPaid = Number(order.depositAmount);
+  } else if (order.originalAmountPaid !== undefined && order.originalAmountPaid !== null && !isNaN(Number(order.originalAmountPaid)) && Number(order.originalAmountPaid) > 0) {
+    actualPaid = Number(order.originalAmountPaid);
+  } else if (order.amountPaidBeforeCancellation !== undefined && order.amountPaidBeforeCancellation !== null && !isNaN(Number(order.amountPaidBeforeCancellation)) && Number(order.amountPaidBeforeCancellation) > 0) {
+    actualPaid = Number(order.amountPaidBeforeCancellation);
+  } else if (order.amountCollected !== undefined && order.amountCollected !== null && !isNaN(Number(order.amountCollected)) && Number(order.amountCollected) > 0) {
+    actualPaid = Number(order.amountCollected);
+  }
+
+  // COD orders have not paid upfront
+  const isCod = String(order.paymentMethod || '').toLowerCase() === 'cod' || String(order.deliveryOption || '').toLowerCase() === 'cod';
+  if (isCod) {
+    actualPaid = 0;
+  }
+
+  const formattedAmount = Number(actualPaid || 0).toLocaleString(undefined, {
+    minimumFractionDigits: Number.isInteger(actualPaid) ? 0 : 2,
+    maximumFractionDigits: 2
+  });
+
+  if (actualPaid > 0) {
+    order.refundStatus = 'Refund Information Needed';
+    order.refundAmount = actualPaid;
+    order.refundReason = 'Cancelled: Payment proof correction deadline expired (48 hours)';
+    order.refundRequestedAt = nowIso;
+    order.originalAmountPaid = actualPaid;
+    order.amountPaidBeforeCancellation = actualPaid;
+  } else {
+    order.refundStatus = 'No Refund Needed';
+    order.refundAmount = 0;
+    order.refundReason = 'Cancelled: Payment proof correction deadline expired (no payment received)';
+  }
+
   if (isRes) {
     order.allocatedQuantity = 0;
   } else {
     // Regular order: release / restore physical warehouse stock if stock was deducted
     if (order.stockDeducted) {
-      const currentProducts = getProducts();
-      let prodsChanged = false;
-      if (order.items && Array.isArray(order.items)) {
-        order.items.forEach(it => {
-          if (it.isReservation) return;
-          const itId = it.product?.id || it.productId || it.id;
-          if (itId) {
-            const pIdx = currentProducts.findIndex(p => String(p.id) === String(itId));
-            if (pIdx !== -1) {
-              const qty = Number(it.quantity || 0);
-              if (qty > 0) {
-                currentProducts[pIdx].stock = Number(currentProducts[pIdx].stock || 0) + qty;
-                if (currentProducts[pIdx].currentStock !== undefined) {
-                  currentProducts[pIdx].currentStock = Number(currentProducts[pIdx].currentStock || 0) + qty;
+      const existingHistory = typeof getInventoryHistory === 'function' ? getInventoryHistory() : [];
+      const alreadyRestored = existingHistory.some(h => 
+        (h.remarks && h.remarks.includes(`#${order.id}`)) &&
+        (h.remarks.includes('Returned') || h.remarks.includes('Restored'))
+      );
+
+      if (!alreadyRestored) {
+        const currentProducts = getProducts();
+        let prodsChanged = false;
+        if (order.items && Array.isArray(order.items)) {
+          order.items.forEach(it => {
+            if (it.isReservation) return;
+            const itId = it.product?.id || it.productId || it.id;
+            if (itId) {
+              const pIdx = currentProducts.findIndex(p => String(p.id) === String(itId));
+              if (pIdx !== -1) {
+                const qty = Number(it.quantity || 0);
+                if (qty > 0) {
+                  currentProducts[pIdx].stock = Number(currentProducts[pIdx].stock || 0) + qty;
+                  if (currentProducts[pIdx].currentStock !== undefined) {
+                    currentProducts[pIdx].currentStock = Number(currentProducts[pIdx].currentStock || 0) + qty;
+                  }
+                  addInventoryHistory({
+                    productId: currentProducts[pIdx].id,
+                    productName: currentProducts[pIdx].name,
+                    quantityAdded: qty,
+                    remarks: `Returned/Restored from cancelled order #${order.id}`
+                  }, true);
+                  prodsChanged = true;
                 }
-                addInventoryHistory({
-                  productId: currentProducts[pIdx].id,
-                  productName: currentProducts[pIdx].name,
-                  quantityAdded: qty,
-                  remarks: `Returned/Restored from cancelled order #${order.id}`
-                }, true);
-                prodsChanged = true;
               }
             }
-          }
-        });
-      }
-      if (prodsChanged) {
-        saveProducts(currentProducts, true);
+          });
+        }
+        if (prodsChanged) {
+          saveProducts(currentProducts, true);
+        }
       }
       order.stockDeducted = false;
+      order.consumedFromStock = 0;
     }
   }
 
@@ -3307,55 +3538,85 @@ export function evaluateOrderPaymentRejectionDeadline(order) {
     status: 'Cancelled',
     changedBy: 'System Auto-Cancellation',
     changedAt: `${formattedDate}, ${formattedTime}`,
-    note: isRes
-      ? 'Reservation automatically cancelled because the 48-hour payment proof correction deadline expired without correction.'
-      : 'Order automatically cancelled because the 48-hour payment proof correction deadline expired without correction.'
+    note: actualPaid > 0
+      ? `${isRes ? 'Reservation' : 'Order'} automatically cancelled because the 48-hour payment proof correction deadline expired without correction. Refund required: ₱${formattedAmount}.`
+      : `${isRes ? 'Reservation' : 'Order'} automatically cancelled because the 48-hour payment proof correction deadline expired without correction. No payment received.`
   });
 
   try {
     addActivityLog(
       isRes ? 'Reservation' : 'Order',
-      `${isRes ? 'Reservation' : 'Order'} #${order.id} automatically cancelled after the 48-hour payment correction deadline expired.`,
+      actualPaid > 0
+        ? `System automatically cancelled ${isRes ? 'Reservation' : 'Order'} #${order.id} because the 48-hour payment correction deadline expired. Refund required: ₱${formattedAmount}.`
+        : `System automatically cancelled ${isRes ? 'Reservation' : 'Order'} #${order.id} because the 48-hour payment correction deadline expired. No refund required (no payment received).`,
       `${isRes ? 'Reservation' : 'Order'} #${order.id}`
     );
   } catch (e) {}
 
+  // Customer notification
   const custId = order.userId || order.customerId;
   if (custId) {
-    if (isRes) {
+    if (actualPaid > 0) {
       addNotification(
         custId,
-        '❌ Reservation Cancelled',
-        `Your reservation #${order.id} has been automatically cancelled because corrected payment proof was not submitted within the 48-hour deadline. The reservation will no longer be fulfilled.`,
+        isRes ? 'Reservation Cancelled — Refund Required' : 'Order Cancelled — Refund Required',
+        isRes
+          ? `Your reservation #${order.id} has been automatically cancelled because corrected payment proof was not submitted within the 48-hour deadline. You are due a refund of ₱${formattedAmount}. Please submit your GCash or bank details so the store can process your refund.`
+          : `Your order #${order.id} has been automatically cancelled because corrected payment proof was not submitted within the 48-hour deadline. You are due a refund of ₱${formattedAmount}. Please submit your GCash or bank details so the store can process your refund.`,
         {
           role: 'customer',
-          type: 'reservation',
-          targetType: 'reservation',
-          reservationId: String(order.id),
+          type: isRes ? 'reservation' : 'order',
+          targetType: isRes ? 'reservation' : 'order',
+          reservationId: isRes ? String(order.id) : undefined,
+          orderId: String(order.id),
           targetId: String(order.id),
-          tab: 'reservations',
-          eventKey: `res-cancelled-deadline-${order.id}`,
-          notificationId: `notif-res-cancelled-deadline-${order.id}`
+          tab: isRes ? 'reservations' : 'cancelled',
+          eventKey: `${isRes ? 'res' : 'order'}-cancelled-deadline-${order.id}`,
+          notificationId: `notif-${isRes ? 'res' : 'order'}-cancelled-deadline-${order.id}`
         }
       );
     } else {
       addNotification(
         custId,
-        '❌ Order Cancelled',
-        `Your order #${order.id} has been automatically cancelled because corrected payment proof was not submitted within the 48-hour deadline. The order will no longer be fulfilled.`,
+        isRes ? 'Reservation Cancelled' : 'Order Cancelled',
+        isRes
+          ? `Your reservation #${order.id} has been automatically cancelled because corrected payment proof was not submitted within the 48-hour deadline. No refund is needed because no payment was received.`
+          : `Your order #${order.id} has been automatically cancelled because corrected payment proof was not submitted within the 48-hour deadline. No refund is needed because no payment was received.`,
         {
           role: 'customer',
-          type: 'order',
-          targetType: 'order',
+          type: isRes ? 'reservation' : 'order',
+          targetType: isRes ? 'reservation' : 'order',
+          reservationId: isRes ? String(order.id) : undefined,
           orderId: String(order.id),
           targetId: String(order.id),
-          tab: 'cancelled',
-          eventKey: `order-cancelled-deadline-${order.id}`,
-          notificationId: `notif-order-cancelled-deadline-${order.id}`
+          tab: isRes ? 'reservations' : 'cancelled',
+          eventKey: `${isRes ? 'res' : 'order'}-cancelled-deadline-${order.id}`,
+          notificationId: `notif-${isRes ? 'res' : 'order'}-cancelled-deadline-${order.id}`
         }
       );
     }
   }
+
+  // Admin/Staff auto-cancellation notification
+  try {
+    addNotification(
+      'admin',
+      'Auto-Cancellation: 48-Hour Deadline Expired',
+      actualPaid > 0
+        ? `${isRes ? 'Reservation' : 'Order'} #${order.id} (${order.fullName || 'Customer'}) was automatically cancelled because the 48-hour payment correction deadline expired.\n\nRefund Required: ₱${formattedAmount}.\n\nAwaiting customer refund details.`
+        : `${isRes ? 'Reservation' : 'Order'} #${order.id} (${order.fullName || 'Customer'}) was automatically cancelled because the 48-hour payment correction deadline expired.\n\nNo refund required (no payment received).`,
+      {
+        role: 'admin',
+        type: isRes ? 'reservation' : 'order',
+        targetType: isRes ? 'reservation' : 'order',
+        orderId: String(order.id),
+        reservationId: isRes ? String(order.id) : undefined,
+        targetId: String(order.id),
+        eventKey: `admin-auto-cancel-${order.id}`,
+        notificationId: `notif-admin-auto-cancel-${order.id}`
+      }
+    );
+  } catch (e) {}
 
   try {
     const rawOrd = localStorage.getItem('aurora-orders');
@@ -3380,11 +3641,12 @@ export function evaluateOrderPaymentRejectionDeadline(order) {
 }
 
 export function checkAndCancelExpiredPaymentRejections() {
+  if (!isOrdersHydrated()) return;
   if (typeof window !== 'undefined' && window._checkingExpiredRejections) return;
   if (typeof window !== 'undefined') window._checkingExpiredRejections = true;
   try {
     const raw = localStorage.getItem('aurora-orders') || '[]';
-    const list = JSON.parse(raw);
+    const list = (JSON.parse(raw) || []).filter(o => !isStaleOrderOrReservation(o));
     let modified = false;
     const modifiedOrders = [];
 
@@ -3430,16 +3692,17 @@ if (typeof window !== 'undefined' && !window.__aurora_deadline_checker_started) 
 // ---------------------- ORDERS & QUEUE API ----------------------
 
 export function checkAndAutoCompleteOrders() {
+  if (!isOrdersHydrated()) return;
   if (typeof window !== 'undefined' && window._checkingAutoComplete) return;
   if (typeof window !== 'undefined') window._checkingAutoComplete = true;
   try {
     const raw = localStorage.getItem('aurora-orders') || '[]';
-    const list = JSON.parse(raw);
+    const list = (JSON.parse(raw) || []).filter(o => !isStaleOrderOrReservation(o));
     let modified = false;
     const now = new Date();
     
     const updatedList = list.map(order => {
-      if (order.status === 'delivered') {
+      if (order && !isStaleOrderOrReservation(order) && order.status === 'delivered') {
         // Resolve authoritative delivery timestamp and deadline
         let deliveredMs = null;
         if (order.deliveredAt) {
@@ -3580,7 +3843,7 @@ export function getOrders() {
   checkAndAutoCompleteOrders();
   checkAndCancelExpiredPaymentRejections();
   const raw = localStorage.getItem('aurora-orders') || '[]';
-  const list = JSON.parse(raw);
+  const list = JSON.parse(raw).filter(o => !isStaleOrderOrReservation(o));
   console.log('[DEBUG] getOrders retrieved orders count:', list.length);
   const mapped = list.map(o => {
     let total = Number(o.total || o.totalBill || 0);
@@ -3752,40 +4015,43 @@ export function getOrders() {
     };
   });
 
-  // Evaluate 48-hour auto completion & dual condition fulfillment & 48-hour rejection deadline cancellation
+  // Evaluate 48-hour auto completion & dual condition fulfillment & 48-hour rejection deadline cancellation ONLY after Firestore orders are hydrated
   let autoCompletedAny = false;
   let deadlineCancelledAny = false;
   const deadlineModifiedOrders = [];
 
-  mapped.forEach(order => {
-    if (order.status === 'delivered') {
-      const changed = evaluateOrderCompletion(order);
-      if (changed) autoCompletedAny = true;
-    }
-    const cancelled = evaluateOrderPaymentRejectionDeadline(order);
-    if (cancelled) {
-      deadlineCancelledAny = true;
-      deadlineModifiedOrders.push(order);
-    }
-  });
-
-  if (autoCompletedAny || deadlineCancelledAny) {
-    try {
-      localStorage.setItem('aurora-orders', JSON.stringify(mapped));
-      if (typeof window !== 'undefined') {
-        window.dispatchEvent(new CustomEvent('aurora-sync-event', { detail: { key: 'aurora-orders' } }));
-        window.dispatchEvent(new CustomEvent('aurora-orders-updated', { detail: { orders: mapped } }));
+  if (isOrdersHydrated()) {
+    mapped.forEach(order => {
+      if (isStaleOrderOrReservation(order)) return;
+      if (order.status === 'delivered') {
+        const changed = evaluateOrderCompletion(order);
+        if (changed) autoCompletedAny = true;
       }
-    } catch(e) {}
+      const cancelled = evaluateOrderPaymentRejectionDeadline(order);
+      if (cancelled) {
+        deadlineCancelledAny = true;
+        deadlineModifiedOrders.push(order);
+      }
+    });
 
-    if (deadlineModifiedOrders.length > 0) {
-      deadlineModifiedOrders.forEach(ord => {
-        try {
-          saveFirestoreDoc('orders', String(ord.id), ord);
-        } catch (e) {
-          console.warn('[AUTO-CANCEL] Error saving cancelled order to Firestore:', e);
+    if (autoCompletedAny || deadlineCancelledAny) {
+      try {
+        localStorage.setItem('aurora-orders', JSON.stringify(mapped));
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('aurora-sync-event', { detail: { key: 'aurora-orders' } }));
+          window.dispatchEvent(new CustomEvent('aurora-orders-updated', { detail: { orders: mapped } }));
         }
-      });
+      } catch(e) {}
+
+      if (deadlineModifiedOrders.length > 0) {
+        deadlineModifiedOrders.forEach(ord => {
+          try {
+            saveFirestoreDoc('orders', String(ord.id), ord);
+          } catch (e) {
+            console.warn('[AUTO-CANCEL] Error saving cancelled order to Firestore:', e);
+          }
+        });
+      }
     }
   }
 
@@ -4002,15 +4268,20 @@ export function isReservationWaitingForReupload(order) {
   if (order.hasCorrectedProof) return false;
   if (order.paymentStatus === 'pending_verification') return false;
 
-  let deadlineMs = null;
+  const candidateDeadlines = [];
   if (order.reuploadDeadline) {
     const parsed = new Date(order.reuploadDeadline).getTime();
-    if (!isNaN(parsed) && parsed > 0) deadlineMs = parsed;
+    if (!isNaN(parsed) && parsed > 0) candidateDeadlines.push(parsed);
   }
-  if (!deadlineMs && order.paymentRejectedAt) {
+  if (order.paymentRejectedAt) {
     const parsed = new Date(order.paymentRejectedAt).getTime();
-    if (!isNaN(parsed) && parsed > 0) deadlineMs = parsed + (48 * 60 * 60 * 1000);
+    if (!isNaN(parsed) && parsed > 0) candidateDeadlines.push(parsed + (48 * 60 * 60 * 1000));
   }
+  if (order.reuploadRequestedAt) {
+    const parsed = new Date(order.reuploadRequestedAt).getTime();
+    if (!isNaN(parsed) && parsed > 0) candidateDeadlines.push(parsed + (48 * 60 * 60 * 1000));
+  }
+  const deadlineMs = candidateDeadlines.length > 0 ? Math.max(...candidateDeadlines) : null;
   if (deadlineMs && Date.now() > deadlineMs) {
     return false;
   }
@@ -4077,42 +4348,45 @@ export function getVerifiedCustomerPaymentInfo(o) {
                           o.paymentType === 'Full Payment' || 
                           o.financialStatus === 'No Cash Collection Required';
 
-    const isFullyVerified = o.status === 'completed' || 
-                            o.financialVerification === true || 
-                            o.financialStatus === 'Verified' || 
-                            o.cashAuditStatus === 'Audited';
+    const isDown = o.paymentType === 'deposit' || 
+                   o.paymentType === 'downpayment' || 
+                   o.paymentType === 'down' || 
+                   o.paymentOption === '30% Down Payment' || 
+                   (o.remainingAmount !== undefined && Number(o.remainingAmount) > 0) ||
+                   (o.remainingBalance !== undefined && Number(o.remainingBalance) > 0);
 
-    if (isFullyVerified || isFullPayment) {
+    const isCompleted = statusClean === 'completed' || statusClean === 'fulfilled';
+    const isTurnoverVerified = o.financialVerification === true || 
+                               o.financialStatus === 'Verified' || 
+                               o.cashAuditStatus === 'Audited';
+
+    if (isCompleted || (statusClean === 'delivered' && isTurnoverVerified)) {
+      // Completed order or delivered with turnover verified: full total collected
       amount = tot > 0 ? tot : Number(o.amountPaid || 0);
-    } else {
-      const isDown = o.paymentType === 'deposit' || 
-                     o.paymentType === 'downpayment' || 
-                     o.paymentType === 'down' || 
-                     o.paymentOption === '30% Down Payment' || 
-                     (o.remainingAmount !== undefined && Number(o.remainingAmount) > 0) ||
-                     (o.remainingBalance !== undefined && Number(o.remainingBalance) > 0);
-
-      if (isDown) {
-        if (o.amountPaid !== undefined && o.amountPaid !== null && !isNaN(Number(o.amountPaid)) && Number(o.amountPaid) > 0 && Number(o.amountPaid) < tot) {
-          amount = Number(o.amountPaid);
-        } else if (o.depositAmount !== undefined && o.depositAmount !== null && !isNaN(Number(o.depositAmount)) && Number(o.depositAmount) > 0) {
-          amount = Number(o.depositAmount);
-        } else if (o.amountPaid !== undefined && o.amountPaid !== null && !isNaN(Number(o.amountPaid)) && Number(o.amountPaid) > 0) {
-          amount = Number(o.amountPaid);
-        } else {
-          amount = Math.floor(tot * 0.3);
-        }
+    } else if (isFullPayment) {
+      // Full payment in advance: full total collected
+      amount = tot > 0 ? tot : Number(o.amountPaid || 0);
+    } else if (isDown) {
+      // Customer paid downpayment only (order in processing, to-ship, to-receive, or delivered pending turnover)
+      if (o.amountPaid !== undefined && o.amountPaid !== null && !isNaN(Number(o.amountPaid)) && Number(o.amountPaid) > 0 && Number(o.amountPaid) < tot) {
+        amount = Number(o.amountPaid);
+      } else if (o.depositAmount !== undefined && o.depositAmount !== null && !isNaN(Number(o.depositAmount)) && Number(o.depositAmount) > 0) {
+        amount = Number(o.depositAmount);
+      } else if (o.remainingAmount !== undefined && Number(o.remainingAmount) > 0 && tot > Number(o.remainingAmount)) {
+        amount = tot - Number(o.remainingAmount);
       } else {
-        if (o.amountPaid !== undefined && o.amountPaid !== null && !isNaN(Number(o.amountPaid)) && Number(o.amountPaid) > 0) {
-          amount = Number(o.amountPaid);
-        } else {
-          amount = tot;
-        }
+        amount = Math.floor(tot * 0.3);
       }
-
-      if (tot > 0 && amount > tot) {
+    } else {
+      if (o.amountPaid !== undefined && o.amountPaid !== null && !isNaN(Number(o.amountPaid)) && Number(o.amountPaid) > 0) {
+        amount = Number(o.amountPaid);
+      } else {
         amount = tot;
       }
+    }
+
+    if (tot > 0 && amount > tot) {
+      amount = tot;
     }
   }
 
@@ -4258,6 +4532,78 @@ export function getAllOrders() {
   return getOrders();
 }
 
+export function getActualRecordedPaidAmount(order) {
+  if (!order) return 0;
+
+  // If order was already cancelled and has preserved paid amount, return it
+  if (order.status === 'cancelled') {
+    if (order.originalAmountPaid !== undefined && !isNaN(Number(order.originalAmountPaid))) {
+      return Number(order.originalAmountPaid);
+    }
+    if (order.amountPaidBeforeCancellation !== undefined && !isNaN(Number(order.amountPaidBeforeCancellation))) {
+      return Number(order.amountPaidBeforeCancellation);
+    }
+  }
+
+  // Normal orders only for Step 1 (reservations preserved for later step)
+  const isRes = isReservationOrder(order);
+  if (isRes) {
+    return 0;
+  }
+
+  // Cash on delivery / Cash on pickup is NOT a paid amount until physically collected and verified
+  const method = String(order.paymentMethod || '').trim().toLowerCase();
+  if (method === 'cash' || method === 'cod') {
+    const isCollected = order.financialStatus === 'Verified' || 
+                        order.financialVerification === true || 
+                        order.cashAuditStatus === 'Audited';
+    if (!isCollected) {
+      return 0;
+    }
+  }
+
+  // A rejected payment proof screenshot alone must NOT be treated as received money
+  if (order.paymentRejected === true && !order.paymentVerified && order.paymentStatus !== 'verified') {
+    return 0;
+  }
+
+  // Determine if payment is verified/recorded
+  const isVerified = order.paymentVerified === true || 
+                     order.isVerifiedPayment === true || 
+                     order.paymentStatus === 'verified' || 
+                     order.paymentStatus === 'paid';
+
+  if (!isVerified) {
+    return 0;
+  }
+
+  const tot = Number(order.total || order.totalPrice || order.totalBill || 0);
+
+  const isDown = order.paymentType === 'deposit' || 
+                 order.paymentType === 'downpayment' || 
+                 order.paymentType === 'down' || 
+                 order.paymentOption === '30% Down Payment' || 
+                 (order.remainingAmount !== undefined && Number(order.remainingAmount) > 0) ||
+                 (order.remainingBalance !== undefined && Number(order.remainingBalance) > 0);
+
+  if (isDown) {
+    if (order.amountPaid !== undefined && order.amountPaid !== null && !isNaN(Number(order.amountPaid)) && Number(order.amountPaid) > 0 && Number(order.amountPaid) < tot) {
+      return Number(order.amountPaid);
+    }
+    if (order.depositAmount !== undefined && order.depositAmount !== null && !isNaN(Number(order.depositAmount)) && Number(order.depositAmount) > 0) {
+      return Number(order.depositAmount);
+    }
+    return Math.floor(tot * 0.3);
+  }
+
+  // Full payment
+  if (order.amountPaid !== undefined && order.amountPaid !== null && !isNaN(Number(order.amountPaid)) && Number(order.amountPaid) > 0) {
+    return Number(order.amountPaid);
+  }
+
+  return tot;
+}
+
 export function setItemAndSync(key, value, targetDocInfo = null) {
   safeLocalStorageSet(key, value);
   if (typeof window !== 'undefined') {
@@ -4280,13 +4626,14 @@ export function setItemAndSync(key, value, targetDocInfo = null) {
   };
   const col = keyToCol[key];
   if (col) {
-    // Activity logs are strictly document-authoritative and must never be bulk overwritten
-    if (col === 'activityLogs') {
+    // Append-only or document-authoritative collections must never be bulk overwritten from local cache
+    const docAuthoritativeOnly = ['activityLogs', 'inventoryHistory', 'notifications', 'reviews', 'contactMessages'];
+    if (docAuthoritativeOnly.includes(col)) {
       if (targetDocInfo && (targetDocInfo.docId || targetDocInfo.id)) {
         const docId = targetDocInfo.docId || targetDocInfo.id;
         const docData = targetDocInfo.docData || targetDocInfo.data;
         if (docId && docData) {
-          saveFirestoreDoc('activityLogs', docId, docData);
+          saveFirestoreDoc(col, docId, docData);
         }
       }
       return;
@@ -4297,24 +4644,8 @@ export function setItemAndSync(key, value, targetDocInfo = null) {
         const docCol = targetDocInfo.colName || col;
         const docId = targetDocInfo.docId || targetDocInfo.id;
         const docData = targetDocInfo.docData || targetDocInfo.data;
-        if (docCol && docId && docData) {
+        if (docCol && docId && docData && typeof saveFirestoreDoc === 'function') {
           saveFirestoreDoc(docCol, docId, docData);
-        } else {
-          const isAdmin = typeof localStorage !== 'undefined' && localStorage.getItem('aurora-admin-logged-in') === 'true';
-          if (isAdmin) {
-            const parsed = JSON.parse(value);
-            if (Array.isArray(parsed)) {
-              saveFirestoreCollection(col, parsed);
-            }
-          }
-        }
-      } else {
-        const isAdmin = typeof localStorage !== 'undefined' && localStorage.getItem('aurora-admin-logged-in') === 'true';
-        if (isAdmin) {
-          const parsed = JSON.parse(value);
-          if (Array.isArray(parsed)) {
-            saveFirestoreCollection(col, parsed);
-          }
         }
       }
     } catch (err) {
@@ -4323,52 +4654,72 @@ export function setItemAndSync(key, value, targetDocInfo = null) {
   }
 }
 
+export async function saveOrderDoc(order) {
+  if (!order || !order.id) return;
+  const orders = getOrders();
+  const idx = orders.findIndex(o => String(o.id) === String(order.id));
+  if (idx !== -1) {
+    orders[idx] = order;
+  } else {
+    orders.unshift(order);
+  }
+  registerPendingOrderWrite(order.id, order);
+  saveOrders(orders, { colName: 'orders', docId: order.id, docData: order });
+  try {
+    await saveFirestoreDoc('orders', order.id, order);
+  } catch (err) {
+    console.warn('[FIREBASE] Error saving order doc directly:', err);
+  }
+}
+
 export function saveOrders(orders, targetDocInfo = null) {
+  if (targetDocInfo && (targetDocInfo.docId || targetDocInfo.id)) {
+    const docId = String(targetDocInfo.docId || targetDocInfo.id);
+    const docData = targetDocInfo.docData || targetDocInfo.data;
+    if (docData) {
+      registerPendingOrderWrite(docId, docData);
+      saveFirestoreDoc('orders', docId, docData).catch(err => {
+        console.warn('[FIREBASE] Targeted saveOrders Firestore write warning:', err);
+      });
+    }
+  } else if (Array.isArray(orders) && typeof saveFirestoreDoc === 'function') {
+    // Auto-detect newly created or modified orders for targeted Firestore persistence
+    try {
+      const prevOrders = JSON.parse(localStorage.getItem('aurora-orders') || '[]');
+      const prevMap = new Map();
+      prevOrders.forEach(o => { if (o && o.id) prevMap.set(String(o.id), JSON.stringify(o)); });
+
+      orders.forEach(o => {
+        if (!o || !o.id || isStaleOrderOrReservation(o)) return;
+        const prevJson = prevMap.get(String(o.id));
+        const currentJson = JSON.stringify(o);
+        if (!prevJson || prevJson !== currentJson) {
+          registerPendingOrderWrite(o.id, o);
+          saveFirestoreDoc('orders', o.id, o).catch(err => {
+            console.warn('[FIREBASE] Auto-detected order persist warning for', o.id, err);
+          });
+        }
+      });
+    } catch (diffErr) {
+      console.warn('[FIREBASE] Error auto-diffing orders in saveOrders:', diffErr);
+    }
+  }
+
   try {
     setItemAndSync('aurora-orders', JSON.stringify(orders), targetDocInfo);
   } catch (e) {
     if (e.name === 'QuotaExceededError' || e.code === 22) {
-      console.warn('[STORAGE] LocalStorage quota exceeded. Attempting to compress/purge old order payment proofs to save space...');
-      let cleaned = false;
-      // Start from the oldest completed or cancelled orders and strip paymentProofDataUrl only if finished
-      for (let i = orders.length - 1; i >= 0; i--) {
-        if ((orders[i].status === 'completed' || orders[i].status === 'cancelled') && orders[i].paymentProofDataUrl && typeof orders[i].paymentProofDataUrl === 'string' && orders[i].paymentProofDataUrl.startsWith('data:')) {
-          orders[i].paymentProofDataUrl = ''; // Strip the large base64 image of completed/cancelled order only
-          cleaned = true;
-          try {
-            setItemAndSync('aurora-orders', JSON.stringify(orders));
-            console.log(`[STORAGE] Successfully saved orders after stripping payment proof of order #${orders[i].id}`);
-            syncUsersAndCustomers();
-            return;
-          } catch (retryErr) {
-            // keep looping
-          }
+      console.warn('[STORAGE] LocalStorage quota exceeded. Compressing payment proof cache without deleting any orders...');
+      // Strip paymentProofDataUrl only if it is a large base64 data: URL (Firebase Storage holds the persistent copy)
+      for (let i = 0; i < orders.length; i++) {
+        if (orders[i].paymentProofDataUrl && typeof orders[i].paymentProofDataUrl === 'string' && orders[i].paymentProofDataUrl.startsWith('data:')) {
+          orders[i].paymentProofDataUrl = orders[i].paymentProofUrl || '';
         }
       }
-      // If still failing, let's remove completed/cancelled orders to free space
-      for (let i = orders.length - 1; i >= 0; i--) {
-        if (orders[i].status === 'completed' || orders[i].status === 'cancelled') {
-          orders.splice(i, 1);
-          cleaned = true;
-          try {
-            setItemAndSync('aurora-orders', JSON.stringify(orders));
-            console.log(`[STORAGE] Successfully saved orders after removing completed/cancelled order`);
-            syncUsersAndCustomers();
-            return;
-          } catch (retryErr) {
-            // keep looping
-          }
-        }
-      }
-      // If it still fails, slice the orders list as last resort
-      if (orders.length > 5) {
-        orders = orders.slice(0, Math.floor(orders.length / 2));
-        try {
-          setItemAndSync('aurora-orders', JSON.stringify(orders));
-          console.log('[STORAGE] Saved sliced orders list as a last resort');
-        } catch (finalErr) {
-          console.error('[STORAGE] Failed to save orders even after heavy pruning:', finalErr);
-        }
+      try {
+        setItemAndSync('aurora-orders', JSON.stringify(orders), targetDocInfo);
+      } catch (retryErr) {
+        console.warn('[STORAGE] Failed to save orders cache after stripping data URLs:', retryErr);
       }
     } else {
       throw e;
@@ -4417,6 +4768,7 @@ export function addOrder(orderData) {
       return prefix + (maxNum + 1);
     })(),
     createdAt: orderData.createdAt ? new Date(orderData.createdAt).toISOString() : now.toISOString(),
+    updatedAt: orderData.updatedAt ? new Date(orderData.updatedAt).toISOString() : (orderData.createdAt ? new Date(orderData.createdAt).toISOString() : now.toISOString()),
     status: startStatus,
     queuePosition: (() => {
       if (orderData.queuePosition !== undefined && typeof orderData.queuePosition === 'number') return orderData.queuePosition;
@@ -4461,6 +4813,7 @@ export function addOrder(orderData) {
     // Normal order placed with skipReservation (available stock portion only)
     const products = getProducts();
     let prodsChanged = false;
+    const affectedProductIds = new Set();
     (finalOrder.items || []).forEach(it => {
       const pId = it.product?.id || it.productId || it.id;
       const p = products.find(prod => String(prod.id) === String(pId));
@@ -4469,7 +4822,10 @@ export function addOrder(orderData) {
         p.stock = Math.max(0, Number(p.stock || 0) - qty);
         if (p.currentStock !== undefined) {
           p.currentStock = Math.max(0, Number(p.currentStock || 0) - qty);
+        } else {
+          p.currentStock = p.stock;
         }
+        affectedProductIds.add(String(p.id));
         addInventoryHistory({
           productId: p.id,
           productName: p.name,
@@ -4481,6 +4837,22 @@ export function addOrder(orderData) {
     });
     if (prodsChanged) {
       saveProducts(products, true);
+      if (affectedProductIds.size > 0 && typeof saveFirestoreDoc === 'function') {
+        affectedProductIds.forEach(pId => {
+          const prod = products.find(p => String(p.id) === String(pId));
+          if (prod) {
+            const { reservedStock, availableStock, ...rest } = prod;
+            const physicalStock = prod.currentStock !== undefined ? Number(prod.currentStock) : Number(prod.stock);
+            saveFirestoreDoc('products', String(pId), {
+              ...rest,
+              stock: physicalStock,
+              currentStock: physicalStock
+            }).catch(err => {
+              console.warn(`[FIREBASE] Failed targeted stock persist for product ${pId}:`, err);
+            });
+          }
+        });
+      }
     }
     finalOrder.stockDeducted = true;
     finalOrder.consumedFromStock = (finalOrder.items || []).reduce((acc, it) => acc + Number(it.quantity || 0), 0);
@@ -4515,9 +4887,16 @@ export function addOrder(orderData) {
   if (!latestOrders.some(o => o.id === finalOrder.id)) {
     latestOrders.unshift(finalOrder);
   }
+  registerPendingOrderWrite(finalOrder.id, finalOrder);
   saveOrders(latestOrders, { colName: 'orders', docId: finalOrder.id, docData: finalOrder });
+  saveFirestoreDoc('orders', finalOrder.id, finalOrder).catch(err => {
+    console.warn('[FIREBASE] Error saving order doc directly in addOrder:', err);
+  });
   if (createdReservation) {
-    saveFirestoreDoc('orders', createdReservation.id, createdReservation);
+    registerPendingOrderWrite(createdReservation.id, createdReservation);
+    saveFirestoreDoc('orders', createdReservation.id, createdReservation).catch(err => {
+      console.warn('[FIREBASE] Error saving split reservation doc directly in addOrder:', err);
+    });
   }
   console.log('[DEBUG] Saved orders array to localStorage. New count:', latestOrders.length);
 
@@ -4705,7 +5084,7 @@ export function getAssignedDeliveryPersonName(order, issue = null) {
   return 'Not Assigned Yet';
 }
 
-export function updateOrderStatus(orderId, status, note = '') {
+export function updateOrderStatus(orderId, status, note = '', extraFields = {}) {
   const orders = getOrders();
   const now = new Date();
   const labels = {
@@ -4799,8 +5178,11 @@ export function updateOrderStatus(orderId, status, note = '') {
       }
 
       if (currentStatus === 'completed' || currentStatus === 'delivered') {
-        remainingAmount = 0;
-        amountPaid = order.total;
+        const isFullAdvance = order.paymentType === 'full' || order.paymentType === 'full_advance' || order.paymentOption === 'Full Payment' || order.paymentOption === 'full';
+        if (currentStatus === 'completed' || isFullAdvance) {
+          remainingAmount = 0;
+          amountPaid = order.total;
+        }
         paymentVerified = true;
 
         if (currentStatus === 'delivered') {
@@ -4986,6 +5368,15 @@ export function updateOrderStatus(orderId, status, note = '') {
       const finalStaffName = hasStaff ? order.staffName : (admin ? changerName : (order.staffName || ''));
       const finalAssignedStaff = hasAssigned ? order.assignedStaff : (admin ? changerName : (order.assignedStaff || ''));
 
+      const cancellationFields = currentStatus === 'cancelled' ? {
+        refundStatus: extraFields.refundStatus || order.refundStatus || 'No Refund Needed',
+        refundAmount: extraFields.refundAmount !== undefined ? extraFields.refundAmount : (order.refundAmount !== undefined ? order.refundAmount : 0),
+        refundReason: extraFields.refundReason || order.refundReason || '',
+        originalAmountPaid: extraFields.originalAmountPaid !== undefined ? extraFields.originalAmountPaid : (order.originalAmountPaid !== undefined ? order.originalAmountPaid : (order.amountPaid || 0)),
+        amountPaidBeforeCancellation: extraFields.amountPaidBeforeCancellation !== undefined ? extraFields.amountPaidBeforeCancellation : (order.amountPaidBeforeCancellation !== undefined ? order.amountPaidBeforeCancellation : (order.amountPaid || 0)),
+        ...extraFields
+      } : {};
+
       return {
         ...order,
         status: currentStatus,
@@ -4993,13 +5384,15 @@ export function updateOrderStatus(orderId, status, note = '') {
         remainingAmount,
         amountPaid,
         stockDeducted,
+        consumedFromStock: currentStatus === 'cancelled' ? 0 : order.consumedFromStock,
         cancelledAt,
         cancelledBy: currentStatus === 'cancelled' ? (getCurrentAdmin() ? 'Admin' : 'Customer') : order.cancelledBy,
         cancellationDate: currentStatus === 'cancelled' ? now.toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : order.cancellationDate,
         cancellationReason: currentStatus === 'cancelled' ? (historyNote || 'Cancelled by customer') : order.cancellationReason,
         staffName: finalStaffName,
         assignedStaff: finalAssignedStaff,
-        statusHistory: [...(order.statusHistory || []), historyItem]
+        statusHistory: [...(order.statusHistory || []), historyItem],
+        ...cancellationFields
       };
     }
     return order;
@@ -5007,9 +5400,18 @@ export function updateOrderStatus(orderId, status, note = '') {
 
   const updatedOrderObj = updated.find(o => String(o.id) === String(orderId));
   if (updatedOrderObj) {
+    registerPendingOrderWrite(updatedOrderObj.id, updatedOrderObj);
     saveOrders(updated, { colName: 'orders', docId: updatedOrderObj.id, docData: updatedOrderObj });
+    saveFirestoreDoc('orders', updatedOrderObj.id, updatedOrderObj).catch(() => {});
   } else {
     saveOrders(updated);
+  }
+  if (originalOrderId) {
+    const origOrderObj = updated.find(o => String(o.id) === String(originalOrderId));
+    if (origOrderObj) {
+      registerPendingOrderWrite(origOrderObj.id, origOrderObj);
+      saveFirestoreDoc('orders', origOrderObj.id, origOrderObj).catch(() => {});
+    }
   }
 
   // Synchronize with 'aurora-issue-reports' to mark completed
@@ -5047,10 +5449,20 @@ export function verifyPayment(orderId, approveBool, reason = 'Incorrect payment 
     const idx = orders.findIndex(o => o.id === orderId);
     if (idx !== -1) {
       const order = orders[idx];
+      const nowIso = new Date().toISOString();
+      const deadlineIso = new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString();
       order.status = 'to-pay';
       order.paymentVerified = false;
       order.paymentRejected = true;
+      order.paymentStatus = 'rejected';
+      order.hasCorrectedProof = false;
+      order.paymentReuploadedAt = null;
+      order.autoCancelledDueToRejectionDeadline = false;
       order.paymentRejectionReason = reason;
+      order.paymentRejectedAt = nowIso;
+      order.reuploadRequestedAt = nowIso;
+      order.reuploadDeadline = deadlineIso;
+      order.updatedAt = nowIso;
       
       const historyItem = {
         id: 'hist-pay-decline-' + Date.now(),
@@ -5061,7 +5473,10 @@ export function verifyPayment(orderId, approveBool, reason = 'Incorrect payment 
       };
       order.statusHistory = [...(order.statusHistory || []), historyItem];
       orders[idx] = order;
-      saveOrders(orders);
+      saveOrders(orders, { colName: 'orders', docId: String(order.id), docData: order });
+      try {
+        saveFirestoreDoc('orders', String(order.id), order);
+      } catch (e) {}
 
       // Trigger Customer "⚠ Payment Verification Failed" notification
       addNotification(
@@ -5086,10 +5501,222 @@ export function cancelOrder(orderId) {
     (o.userId && String(o.userId) === String(user.id)) || 
     (o.customerId && String(o.customerId) === String(user.id))
   )) {
-    updateOrderStatus(orderId, 'cancelled', 'Cancelled by customer');
+    const isRes = isReservationOrder(o);
+
+    // Step 1: Customer cancels a normal order
+    if (!isRes) {
+      // 1. Capture actual paid amount BEFORE cancellation logic modifies anything
+      let actualPaid = 0;
+      if (o.amountPaid !== undefined && o.amountPaid !== null && !isNaN(Number(o.amountPaid)) && Number(o.amountPaid) > 0) {
+        actualPaid = Number(o.amountPaid);
+      } else if (o.depositAmount !== undefined && o.depositAmount !== null && !isNaN(Number(o.depositAmount)) && Number(o.depositAmount) > 0) {
+        actualPaid = Number(o.depositAmount);
+      } else if (o.originalAmountPaid !== undefined && o.originalAmountPaid !== null && !isNaN(Number(o.originalAmountPaid)) && Number(o.originalAmountPaid) > 0) {
+        actualPaid = Number(o.originalAmountPaid);
+      } else if (o.amountPaidBeforeCancellation !== undefined && o.amountPaidBeforeCancellation !== null && !isNaN(Number(o.amountPaidBeforeCancellation)) && Number(o.amountPaidBeforeCancellation) > 0) {
+        actualPaid = Number(o.amountPaidBeforeCancellation);
+      } else if (o.amountCollected !== undefined && o.amountCollected !== null && !isNaN(Number(o.amountCollected)) && Number(o.amountCollected) > 0) {
+        actualPaid = Number(o.amountCollected);
+      }
+
+      // Detect full payment vs down payment
+      const pType = String(o.paymentType || '').toLowerCase();
+      const pOpt = String(o.paymentOption || '').toLowerCase();
+      const isExplicitDown = pType === 'deposit' || pType === 'downpayment' || pType === 'down' || pOpt.includes('down') || pOpt.includes('deposit') || pOpt.includes('30%');
+      const hasRemainingBalance = (o.remainingAmount !== undefined && Number(o.remainingAmount) > 0) || (o.remainingBalance !== undefined && Number(o.remainingBalance) > 0);
+      const isExplicitFull = pType === 'full' || pType === 'full_advance' || pType === 'full payment' || pOpt === 'full payment' || pOpt === 'full' || o.financialStatus === 'No Cash Collection Required';
+      const tot = Number(o.total || o.totalPrice || o.totalBill || 0);
+      const isFull = actualPaid > 0 && !isExplicitDown && !hasRemainingBalance && (isExplicitFull || (tot > 0 && actualPaid >= tot));
+
+      const formattedAmount = Number(actualPaid || 0).toLocaleString(undefined, {
+        minimumFractionDigits: Number.isInteger(actualPaid) ? 0 : 2,
+        maximumFractionDigits: 2
+      });
+
+      if (isFull && actualPaid > 0) {
+        // Customer paid in full:
+        // refundStatus = "Refund Information Needed"
+        // refundAmount = original actual amount paid
+        // refundReason = "Customer cancelled after full payment"
+        const extraFields = {
+          refundStatus: 'Refund Information Needed',
+          refundAmount: actualPaid,
+          refundReason: 'Customer cancelled after full payment',
+          refundRequestedAt: new Date().toISOString(),
+          originalAmountPaid: actualPaid,
+          amountPaidBeforeCancellation: actualPaid
+        };
+
+        updateOrderStatus(orderId, 'cancelled', 'Cancelled by customer', extraFields);
+
+        // Customer notification
+        addNotification(
+          o.userId || o.customerId || user.id || '',
+          'Order Cancelled — Refund Required',
+          `Your order #${orderId} has been cancelled as requested.\n\nYou are due a refund of ₱${formattedAmount}.\n\nPlease submit your GCash or bank details so the store can process your refund.`,
+          { role: 'customer', type: 'order', orderId: orderId }
+        );
+
+        // Admin notification
+        addNotification(
+          'admin',
+          'Refund Required',
+          `Order #${orderId} was cancelled by the customer after full payment.\n\nRefund amount: ₱${formattedAmount}.\n\nPlease review the order and wait for the customer's refund details.`,
+          { role: 'admin', type: 'order', orderId: orderId }
+        );
+      } else if (actualPaid > 0) {
+        // Down payment cancellation:
+        // refundStatus = "No Refund Needed"
+        // refundAmount = 0
+        const extraFields = {
+          refundStatus: 'No Refund Needed',
+          refundAmount: 0,
+          refundReason: 'Customer cancelled order (non-refundable per store cancellation policy)',
+          originalAmountPaid: actualPaid,
+          amountPaidBeforeCancellation: actualPaid
+        };
+
+        updateOrderStatus(orderId, 'cancelled', 'Cancelled by customer', extraFields);
+
+        // Customer notification
+        addNotification(
+          o.userId || o.customerId || user.id || '',
+          'Order Cancelled',
+          `Your order #${orderId} has been cancelled as requested.\n\nUnder our store cancellation policy, the down payment is not refundable when the customer chooses to cancel.`,
+          { role: 'customer', type: 'order', orderId: orderId }
+        );
+      } else {
+        // Unpaid order cancellation:
+        const extraFields = {
+          refundStatus: 'No Refund Needed',
+          refundAmount: 0,
+          refundReason: 'Customer cancelled unpaid order',
+          originalAmountPaid: 0,
+          amountPaidBeforeCancellation: 0
+        };
+
+        updateOrderStatus(orderId, 'cancelled', 'Cancelled by customer', extraFields);
+
+        // Customer notification
+        addNotification(
+          o.userId || o.customerId || user.id || '',
+          'Order Cancelled',
+          `Your order #${orderId} has been cancelled as requested.\n\nNo refund is needed because no payment was made.`,
+          { role: 'customer', type: 'order', orderId: orderId }
+        );
+      }
+    } else {
+      // Reservations preserved untouched for later step
+      updateOrderStatus(orderId, 'cancelled', 'Cancelled by customer');
+    }
   } else {
     throw new Error("Unauthorized action");
   }
+}
+
+export function submitCustomerRefundDetails(orderId, details) {
+  const user = getCurrentUser();
+  const orders = getOrders();
+  const order = orders.find(ord => String(ord.id) === String(orderId));
+  if (!order) throw new Error("Order not found");
+  if (!user || (!isCustomerOrderOwner(order, user) && 
+      order.customerEmail !== user.email && 
+      order.ownerEmail !== user.email && 
+      String(order.userId) !== String(user.id) && 
+      String(order.customerId) !== String(user.id))) {
+    throw new Error("Unauthorized action");
+  }
+
+  const now = new Date().toISOString();
+  const updated = orders.map(o => {
+    if (String(o.id) === String(orderId)) {
+      return {
+        ...o,
+        refundStatus: 'Refund Information Submitted',
+        refundSubmittedAt: now,
+        refundMethod: details.method || (details.bankName ? 'Bank' : 'GCash'),
+        refundAccountName: details.accountName || '',
+        refundAccountNumber: details.accountNumber || details.gcashNumber || '',
+        refundGcashNumber: details.gcashNumber || (details.method === 'GCash' ? details.accountNumber : ''),
+        refundBankName: details.bankName || ''
+      };
+    }
+    return o;
+  });
+
+  const updatedOrder = updated.find(o => String(o.id) === String(orderId));
+  registerPendingOrderWrite(updatedOrder.id, updatedOrder);
+  saveOrders(updated, { colName: 'orders', docId: updatedOrder.id, docData: updatedOrder });
+  saveFirestoreDoc('orders', updatedOrder.id, updatedOrder).catch(() => {});
+
+  // Customer notification
+  addNotification(
+    order.userId || order.customerId || user.id || '',
+    'Refund Details Submitted',
+    `Your refund details for order #${orderId} have been submitted.\n\nThe store will review them and process your refund.`,
+    { role: 'customer', type: 'order', orderId: orderId }
+  );
+
+  // Admin notification
+  const refundAmtStr = Number(order.refundAmount || 0).toLocaleString(undefined, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
+  addNotification(
+    'admin',
+    'Refund Details Submitted',
+    `Customer ${order.fullName || 'Customer'} submitted refund details for Order #${orderId}.\n\nRefund amount: ₱${refundAmtStr}.\n\nPlease review the details and process the refund.`,
+    { role: 'admin', type: 'order', orderId: orderId }
+  );
+
+  return updatedOrder;
+}
+
+export function updateOrderRefundStatus(orderId, nextRefundStatus, adminInfo = {}) {
+  const admin = getCurrentAdmin();
+  const changerName = adminInfo.name || (admin ? (admin.name || admin.email || 'Admin') : 'Admin');
+  const now = new Date().toISOString();
+  const orders = getOrders();
+  const order = orders.find(ord => String(ord.id) === String(orderId));
+  if (!order) throw new Error("Order not found");
+
+  const updated = orders.map(o => {
+    if (String(o.id) === String(orderId)) {
+      const patch = {
+        refundStatus: nextRefundStatus
+      };
+      if (nextRefundStatus === 'Refunded') {
+        patch.refundProcessedAt = now;
+        patch.refundProcessedBy = changerName;
+      }
+      return {
+        ...o,
+        ...patch
+      };
+    }
+    return o;
+  });
+
+  const updatedOrder = updated.find(o => String(o.id) === String(orderId));
+  registerPendingOrderWrite(updatedOrder.id, updatedOrder);
+  saveOrders(updated, { colName: 'orders', docId: updatedOrder.id, docData: updatedOrder });
+  saveFirestoreDoc('orders', updatedOrder.id, updatedOrder).catch(() => {});
+
+  if (nextRefundStatus === 'Refunded') {
+    const refundAmtStr = Number(order.refundAmount || 0).toLocaleString(undefined, {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    });
+    // Customer notification
+    addNotification(
+      order.userId || order.customerId || '',
+      'Refund Completed',
+      `Your refund of ₱${refundAmtStr} for Order #${orderId} has been processed.`,
+      { role: 'customer', type: 'order', orderId: orderId }
+    );
+  }
+
+  return updatedOrder;
 }
 
 export function processOrderStockAndSplitIfNeeded(order) {
@@ -5460,15 +6087,18 @@ const availStock = Math.max(
 
   saveProducts(products, true);
 
-  if (affectedProductIds.size > 0) {
+  if (affectedProductIds.size > 0 && typeof saveFirestoreDoc === 'function') {
     affectedProductIds.forEach(pId => {
       const prod = products.find(p => String(p.id) === String(pId));
       if (prod) {
-        const { currentStock, reservedStock, availableStock, ...rest } = prod;
-        const physicalStock = currentStock !== undefined ? currentStock : prod.stock;
-        saveFirestoreDoc('products', pId, {
+        const { reservedStock, availableStock, ...rest } = prod;
+        const physicalStock = prod.currentStock !== undefined ? Number(prod.currentStock) : Number(prod.stock);
+        saveFirestoreDoc('products', String(pId), {
           ...rest,
-          stock: physicalStock
+          stock: physicalStock,
+          currentStock: physicalStock
+        }).catch(err => {
+          console.warn(`[FIREBASE] Failed targeted stock persist for product ${pId}:`, err);
         });
       }
     });
@@ -5478,16 +6108,14 @@ const availStock = Math.max(
 }
 
 export function allocateStockToReservations(targetProductId = null, restockOptions = null) {
- // IMPORTANT:
-// The allocator must use RAW physical warehouse stock,
-// not getProducts(), because getProducts() returns
-// customer-orderable Current Stock.
-const products = JSON.parse(
-  localStorage.getItem('aurora-products') || '[]'
-);
-const orders = getOrders();
+  // Authoritative active dataset: never operate on stale or test products or stale reservations
+  const products = (JSON.parse(
+    localStorage.getItem('aurora-products') || '[]'
+  ) || []).filter(p => p && !isStaleProduct(p) && !p.isArchived && !p.archived);
+  const orders = getOrders().filter(o => !isStaleOrderOrReservation(o));
 
   let changed = false;
+  const modifiedOrderIds = new Set();
 
   products.forEach(product => {
     const productId = String(product.id);
@@ -5655,7 +6283,7 @@ const totalPhysical = Math.max(
 
         const now = new Date();
         let isExpired = false;
-        if (order.paymentDeadline && !isPaymentSatisfied && !hasPaymentProof) {
+        if (prevAllocated > 0 && order.paymentDeadline && !isPaymentSatisfied && !hasPaymentProof) {
           const deadlineTime = new Date(order.paymentDeadline).getTime();
           if (!isNaN(deadlineTime) && now.getTime() > deadlineTime) {
             isExpired = true;
@@ -5778,6 +6406,7 @@ if (isApproved && isPaymentSatisfied && isFullyAllocated) {
   }
 
   changed = true;
+  modifiedOrderIds.add(order.id);
           
           // Log status change
           const changer = 'System Auto-Allocator';
@@ -5889,6 +6518,7 @@ if (isApproved && isPaymentSatisfied && isFullyAllocated) {
             if (wasDeferred) {
               resOrder.estimatedFulfillmentDate = batchDateStr;
               changed = true;
+              modifiedOrderIds.add(resOrder.id);
 
               const fulfillmentLabel = isPickup ? 'pickup' : 'delivery';
               const prodName = product.name || 'Rice';
@@ -5907,6 +6537,7 @@ if (isApproved && isPaymentSatisfied && isFullyAllocated) {
           } else if (!resOrder.estimatedFulfillmentDate || resOrder.estimatedFulfillmentDate === 'Waiting for Restock') {
             resOrder.estimatedFulfillmentDate = batchDateStr;
             changed = true;
+            modifiedOrderIds.add(resOrder.id);
           }
         } else {
   resOrder.restockBatchExcluded = true;
@@ -5930,6 +6561,7 @@ if (isApproved && isPaymentSatisfied && isFullyAllocated) {
     if (oldEstDate !== nextEstDateStr) {
       resOrder.estimatedFulfillmentDate = nextEstDateStr;
       changed = true;
+      modifiedOrderIds.add(resOrder.id);
 
       const fulfillmentLabel = isPickup ? 'pickup' : 'delivery';
       const prodName = product.name || 'Rice';
@@ -5956,6 +6588,7 @@ if (isApproved && isPaymentSatisfied && isFullyAllocated) {
     if (resOrder.estimatedFulfillmentDate !== oldEstDate) {
       resOrder.estimatedFulfillmentDate = oldEstDate;
       changed = true;
+      modifiedOrderIds.add(resOrder.id);
     }
   }
 }
@@ -5968,6 +6601,7 @@ if (isApproved && isPaymentSatisfied && isFullyAllocated) {
           if (tentative && tentative !== 'Waiting for Restock' && tentative !== 'Not yet scheduled' && resOrder.estimatedFulfillmentDate !== tentative) {
             resOrder.estimatedFulfillmentDate = tentative;
             changed = true;
+            modifiedOrderIds.add(resOrder.id);
           }
         }
       });
@@ -5982,12 +6616,23 @@ if (isApproved && isPaymentSatisfied && isFullyAllocated) {
       if (computedPos !== null && o.queuePosition !== computedPos) {
         o.queuePosition = computedPos;
         changed = true;
+        modifiedOrderIds.add(o.id);
       }
     }
   });
 
   if (changed) {
     saveOrders(orders);
+    if (isOrdersHydrated() || targetProductId !== null) {
+      modifiedOrderIds.forEach(mId => {
+        const ord = orders.find(o => String(o.id) === String(mId));
+        if (ord && !isStaleOrderOrReservation(ord)) {
+          saveFirestoreDoc('orders', ord.id, ord).catch(err => {
+            console.warn('[RESERVATIONS] Firestore save notice for order', mId, err);
+          });
+        }
+      });
+    }
     // Trigger real-time sync event
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new CustomEvent('aurora-sync-event'));
@@ -6243,6 +6888,15 @@ export function showToast(message, type = 'success') {
     document.body.appendChild(container);
   }
 
+  // Prevent duplicate logout-success notifications from appearing simultaneously
+  const msgLower = String(message || '').toLowerCase();
+  if (msgLower.includes('logged out successfully')) {
+    const existingToasts = Array.from(container.querySelectorAll('span'));
+    if (existingToasts.some(sp => String(sp.textContent || '').toLowerCase().includes('logged out successfully'))) {
+      return;
+    }
+  }
+
   const el = document.createElement('div');
   el.className = `px-5 py-3 rounded-xl border shadow-xl font-bold text-sm transition-all duration-300 transform -translate-y-3 opacity-0 pointer-events-auto flex items-center gap-3 max-w-sm bg-white `;
   
@@ -6273,6 +6927,70 @@ export function showToast(message, type = 'success') {
   }, 3000);
 }
 
+export function openCustomerLogoutModal() {
+  if (typeof document === 'undefined') return;
+
+  let dialog = document.getElementById('customer-logout-confirm-dialog');
+  if (!dialog) {
+    dialog = document.createElement('div');
+    dialog.id = 'customer-logout-confirm-dialog';
+    dialog.className = 'fixed inset-0 bg-black/50 backdrop-blur-xs z-[100] flex items-center justify-center p-4 hidden animate-in fade-in duration-200';
+    dialog.innerHTML = `
+      <div class="bg-white dark:bg-slate-900 rounded-3xl max-w-sm w-full shadow-2xl p-6 border border-gray-100 dark:border-slate-800 animate-in zoom-in-95 duration-200 text-center">
+        <div class="w-12 h-12 rounded-full bg-rose-50 dark:bg-rose-950/40 flex items-center justify-center border border-rose-100 dark:border-rose-800/50 mx-auto mb-4">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+            <polyline points="16 17 21 12 16 7"></polyline>
+            <line x1="21" y1="12" x2="9" y2="12"></line>
+          </svg>
+        </div>
+        <h3 class="text-base font-black text-gray-900 dark:text-gray-100 mb-2">Do you want to log out?</h3>
+        <p class="text-xs text-gray-600 dark:text-gray-300 font-semibold leading-relaxed mb-6">You will need to sign in again to access your account and orders.</p>
+        <div class="flex gap-2.5 justify-center">
+          <button id="cancel-customer-logout-btn" type="button" class="px-5 py-2.5 border border-gray-200 dark:border-slate-700 rounded-xl text-xs font-bold text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-slate-800 cursor-pointer transition-all bg-white dark:bg-slate-800 flex-1">Cancel</button>
+          <button id="confirm-customer-logout-btn" type="button" class="px-5 py-2.5 bg-[#EF4444] hover:bg-rose-700 text-white rounded-xl text-xs font-bold cursor-pointer transition-all flex-1">Confirm Logout</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(dialog);
+  }
+
+  const cancelBtn = document.getElementById('cancel-customer-logout-btn');
+  const confirmBtn = document.getElementById('confirm-customer-logout-btn');
+
+  if (cancelBtn) {
+    cancelBtn.onclick = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      dialog.classList.add('hidden');
+    };
+  }
+
+  dialog.onclick = (e) => {
+    if (e.target === dialog) {
+      dialog.classList.add('hidden');
+    }
+  };
+
+  if (confirmBtn) {
+    confirmBtn.onclick = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (window.__customerLogoutInProgress) return;
+      window.__customerLogoutInProgress = true;
+      dialog.classList.add('hidden');
+      const p = getPathPrefix();
+      logoutUser();
+      showToast('Logged out successfully');
+      setTimeout(() => {
+        window.location.href = p + 'index.html';
+      }, 1000);
+    };
+  }
+
+  dialog.classList.remove('hidden');
+}
+
 // Global hook to expose library on window
 if (typeof window !== 'undefined') {
   window.RiceFlow = {
@@ -6293,6 +7011,7 @@ if (typeof window !== 'undefined') {
     loginUser,
     registerUser,
     logoutUser,
+    openCustomerLogoutModal,
     loginAdmin,
     logoutAdmin,
     saveCurrentUser,
@@ -6365,7 +7084,11 @@ if (typeof window !== 'undefined') {
     saveFirestoreDoc,
     saveReviewDoc,
     syncReviewsFromFirestore,
-    isReservationWaitingForReupload
+    isReservationWaitingForReupload,
+    cancelOrder,
+    getActualRecordedPaidAmount,
+    submitCustomerRefundDetails,
+    updateOrderRefundStatus
   };
 }
 
@@ -7690,13 +8413,12 @@ export function renderLayout() {
 
     const mLogout = document.getElementById('mobile-btn-logout');
     if (mLogout) {
-      mLogout.addEventListener('click', () => {
-        logoutUser();
-        showToast('Logged out successfully');
-        setTimeout(() => {
-          window.location.href = p + 'index.html';
-        }, 1000);
-      });
+      mLogout.onclick = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (drawer) drawer.classList.add('hidden');
+        openCustomerLogoutModal();
+      };
     }
 
     // --- DARK MODE TOGGLE LOGIC ---
@@ -7891,6 +8613,34 @@ export function renderAdminLayout(activeTabId) {
 
   adminLayoutContainer.className = "h-screen bg-[#F5F5F5] flex flex-col md:flex-row relative overflow-hidden";
   adminLayoutContainer.innerHTML = `
+    <style id="admin-collapsible-sidebar-styles">
+      #admin-sidebar {
+        transition: transform 300ms cubic-bezier(0.4, 0, 0.2, 1), background-color 250ms ease-in-out, border-color 250ms ease-in-out !important;
+        will-change: transform;
+      }
+      #admin-right-workspace {
+        transition: padding-left 300ms cubic-bezier(0.4, 0, 0.2, 1), width 300ms cubic-bezier(0.4, 0, 0.2, 1), background-color 250ms ease-in-out !important;
+      }
+      @media (min-width: 768px) {
+        #admin-layout-container:not(.sidebar-collapsed) #admin-sidebar {
+          transform: translateX(0) !important;
+        }
+        #admin-layout-container:not(.sidebar-collapsed) #admin-right-workspace {
+          padding-left: 275px !important;
+        }
+        #admin-layout-container.sidebar-collapsed #admin-sidebar {
+          transform: translateX(-100%) !important;
+          pointer-events: none;
+        }
+        #admin-layout-container.sidebar-collapsed #admin-right-workspace {
+          padding-left: 0px !important;
+        }
+      }
+      #admin-main-content > div {
+        max-width: 100% !important;
+        width: 100% !important;
+      }
+    </style>
     <!-- Mobile header bar -->
     <div class="md:hidden flex items-center justify-between px-6 py-4 bg-white border-b border-gray-200 w-full sticky top-0 z-40">
       <div class="flex flex-col">
@@ -7970,10 +8720,17 @@ export function renderAdminLayout(activeTabId) {
     <div id="admin-sidebar-backdrop" class="fixed inset-0 bg-black/40 z-45 hidden md:hidden"></div>
  
     <!-- Right Content Workspace -->
-    <div class="flex-1 flex flex-col min-w-0 h-full overflow-hidden md:pl-[275px]">
+    <div id="admin-right-workspace" class="flex-1 flex flex-col min-w-0 w-full h-full overflow-hidden md:pl-[275px]">
       <!-- Admin Workspace Topbar Header -->
-      <header class="h-20 bg-white border-b border-gray-200 px-6 sm:px-8 flex items-center justify-between">
+      <header class="h-20 bg-white border-b border-gray-200 px-6 sm:px-8 flex items-center justify-between shrink-0">
         <div class="flex items-center gap-4">
+          <button id="admin-sidebar-toggle" type="button" aria-label="Toggle sidebar navigation" aria-expanded="true" title="Toggle Sidebar Navigation" class="w-10 h-10 rounded-xl bg-white hover:bg-gray-100 text-black border border-gray-200/80 shadow-2xs flex items-center justify-center cursor-pointer transition-all duration-200 shrink-0 focus:outline-none">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5">
+              <line x1="3" y1="6" x2="21" y2="6"></line>
+              <line x1="3" y1="12" x2="21" y2="12"></line>
+              <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+          </button>
           <h2 class="text-3xl font-black text-gray-950 tracking-tight">${pageTitle}</h2>
         </div>
         
@@ -8024,7 +8781,7 @@ export function renderAdminLayout(activeTabId) {
       </header>
 
       <!-- Main Workspace Section Content Injection Point -->
-      <main id="admin-main-content" class="flex-1 p-6 sm:p-8 overflow-y-auto">
+      <main id="admin-main-content" class="flex-1 w-full min-w-0 p-6 sm:p-8 overflow-y-auto">
         <!-- Injected dynamically or directly in page html -->
       </main>
     </div>
@@ -8042,28 +8799,60 @@ export function renderAdminLayout(activeTabId) {
     });
   }
 
-  // Mobile sidebar triggers
+  // Desktop & Mobile collapsible sidebar triggers
+  const desktopToggleBtn = document.getElementById('admin-sidebar-toggle');
   const toggleBtn = document.getElementById('mobile-sidebar-toggle');
   const closeBtn = document.getElementById('mobile-sidebar-close');
   const sidebar = document.getElementById('admin-sidebar');
   const backdrop = document.getElementById('admin-sidebar-backdrop');
 
+  function triggerLayoutReflow() {
+    window.dispatchEvent(new Event('resize'));
+    setTimeout(() => {
+      window.dispatchEvent(new Event('resize'));
+    }, 310);
+  }
+
+  if (desktopToggleBtn && sidebar) {
+    desktopToggleBtn.addEventListener('click', () => {
+      if (window.innerWidth >= 768) {
+        const isCollapsed = adminLayoutContainer.classList.toggle('sidebar-collapsed');
+        desktopToggleBtn.setAttribute('aria-expanded', isCollapsed ? 'false' : 'true');
+        triggerLayoutReflow();
+      } else {
+        const isHidden = sidebar.classList.contains('-translate-x-full');
+        if (isHidden) {
+          sidebar.classList.remove('-translate-x-full');
+          if (backdrop) backdrop.classList.remove('hidden');
+          desktopToggleBtn.setAttribute('aria-expanded', 'true');
+        } else {
+          sidebar.classList.add('-translate-x-full');
+          if (backdrop) backdrop.classList.add('hidden');
+          desktopToggleBtn.setAttribute('aria-expanded', 'false');
+        }
+      }
+    });
+  }
+
   if (toggleBtn && sidebar && backdrop) {
     toggleBtn.addEventListener('click', () => {
       sidebar.classList.remove('-translate-x-full');
       backdrop.classList.remove('hidden');
+      if (desktopToggleBtn) desktopToggleBtn.setAttribute('aria-expanded', 'true');
     });
   }
   if (closeBtn && sidebar && backdrop) {
     closeBtn.addEventListener('click', () => {
       sidebar.classList.add('-translate-x-full');
       backdrop.classList.add('hidden');
+      if (desktopToggleBtn) desktopToggleBtn.setAttribute('aria-expanded', 'false');
     });
   }
   if (backdrop && sidebar) {
     backdrop.addEventListener('click', () => {
       sidebar.classList.add('-translate-x-full');
       backdrop.classList.add('hidden');
+      if (desktopToggleBtn) desktopToggleBtn.setAttribute('aria-expanded', 'false');
     });
   }
 

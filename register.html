@@ -37,7 +37,7 @@
         </div>
 
         <!-- Form container -->
-        <form id="form-register" class="space-y-6">
+        <form id="form-register" class="space-y-6" autocomplete="off">
           
           <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
             <!-- First Name -->
@@ -47,7 +47,9 @@
               </label>
               <input
                 id="firstName"
+                name="firstName"
                 type="text"
+                autocomplete="given-name"
                 required
                 placeholder="Enter First Name"
                 class="w-full h-12 px-4 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-[#1E6C02]/20 focus:border-[#1E6C02] transition-all text-sm font-medium text-[#222222]"
@@ -61,7 +63,9 @@
               </label>
               <input
                 id="lastName"
+                name="lastName"
                 type="text"
+                autocomplete="family-name"
                 required
                 placeholder="Enter Last Name"
                 class="w-full h-12 px-4 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-[#1E6C02]/20 focus:border-[#1E6C02] transition-all text-sm font-medium text-[#222222]"
@@ -75,7 +79,9 @@
               </label>
               <input
                 id="email"
+                name="email"
                 type="email"
+                autocomplete="email"
                 required
                 placeholder="Enter Email Address"
                 class="w-full h-12 px-4 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-[#1E6C02]/20 focus:border-[#1E6C02] transition-all text-sm font-medium text-[#222222]"
@@ -89,7 +95,9 @@
               </label>
               <input
                 id="phone"
+                name="phone"
                 type="tel"
+                autocomplete="tel"
                 required
                 placeholder="Enter Contact Number"
                 class="w-full h-12 px-4 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-[#1E6C02]/20 focus:border-[#1E6C02] transition-all text-sm font-medium text-[#222222]"
@@ -103,7 +111,9 @@
               </label>
               <input
                 id="address"
+                name="address"
                 type="text"
+                autocomplete="street-address"
                 required
                 placeholder="Enter Physical Delivery Address"
                 class="w-full h-12 px-4 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-[#1E6C02]/20 focus:border-[#1E6C02] transition-all text-sm font-medium text-[#222222]"
@@ -147,7 +157,9 @@
               <div class="relative">
                 <input
                   id="password"
+                  name="password"
                   type="password"
+                  autocomplete="new-password"
                   required
                   placeholder="Enter Password"
                   class="w-full h-12 pl-4 pr-12 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-[#1E6C02]/20 focus:border-[#1E6C02] transition-all text-sm font-medium text-[#222222]"
@@ -191,7 +203,9 @@
               <div class="relative">
                 <input
                   id="confirmPassword"
+                  name="confirmPassword"
                   type="password"
+                  autocomplete="new-password"
                   required
                   placeholder="Enter New Password"
                   class="w-full h-12 pl-4 pr-12 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-[#1E6C02]/20 focus:border-[#1E6C02] transition-all text-sm font-medium text-[#222222]"
@@ -217,9 +231,9 @@
             />
             <label for="terms" class="text-sm text-black font-normal select-none leading-relaxed cursor-pointer">
               By tapping "Register" you agree to our 
-              <a href="terms.html" target="_blank" class="text-[#1E6C02] font-bold hover:underline">Terms of Use</a> 
+              <a href="terms.html" id="link-terms-of-use" class="text-[#1E6C02] font-bold hover:underline">Terms of Use</a> 
               and 
-              <a href="privacy.html" target="_blank" class="text-[#1E6C02] font-bold hover:underline">Privacy Policy</a>
+              <a href="privacy.html" id="link-privacy-policy" class="text-[#1E6C02] font-bold hover:underline">Privacy Policy</a>
             </label>
           </div>
 
@@ -257,6 +271,8 @@
   <!-- Embedded controller logical scripts -->
   <script type="module">
     import { registerUser, checkEmailExists, checkPhoneExists, validatePhilippinePhone, normalizePhilippinePhone, showToast } from './src/app/shared.js';
+
+    const REGISTRATION_DRAFT_KEY = 'riceflow-registration-draft';
 
     document.addEventListener('DOMContentLoaded', () => {
       const form = document.getElementById('form-register');
@@ -322,16 +338,206 @@
         updateReqElement('req-number', hasNumber, 'Number');
       };
 
+      // Clear stale registration draft if entering fresh from a non-Terms/Privacy page
+      try {
+        const navEntry = performance.getEntriesByType && performance.getEntriesByType('navigation')[0];
+        const navType = navEntry ? navEntry.type : 'navigate';
+        if (navType === 'navigate' && document.referrer) {
+          const ref = document.referrer.toLowerCase();
+          const isReturningFromLegalOrSelf =
+            ref.includes('terms.html') ||
+            ref.includes('privacy.html') ||
+            ref.includes('register.html');
+          if (!isReturningFromLegalOrSelf) {
+            sessionStorage.removeItem(REGISTRATION_DRAFT_KEY);
+          }
+        }
+      } catch {}
+
+      const getSavedRegistrationDraft = () => {
+        try {
+          const raw = sessionStorage.getItem(REGISTRATION_DRAFT_KEY);
+          if (!raw) return null;
+          const parsed = JSON.parse(raw);
+          if (!parsed || typeof parsed !== 'object') return null;
+          return {
+            firstName: typeof parsed.firstName === 'string' ? parsed.firstName : '',
+            lastName: typeof parsed.lastName === 'string' ? parsed.lastName : '',
+            email: typeof parsed.email === 'string' ? parsed.email : '',
+            phone: typeof parsed.phone === 'string' ? parsed.phone : '',
+            address: typeof parsed.address === 'string' ? parsed.address : '',
+            gender: typeof parsed.gender === 'string' ? parsed.gender : ''
+          };
+        } catch {
+          return null;
+        }
+      };
+
+      let emailFocusedByUser = false;
+      let passwordFocusedByUser = false;
+      let confirmFocusedByUser = false;
+      let userModifiedForm = false;
+
+      const isBrowserAutofilled = (el) => {
+        if (!el || typeof el.matches !== 'function') return false;
+        try {
+          if (el.matches(':-webkit-autofill')) return true;
+        } catch {}
+        try {
+          if (el.matches(':autofill')) return true;
+        } catch {}
+        return false;
+      };
+
+      const applyRegistrationFormState = (draft) => {
+        firstNameInp.value = draft ? draft.firstName : '';
+        lastNameInp.value = draft ? draft.lastName : '';
+        emailInp.value = draft ? draft.email : '';
+        phoneInp.value = draft ? draft.phone : '';
+        addressInp.value = draft ? draft.address : '';
+        passwordInp.value = '';
+        confirmInp.value = '';
+
+        const genderRadios = document.querySelectorAll('input[name="gender"]');
+        genderRadios.forEach((radio) => {
+          radio.checked = Boolean(draft && draft.gender && radio.value === draft.gender);
+        });
+
+        isPassVisible = false;
+        isConfirmVisible = false;
+        passwordInp.type = 'password';
+        confirmInp.type = 'password';
+        eyeIcon.innerHTML = eyeOpenSvg;
+        eyeIconConfirm.innerHTML = eyeOpenSvg;
+        passwordReqsPanel.classList.add('hidden');
+        checkPasswordReqs();
+      };
+
+      const saveRegistrationDraft = () => {
+        try {
+          const genderChecked = document.querySelector('input[name="gender"]:checked');
+          const draft = {
+            firstName: firstNameInp.value || '',
+            lastName: lastNameInp.value || '',
+            email: emailInp.value || '',
+            phone: phoneInp.value || '',
+            address: addressInp.value || '',
+            gender: genderChecked ? genderChecked.value : ''
+          };
+          const hasAnyValue = Object.values(draft).some((v) => String(v || '').trim() !== '');
+          if (hasAnyValue) {
+            sessionStorage.setItem(REGISTRATION_DRAFT_KEY, JSON.stringify(draft));
+          } else {
+            sessionStorage.removeItem(REGISTRATION_DRAFT_KEY);
+          }
+        } catch {}
+      };
+
+      // Initial form state application (restore draft or ensure completely blank)
+      let currentDraft = getSavedRegistrationDraft();
+      applyRegistrationFormState(currentDraft);
+
+      // Guard against browser password manager autofilling saved login credentials on load/return
+      const enforceNoCredentialAutofill = () => {
+        const expectedEmail = currentDraft ? currentDraft.email : '';
+        if (!passwordFocusedByUser && (passwordInp.value !== '' || isBrowserAutofilled(passwordInp))) {
+          passwordInp.value = '';
+          passwordReqsPanel.classList.add('hidden');
+          checkPasswordReqs();
+          if (!emailFocusedByUser) {
+            emailInp.value = expectedEmail;
+          }
+        }
+        if (!confirmFocusedByUser && (confirmInp.value !== '' || isBrowserAutofilled(confirmInp))) {
+          confirmInp.value = '';
+        }
+        if (!emailFocusedByUser && isBrowserAutofilled(emailInp)) {
+          emailInp.value = expectedEmail;
+        }
+      };
+
+      [firstNameInp, lastNameInp, phoneInp, addressInp].forEach((inp) => {
+        inp.addEventListener('input', () => {
+          userModifiedForm = true;
+        });
+      });
+
+      document.querySelectorAll('input[name="gender"]').forEach((radio) => {
+        radio.addEventListener('change', () => {
+          userModifiedForm = true;
+        });
+      });
+
+      emailInp.addEventListener('focus', () => {
+        emailFocusedByUser = true;
+      });
+      emailInp.addEventListener('input', () => {
+        if (!emailFocusedByUser && (isBrowserAutofilled(emailInp) || (!passwordFocusedByUser && passwordInp.value !== ''))) {
+          enforceNoCredentialAutofill();
+          return;
+        }
+        userModifiedForm = true;
+      });
+
       passwordInp.addEventListener('focus', () => {
+        passwordFocusedByUser = true;
         passwordReqsPanel.classList.remove('hidden');
         checkPasswordReqs();
       });
 
       passwordInp.addEventListener('input', () => {
+        if (!passwordFocusedByUser && document.activeElement !== passwordInp) {
+          enforceNoCredentialAutofill();
+          return;
+        }
+        userModifiedForm = true;
         if (passwordReqsPanel.classList.contains('hidden')) {
           passwordReqsPanel.classList.remove('hidden');
         }
         checkPasswordReqs();
+      });
+
+      confirmInp.addEventListener('focus', () => {
+        confirmFocusedByUser = true;
+      });
+      confirmInp.addEventListener('input', () => {
+        if (!confirmFocusedByUser && document.activeElement !== confirmInp) {
+          enforceNoCredentialAutofill();
+          return;
+        }
+        userModifiedForm = true;
+      });
+
+      window.addEventListener('pageshow', (event) => {
+        if (event.persisted || !userModifiedForm) {
+          emailFocusedByUser = false;
+          passwordFocusedByUser = false;
+          confirmFocusedByUser = false;
+          currentDraft = getSavedRegistrationDraft();
+          applyRegistrationFormState(currentDraft);
+        }
+        enforceNoCredentialAutofill();
+      });
+
+      window.addEventListener('load', () => {
+        enforceNoCredentialAutofill();
+        setTimeout(enforceNoCredentialAutofill, 50);
+        setTimeout(enforceNoCredentialAutofill, 200);
+      });
+
+      // Save non-password draft only when navigating to Terms of Use or Privacy Policy;
+      // clear draft when intentionally navigating away to other pages.
+      document.addEventListener('click', (e) => {
+        const link = e.target && e.target.closest ? e.target.closest('a[href]') : null;
+        if (!link) return;
+        const href = (link.getAttribute('href') || '').toLowerCase();
+        if (href.includes('terms.html') || href.includes('privacy.html')) {
+          saveRegistrationDraft();
+        } else if (!href.startsWith('#') && !href.startsWith('javascript:')) {
+          try {
+            sessionStorage.removeItem(REGISTRATION_DRAFT_KEY);
+          } catch {}
+        }
       });
 
       // Handle checkbox Terms changes to configure action button states
@@ -467,6 +673,9 @@
             });
 
             if (success) {
+              try {
+                sessionStorage.removeItem(REGISTRATION_DRAFT_KEY);
+              } catch {}
               showToast('Account registered successfully!');
               const card = document.getElementById('register-card');
               card.innerHTML = `

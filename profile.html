@@ -306,14 +306,108 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2.5" class="w-6 h-6"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
       </div>
       
-      <h3 class="text-base font-black text-gray-900 dark:text-gray-100 mb-2 uppercase tracking-wider">Cancel Order</h3>
-      <p class="text-xs text-gray-600 dark:text-gray-300 font-semibold leading-relaxed mb-6">Are you sure you want to cancel this order? This action cannot be undone.</p>
+      <h3 id="cancel-order-dialog-title" class="text-lg font-black text-gray-900 dark:text-gray-100 mb-2.5 tracking-tight">Cancel this order?</h3>
+      <p id="cancel-order-dialog-message" class="text-sm text-gray-600 dark:text-gray-300 font-medium leading-relaxed mb-6 whitespace-pre-line text-center">Are you sure you want to cancel this order?</p>
       
       <input type="hidden" id="cancel-order-id-hidden" />
       
       <div class="flex gap-2.5 justify-center">
-        <button id="keep-order-btn" class="px-5 py-2.5 border border-gray-200 dark:border-slate-700 rounded-xl text-xs font-bold text-gray-500 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-800 cursor-pointer transition-all bg-white dark:bg-slate-800 flex-1">Keep Order</button>
-        <button id="confirm-cancel-order-btn" class="px-5 py-2.5 bg-[#EF4444] text-white rounded-xl text-xs font-bold hover:bg-rose-700 cursor-pointer transition-all flex-1">Cancel Order</button>
+        <button id="keep-order-btn" class="px-5 py-2.5 border border-gray-300 dark:border-slate-600 rounded-xl text-sm font-bold text-gray-700 dark:text-gray-200 bg-white dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-700 hover:border-gray-500 dark:hover:border-slate-400 hover:text-gray-950 dark:hover:text-white hover:shadow-md hover:ring-2 hover:ring-gray-300 dark:hover:ring-slate-500 hover:-translate-y-0.5 active:translate-y-0 active:bg-gray-200 dark:active:bg-slate-600 active:shadow-xs cursor-pointer transition-all duration-200 flex-1">Keep Order</button>
+        <button id="confirm-cancel-order-btn" class="px-5 py-2.5 bg-red-600 hover:bg-red-700 active:bg-red-800 text-white rounded-xl text-sm font-bold border border-red-600 hover:border-red-700 hover:shadow-md hover:shadow-red-500/25 dark:hover:shadow-red-950/50 hover:ring-2 hover:ring-red-400 dark:hover:ring-red-500 hover:brightness-110 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.99] active:shadow-xs cursor-pointer transition-all duration-200 flex-1">Yes, Cancel Order</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CUSTOMER REFUND INFORMATION MODAL DIALOG -->
+  <div id="customer-refund-info-dialog" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden animate-in fade-in duration-200">
+    <div class="bg-white dark:bg-slate-900 rounded-3xl max-w-md w-full shadow-2xl p-6 md:p-7 border border-gray-100 dark:border-slate-800 animate-in zoom-in-95 duration-200 text-left">
+      <div class="flex items-center justify-between pb-3 border-b border-gray-100 dark:border-slate-800 mb-4">
+        <div>
+          <h3 class="text-lg font-black text-gray-900 dark:text-gray-100 tracking-tight">Refund Information</h3>
+          <p class="text-xs text-gray-500 dark:text-gray-400 font-medium mt-0.5">Please provide the details where the store should send your refund.</p>
+        </div>
+        <button id="close-refund-info-dialog-btn" type="button" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 p-1.5 rounded-full hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors cursor-pointer">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-5 h-5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+
+      <input type="hidden" id="refund-order-id-hidden" />
+
+      <!-- Refund Amount Callout -->
+      <div class="p-3.5 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 rounded-2xl flex items-center justify-between mb-4">
+        <span class="text-xs font-bold text-emerald-900 dark:text-emerald-200 uppercase tracking-wider">Eligible Refund</span>
+        <span id="refund-info-amount-display" class="text-base font-black text-emerald-700 dark:text-emerald-400">₱0.00</span>
+      </div>
+
+      <!-- Security Notice -->
+      <div class="p-3 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 rounded-xl text-xs text-amber-900 dark:text-amber-300 font-medium leading-relaxed mb-4 flex items-start gap-2">
+        <span class="text-amber-600 text-sm">🔒</span>
+        <span>Please enter only the details needed to receive your refund. RiceFlow will never ask for your MPIN, password, or OTP.</span>
+      </div>
+
+      <!-- Method selection -->
+      <div class="mb-4">
+        <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-2">Select Refund Method</label>
+        <div class="grid grid-cols-2 gap-2.5">
+          <button type="button" id="refund-method-gcash-btn" class="refund-method-tab py-2.5 px-4 rounded-xl border text-xs font-bold flex items-center justify-center gap-2 cursor-pointer transition-all bg-emerald-50 dark:bg-emerald-950/50 border-emerald-500 text-emerald-800 dark:text-emerald-300">
+            <span>📱</span> GCash
+          </button>
+          <button type="button" id="refund-method-bank-btn" class="refund-method-tab py-2.5 px-4 rounded-xl border text-xs font-bold flex items-center justify-center gap-2 cursor-pointer transition-all bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-slate-700">
+            <span>🏦</span> Bank
+          </button>
+        </div>
+      </div>
+
+      <!-- GCash Fields -->
+      <div id="refund-gcash-fields" class="space-y-3 mb-5">
+        <div>
+          <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Account Name</label>
+          <input type="text" id="refund-gcash-name" class="w-full text-sm px-3.5 py-2.5 border border-gray-300 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-emerald-500 outline-none" placeholder="e.g., Juan Dela Cruz" />
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">GCash Number</label>
+          <input type="tel" id="refund-gcash-number" class="w-full text-sm px-3.5 py-2.5 border border-gray-300 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-emerald-500 outline-none" placeholder="09XXXXXXXXX" />
+        </div>
+      </div>
+
+      <!-- Bank Fields (hidden by default) -->
+      <div id="refund-bank-fields" class="space-y-3 mb-5 hidden">
+        <div>
+          <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Bank Name</label>
+          <input type="text" id="refund-bank-name" class="w-full text-sm px-3.5 py-2.5 border border-gray-300 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-emerald-500 outline-none" placeholder="e.g., BDO, BPI, UnionBank, Metrobank" />
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Account Name</label>
+          <input type="text" id="refund-bank-account-name" class="w-full text-sm px-3.5 py-2.5 border border-gray-300 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-emerald-500 outline-none" placeholder="Account Holder Name" />
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Account Number</label>
+          <input type="text" id="refund-bank-account-number" class="w-full text-sm px-3.5 py-2.5 border border-gray-300 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-emerald-500 outline-none" placeholder="Bank Account Number" />
+        </div>
+      </div>
+
+      <div class="flex gap-2.5 justify-end pt-3 border-t border-gray-100 dark:border-slate-800">
+        <button id="cancel-refund-info-btn" type="button" class="px-5 py-2.5 border border-gray-300 dark:border-slate-700 rounded-xl text-xs font-bold text-gray-700 dark:text-gray-300 bg-white dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-700 cursor-pointer transition-all">Cancel</button>
+        <button id="submit-refund-info-btn" type="button" class="px-5 py-2.5 bg-[#1E6C02] hover:bg-[#145001] text-white rounded-xl text-xs font-bold cursor-pointer transition-all shadow-xs">Submit Details</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CUSTOMER LOGOUT CONFIRMATION MODAL DIALOG -->
+  <div id="customer-logout-confirm-dialog" class="fixed inset-0 bg-black/50 backdrop-blur-xs z-[100] flex items-center justify-center p-4 hidden animate-in fade-in duration-200">
+    <div class="bg-white dark:bg-slate-900 rounded-3xl max-w-sm w-full shadow-2xl p-6 border border-gray-100 dark:border-slate-800 animate-in zoom-in-95 duration-200 text-center">
+      <div class="w-12 h-12 rounded-full bg-rose-50 dark:bg-rose-950/40 flex items-center justify-center border border-rose-100 dark:border-rose-800/50 mx-auto mb-4">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+          <polyline points="16 17 21 12 16 7"></polyline>
+          <line x1="21" y1="12" x2="9" y2="12"></line>
+        </svg>
+      </div>
+      <h3 class="text-base font-black text-gray-900 dark:text-gray-100 mb-2">Do you want to log out?</h3>
+      <p class="text-xs text-gray-600 dark:text-gray-300 font-semibold leading-relaxed mb-6">You will need to sign in again to access your account and orders.</p>
+      <div class="flex gap-2.5 justify-center">
+        <button id="cancel-customer-logout-btn" type="button" class="px-5 py-2.5 border border-gray-200 dark:border-slate-700 rounded-xl text-xs font-bold text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-slate-800 cursor-pointer transition-all bg-white dark:bg-slate-800 flex-1">Cancel</button>
+        <button id="confirm-customer-logout-btn" type="button" class="px-5 py-2.5 bg-[#EF4444] hover:bg-rose-700 text-white rounded-xl text-xs font-bold cursor-pointer transition-all flex-1">Confirm Logout</button>
       </div>
     </div>
   </div>
@@ -799,6 +893,7 @@
       protectCustomerPage,
       getCurrentUser, 
       logoutUser, 
+      openCustomerLogoutModal,
       getOrders, 
       cancelOrder, 
       updateUser, 
@@ -820,9 +915,12 @@
       isOrderFullyReviewed,
       getReviews,
       checkCustomerArchivedInFirestore,
-      fetchCustomerProfileFromFirestore
+      fetchCustomerProfileFromFirestore,
+      getActualRecordedPaidAmount,
+      isReservationOrder,
+      submitCustomerRefundDetails
     } from './src/app/shared.js';
-    import { auth, saveFirestoreDoc } from './src/lib/firebase.js';
+    import { auth, saveFirestoreDoc, initFirestoreSync, syncOrdersFromFirestore } from './src/lib/firebase.js';
     import { onAuthStateChanged } from 'firebase/auth';
 
     // Authoritative pricing calculation matching View Order and My Purchases
@@ -1127,13 +1225,14 @@
         if (editAvatar) {
           editAvatar.addEventListener('click', openEditModal);
         }
-        document.getElementById('btn-logout').addEventListener('click', () => {
-          logoutUser();
-          showToast('Goodbye! Logged out successfully');
-          setTimeout(() => {
-            window.location.href = 'index.html';
-          }, 1000);
-        });
+        const logoutBtn = document.getElementById('btn-logout');
+        if (logoutBtn) {
+          logoutBtn.onclick = (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            openCustomerLogoutModal();
+          };
+        }
 
         // Render statistics summary cards
         renderSummaryCards();
@@ -1147,18 +1246,7 @@
         if (!u) return;
         const allOrders = getOrders();
         
-        // Define isMyOrder locally if not already matching correctly
-        const isMyOrder = (o) => {
-          if (!u) return false;
-          if (u.id && o.userId && String(o.userId) === String(u.id)) return true;
-          if (u.id && o.customerId && String(o.customerId) === String(u.id)) return true;
-          const uEmail = String(u.email || '').toLowerCase().trim();
-          const oEmail = String(o.customerEmail || o.ownerEmail || o.email || '').toLowerCase().trim();
-          if (uEmail && oEmail && uEmail === oEmail) return true;
-          return false;
-        };
-
-        const myOrders = allOrders.filter(isMyOrder);
+        const myOrders = allOrders.filter(o => isCustomerOrderOwner(o, u));
 
         const ordersPlacedCount = myOrders.filter(o => {
           const isRes = !!o.isPreOrder || (o.items && o.items.some(i => i.isReservation));
@@ -1411,7 +1499,12 @@
 
       function getItemQtyPriceStr(item, hasReservations) {
         const qty = item.quantity || 0;
-        return `${qty} sack${qty !== 1 ? 's' : ''} × ₱${(item.product?.price ?? 0).toLocaleString()}`;
+        return `${qty} sack${qty !== 1 ? 's' : ''} × ₱${Number(item.product?.price ?? item.price ?? 0).toLocaleString()}`;
+      }
+
+      function getItemDisplaySubtotal(item) {
+        if (!item) return 0;
+        return Number(item.product?.price ?? item.price ?? 0) * Number(item.quantity ?? 1);
       }
 
       // Helper function to render active order details safely
@@ -1423,6 +1516,186 @@
         }
       }
       window.renderActiveOrderDetails = renderActiveOrderDetails;
+
+      // Helper to determine recorded paid amount for an order
+      function getOrderRecordedPaidAmount(order) {
+        if (!order) return 0;
+        if (order.amountPaid !== undefined && order.amountPaid !== null && !isNaN(Number(order.amountPaid)) && Number(order.amountPaid) > 0) {
+          return Number(order.amountPaid);
+        }
+        if (order.depositAmount !== undefined && order.depositAmount !== null && !isNaN(Number(order.depositAmount)) && Number(order.depositAmount) > 0) {
+          return Number(order.depositAmount);
+        }
+        if (order.originalAmountPaid !== undefined && order.originalAmountPaid !== null && !isNaN(Number(order.originalAmountPaid)) && Number(order.originalAmountPaid) > 0) {
+          return Number(order.originalAmountPaid);
+        }
+        if (order.amountPaidBeforeCancellation !== undefined && order.amountPaidBeforeCancellation !== null && !isNaN(Number(order.amountPaidBeforeCancellation)) && Number(order.amountPaidBeforeCancellation) > 0) {
+          return Number(order.amountPaidBeforeCancellation);
+        }
+        if (order.amountCollected !== undefined && order.amountCollected !== null && !isNaN(Number(order.amountCollected)) && Number(order.amountCollected) > 0) {
+          return Number(order.amountCollected);
+        }
+        return 0;
+      }
+
+      // Helper to determine if a normal order was paid in full
+      function isNormalOrderFullPayment(order, actualPaid) {
+        if (!order || actualPaid <= 0) return false;
+
+        const pType = String(order.paymentType || '').toLowerCase();
+        const pOpt = String(order.paymentOption || '').toLowerCase();
+
+        // Down payment indicators
+        const isExplicitDown = pType === 'deposit' || 
+                               pType === 'downpayment' || 
+                               pType === 'down' || 
+                               pOpt.includes('down') || 
+                               pOpt.includes('deposit') || 
+                               pOpt.includes('30%');
+
+        const hasRemainingBalance = (order.remainingAmount !== undefined && Number(order.remainingAmount) > 0) ||
+                                    (order.remainingBalance !== undefined && Number(order.remainingBalance) > 0);
+
+        if (isExplicitDown || hasRemainingBalance) {
+          return false;
+        }
+
+        // Full payment indicators
+        const isExplicitFull = pType === 'full' || 
+                               pType === 'full_advance' || 
+                               pType === 'full payment' || 
+                               pOpt === 'full payment' || 
+                               pOpt === 'full' ||
+                               order.financialStatus === 'No Cash Collection Required';
+
+        const tot = Number(order.total || order.totalPrice || order.totalBill || 0);
+
+        if (isExplicitFull) {
+          return true;
+        }
+
+        if (tot > 0 && actualPaid >= tot) {
+          return true;
+        }
+
+        return false;
+      }
+
+      // Customer cancellation confirmation dialog trigger for normal orders
+      function promptCustomerCancelOrder(orderId) {
+        if (!orderId) return;
+        const orders = getOrders();
+        const order = orders.find(o => String(o.id) === String(orderId));
+        if (!order) {
+          showToast('Could not find order.', 'error');
+          return;
+        }
+
+        if (!isMyOrder(order)) {
+          showToast('You are not authorized to cancel this order.', 'error');
+          return;
+        }
+
+        // Normal customer orders only for Step 1 (reservations excluded)
+        if (isReservationOrder(order)) {
+          return;
+        }
+
+        const actualPaid = getOrderRecordedPaidAmount(order);
+        const isFull = isNormalOrderFullPayment(order, actualPaid);
+
+        const titleEl = document.getElementById('cancel-order-dialog-title');
+        const msgEl = document.getElementById('cancel-order-dialog-message');
+        const idHidden = document.getElementById('cancel-order-id-hidden');
+
+        if (titleEl) titleEl.textContent = 'Cancel this order?';
+        if (idHidden) idHidden.value = orderId;
+
+        if (isFull && actualPaid > 0) {
+          const formattedAmount = Number(actualPaid).toLocaleString(undefined, {
+            minimumFractionDigits: Number.isInteger(actualPaid) ? 0 : 2,
+            maximumFractionDigits: 2
+          });
+          if (msgEl) {
+            msgEl.textContent = `You already paid ₱${formattedAmount}.\n\nBecause you paid the order in full, you are eligible for a refund if you cancel this order.\n\nIf you continue, the order will be cancelled and a refund request for ₱${formattedAmount} will be created.\n\nDo you want to continue?`;
+          }
+        } else if (actualPaid > 0) {
+          const formattedAmount = Number(actualPaid).toLocaleString(undefined, {
+            minimumFractionDigits: Number.isInteger(actualPaid) ? 0 : 2,
+            maximumFractionDigits: 2
+          });
+          if (msgEl) {
+            msgEl.textContent = `You already paid ₱${formattedAmount}.\n\nUnder our store cancellation policy, this down payment is not refundable when you choose to cancel the order.\n\nDo you still want to cancel?`;
+          }
+        } else {
+          if (msgEl) {
+            msgEl.textContent = `You have not made a payment for this order yet.\n\nIf you cancel now, the order will be cancelled and any stock handled by the existing order process will be released.\n\nDo you want to continue?`;
+          }
+        }
+
+        const dlg = document.getElementById('cancel-order-confirm-dialog');
+        if (dlg) dlg.classList.remove('hidden');
+      }
+
+      // Refund details modal helper
+      let currentRefundMethod = 'GCash';
+      function setRefundMethod(method) {
+        currentRefundMethod = method;
+        const gcashBtn = document.getElementById('refund-method-gcash-btn');
+        const bankBtn = document.getElementById('refund-method-bank-btn');
+        const gcashFields = document.getElementById('refund-gcash-fields');
+        const bankFields = document.getElementById('refund-bank-fields');
+
+        if (method === 'GCash') {
+          if (gcashBtn) {
+            gcashBtn.className = "refund-method-tab py-2.5 px-4 rounded-xl border text-xs font-bold flex items-center justify-center gap-2 cursor-pointer transition-all bg-emerald-50 dark:bg-emerald-950/50 border-emerald-500 text-emerald-800 dark:text-emerald-300";
+          }
+          if (bankBtn) {
+            bankBtn.className = "refund-method-tab py-2.5 px-4 rounded-xl border text-xs font-bold flex items-center justify-center gap-2 cursor-pointer transition-all bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-slate-700";
+          }
+          if (gcashFields) gcashFields.classList.remove('hidden');
+          if (bankFields) bankFields.classList.add('hidden');
+        } else {
+          if (bankBtn) {
+            bankBtn.className = "refund-method-tab py-2.5 px-4 rounded-xl border text-xs font-bold flex items-center justify-center gap-2 cursor-pointer transition-all bg-emerald-50 dark:bg-emerald-950/50 border-emerald-500 text-emerald-800 dark:text-emerald-300";
+          }
+          if (gcashBtn) {
+            gcashBtn.className = "refund-method-tab py-2.5 px-4 rounded-xl border text-xs font-bold flex items-center justify-center gap-2 cursor-pointer transition-all bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-slate-700";
+          }
+          if (bankFields) bankFields.classList.remove('hidden');
+          if (gcashFields) gcashFields.classList.add('hidden');
+        }
+      }
+
+      function openRefundInfoModal(order) {
+        if (!order) return;
+        const dlg = document.getElementById('customer-refund-info-dialog');
+        if (!dlg) return;
+
+        document.getElementById('refund-order-id-hidden').value = order.id;
+        const refundAmt = Number(order.refundAmount !== undefined ? order.refundAmount : (order.amountPaid || 0));
+        const amtStr = refundAmt.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        const amtDisp = document.getElementById('refund-info-amount-display');
+        if (amtDisp) amtDisp.textContent = `₱${amtStr}`;
+
+        // Reset to GCash default
+        setRefundMethod('GCash');
+
+        const user = getCurrentUser();
+        const gNameInput = document.getElementById('refund-gcash-name');
+        const gNumInput = document.getElementById('refund-gcash-number');
+        const bNameInput = document.getElementById('refund-bank-name');
+        const bAccNameInput = document.getElementById('refund-bank-account-name');
+        const bAccNumInput = document.getElementById('refund-bank-account-number');
+
+        if (gNameInput) gNameInput.value = order.refundAccountName || user?.name || '';
+        if (gNumInput) gNumInput.value = order.refundGcashNumber || order.phone || user?.phone || '';
+        if (bNameInput) bNameInput.value = order.refundBankName || '';
+        if (bAccNameInput) bAccNameInput.value = order.refundAccountName || user?.name || '';
+        if (bAccNumInput) bAccNumInput.value = (order.refundMethod === 'Bank' ? order.refundAccountNumber : '') || '';
+
+        dlg.classList.remove('hidden');
+      }
 
       // 2.5 Render detailed single order page/view
       function openOrderDetails(orderId, pushToHistory = true) {
@@ -1777,18 +2050,154 @@
         // Cancellation notice banner (if cancelled)
         let cancellationNoticeHtml = '';
         if (oStatus === 'cancelled') {
-          cancellationNoticeHtml = `
-            <!-- Red Cancellation Banner -->
-            <div class="border border-rose-200 dark:border-rose-900 rounded-3xl p-6 bg-rose-50/50 dark:bg-rose-950/40 flex items-center gap-4 text-left shadow-2xs mb-6">
-              <div class="w-10 h-10 rounded-full bg-rose-100 dark:bg-rose-900/60 flex items-center justify-center shrink-0 border border-rose-200 dark:border-rose-800">
-                <svg viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="3" class="w-5 h-5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          const refundStatus = order.refundStatus || 'No Refund Needed';
+          const refundAmt = Number(order.refundAmount !== undefined ? order.refundAmount : 0);
+          const formattedRefundAmt = refundAmt.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+          const isCustomerCancelled = order.cancelledBy === 'Customer' || (order.cancellationReason && String(order.cancellationReason).toLowerCase().includes('customer'));
+
+          if (refundStatus === 'Refund Information Needed') {
+            cancellationNoticeHtml = `
+              <!-- Refund Information Needed Banner -->
+              <div class="border border-amber-300 dark:border-amber-800 rounded-3xl p-6 bg-amber-50/70 dark:bg-amber-950/40 text-left shadow-2xs mb-6 space-y-4">
+                <div class="flex items-center justify-between flex-wrap gap-3 pb-3 border-b border-amber-200 dark:border-amber-800/60">
+                  <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-amber-100 dark:bg-amber-900/60 flex items-center justify-center shrink-0 border border-amber-300 dark:border-amber-700">
+                      <span class="text-xl">💰</span>
+                    </div>
+                    <div>
+                      <h4 class="text-base font-black text-amber-950 dark:text-amber-100">Order Status: Cancelled</h4>
+                      <p class="text-xs text-amber-800 dark:text-amber-300 font-bold">Refund Status: <span class="uppercase tracking-wide text-amber-900 dark:text-amber-200 font-black">Refund Information Needed</span></p>
+                    </div>
+                  </div>
+                  <div class="text-right">
+                    <span class="text-[11px] uppercase tracking-wider text-amber-800 dark:text-amber-400 font-extrabold block">Eligible Refund</span>
+                    <span class="text-lg font-black text-[#1E6C02] dark:text-emerald-400">₱${formattedRefundAmt}</span>
+                  </div>
+                </div>
+
+                <div class="space-y-1.5 text-xs sm:text-sm text-gray-700 dark:text-gray-300 font-medium leading-relaxed">
+                  <p class="font-bold text-gray-900 dark:text-gray-100">Your order has been cancelled.</p>
+                  <p>You are eligible for a refund of <span class="font-black text-gray-950 dark:text-white">₱${formattedRefundAmt}</span>.</p>
+                  <p>Please submit your GCash or bank details so the store can send your refund.</p>
+                </div>
+
+                <div class="pt-2">
+                  <button type="button" id="btn-open-refund-info-modal" data-id="${order.id}" class="px-5 py-2.5 bg-[#1E6C02] hover:bg-[#145001] active:scale-[0.99] text-white font-bold rounded-xl text-xs sm:text-sm cursor-pointer transition-all shadow-xs inline-flex items-center gap-2">
+                    <span>📝</span> Submit Refund Details
+                  </button>
+                </div>
               </div>
-              <div class="space-y-1">
-                <h4 class="text-base font-black text-rose-950 dark:text-rose-100">This Order Has Been Cancelled</h4>
-                <p class="text-sm text-rose-700 dark:text-rose-300 font-bold">You have cancelled this purchase request.</p>
+            `;
+          } else if (refundStatus === 'Refund Information Submitted') {
+            cancellationNoticeHtml = `
+              <!-- Refund Information Submitted Banner -->
+              <div class="border border-emerald-300 dark:border-emerald-800 rounded-3xl p-6 bg-emerald-50/70 dark:bg-emerald-950/40 text-left shadow-2xs mb-6 space-y-4">
+                <div class="flex items-center justify-between flex-wrap gap-3 pb-3 border-b border-emerald-200 dark:border-emerald-800/60">
+                  <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-900/60 flex items-center justify-center shrink-0 border border-emerald-300 dark:border-emerald-700">
+                      <span class="text-xl">⏳</span>
+                    </div>
+                    <div>
+                      <h4 class="text-base font-black text-emerald-950 dark:text-emerald-100">Order Status: Cancelled</h4>
+                      <p class="text-xs text-emerald-800 dark:text-emerald-300 font-bold">Refund Status: <span class="uppercase tracking-wide font-black">Refund Information Submitted</span></p>
+                    </div>
+                  </div>
+                  <div class="text-right">
+                    <span class="text-[11px] uppercase tracking-wider text-emerald-800 dark:text-emerald-400 font-extrabold block">Refund Amount</span>
+                    <span class="text-lg font-black text-[#1E6C02] dark:text-emerald-400">₱${formattedRefundAmt}</span>
+                  </div>
+                </div>
+
+                <div class="space-y-1.5 text-xs sm:text-sm text-gray-700 dark:text-gray-300 font-medium leading-relaxed">
+                  <p class="font-bold text-gray-900 dark:text-gray-100">Your refund details have been submitted successfully.</p>
+                  <p>The store will review your information and process your refund.</p>
+                </div>
+
+                <div class="bg-white/80 dark:bg-slate-900/80 border border-emerald-200 dark:border-emerald-900/60 rounded-2xl p-4 text-xs space-y-2">
+                  <p class="font-black text-gray-900 dark:text-gray-100 uppercase tracking-wider">Submitted Refund Destination:</p>
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-gray-700 dark:text-gray-300">
+                    <div><span class="font-bold">Method:</span> ${order.refundMethod || 'GCash'}</div>
+                    <div><span class="font-bold">Account Name:</span> ${order.refundAccountName || 'N/A'}</div>
+                    ${order.refundBankName ? `<div><span class="font-bold">Bank Name:</span> ${order.refundBankName}</div>` : ''}
+                    <div><span class="font-bold">${order.refundMethod === 'Bank' ? 'Account Number' : 'GCash Number'}:</span> ${order.refundGcashNumber || order.refundAccountNumber || 'N/A'}</div>
+                    ${order.refundSubmittedAt ? `<div><span class="font-bold">Submitted Date:</span> ${new Date(order.refundSubmittedAt).toLocaleString()}</div>` : ''}
+                  </div>
+                </div>
               </div>
-            </div>
-          `;
+            `;
+          } else if (refundStatus === 'Refund Processing') {
+            cancellationNoticeHtml = `
+              <!-- Refund Processing Banner -->
+              <div class="border border-blue-300 dark:border-blue-800 rounded-3xl p-6 bg-blue-50/70 dark:bg-blue-950/40 text-left shadow-2xs mb-6 space-y-4">
+                <div class="flex items-center justify-between flex-wrap gap-3 pb-3 border-b border-blue-200 dark:border-blue-800/60">
+                  <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/60 flex items-center justify-center shrink-0 border border-blue-300 dark:border-blue-700">
+                      <span class="text-xl">🔄</span>
+                    </div>
+                    <div>
+                      <h4 class="text-base font-black text-blue-950 dark:text-blue-100">Order Status: Cancelled</h4>
+                      <p class="text-xs text-blue-800 dark:text-blue-300 font-bold">Refund Status: <span class="uppercase tracking-wide font-black">Refund Processing</span></p>
+                    </div>
+                  </div>
+                  <div class="text-right">
+                    <span class="text-[11px] uppercase tracking-wider text-blue-800 dark:text-blue-400 font-extrabold block">Refund Amount</span>
+                    <span class="text-lg font-black text-blue-700 dark:text-blue-300">₱${formattedRefundAmt}</span>
+                  </div>
+                </div>
+
+                <div class="space-y-1.5 text-xs sm:text-sm text-gray-700 dark:text-gray-300 font-medium leading-relaxed">
+                  <p class="font-bold text-gray-900 dark:text-gray-100">The store is currently processing your refund of ₱${formattedRefundAmt}.</p>
+                  <p>Our team is verifying and sending the funds to your account.</p>
+                </div>
+              </div>
+            `;
+          } else if (refundStatus === 'Refunded') {
+            cancellationNoticeHtml = `
+              <!-- Refunded Banner -->
+              <div class="border border-emerald-300 dark:border-emerald-800 rounded-3xl p-6 bg-emerald-50/70 dark:bg-emerald-950/40 text-left shadow-2xs mb-6 space-y-3">
+                <div class="flex items-center justify-between flex-wrap gap-3 pb-3 border-b border-emerald-200 dark:border-emerald-800/60">
+                  <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-900/60 flex items-center justify-center shrink-0 border border-emerald-300 dark:border-emerald-700">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="3" class="w-5 h-5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    </div>
+                    <div>
+                      <h4 class="text-base font-black text-emerald-950 dark:text-emerald-100">Order Status: Cancelled</h4>
+                      <p class="text-xs text-emerald-800 dark:text-emerald-300 font-bold">Refund Status: <span class="uppercase tracking-wide font-black">Refunded</span></p>
+                    </div>
+                  </div>
+                  <div class="text-right">
+                    <span class="text-[11px] uppercase tracking-wider text-emerald-800 dark:text-emerald-400 font-extrabold block">Refunded Amount</span>
+                    <span class="text-lg font-black text-[#1E6C02] dark:text-emerald-400">₱${formattedRefundAmt}</span>
+                  </div>
+                </div>
+
+                <div class="space-y-1 text-xs sm:text-sm text-gray-700 dark:text-gray-300 font-medium leading-relaxed">
+                  <p class="font-bold text-gray-900 dark:text-gray-100">Your refund of ₱${formattedRefundAmt} has been processed.</p>
+                  ${order.refundProcessedAt ? `<p class="text-xs text-gray-500 dark:text-gray-400">Completed on ${new Date(order.refundProcessedAt).toLocaleString()}</p>` : ''}
+                </div>
+              </div>
+            `;
+          } else {
+            // No Refund Needed
+            const hasDownPayment = Number(order.originalAmountPaid || order.amountPaidBeforeCancellation || order.depositAmount || 0) > 0;
+            cancellationNoticeHtml = `
+              <!-- Cancelled Banner (No Refund Needed) -->
+              <div class="border border-rose-200 dark:border-rose-900 rounded-3xl p-6 bg-rose-50/50 dark:bg-rose-950/40 flex items-start gap-4 text-left shadow-2xs mb-6">
+                <div class="w-10 h-10 rounded-full bg-rose-100 dark:bg-rose-900/60 flex items-center justify-center shrink-0 border border-rose-200 dark:border-rose-800 mt-0.5">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="3" class="w-5 h-5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </div>
+                <div class="space-y-1.5 text-left">
+                  <h4 class="text-base font-black text-rose-950 dark:text-rose-100">Order Status: Cancelled</h4>
+                  <p class="text-xs text-rose-800 dark:text-rose-300 font-bold uppercase tracking-wider">Refund Status: No Refund Needed</p>
+                  <p class="text-xs sm:text-sm text-gray-700 dark:text-gray-300 font-medium leading-relaxed">
+                    ${(isCustomerCancelled && hasDownPayment) 
+                      ? 'Your order has been cancelled as requested.<br><br>Under our store cancellation policy, the down payment is not refundable when the customer chooses to cancel.' 
+                      : 'Your order has been cancelled as requested. No payment was made for this order.'}
+                  </p>
+                </div>
+              </div>
+            `;
+          }
         }
 
         // Compute payment options & required amounts strictly based on selected payment method/option
@@ -2632,6 +3041,7 @@
               targetOrd.paymentStatus = 'pending_verification';
               targetOrd.hasCorrectedProof = true;
               targetOrd.paymentReuploadedAt = new Date().toISOString();
+              targetOrd.updatedAt = new Date().toISOString();
               
               const isRes = targetOrd.isPreOrder || targetOrd.status === 'pre-order' || targetOrd.status === 'pre_order' || targetOrd.status === 'waiting' || (targetOrd.items && targetOrd.items.some(i => i.isReservation));
               if (isRes) {
@@ -2723,8 +3133,15 @@
         const cancelBtn = detailsContainer.querySelector('.btn-cancel-order-detail');
         if (cancelBtn) {
           cancelBtn.addEventListener('click', () => {
-            document.getElementById('cancel-order-id-hidden').value = orderId;
-            document.getElementById('cancel-order-confirm-dialog').classList.remove('hidden');
+            promptCustomerCancelOrder(orderId);
+          });
+        }
+
+        // 2b. Submit Refund Details in details page
+        const btnOpenRefundModal = detailsContainer.querySelector('#btn-open-refund-info-modal');
+        if (btnOpenRefundModal) {
+          btnOpenRefundModal.addEventListener('click', () => {
+            openRefundInfoModal(order);
           });
         }
 
@@ -2767,7 +3184,7 @@
         } else if (targetTab === 'to-pay') {
           filtered = orders.filter(o => {
             const st = normalizeStatus(o.status);
-            return st === 'to-pay' || st === 'pre-order' || st === 'waiting' || st === 'payment-verification' || st === 'payment_verification' || st === 'waiting-payment';
+            return st === 'to-pay' || st === 'pre-order' || st === 'waiting' || st === 'payment-verification' || st === 'payment_verification' || st === 'pending-verification' || st === 'pending_verification' || st === 'waiting-payment' || (o.paymentRejected && st !== 'cancelled' && st !== 'completed');
           });
         } else if (targetTab === 'to-ship') {
           filtered = orders.filter(o => {
@@ -2806,6 +3223,17 @@
         console.log('[DEBUG] Filtered orders list to render. Count:', filtered.length, 'Filter:', targetTab);
 
         if (filtered.length === 0) {
+          if (!window.__hasInitialOrdersHydrated && getOrders().length === 0) {
+            purchasesTarget.innerHTML = `
+              <div class="py-20 text-center flex flex-col items-center justify-center p-8 select-none">
+                <div class="w-9 h-9 border-3 border-[#1E6C02] border-t-transparent rounded-full animate-spin mb-4"></div>
+                <h4 class="text-sm font-bold text-black dark:text-gray-200">Loading your purchases...</h4>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Retrieving authoritative records from server.</p>
+              </div>
+            `;
+            return;
+          }
+
           purchasesTarget.innerHTML = `
             <div class="py-20 text-center flex flex-col items-center justify-center p-8 select-none">
               <!-- Beautiful 3D Isometric Wireframe Cube SVG -->
@@ -3046,7 +3474,7 @@
           }
 
           // Render card template
-          const isToPayOrPreOrder = normStat === 'to-pay' || normStat === 'pre-order' || normStat === 'waiting' || normStat === 'payment-verification' || normStat === 'payment_verification' || normStat === 'waiting-payment';
+          const isToPayOrPreOrder = normStat === 'to-pay' || normStat === 'pre-order' || normStat === 'waiting' || normStat === 'payment-verification' || normStat === 'payment_verification' || normStat === 'pending-verification' || normStat === 'pending_verification' || normStat === 'waiting-payment' || (order.paymentRejected && normStat !== 'cancelled' && normStat !== 'completed');
           if (isToPayOrPreOrder) {
             const formattedDateOnly = new Date(order.createdAt).toLocaleDateString(undefined, {
               month: 'long',
@@ -3123,7 +3551,7 @@
                         <div class="text-right shrink-0">
                           <span class="text-black dark:text-gray-400 font-bold uppercase text-[10px] tracking-wider block mb-0.5">Payment Amount</span>
                           <span class="font-black ${(!order.notifiedForPayment && !order.paymentVerified) ? 'text-blue-700 dark:text-blue-400 text-sm' : 'text-[#1E6C02] dark:text-emerald-400 text-xl'}">
-                            ${(!order.notifiedForPayment && !order.paymentVerified) ? 'No Payment Required' : '₱' + cardTotal.toLocaleString() + '.00'}
+                            ${(!order.notifiedForPayment && !order.paymentVerified) ? 'No Payment Required' : '₱' + getItemDisplaySubtotal(item).toLocaleString() + '.00'}
                           </span>
                         </div>
                       </div>
@@ -3183,13 +3611,25 @@
                 </div>
               `;
             } else {
-              // Regular order waiting down payment verification
+              // Regular order waiting down payment verification or payment proof correction
+              const isRej = Boolean(order.paymentRejected);
+              const dlMs = isRej
+                ? (order.reuploadDeadline ? new Date(order.reuploadDeadline).getTime() : (order.paymentRejectedAt ? new Date(order.paymentRejectedAt).getTime() + 48 * 3600 * 1000 : null))
+                : null;
+              const isExp = Boolean(isRej && dlMs && Date.now() > dlMs);
+              const topBadgeClass = isRej
+                ? (isExp ? 'bg-rose-100 text-rose-800 border-rose-300' : 'bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-800')
+                : 'bg-orange-50 dark:bg-orange-950/60 text-orange-800 dark:text-orange-300 border-orange-200 dark:border-orange-800';
+              const topBadgeText = isRej
+                ? (isExp ? 'Window Expired' : 'Correction Needed')
+                : (order.hasCorrectedProof || order.paymentReuploadedAt ? 'Verifying Corrected Proof' : 'Verifying Down Payment');
+
               return `
-                <div data-id="${order.id}" class="order-card-clickable cursor-pointer border border-orange-200 dark:border-slate-800 rounded-3xl p-6 bg-white dark:bg-slate-900 relative hover:shadow-md transition-all flex flex-col gap-5 text-left shadow-sm">
+                <div data-id="${order.id}" class="order-card-clickable cursor-pointer border ${isRej ? 'border-rose-200 dark:border-rose-900/60' : 'border-orange-200 dark:border-slate-800'} rounded-3xl p-6 bg-white dark:bg-slate-900 relative hover:shadow-md transition-all flex flex-col gap-5 text-left shadow-sm">
                   <!-- Top bar: ID & Date & Badge -->
                   <div class="flex items-center justify-between pb-3.5 border-b border-gray-100 dark:border-slate-800 flex-wrap gap-2 text-xs">
                     <div class="flex items-center gap-2">
-                      <svg class="w-5 h-5 text-orange-500 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                      <svg class="w-5 h-5 ${isRej ? 'text-rose-500' : 'text-orange-500'} shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                         <circle cx="12" cy="12" r="9"></circle>
                         <polyline points="12 7 12 12 15 15"></polyline>
                       </svg>
@@ -3199,7 +3639,7 @@
                       </div>
                     </div>
                     <div>
-                      <span class="text-xs font-black px-4 py-1.5 rounded-full bg-orange-50 dark:bg-orange-950/60 text-orange-800 dark:text-orange-300 border border-orange-200 dark:border-orange-800 select-none">Verifying Down Payment</span>
+                      <span class="text-xs font-black px-4 py-1.5 rounded-full ${topBadgeClass} border select-none">${topBadgeText}</span>
                     </div>
                   </div>
 
@@ -3218,29 +3658,55 @@
                         </div>
                         <div class="text-right shrink-0">
                           <span class="text-black dark:text-gray-400 font-bold uppercase text-[10px] tracking-wider block mb-0.5">Total Amount</span>
-                          <span class="font-black text-[#1E6C02] dark:text-emerald-400 text-xl">₱${cardTotal.toLocaleString()}.00</span>
+                          <span class="font-black text-[#1E6C02] dark:text-emerald-400 text-xl">₱${getItemDisplaySubtotal(item).toLocaleString()}.00</span>
                         </div>
                       </div>
                     `).join('')}
                   </div>
 
-                  <!-- Approval Status box (orange) -->
-                  <div class="bg-[#FFF5EC] dark:bg-orange-950/40 border border-[#FFE0C4] dark:border-orange-800/60 rounded-2xl p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    <div class="text-left space-y-1.5 w-full">
-                      <div class="flex items-center gap-1.5">
-                        <span class="text-xs">⏳</span>
-                        <h5 class="text-sm font-black text-[#C05621] dark:text-orange-300 uppercase tracking-wider">Approval Status</h5>
+                  <!-- Approval / Rejection Status box -->
+                  ${isRej ? `
+                    <div class="bg-rose-50/80 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/60 rounded-2xl p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                      <div class="text-left space-y-1.5 w-full">
+                        <div class="flex items-center gap-1.5">
+                          <span class="text-xs">⚠️</span>
+                          <h5 class="text-sm font-black text-rose-800 dark:text-rose-300 uppercase tracking-wider">Payment Proof Rejected</h5>
+                        </div>
+                        <p class="text-base font-black text-rose-950 dark:text-rose-100 mt-1">Reason: ${order.paymentRejectionReason || 'Payment proof needs correction'}</p>
+                        ${order.paymentRejectionExplanation ? `<p class="text-xs text-rose-800 dark:text-rose-200 font-semibold italic">"${order.paymentRejectionExplanation}"</p>` : ''}
+                        <p class="text-xs text-rose-700 dark:text-rose-300 font-semibold">Please upload a corrected payment screenshot within 48 hours to avoid automatic cancellation.</p>
                       </div>
-                      <p class="text-base font-black text-[#7B341E] dark:text-orange-200 mt-1">Your order is still pending for approval</p>
-                      <p class="text-xs text-[#C05621] dark:text-orange-300 font-semibold">Your down payment is being verified by Admin.</p>
+                      <div class="self-start md:self-center shrink-0">
+                        <span class="px-4 py-2 bg-rose-200/80 dark:bg-rose-900/80 text-rose-900 dark:text-rose-100 font-black rounded-xl text-xs uppercase tracking-wider shadow-xs select-none">Action Required</span>
+                      </div>
                     </div>
-                    <div class="self-start md:self-center shrink-0">
-                      <span class="px-5 py-2.5 bg-[#FBD38D] dark:bg-amber-900/80 text-[#7B341E] dark:text-amber-200 font-black rounded-xl text-sm uppercase tracking-wider shadow-xs select-none">Pending</span>
+                  ` : `
+                    <div class="bg-[#FFF5EC] dark:bg-orange-950/40 border border-[#FFE0C4] dark:border-orange-800/60 rounded-2xl p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                      <div class="text-left space-y-1.5 w-full">
+                        <div class="flex items-center gap-1.5">
+                          <span class="text-xs">⏳</span>
+                          <h5 class="text-sm font-black text-[#C05621] dark:text-orange-300 uppercase tracking-wider">Approval Status</h5>
+                        </div>
+                        <p class="text-base font-black text-[#7B341E] dark:text-orange-200 mt-1">Your order is still pending for approval</p>
+                        <p class="text-xs text-[#C05621] dark:text-orange-300 font-semibold">${order.hasCorrectedProof || order.paymentReuploadedAt ? 'Your corrected payment proof is being verified by Admin.' : 'Your down payment is being verified by Admin.'}</p>
+                      </div>
+                      <div class="self-start md:self-center shrink-0">
+                        <span class="px-5 py-2.5 bg-[#FBD38D] dark:bg-amber-900/80 text-[#7B341E] dark:text-amber-200 font-black rounded-xl text-sm uppercase tracking-wider shadow-xs select-none">Pending</span>
+                      </div>
                     </div>
-                  </div>
+                  `}
 
                   <!-- Action footer -->
                   <div class="flex items-center justify-end gap-3 pt-3 border-t border-gray-100 dark:border-slate-800 flex-wrap sm:flex-nowrap w-full">
+                    ${isRej ? `
+                      <button 
+                        type="button" 
+                        data-id="${order.id}" 
+                        class="btn-view-order px-4 py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-extrabold rounded-xl text-xs sm:text-sm cursor-pointer transition-all shadow-xs flex items-center justify-center gap-1.5"
+                      >
+                        <span>🔄</span> Re-upload Proof
+                      </button>
+                    ` : ''}
                     <button 
                       type="button" 
                       data-id="${order.id}" 
@@ -3301,7 +3767,7 @@
                         </div>
                         <div class="text-right shrink-0">
                           <span class="text-black dark:text-gray-400 font-bold uppercase text-[10px] tracking-wider block mb-0.5">Total Amount</span>
-                          <span class="font-black text-[#1E6C02] dark:text-emerald-400 text-xl">₱${cardTotal.toLocaleString()}.00</span>
+                          <span class="font-black text-[#1E6C02] dark:text-emerald-400 text-xl">₱${getItemDisplaySubtotal(item).toLocaleString()}.00</span>
                         </div>
                       </div>
                     `).join('')}
@@ -3363,7 +3829,7 @@
                         </div>
                         <div class="text-right shrink-0">
                           <span class="text-black dark:text-gray-400 font-bold uppercase text-[10px] tracking-wider block mb-0.5">Total Amount</span>
-                          <span class="font-black text-[#1E6C02] dark:text-emerald-400 text-xl">₱${cardTotal.toLocaleString()}.00</span>
+                          <span class="font-black text-[#1E6C02] dark:text-emerald-400 text-xl">₱${getItemDisplaySubtotal(item).toLocaleString()}.00</span>
                         </div>
                       </div>
                     `).join('')}
@@ -3427,7 +3893,7 @@
                 </div>
                 <div class="text-right shrink-0">
                   <span class="text-black dark:text-gray-400 font-bold uppercase text-[10px] tracking-wider block mb-0.5">Total Amount</span>
-                  <span class="font-black text-[#1E6C02] dark:text-emerald-400 text-xl">₱${cardTotal.toLocaleString()}.00</span>
+                  <span class="font-black text-[#1E6C02] dark:text-emerald-400 text-xl">₱${getItemDisplaySubtotal(item).toLocaleString()}.00</span>
                 </div>
               </div>
             `).join('');
@@ -3709,7 +4175,7 @@
                       </div>
                       <div class="text-right shrink-0">
                         <span class="text-black dark:text-gray-400 font-bold uppercase text-[10px] tracking-wider block mb-0.5">Total Amount</span>
-                        <span class="font-black text-[#1E6C02] dark:text-emerald-400 text-xl">₱${cardTotal.toLocaleString()}.00</span>
+                        <span class="font-black text-[#1E6C02] dark:text-emerald-400 text-xl">₱${getItemDisplaySubtotal(item).toLocaleString()}.00</span>
                       </div>
                     </div>
                   `).join('')}
@@ -3727,11 +4193,27 @@
                     
                     <span>Cancellation Date:</span>
                     <span class="text-right text-gray-900 dark:text-gray-100 font-extrabold">${cancelData.date}</span>
+
+                    ${order.refundStatus && order.refundStatus !== 'No Refund Needed' ? `
+                      <span class="pt-1.5 border-t border-rose-200 dark:border-rose-800/60 font-bold">Refund Status:</span>
+                      <span class="pt-1.5 border-t border-rose-200 dark:border-rose-800/60 text-right font-black ${order.refundStatus === 'Refunded' ? 'text-emerald-700 dark:text-emerald-400' : 'text-amber-700 dark:text-amber-400'}">${order.refundStatus}</span>
+                      <span>Eligible Refund:</span>
+                      <span class="text-right font-black text-[#1E6C02] dark:text-emerald-400">₱${Number(order.refundAmount || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                    ` : ''}
                   </div>
                 </div>
 
                 <!-- Action footer -->
                 <div class="flex items-center justify-end gap-3 pt-3 border-t border-gray-100 dark:border-slate-800 flex-wrap sm:flex-nowrap w-full">
+                  ${order.refundStatus === 'Refund Information Needed' ? `
+                    <button 
+                      type="button" 
+                      data-id="${order.id}" 
+                      class="btn-card-submit-refund px-5 py-2.5 bg-[#1E6C02] hover:bg-[#145001] text-white font-extrabold rounded-xl text-xs sm:text-sm cursor-pointer transition-all shadow-xs flex items-center justify-center gap-1.5"
+                    >
+                      <span>📝</span> Submit Refund Details
+                    </button>
+                  ` : ''}
                   <button 
                     type="button" 
                     data-id="${order.id}" 
@@ -3779,7 +4261,7 @@
                     </div>
                     <div class="text-right shrink-0">
                       <span class="text-black font-bold uppercase text-[10px] tracking-wider block mb-0.5">Total Amount</span>
-                      <span class="font-black text-[#1E6C02] text-xl">₱${cardTotal.toLocaleString()}.00</span>
+                      <span class="font-black text-[#1E6C02] text-xl">₱${getItemDisplaySubtotal(item).toLocaleString()}.00</span>
                     </div>
                   </div>
                 `).join('')}
@@ -3821,6 +4303,17 @@
             e.stopPropagation();
             const orderId = btn.getAttribute('data-id');
             openOrderDetails(orderId);
+          });
+        });
+
+        // 1.05 Card "Submit Refund Details" button handler
+        document.querySelectorAll('.btn-card-submit-refund').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const orderId = btn.getAttribute('data-id');
+            const orders = getOrders();
+            const ord = orders.find(o => String(o.id) === String(orderId));
+            if (ord) openRefundInfoModal(ord);
           });
         });
 
@@ -3877,13 +4370,10 @@
 
         // 2. Cancellation order triggers
         document.querySelectorAll('.btn-cancel-order').forEach(btn => {
-          btn.addEventListener('click', () => {
+          btn.addEventListener('click', (e) => {
+            e.stopPropagation();
             const id = btn.getAttribute('data-id');
-            if (confirm(`Are you absolutely sure you want to cancel order ticket #${id}?`)) {
-              cancelOrder(id);
-              showToast('Order request cancelled successfully!');
-              renderMyOrdersList();
-            }
+            promptCustomerCancelOrder(id);
           });
         });
 
@@ -4308,6 +4798,23 @@
       renderHeaderCard();
       renderSummaryCards();
 
+      // Ensure Firestore orders are synchronized authoritatively
+      initFirestoreSync().catch(() => {});
+      syncOrdersFromFirestore().then(() => {
+        window.__hasInitialOrdersHydrated = true;
+        renderSummaryCards();
+        renderMyOrdersList();
+      }).catch(() => {
+        window.__hasInitialOrdersHydrated = true;
+        renderMyOrdersList();
+      });
+      setTimeout(() => {
+        if (!window.__hasInitialOrdersHydrated) {
+          window.__hasInitialOrdersHydrated = true;
+          renderMyOrdersList();
+        }
+      }, 2500);
+
       // Attach clicks to summary cards for fast tab switching
       const cardOrders = document.getElementById('stat-card-orders');
       if (cardOrders) cardOrders.addEventListener('click', () => applyActiveTab('all', true));
@@ -4450,7 +4957,7 @@
       });
 
       // Background real-time synchronization listener for inventory history, orders, and products
-      window.addEventListener('aurora-sync-event', (e) => {
+      const handleOrdersOrSyncUpdate = (e) => {
         const syncKey = e?.detail?.key;
         if (!syncKey || syncKey === 'aurora-orders' || syncKey === 'aurora-inventory-history' || syncKey === 'aurora-products' || syncKey === 'aurora-reviews') {
           renderSummaryCards();
@@ -4466,7 +4973,9 @@
             renderMyOrdersList();
           }
         }
-      });
+      };
+      window.addEventListener('aurora-sync-event', handleOrdersOrSyncUpdate);
+      window.addEventListener('aurora-orders-updated', handleOrdersOrSyncUpdate);
 
       // Tab switcher clicks
       const tabButtons = document.querySelectorAll('.purchase-tab-btn');
@@ -4863,7 +5372,84 @@
         if (!orderId) return;
 
         try {
-          cancelOrder(orderId);
+          const orders = getOrders();
+          const order = orders.find(o => String(o.id) === String(orderId));
+          if (!order) throw new Error('Could not find order.');
+
+          const user = getCurrentUser();
+          if (!user || (!isCustomerOrderOwner(order, user) && 
+              order.customerEmail !== user.email && 
+              order.ownerEmail !== user.email && 
+              String(order.userId) !== String(user.id) && 
+              String(order.customerId) !== String(user.id))) {
+            throw new Error('Unauthorized action');
+          }
+
+          if (isReservationOrder(order)) {
+            cancelOrder(orderId);
+          } else {
+            const actualPaid = getOrderRecordedPaidAmount(order);
+            const isFull = isNormalOrderFullPayment(order, actualPaid);
+            const formattedAmount = Number(actualPaid || 0).toLocaleString(undefined, {
+              minimumFractionDigits: Number.isInteger(actualPaid) ? 0 : 2,
+              maximumFractionDigits: 2
+            });
+
+            if (isFull && actualPaid > 0) {
+              // Full payment customer cancellation:
+              // refundStatus = "Refund Information Needed"
+              // refundAmount = original actual amount paid
+              // refundReason = "Customer cancelled after full payment"
+              const extraFields = {
+                refundStatus: 'Refund Information Needed',
+                refundAmount: actualPaid,
+                refundReason: 'Customer cancelled after full payment',
+                refundRequestedAt: new Date().toISOString(),
+                originalAmountPaid: actualPaid,
+                amountPaidBeforeCancellation: actualPaid
+              };
+              updateOrderStatus(orderId, 'cancelled', 'Cancelled by customer', extraFields);
+
+              // Customer notification
+              addNotification(
+                order.userId || order.customerId || user.id || '',
+                'Order Cancelled — Refund Required',
+                `Your order #${orderId} has been cancelled as requested.\n\nYou are due a refund of ₱${formattedAmount}.\n\nPlease submit your GCash or bank details so the store can process your refund.`,
+                { role: 'customer', type: 'order', orderId: orderId }
+              );
+
+              // Admin notification
+              addNotification(
+                'admin',
+                'Refund Required',
+                `Order #${orderId} was cancelled by the customer after full payment.\n\nRefund amount: ₱${formattedAmount}.\n\nPlease review the order and wait for the customer's refund details.`,
+                { role: 'admin', type: 'order', orderId: orderId }
+              );
+            } else if (actualPaid > 0) {
+              // Down payment customer cancellation:
+              // refundStatus = "No Refund Needed"
+              // refundAmount = 0
+              const extraFields = {
+                refundStatus: 'No Refund Needed',
+                refundAmount: 0,
+                refundReason: 'Customer cancelled order (non-refundable per store cancellation policy)',
+                originalAmountPaid: actualPaid,
+                amountPaidBeforeCancellation: actualPaid
+              };
+              updateOrderStatus(orderId, 'cancelled', 'Cancelled by customer', extraFields);
+
+              addNotification(
+                order.userId || order.customerId || user.id || '',
+                'Order Cancelled',
+                `Your order #${orderId} has been cancelled as requested.\n\nUnder our store cancellation policy, the down payment is not refundable when the customer chooses to cancel.`,
+                { role: 'customer', type: 'order', orderId: orderId }
+              );
+            } else {
+              // Unpaid normal order cancellation
+              cancelOrder(orderId);
+            }
+          }
+
           showToast('Order request cancelled successfully!', 'success');
         } catch (err) {
           console.error('[ERROR] cancelOrder failed:', err);
@@ -4890,6 +5476,73 @@
         // Re-render list
         renderMyOrdersList();
       });
+
+      // Customer Refund Information Dialog listeners
+      const refundInfoDlg = document.getElementById('customer-refund-info-dialog');
+      const hideRefundInfoDlg = () => {
+        if (refundInfoDlg) refundInfoDlg.classList.add('hidden');
+      };
+
+      const btnCloseRefundInfo = document.getElementById('close-refund-info-dialog-btn');
+      const btnCancelRefundInfo = document.getElementById('cancel-refund-info-btn');
+      if (btnCloseRefundInfo) btnCloseRefundInfo.addEventListener('click', hideRefundInfoDlg);
+      if (btnCancelRefundInfo) btnCancelRefundInfo.addEventListener('click', hideRefundInfoDlg);
+
+      const btnMethodGcash = document.getElementById('refund-method-gcash-btn');
+      const btnMethodBank = document.getElementById('refund-method-bank-btn');
+      if (btnMethodGcash) btnMethodGcash.addEventListener('click', () => setRefundMethod('GCash'));
+      if (btnMethodBank) btnMethodBank.addEventListener('click', () => setRefundMethod('Bank'));
+
+      const btnSubmitRefundInfo = document.getElementById('submit-refund-info-btn');
+      if (btnSubmitRefundInfo) {
+        btnSubmitRefundInfo.addEventListener('click', () => {
+          const orderId = document.getElementById('refund-order-id-hidden').value;
+          if (!orderId) return;
+
+          let details = {};
+          if (currentRefundMethod === 'GCash') {
+            const accountName = document.getElementById('refund-gcash-name').value.trim();
+            const gcashNumber = document.getElementById('refund-gcash-number').value.trim();
+            if (!accountName) {
+              showToast('Please enter your Account Name.', 'error');
+              return;
+            }
+            if (!gcashNumber) {
+              showToast('Please enter your GCash Number.', 'error');
+              return;
+            }
+            details = { method: 'GCash', accountName, accountNumber: gcashNumber, gcashNumber };
+          } else {
+            const bankName = document.getElementById('refund-bank-name').value.trim();
+            const accountName = document.getElementById('refund-bank-account-name').value.trim();
+            const accountNumber = document.getElementById('refund-bank-account-number').value.trim();
+            if (!bankName) {
+              showToast('Please enter your Bank Name.', 'error');
+              return;
+            }
+            if (!accountName) {
+              showToast('Please enter your Account Name.', 'error');
+              return;
+            }
+            if (!accountNumber) {
+              showToast('Please enter your Account Number.', 'error');
+              return;
+            }
+            details = { method: 'Bank', bankName, accountName, accountNumber };
+          }
+
+          try {
+            submitCustomerRefundDetails(orderId, details);
+            hideRefundInfoDlg();
+            showToast('Your refund details have been submitted successfully. The store will review your information and process your refund.', 'success');
+            openOrderDetails(orderId);
+            renderMyOrdersList();
+          } catch (err) {
+            console.error('[ERROR] submitCustomerRefundDetails failed:', err);
+            showToast(err.message || 'Error submitting refund details.', 'error');
+          }
+        });
+      }
 
       document.getElementById('confirm-edit-order-btn').addEventListener('click', () => {
         const orderId = document.getElementById('edit-order-id-hidden').value;

@@ -37,12 +37,37 @@ import {
   listAll 
 } from 'firebase/storage';
 import firebaseConfig from '../../firebase-applet-config.json' with { type: 'json' };
-import { DEFAULT_PRODUCTS, safeLocalStorageSet } from '../app/shared.js';
+
+// Internal safe local storage setter to eliminate circular import from shared.js
+export function safeLocalStorageSet(key, value) {
+  if (typeof localStorage === 'undefined') return;
+  try {
+    localStorage.setItem(key, value);
+  } catch (e) {
+    console.warn(`[FIREBASE-STORAGE] Error saving '${key}' to localStorage:`, e);
+  }
+}
+
+export const DEFAULT_PRODUCTS = [
+  { id: '2', name: '7A Hope Rice', price: 1350, stock: 200, category: 'Rice' },
+  { id: '3', name: '7A Ordinary Rice', price: 1250, stock: 150, category: 'Rice' },
+  { id: '4', name: '7A Red Rice V10', price: 1400, stock: 80, category: 'Rice' },
+  { id: '5', name: '7A Straightmill Rice', price: 1300, stock: 120, category: 'Rice' },
+  { id: '6', name: '7A Headrice', price: 1450, stock: 90, category: 'Rice' },
+  { id: '7', name: '7A Black Rice', price: 1600, stock: 60, category: 'Rice' },
+  { id: '8', name: 'Hope 160 Rice', price: 1500, stock: 100, category: 'Rice' }
+];
 
 let app;
 let db;
 let auth;
 let storage;
+let firestoreSyncPromise = null;
+let ordersHydratedFromFirestore = false;
+
+export function isOrdersHydrated() {
+  return ordersHydratedFromFirestore;
+}
 
 try {
   app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
@@ -82,16 +107,18 @@ try {
   console.error('[FIREBASE] Failed to initialize Firebase:', err);
 }
 
-// Validate connection to Firestore per platform specifications
-async function testConnection() {
-  if (!db) return;
-  try {
-    await getDocFromServer(doc(db, 'test', 'connection'));
-  } catch (error) {
-    if (error instanceof Error && error.message.includes('the client is offline')) {
-      console.error("Please check your Firebase configuration.");
+// Validate connection to Firestore per platform specifications non-blockingly in background
+function testConnection() {
+  if (!db || typeof window === 'undefined') return;
+  setTimeout(async () => {
+    try {
+      await getDocFromServer(doc(db, 'test', 'connection'));
+    } catch (error) {
+      if (error instanceof Error && error.message.includes('the client is offline')) {
+        console.error("Please check your Firebase configuration.");
+      }
     }
-  }
+  }, 1000);
 }
 testConnection();
 
@@ -139,21 +166,36 @@ export {
 };
 
 // Helper to save a document to Firestore
-export async function saveFirestoreDoc(colName, docId, data) {
+export async function saveFirestoreDoc(colName, docId, data, maxRetries = 2) {
   if (!db || !docId) {
     console.warn(`[FIREBASE] Missing db or docId for ${colName}/${docId}`);
     return false;
   }
-  try {
-    // Sanitize object to avoid undefined fields or custom class instances
-    const cleanData = JSON.parse(JSON.stringify(data));
-    const docRef = doc(db, colName, String(docId));
-    await setDoc(docRef, cleanData, { merge: true });
-    return true;
-  } catch (err) {
-    console.warn(`[FIREBASE] Error saving document to ${colName}/${docId}:`, err);
-    throw err;
+  if (isStaleRecord(colName, data, docId)) {
+    console.warn(`[SYNC-GUARD] Blocked write of stale document ${colName}/${docId}`);
+    return false;
   }
+  
+  // Sanitize object to avoid undefined fields or custom class instances
+  const cleanData = JSON.parse(JSON.stringify(data));
+  const docRef = doc(db, colName, String(docId));
+
+  let attempt = 0;
+  while (attempt <= maxRetries) {
+    try {
+      await setDoc(docRef, cleanData, { merge: true });
+      return true;
+    } catch (err) {
+      attempt++;
+      if (attempt > maxRetries) {
+        console.warn(`[FIREBASE] Error saving document to ${colName}/${docId} after ${attempt} attempts:`, err);
+        throw err;
+      }
+      // Exponential backoff wait (300ms, 600ms) before safe idempotent retry on same document
+      await new Promise(res => setTimeout(res, attempt * 300));
+    }
+  }
+  return false;
 }
 
 // Dedicated targeted writer for customer reviews directly to Firestore reviews collection
@@ -176,6 +218,8 @@ export async function syncReviewsFromFirestore() {
   if (!db) return [];
   try {
     const docs = await fetchFirestoreCollection('reviews');
+    if (docs === null) return []; // network or permission error: do not overwrite cache
+
     const fakeReviewIds = ['2', '3', '4', '5'];
     const isFake = (r) => {
       if (!r) return true;
@@ -191,7 +235,6 @@ export async function syncReviewsFromFirestore() {
       cleanRemote = docs.filter(r => !isFake(r));
     }
 
-    // One-time safe migration: check if any legitimate local reviews are missing from Firestore
     let localData = [];
     try {
       localData = JSON.parse(localStorage.getItem('aurora-reviews') || '[]');
@@ -200,19 +243,6 @@ export async function syncReviewsFromFirestore() {
       localData = [];
     }
     localData = localData.filter(r => !isFake(r));
-
-    const remoteIds = new Set(cleanRemote.map(d => String(d.id)));
-    for (const r of localData) {
-      if (r && r.id && !remoteIds.has(String(r.id))) {
-        try {
-          await saveFirestoreDoc('reviews', r.id, r);
-          cleanRemote.push(r);
-          remoteIds.add(String(r.id));
-        } catch (mErr) {
-          console.warn('[FIREBASE] Error migrating local review to Firestore:', mErr);
-        }
-      }
-    }
 
     const merged = mergeGenericCollections('reviews', localData, cleanRemote);
     safeLocalStorageSet('aurora-reviews', JSON.stringify(merged));
@@ -274,12 +304,13 @@ export async function syncActivityLogsFromFirestore() {
   if (!db) return [];
   try {
     const docs = await fetchFirestoreCollection('activityLogs');
+    if (docs === null) return []; // network or permission error: do not overwrite cache
+
     let cleanRemote = [];
     if (Array.isArray(docs)) {
       cleanRemote = docs.filter(l => l && (l.id || l.action || l.category));
     }
 
-    // One-time safe migration: check if any legitimate local activity logs are missing from Firestore
     let localData = [];
     try {
       localData = JSON.parse(localStorage.getItem('aurora-activity-logs') || '[]');
@@ -288,19 +319,6 @@ export async function syncActivityLogsFromFirestore() {
       localData = [];
     }
     localData = localData.filter(l => l && (l.id || l.action || l.category));
-
-    const remoteIds = new Set(cleanRemote.map(d => String(d.id)));
-    for (const l of localData) {
-      if (l && l.id && !remoteIds.has(String(l.id))) {
-        try {
-          await saveFirestoreDoc('activityLogs', l.id, l);
-          cleanRemote.push(l);
-          remoteIds.add(String(l.id));
-        } catch (mErr) {
-          console.warn('[FIREBASE] Error migrating local activity log to Firestore:', mErr);
-        }
-      }
-    }
 
     const merged = mergeGenericCollections('activityLogs', localData, cleanRemote);
     const sorted = sortActivityLogsDesc(merged);
@@ -335,6 +353,7 @@ export async function saveFirestoreCollection(colName, itemsArray, idField = 'id
     for (const item of itemsArray) {
       const docId = item[idField] || item.id || item.notificationId || item.customerId;
       if (docId) {
+        if (isStaleRecord(colName, item, docId)) continue;
         await saveFirestoreDoc(colName, docId, item);
       }
     }
@@ -352,7 +371,10 @@ export async function fetchFirestoreCollection(colName) {
     if (snapshot.empty) return [];
     const items = [];
     snapshot.forEach(docSnap => {
-      items.push({ id: docSnap.id, ...docSnap.data() });
+      const data = { id: docSnap.id, ...docSnap.data() };
+      if (!isStaleRecord(colName, data, docSnap.id)) {
+        items.push(data);
+      }
     });
     return items;
   } catch (err) {
@@ -369,7 +391,10 @@ export function subscribeToFirestoreCollection(colName, onUpdateCallback) {
     return onSnapshot(colRef, (snapshot) => {
       const items = [];
       snapshot.forEach(docSnap => {
-        items.push({ id: docSnap.id, ...docSnap.data() });
+        const data = { id: docSnap.id, ...docSnap.data() };
+        if (!isStaleRecord(colName, data, docSnap.id)) {
+          items.push(data);
+        }
       });
       onUpdateCallback(items);
     }, (err) => {
@@ -439,22 +464,283 @@ export async function saveSingleDocAndSync(colName, docId, docData) {
   }
 }
 
-// Helper to safely merge remote documents into local array by document ID to prevent catalog wipeouts
-function mergeCollectionsById(localItems, remoteItems) {
-  if (!Array.isArray(localItems)) localItems = [];
-  if (!Array.isArray(remoteItems)) remoteItems = [];
+// ============================================================================
+// PERMANENT SYNCHRONIZATION GUARD
+// Prevents stale pre-reset / test data resurrection across local & Firestore sync
+// ============================================================================
 
-  const mergedMap = new Map();
+export const CONFIRMED_STALE_RESERVATION_IDS = new Set([
+  'res-1001',
+  'res-1002',
+  'res-1003',
+  'res-1004',
+  'res-1005',
+  'res-1006',
+  'res-1007',
+  'res-1008',
+  'res-1009',
+  'RES-160604',
+  'RES-229876',
+  'RES-240985',
+  'RES-297938',
+  'RES-314841',
+  'RES-358587',
+  'RES-373136',
+  'RES-627131',
+  'RES-688359',
+  'RES-739027',
+  'RES-773509',
+  'RES-845804',
+  'RES-900316'
+]);
+
+export const CONFIRMED_STALE_ORDER_IDS = new Set([
+  'ORD-2026-REG-001',
+  'RF200008'
+]);
+
+export const CONFIRMED_STALE_INVENTORY_IDS = new Set([
+  'inv-1788521165510-rf200011',
+  'inv-1788525197355-rf200012',
+  'inv-1788679714526-rf200013',
+  'inv-1788680042546-rf200014',
+  'inv-1788682182327-rf200015',
+  'inv-1788682352597-rf200016',
+  'inv-1788682539037-rf200017',
+  'inv-1788785795476-rf200018',
+  'inv-1788786163139-rf200019',
+  'inv-1788890659511-rf200020',
+  'inv-1788891894134-rf200021',
+  'inv-1788894014820-rf200022',
+  'inv-1789203335430-rf200023',
+  'inv-1789230174047-rf200024',
+  'inv-1790019086434-rf200008',
+  'inv-1790431873976-gpmte'
+]);
+
+export const CONFIRMED_STALE_PRODUCT_IDS = new Set(['p1', 'prod-1', 'test_probe', 'test-prod-999', 'test-prod-jasmine']);
+
+export const CONFIRMED_STALE_CUSTOMER_IDS = new Set([
+  'CUS-000001-dummy',
+  'CUS-000002-dummy',
+  'customer-user-1789648357946',
+  'user-1789648357946',
+  'user-1790334617411',
+  'user-1790338516312',
+  'user-1790338633268',
+  'user-1790338647955',
+  'user-1790338680352'
+]);
+
+export const CONFIRMED_STALE_CUSTOMER_EMAILS = new Set([
+  'althea.cust.test@gmail.com',
+  'maria.santos.1790338515378@example.com',
+  'clara.reyes.1790338632220@example.com',
+  'clara.reyes.1790338647062@example.com',
+  'clara.reyes.1790338679341@example.com'
+]);
+
+export const RESET_TIMESTAMP_BOUNDARY = '2026-09-25T09:00:00.000Z';
+
+const SEEDED_PROOF_FILENAMES = new Set([
+  'seed_gcash_receipt.png',
+  'gcash_seed_proof.png',
+  'gcash_receipt_maria.png',
+  'receipt_juan_full.png',
+  'cardo_downpayment.png',
+  'leni_full_gcash.jpg',
+  'gloria_receipt.png',
+  'marcos_full_payment.png',
+  'duterte_fake_proof.png'
+]);
+
+// Guard check for orders & reservations
+export function isStaleOrderOrReservation(order) {
+  if (!order) return true;
+  const oid = String(order.id || order.orderId || '').trim();
+
+  // 1. Exact match for confirmed stale test reservation or order IDs
+  if (CONFIRMED_STALE_RESERVATION_IDS.has(oid) || CONFIRMED_STALE_ORDER_IDS.has(oid)) return true;
+
+  // 2. Reject mock test customer emails
+  const email = String(order.customerEmail || order.email || '').toLowerCase().trim();
+  if (/^customer\d+@gmail\.com$/.test(email)) return true;
+
+  // 3. Reject legacy mock seed proofs
+  const proof = String(order.paymentProof || '').trim();
+  if (SEEDED_PROOF_FILENAMES.has(proof)) return true;
+
+  // 4. Reject explicit seed/fake flags
+  if (order.isSeeded || order.isFake) return true;
+
+  // 5. Strictly enforce post-reset timestamp boundary (if createdAt is provided)
+  // Legitimate post-reset records start at 2026-09-17T10:39:58Z
+  if (order.createdAt) {
+    const createdTime = new Date(order.createdAt).getTime();
+    const boundaryTime = new Date(RESET_TIMESTAMP_BOUNDARY).getTime();
+    if (!isNaN(createdTime) && !isNaN(boundaryTime) && createdTime < boundaryTime) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+// Guard check for inventory history records
+export function isStaleInventoryHistory(entry) {
+  if (!entry) return true;
+  const hid = String(entry.id || '').trim();
+
+  // 1. Exact match for confirmed stale test inventory movements
+  if (CONFIRMED_STALE_INVENTORY_IDS.has(hid)) return true;
+
+  // 2. Check remarks referencing confirmed stale test orders or reservations
+  const remarks = String(entry.remarks || entry.reason || '').trim();
+  if (/#(?:ORD-2026-REG-001|RF200008)\b/i.test(remarks)) return true;
+  for (const staleOrdId of CONFIRMED_STALE_ORDER_IDS) {
+    if (remarks.includes(staleOrdId)) return true;
+  }
+  for (const staleResId of CONFIRMED_STALE_RESERVATION_IDS) {
+    if (remarks.includes(staleResId)) return true;
+  }
+
+  // 3. Parse timestamp from timestamp field, id prefix, or date field
+  const boundaryTime = new Date(RESET_TIMESTAMP_BOUNDARY).getTime();
+  if (entry.timestamp) {
+    const t = new Date(entry.timestamp).getTime();
+    if (!isNaN(t) && t < boundaryTime) return true;
+  }
+  if (hid.startsWith('inv-')) {
+    const rawNum = hid.replace('inv-', '').split('-')[0];
+    const parsedNum = Number(rawNum);
+    if (!isNaN(parsedNum) && parsedNum > 1000000000000 && parsedNum < boundaryTime) {
+      return true;
+    }
+  }
+  if (entry.date && /^\d{4}-\d{2}-\d{2}$/.test(String(entry.date).trim())) {
+    const dateEndMs = new Date(`${String(entry.date).trim()}T23:59:59.999Z`).getTime();
+    if (!isNaN(dateEndMs) && dateEndMs < boundaryTime) return true;
+  }
+
+  return false;
+}
+
+// Universal record validator across all collection types
+export function isStaleRecord(colName, item, docId) {
+  if (!item && !docId) return true;
+  const record = item || { id: docId };
+  if (colName === 'orders') return isStaleOrderOrReservation(record);
+  if (colName === 'inventoryHistory') return isStaleInventoryHistory(record);
+  if (colName === 'products') return isStaleProduct(record);
+  if (colName === 'customers') return isStaleCustomer(record);
+  if (colName === 'users') return isStaleUser(record);
+  if (colName === 'notifications') return isStaleNotification(record);
+  return false;
+}
+
+// Guard check for products
+export function isStaleProduct(product) {
+  if (!product) return true;
+  const pid = String(product.id || '').trim();
+  if (!pid || pid === 'test_probe' || pid.startsWith('test-') || pid === 'undefined') return true;
+  if (!product.name || typeof product.name !== 'string' || product.name.trim() === '') return true;
+  return CONFIRMED_STALE_PRODUCT_IDS.has(pid);
+}
+
+// Guard check for customers
+export function isStaleCustomer(customer) {
+  if (!customer) return true;
+  const cid = String(customer.id || customer.customerId || '').trim();
+  const email = String(customer.email || '').toLowerCase().trim();
+  const name = String(customer.name || customer.fullName || '').trim();
+  const phone = String(customer.phone || customer.phoneE164 || '').trim();
+
+  // Guard against confirmed stale test customer IDs
+  if (cid && CONFIRMED_STALE_CUSTOMER_IDS.has(cid)) return true;
+
+  // Guard against confirmed stale test customer emails
+  if (email && CONFIRMED_STALE_CUSTOMER_EMAILS.has(email)) return true;
+
+  if (/^customer\d+@gmail\.com$/.test(email)) return true;
+
+  // Reject completely blank dummy documents that lack all identifying info
+  if (!email && !name && !phone && (cid === 'CUS-000001' || cid === 'CUS-000002')) return true;
+
+  return false;
+}
+
+// Guard check for users
+export function isStaleUser(user) {
+  if (!user) return true;
+  const uid = String(user.id || user.uid || '').trim();
+  const email = String(user.email || '').toLowerCase().trim();
+  if (uid && CONFIRMED_STALE_CUSTOMER_IDS.has(uid)) return true;
+  if (email && CONFIRMED_STALE_CUSTOMER_EMAILS.has(email)) return true;
+  if (/^customer\d+@gmail\.com$/.test(email)) return true;
+  if (/^user-[1-9]\d{0,2}$/.test(uid) && /^customer\d+@gmail\.com$/.test(email)) return true;
+  return false;
+}
+
+// Guard check for notifications
+export function isStaleNotification(notif) {
+  if (!notif) return true;
+  const targetId = String(notif.targetId || notif.recordId || notif.reservationId || notif.orderId || '').trim();
+  if (CONFIRMED_STALE_RESERVATION_IDS.has(targetId) || CONFIRMED_STALE_ORDER_IDS.has(targetId)) return true;
+
+  const userId = String(notif.userId || notif.customerId || '').trim();
+  if (userId === 'user-4' || userId === 'user-1786542851381') return true;
+
+  return false;
+}
+
+// Pending in-flight order writes registry to prevent race conditions during async Firestore hydration
+const pendingOrderWrites = new Map();
+
+export function registerPendingOrderWrite(orderId, orderData) {
+  if (!orderId || !orderData) return;
+  pendingOrderWrites.set(String(orderId), {
+    data: JSON.parse(JSON.stringify(orderData)),
+    timestamp: Date.now()
+  });
+}
+
+export function unregisterPendingOrderWrite(orderId) {
+  if (orderId) pendingOrderWrites.delete(String(orderId));
+}
+
+export function getPendingOrderWrites() {
+  const now = Date.now();
+  for (const [id, entry] of pendingOrderWrites.entries()) {
+    if (now - entry.timestamp > 120000) {
+      pendingOrderWrites.delete(id);
+    }
+  }
+  return pendingOrderWrites;
+}
+
+// Helper to safely merge remote documents into local array by document ID
+// Authoritative remote records win. Local-only records that do not exist in Firestore must NOT survive hydration!
+export function mergeCollectionsById(localItems, remoteItems) {
+  if (!Array.isArray(remoteItems)) remoteItems = [];
+  if (!Array.isArray(localItems)) localItems = [];
+
+  // RULE 3 SAFETY: A temporary empty remote result must NOT destroy valid cached products
+  if (remoteItems.length === 0 && localItems.length > 0) {
+    return localItems.filter(item => item && item.id !== undefined && !isStaleProduct(item));
+  }
+
+  const localMap = new Map();
   localItems.forEach(item => {
-    if (item && item.id !== undefined && item.id !== null) {
-      mergedMap.set(String(item.id), { ...item });
+    if (item && item.id !== undefined && item.id !== null && !isStaleProduct(item)) {
+      localMap.set(String(item.id), item);
     }
   });
 
+  const mergedMap = new Map();
   remoteItems.forEach(rItem => {
-    if (rItem && rItem.id !== undefined && rItem.id !== null) {
+    if (rItem && rItem.id !== undefined && rItem.id !== null && !isStaleProduct(rItem)) {
       const key = String(rItem.id);
-      const existing = mergedMap.get(key);
+      const existing = localMap.get(key);
       if (existing) {
         mergedMap.set(key, { ...existing, ...rItem });
       } else {
@@ -467,12 +753,39 @@ function mergeCollectionsById(localItems, remoteItems) {
 }
 
 // Universal generic collection reconciler ensuring non-destructive synchronization
+// Authoritative remote dataset wins: local-only records that do not exist in Firestore must NOT survive hydration!
 export function mergeGenericCollections(colName, localList = [], remoteList = []) {
   if (!Array.isArray(localList)) localList = [];
   if (!Array.isArray(remoteList)) remoteList = [];
 
   if (colName === 'notifications') {
     return mergeNotificationLists(localList, remoteList);
+  }
+
+  // Apply Permanent Synchronization Guard filters
+  if (colName === 'orders') {
+    localList = localList.filter(o => !isStaleOrderOrReservation(o));
+    remoteList = remoteList.filter(o => !isStaleOrderOrReservation(o));
+  } else if (colName === 'inventoryHistory') {
+    localList = localList.filter(h => !isStaleInventoryHistory(h));
+    remoteList = remoteList.filter(h => !isStaleInventoryHistory(h));
+  } else if (colName === 'products') {
+    localList = localList.filter(p => !isStaleProduct(p));
+    remoteList = remoteList.filter(p => !isStaleProduct(p));
+  } else if (colName === 'customers') {
+    localList = localList.filter(c => !isStaleCustomer(c));
+    remoteList = remoteList.filter(c => !isStaleCustomer(c));
+  } else if (colName === 'users') {
+    localList = localList.filter(u => !isStaleUser(u));
+    remoteList = remoteList.filter(u => !isStaleUser(u));
+  }
+
+  // RULE 3 SAFETY: A temporary empty remote result must NOT immediately wipe out core configuration/catalog collections
+  if (remoteList.length === 0 && localList.length > 0) {
+    if (colName === 'products' || colName === 'adminUsers' || colName === 'storeSettings') {
+      console.warn(`[SYNC-GUARD] Remote collection '${colName}' returned 0 records while local cache has ${localList.length}. Preserving valid local cache to prevent destruction.`);
+      return localList.filter(item => !isStaleRecord(colName, item, item.id));
+    }
   }
 
   if (colName === 'reviews') {
@@ -488,8 +801,6 @@ export function mergeGenericCollections(colName, localList = [], remoteList = []
     localList = localList.filter(r => !isFake(r));
     remoteList = remoteList.filter(r => !isFake(r));
   }
-
-  const map = new Map();
 
   const getRecordKey = (item) => {
     if (!item) return null;
@@ -536,26 +847,30 @@ export function mergeGenericCollections(colName, localList = [], remoteList = []
     return String(item.id || item._id || item.key || '');
   };
 
-  // 1. Seed with local records
+  // 1. Index local records by key for field-level reconciliation
+  const localMap = new Map();
   localList.forEach((item) => {
     if (!item) return;
-
     const key = getRecordKey(item);
-
     if (key) {
-      map.set(key, { ...item });
+      localMap.set(key, item);
     }
   });
 
-  // 2. Merge remote records
+  // 2. Iterate ONLY remote records: Authoritative remote records win
+  // Local-only records that do not exist in Firestore do NOT survive hydration!
+  const map = new Map();
   remoteList.forEach((rItem) => {
     if (!rItem) return;
 
     const key = getRecordKey(rItem);
-
     if (!key) return;
 
-    const existing = map.get(key);
+    if (colName === 'orders') {
+      pendingOrderWrites.delete(key);
+    }
+
+    const existing = localMap.get(key);
 
     // ------------------------------------------------------------
     // Matching local record exists
@@ -576,22 +891,44 @@ export function mergeGenericCollections(colName, localList = [], remoteList = []
           rItem.allocatedQuantity || 0
         );
 
-        const localUpdatedAt = existing.updatedAt
-          ? new Date(existing.updatedAt).getTime()
-          : 0;
+        const getEffectiveOrderMs = (ord) => {
+          if (!ord) return 0;
+          const candidates = [
+            ord.updatedAt,
+            ord.paymentRejectedAt,
+            ord.reuploadRequestedAt,
+            ord.paymentReuploadedAt,
+            ord.cancelledAt,
+            ord.completedAt,
+            ord.createdAt
+          ];
+          let maxMs = 0;
+          for (const ts of candidates) {
+            if (ts) {
+              const parsed = new Date(ts).getTime();
+              if (!isNaN(parsed) && parsed > maxMs) maxMs = parsed;
+            }
+          }
+          return maxMs;
+        };
 
-        const remoteUpdatedAt = rItem.updatedAt
-          ? new Date(rItem.updatedAt).getTime()
-          : 0;
+        const localUpdatedAt = getEffectiveOrderMs(existing);
+        const remoteUpdatedAt = getEffectiveOrderMs(rItem);
 
         const localIsNewer =
           localUpdatedAt > remoteUpdatedAt;
 
+        const remoteIsCancelled =
+          String(rItem.status || '').toLowerCase() === 'cancelled' ||
+          rItem.autoCancelledDueToRejectionDeadline === true;
+
         const localHasMoreAllocation =
-          localAllocated > remoteAllocated;
+          !remoteIsCancelled &&
+          localAllocated > remoteAllocated &&
+          localUpdatedAt >= remoteUpdatedAt;
 
         // Keep the local version when it contains newer
-        // allocation information.
+        // allocation or state information.
         if (localIsNewer || localHasMoreAllocation) {
           map.set(key, {
             ...rItem,
@@ -661,10 +998,21 @@ export function mergeGenericCollections(colName, localList = [], remoteList = []
         const canonicalId = (existing.id && /^user-\d+$/.test(existing.id)) ? existing.id : (rItem.id || existing.id);
         const canonicalCustomerId = (existing.customerId && existing.customerId.startsWith('CUS-')) ? existing.customerId : (rItem.customerId || existing.customerId);
 
-        // Deduplicate and merge recent orders
+        // Deduplicate and merge recent orders (filtering out any stale pre-reset orders)
         const ordersMap = new Map();
-        (existing.recentOrders || []).forEach(o => { if (o && o.id) ordersMap.set(String(o.id), o); });
-        (rItem.recentOrders || []).forEach(o => { if (o && o.id) ordersMap.set(String(o.id), o); });
+        const isRecentOrderStale = (o) => {
+          if (!o || !o.id) return true;
+          const oid = String(o.id).trim();
+          if (CONFIRMED_STALE_ORDER_IDS.has(oid) || CONFIRMED_STALE_RESERVATION_IDS.has(oid)) return true;
+          if (o.date) {
+            const dMs = new Date(`${o.date} 23:59:59`).getTime();
+            const bMs = new Date(RESET_TIMESTAMP_BOUNDARY).getTime();
+            if (!isNaN(dMs) && !isNaN(bMs) && dMs < bMs) return true;
+          }
+          return false;
+        };
+        (existing.recentOrders || []).forEach(o => { if (!isRecentOrderStale(o)) ordersMap.set(String(o.id), o); });
+        (rItem.recentOrders || []).forEach(o => { if (!isRecentOrderStale(o)) ordersMap.set(String(o.id), o); });
 
         const primary = (remoteIsNewer || localIsEmpty) ? rItem : existing;
         const fallback = (remoteIsNewer || localIsEmpty) ? existing : rItem;
@@ -720,7 +1068,7 @@ export function mergeGenericCollections(colName, localList = [], remoteList = []
           updatedAt: primary.updatedAt || fallback.updatedAt || new Date().toISOString()
         });
       } else {
-        // Non-order collections use normal merging.
+        // Non-order collections use authoritative remote data merged with non-conflicting local fields
         map.set(key, {
           ...existing,
           ...rItem
@@ -728,13 +1076,33 @@ export function mergeGenericCollections(colName, localList = [], remoteList = []
       }
 
     } else {
-      // No matching local record.
-      // Keep the remote record.
+      // No matching local record: keep remote record
       map.set(key, {
         ...rItem
       });
     }
   });
+
+  if (colName === 'orders') {
+    // PENDING WRITE SAFETY:
+    // Protect in-flight writes and recent local writes from being erased if remoteList hasn't received them yet
+    const pendingWrites = getPendingOrderWrites();
+    for (const [pId, entry] of pendingWrites.entries()) {
+      if (!map.has(pId)) {
+        map.set(pId, entry.data);
+      }
+    }
+    localList.forEach((lItem) => {
+      if (!lItem) return;
+      const key = getRecordKey(lItem);
+      if (!key || map.has(key)) return;
+      const itemCreated = new Date(lItem.createdAt || lItem.dateCreated || 0).getTime();
+      // If order was created locally within the last 60 seconds, protect it from race condition
+      if (Date.now() - itemCreated < 60000 && (lItem.id || lItem.orderId)) {
+        map.set(key, lItem);
+      }
+    });
+  }
 
   if (colName === 'activityLogs') {
     return sortActivityLogsDesc(Array.from(map.values()));
@@ -744,44 +1112,36 @@ export function mergeGenericCollections(colName, localList = [], remoteList = []
 }
 
 // Universal notification reconciler ensuring permanent read status persistence & deduplication
+// Authoritative remote notifications win: local-only notifications that do not exist in Firestore do NOT survive!
 export function mergeNotificationLists(localList = [], remoteList = []) {
   const notifsMap = new Map();
 
-  // 1. Seed with local notifications
+  // 1. Index local notifications to preserve user's local read state
+  const localMap = new Map();
   if (Array.isArray(localList)) {
     localList.forEach(n => {
-      if (!n) return;
+      if (!n || isStaleNotification(n)) return;
       const key = String(n.id || n.notificationId || n.eventKey || '');
       if (key) {
-        const isRead = Boolean(n.read === true || n.isRead === true);
-        notifsMap.set(key, { ...n, read: isRead, isRead: isRead });
+        localMap.set(key, n);
       }
     });
   }
 
-  // 2. Merge remote notifications (Never let remote unread overwrite a local read state!)
+  // 2. Authoritative remote notifications are the source of truth
   if (Array.isArray(remoteList)) {
     remoteList.forEach(r => {
-      if (!r) return;
+      if (!r || isStaleNotification(r)) return;
       const key = String(r.id || r.notificationId || r.eventKey || '');
       if (key) {
-        const existing = notifsMap.get(key);
-        if (existing) {
-          const isRead = Boolean(existing.read || existing.isRead || r.read || r.isRead);
-          notifsMap.set(key, {
-            ...existing,
-            ...r,
-            read: isRead,
-            isRead: isRead
-          });
-        } else {
-          const isRead = Boolean(r.read || r.isRead);
-          notifsMap.set(key, {
-            ...r,
-            read: isRead,
-            isRead: isRead
-          });
-        }
+        const existing = localMap.get(key);
+        const isRead = Boolean((existing && (existing.read || existing.isRead)) || r.read || r.isRead);
+        notifsMap.set(key, {
+          ...(existing || {}),
+          ...r,
+          read: isRead,
+          isRead: isRead
+        });
       }
     });
   }
@@ -810,8 +1170,27 @@ export function mergeNotificationLists(localList = [], remoteList = []) {
   return result;
 }
 
-// Initialize Firestore synchronization with role-aware security boundaries
-let firestoreSyncPromise = null;
+// Authoritative orders hydration helper for all client contexts (Admin, Staff, Customer)
+export async function syncOrdersFromFirestore() {
+  if (!db) return [];
+  try {
+    const remoteDocs = await fetchFirestoreCollection('orders');
+    if (remoteDocs !== null && Array.isArray(remoteDocs)) {
+      ordersHydratedFromFirestore = true;
+      const localOrders = JSON.parse(localStorage.getItem('aurora-orders') || '[]');
+      const merged = mergeGenericCollections('orders', localOrders, remoteDocs);
+      safeLocalStorageSet('aurora-orders', JSON.stringify(merged));
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('aurora-sync-event', { detail: { key: 'aurora-orders', remote: true } }));
+        window.dispatchEvent(new CustomEvent('aurora-orders-updated', { detail: { key: 'aurora-orders' } }));
+      }
+      return merged;
+    }
+  } catch (err) {
+    console.warn('[FIREBASE] Error in syncOrdersFromFirestore:', err);
+  }
+  return JSON.parse(localStorage.getItem('aurora-orders') || '[]');
+}
 
 export async function initFirestoreSync(force = false) {
   if (firestoreSyncPromise && !force) return firestoreSyncPromise;
@@ -834,7 +1213,7 @@ export async function initFirestoreSync(force = false) {
   
   let currentUser = null;
   try {
-    const raw = localStorage.getItem('aurora-user');
+    const raw = typeof localStorage !== 'undefined' ? localStorage.getItem('aurora-user') : null;
     if (raw) currentUser = JSON.parse(raw);
   } catch (e) {
     console.warn('[FIREBASE] Error reading aurora-user cache:', e);
@@ -880,27 +1259,15 @@ export async function initFirestoreSync(force = false) {
         continue;
       }
 
-      let localData = JSON.parse(localStorage.getItem(key) || '[]');
-      if (col === 'products' && typeof DEFAULT_PRODUCTS !== 'undefined') {
-        DEFAULT_PRODUCTS.forEach(dp => {
-          if (!localData.some(p => String(p.id) === String(dp.id))) {
-            localData.push(dp);
-          }
-        });
-      }
+      let localData = typeof localStorage !== 'undefined' ? JSON.parse(localStorage.getItem(key) || '[]') : [];
 
       const docs = await fetchFirestoreCollection(col);
-      if (docs && docs.length > 0) {
+      if (docs !== null) {
         if (col === 'products') {
           const merged = mergeCollectionsById(localData, docs);
           safeLocalStorageSet(key, JSON.stringify(merged));
-
-          // Upload any missing products to Firestore
-          const remoteIds = new Set(docs.map(d => String(d.id)));
-          for (const p of merged) {
-            if (!remoteIds.has(String(p.id))) {
-              saveFirestoreDoc('products', p.id, p);
-            }
+          if (typeof window !== 'undefined') {
+            window.dispatchEvent(new CustomEvent('aurora-sync-event', { detail: { key, remote: true } }));
           }
         } else {
           const merged = mergeGenericCollections(col, localData, docs);
@@ -923,26 +1290,14 @@ export async function initFirestoreSync(force = false) {
             window.dispatchEvent(new CustomEvent('aurora-sync-event', { detail: { key, remote: true } }));
           }
         }
-      } else {
-        if (Array.isArray(localData) && localData.length > 0) {
-          safeLocalStorageSet(key, JSON.stringify(localData));
-          saveFirestoreCollection(col, localData);
-        }
       }
 
       subscribeToFirestoreCollection(col, (remoteItems) => {
-        if (remoteItems && remoteItems.length > 0) {
+        if (remoteItems !== null && remoteItems !== undefined) {
           const currentLocal = JSON.parse(localStorage.getItem(key) || '[]');
           let merged = remoteItems;
           if (col === 'products') {
-            merged = mergeCollectionsById(currentLocal.length > 0 ? currentLocal : localData, remoteItems);
-            if (typeof DEFAULT_PRODUCTS !== 'undefined') {
-              DEFAULT_PRODUCTS.forEach(dp => {
-                if (!merged.some(p => String(p.id) === String(dp.id))) {
-                  merged.push(dp);
-                }
-              });
-            }
+            merged = mergeCollectionsById(currentLocal, remoteItems);
           } else {
             merged = mergeGenericCollections(col, currentLocal, remoteItems);
           }
@@ -974,13 +1329,35 @@ export async function initFirestoreSync(force = false) {
     }
   }
 
+  // 1.1 ORDERS — Dedicated authoritative orders hydration & real-time sync for ALL visitor and user roles
+  try {
+    await syncOrdersFromFirestore();
+    subscribeToFirestoreCollection('orders', (remoteItems) => {
+      if (remoteItems !== null && Array.isArray(remoteItems)) {
+        ordersHydratedFromFirestore = true;
+        const currentLocal = JSON.parse(localStorage.getItem('aurora-orders') || '[]');
+        const merged = mergeGenericCollections('orders', currentLocal, remoteItems);
+        const currentLocalRaw = localStorage.getItem('aurora-orders');
+        const newMergedRaw = JSON.stringify(merged);
+        if (currentLocalRaw !== newMergedRaw) {
+          safeLocalStorageSet('aurora-orders', newMergedRaw);
+          if (typeof window !== 'undefined') {
+            window.dispatchEvent(new CustomEvent('aurora-sync-event', { detail: { key: 'aurora-orders', remote: true } }));
+            window.dispatchEvent(new CustomEvent('aurora-orders-updated', { detail: { key: 'aurora-orders' } }));
+          }
+        }
+      }
+    });
+  } catch (e) {
+    console.warn('[FIREBASE] Error syncing orders collection:', e);
+  }
+
   // 2. STAFF / ADMIN — Operational collections required by admin dashboard
   if (isAdmin) {
     const adminCollections = [
       { col: 'users', key: 'aurora-users' },
       { col: 'adminUsers', key: 'aurora-admin-users' },
       { col: 'customers', key: 'aurora-customers' },
-      { col: 'orders', key: 'aurora-orders' },
       { col: 'activityLogs', key: 'aurora-activity-logs' },
       { col: 'notifications', key: 'aurora-notifications' },
       { col: 'contactMessages', key: 'aurora-messages' }
@@ -1065,70 +1442,14 @@ export async function initFirestoreSync(force = false) {
     return;
   }
 
-  // 3. CUSTOMER — Role-scoped targeted sync for customer's own records
+  // 3. CUSTOMER — Role-scoped targeted sync for customer's own records (e.g. notifications)
   if (isCustomerLoggedIn || auth?.currentUser) {
     const fbUid = auth?.currentUser?.uid || currentUser?.firebaseUid;
     const localUserId = currentUser?.id;
 
-    // Helper to merge customer orders into localStorage
-    const mergeCustomerOrders = (remoteDocs) => {
-      if (!remoteDocs || !Array.isArray(remoteDocs) || remoteDocs.length === 0) return;
-      try {
-        const localOrders = JSON.parse(localStorage.getItem('aurora-orders') || '[]');
-        const merged = mergeGenericCollections('orders', localOrders, remoteDocs);
-        const currentRaw = localStorage.getItem('aurora-orders');
-        const newRaw = JSON.stringify(merged);
-        if (currentRaw !== newRaw) {
-          safeLocalStorageSet('aurora-orders', newRaw);
-          if (typeof window !== 'undefined') {
-            window.dispatchEvent(new CustomEvent('aurora-sync-event', { detail: { key: 'aurora-orders', remote: true } }));
-            window.dispatchEvent(new CustomEvent('aurora-orders-updated', { detail: { key: 'aurora-orders' } }));
-          }
-        }
-      } catch (err) {
-        console.warn('[FIREBASE] Error merging customer orders:', err);
-      }
-    };
-
-    // A. Customer Orders Query 1: RiceFlow userId (e.g. user-XXXXXXXXXX)
-    if (localUserId) {
-      try {
-        const qUser = query(collection(db, 'orders'), where('userId', '==', String(localUserId)));
-        getDocs(qUser).then(snap => {
-          const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-          mergeCustomerOrders(docs);
-        }).catch(err => console.warn('[FIREBASE] Order userId query notice:', err.message));
-
-        onSnapshot(qUser, snap => {
-          const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-          mergeCustomerOrders(docs);
-        }, err => console.warn('[FIREBASE] Order userId listener notice:', err.message));
-      } catch (err) {
-        console.warn('[FIREBASE] Failed setting up order userId query:', err);
-      }
-    }
-
-    // B. Customer Orders Query 2: Firebase Auth UID (firebaseUid)
-    if (fbUid && fbUid !== localUserId) {
-      try {
-        const qFb = query(collection(db, 'orders'), where('firebaseUid', '==', String(fbUid)));
-        getDocs(qFb).then(snap => {
-          const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-          mergeCustomerOrders(docs);
-        }).catch(err => console.warn('[FIREBASE] Order firebaseUid query notice:', err.message));
-
-        onSnapshot(qFb, snap => {
-          const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-          mergeCustomerOrders(docs);
-        }, err => console.warn('[FIREBASE] Order firebaseUid listener notice:', err.message));
-      } catch (err) {
-        console.warn('[FIREBASE] Failed setting up order firebaseUid query:', err);
-      }
-    }
-
     // Helper to merge customer notifications
     const mergeCustomerNotifs = (remoteDocs) => {
-      if (!remoteDocs || !Array.isArray(remoteDocs) || remoteDocs.length === 0) return;
+      if (!remoteDocs || !Array.isArray(remoteDocs)) return;
       try {
         const localNotifs = JSON.parse(localStorage.getItem('aurora-notifications') || '[]');
         const merged = mergeNotificationLists(localNotifs, remoteDocs);
@@ -1427,15 +1748,11 @@ export async function setCustomerArchiveStatusInFirestore(clientOrId, isArchived
     });
   };
 
-  // 1. Update customers collection by primary ID
+  // 1. Update customers collection by primary canonical document ID
   if (targetId) {
     updatePromises.push(executeWrite(setDoc(doc(db, 'customers', targetId), payload, { merge: true }), 'customers-id'));
-  }
-  if (targetCustomerId && targetCustomerId !== targetId) {
+  } else if (targetCustomerId) {
     updatePromises.push(executeWrite(setDoc(doc(db, 'customers', targetCustomerId), payload, { merge: true }), 'customers-cid'));
-  }
-  if (targetUid && targetUid !== targetId) {
-    updatePromises.push(executeWrite(setDoc(doc(db, 'customers', targetUid), payload, { merge: true }), 'customers-uid'));
   }
 
   // 2. Update users collection by primary ID and UID
@@ -1517,59 +1834,71 @@ export async function checkCustomerArchivedInFirestore(email, firebaseUid) {
       }
     }
 
+    const tasks = [];
+
     // 1. Check direct doc in 'users' by cleanUid
     if (cleanUid) {
-      try {
-        const uSnap = await getDoc(doc(db, 'users', cleanUid));
-        if (uSnap.exists()) evaluateDoc(uSnap.data(), 'users-uid');
-      } catch (_) {}
-
-      try {
-        const uSnap2 = await getDoc(doc(db, 'users', `user-${cleanUid}`));
-        if (uSnap2.exists()) evaluateDoc(uSnap2.data(), 'users-user-uid');
-      } catch (_) {}
+      tasks.push(
+        getDoc(doc(db, 'users', cleanUid))
+          .then(uSnap => { if (uSnap.exists()) evaluateDoc(uSnap.data(), 'users-uid'); })
+          .catch(() => {})
+      );
+      tasks.push(
+        getDoc(doc(db, 'users', `user-${cleanUid}`))
+          .then(uSnap2 => { if (uSnap2.exists()) evaluateDoc(uSnap2.data(), 'users-user-uid'); })
+          .catch(() => {})
+      );
     }
 
     // 2. Check query 'users' by email
     if (cleanEmail) {
-      try {
-        const qUsers = query(collection(db, 'users'), where('email', '==', cleanEmail));
-        const userSnaps = await getDocs(qUsers);
-        for (const docSnap of userSnaps.docs) {
-          evaluateDoc(docSnap.data(), 'users-email');
-        }
-      } catch (_) {}
+      tasks.push(
+        getDocs(query(collection(db, 'users'), where('email', '==', cleanEmail)))
+          .then(userSnaps => {
+            for (const docSnap of userSnaps.docs) {
+              evaluateDoc(docSnap.data(), 'users-email');
+            }
+          })
+          .catch(() => {})
+      );
     }
 
     // 3. Check direct doc in 'customers' by cleanUid
     if (cleanUid) {
-      try {
-        const cSnap = await getDoc(doc(db, 'customers', cleanUid));
-        if (cSnap.exists()) evaluateDoc(cSnap.data(), 'customers-uid');
-      } catch (_) {}
+      tasks.push(
+        getDoc(doc(db, 'customers', cleanUid))
+          .then(cSnap => { if (cSnap.exists()) evaluateDoc(cSnap.data(), 'customers-uid'); })
+          .catch(() => {})
+      );
     }
 
     // 4. Check query 'customers' by email
     if (cleanEmail) {
-      try {
-        const qCust = query(collection(db, 'customers'), where('email', '==', cleanEmail));
-        const custSnaps = await getDocs(qCust);
-        for (const docSnap of custSnaps.docs) {
-          evaluateDoc(docSnap.data(), 'customers-email');
-        }
-      } catch (_) {}
+      tasks.push(
+        getDocs(query(collection(db, 'customers'), where('email', '==', cleanEmail)))
+          .then(custSnaps => {
+            for (const docSnap of custSnaps.docs) {
+              evaluateDoc(docSnap.data(), 'customers-email');
+            }
+          })
+          .catch(() => {})
+      );
     }
 
     // 5. Check query 'customers' by uid
     if (cleanUid) {
-      try {
-        const qCustUid = query(collection(db, 'customers'), where('uid', '==', cleanUid));
-        const custUidSnaps = await getDocs(qCustUid);
-        for (const docSnap of custUidSnaps.docs) {
-          evaluateDoc(docSnap.data(), 'customers-uid-field');
-        }
-      } catch (_) {}
+      tasks.push(
+        getDocs(query(collection(db, 'customers'), where('uid', '==', cleanUid)))
+          .then(custUidSnaps => {
+            for (const docSnap of custUidSnaps.docs) {
+              evaluateDoc(docSnap.data(), 'customers-uid-field');
+            }
+          })
+          .catch(() => {})
+      );
     }
+
+    await Promise.all(tasks);
 
     if (latestDoc) {
       return latestDoc;
@@ -1599,65 +1928,56 @@ export async function fetchCustomerProfileFromFirestore(email, firebaseUid, user
       }
     };
 
+    const tasks = [];
+
     // 1. Search 'users' collection
     if (cleanUserId) {
-      try {
-        const snap = await getDoc(doc(db, 'users', cleanUserId));
-        addCandidate(snap, 'users');
-      } catch (_) {}
+      tasks.push(getDoc(doc(db, 'users', cleanUserId)).then(snap => addCandidate(snap, 'users')).catch(() => {}));
     }
     if (cleanUid) {
-      try {
-        const snap1 = await getDoc(doc(db, 'users', cleanUid));
-        addCandidate(snap1, 'users');
-      } catch (_) {}
-      try {
-        const snap2 = await getDoc(doc(db, 'users', `user-${cleanUid}`));
-        addCandidate(snap2, 'users');
-      } catch (_) {}
-      try {
-        const qUsersUid = query(collection(db, 'users'), where('firebaseUid', '==', cleanUid));
-        const uidSnaps = await getDocs(qUsersUid);
-        uidSnaps.forEach(d => addCandidate(d, 'users'));
-      } catch (_) {}
+      tasks.push(getDoc(doc(db, 'users', cleanUid)).then(snap => addCandidate(snap, 'users')).catch(() => {}));
+      tasks.push(getDoc(doc(db, 'users', `user-${cleanUid}`)).then(snap => addCandidate(snap, 'users')).catch(() => {}));
+      tasks.push(
+        getDocs(query(collection(db, 'users'), where('firebaseUid', '==', cleanUid)))
+          .then(uidSnaps => uidSnaps.forEach(d => addCandidate(d, 'users')))
+          .catch(() => {})
+      );
     }
     if (cleanEmail) {
-      try {
-        const qUsersEmail = query(collection(db, 'users'), where('email', '==', cleanEmail));
-        const emailSnaps = await getDocs(qUsersEmail);
-        emailSnaps.forEach(d => addCandidate(d, 'users'));
-      } catch (_) {}
+      tasks.push(
+        getDocs(query(collection(db, 'users'), where('email', '==', cleanEmail)))
+          .then(emailSnaps => emailSnaps.forEach(d => addCandidate(d, 'users')))
+          .catch(() => {})
+      );
     }
 
     // 2. Search 'customers' collection
     if (cleanUserId) {
-      try {
-        const snap = await getDoc(doc(db, 'customers', cleanUserId));
-        addCandidate(snap, 'customers');
-      } catch (_) {}
+      tasks.push(getDoc(doc(db, 'customers', cleanUserId)).then(snap => addCandidate(snap, 'customers')).catch(() => {}));
     }
     if (cleanUid) {
-      try {
-        const snap1 = await getDoc(doc(db, 'customers', cleanUid));
-        addCandidate(snap1, 'customers');
-      } catch (_) {}
-      try {
-        const snap2 = await getDoc(doc(db, 'customers', `user-${cleanUid}`));
-        addCandidate(snap2, 'customers');
-      } catch (_) {}
-      try {
-        const qCustUid = query(collection(db, 'customers'), where('uid', '==', cleanUid));
-        const custSnaps = await getDocs(qCustUid);
-        custSnaps.forEach(d => addCandidate(d, 'customers'));
-      } catch (_) {}
+      tasks.push(getDoc(doc(db, 'customers', cleanUid)).then(snap => addCandidate(snap, 'customers')).catch(() => {}));
+      tasks.push(getDoc(doc(db, 'customers', `user-${cleanUid}`)).then(snap => addCandidate(snap, 'customers')).catch(() => {}));
+      tasks.push(
+        getDocs(query(collection(db, 'customers'), where('uid', '==', cleanUid)))
+          .then(custSnaps => custSnaps.forEach(d => addCandidate(d, 'customers')))
+          .catch(() => {})
+      );
+      tasks.push(
+        getDocs(query(collection(db, 'customers'), where('firebaseUid', '==', cleanUid)))
+          .then(custSnaps => custSnaps.forEach(d => addCandidate(d, 'customers')))
+          .catch(() => {})
+      );
     }
     if (cleanEmail) {
-      try {
-        const qCustEmail = query(collection(db, 'customers'), where('email', '==', cleanEmail));
-        const custSnaps = await getDocs(qCustEmail);
-        custSnaps.forEach(d => addCandidate(d, 'customers'));
-      } catch (_) {}
+      tasks.push(
+        getDocs(query(collection(db, 'customers'), where('email', '==', cleanEmail)))
+          .then(custSnaps => custSnaps.forEach(d => addCandidate(d, 'customers')))
+          .catch(() => {})
+      );
     }
+
+    await Promise.all(tasks);
 
     if (candidateDocs.length === 0) return null;
 

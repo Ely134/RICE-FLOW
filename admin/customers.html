@@ -205,7 +205,7 @@
 
   <!-- Interactive logical routines -->
   <script type="module">
-    import { protectAdminPage, renderAdminLayout, addActivityLog, showToast, syncUsersAndCustomers, updateUserFromCustomer, setItemAndSync, getCustomerVerifiedSpentAmount, setCustomerArchiveStatusInFirestore } from '../src/app/shared.js';
+    import { protectAdminPage, renderAdminLayout, addActivityLog, showToast, syncUsersAndCustomers, updateUserFromCustomer, setItemAndSync, getCustomerVerifiedSpentAmount, setCustomerArchiveStatusInFirestore, initFirestoreSync } from '../src/app/shared.js';
 
     // Load DB helper
     function getCustomers() {
@@ -1592,6 +1592,13 @@
 
       // Initial board rendering
       renderCustomersBoard();
+
+      // Ensure fresh authoritative customer hydration runs
+      if (typeof initFirestoreSync === 'function') {
+        initFirestoreSync().then(() => {
+          renderCustomersBoard();
+        }).catch(() => {});
+      }
 
       // Real-time synchronization listeners for cross-device updates
       window.addEventListener('aurora-sync-event', (e) => {

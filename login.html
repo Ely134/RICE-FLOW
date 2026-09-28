@@ -5,6 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Log in | RiceFlow</title>
   <link rel="stylesheet" href="src/styles/index.css">
+  <style>
+    .dark #btn-forgot-password {
+      color: #FFFFFF !important;
+    }
+    .dark #btn-forgot-password:hover {
+      color: #34D399 !important;
+    }
+  </style>
 </head>
 <body class="bg-[#F5F5F5] min-h-screen flex flex-col justify-between">
 
@@ -100,7 +108,7 @@
               />
               <span>Remember for 30 days</span>
             </label>
-            <button type="button" id="btn-forgot-password" class="text-xs text-black hover:text-[#1E6C02] font-semibold transition-colors bg-transparent border-0 cursor-pointer">
+            <button type="button" id="btn-forgot-password" class="text-xs text-black dark:text-white hover:text-[#1E6C02] dark:hover:text-[#34D399] font-semibold transition-colors bg-transparent border-0 cursor-pointer">
               forgot password?
             </button>
           </div>
@@ -394,10 +402,18 @@
           if (tryCustomer) {
             showToast('Logged in successfully!');
             setTimeout(() => {
-              let redirectPath = (sessionStorage.getItem('login-redirect') || 'index.html').replace(/^\//, '');
+              const storedRedirect = (sessionStorage.getItem('login-redirect') || '').trim();
               sessionStorage.removeItem('login-redirect');
-              if (redirectPath.includes('admin/')) {
-                redirectPath = 'profile.html';
+              let redirectPath = (storedRedirect || 'index.html').replace(/^\//, '');
+              if (
+                !redirectPath ||
+                redirectPath.includes('admin/') ||
+                redirectPath.includes('profile.html') ||
+                redirectPath.includes('login.html') ||
+                redirectPath.includes('register.html') ||
+                redirectPath.includes('reset-password.html')
+              ) {
+                redirectPath = 'index.html';
               }
               window.location.href = redirectPath;
             }, 800);

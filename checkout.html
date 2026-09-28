@@ -309,52 +309,139 @@
   </main>
 
   <!-- STANDALONE TERM BLOCKER AGREEMENT DIALOG -->
-  <div id="reservation-blocker-dialog" class="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden">
-    <div class="bg-white dark:bg-slate-900 rounded-[24px] max-w-md w-full shadow-2xl p-6 sm:p-8 border border-gray-100 dark:border-slate-800 animate-in fade-in zoom-in-95 duration-200 space-y-5">
-      <div class="flex items-center gap-2 pb-3 border-b dark:border-slate-800 text-left">
-        <span class="text-orange-500 text-lg">⚠️</span>
-        <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100 tracking-tight">Terms Blocked Reservation</h3>
-      </div>
-      <p class="text-sm font-semibold text-gray-500 dark:text-gray-400 leading-relaxed text-left">
-        Your current checking basket lists unavailable items that will be logged in pre-order restocking queue priority queues. Select the acknowledgment terms to submit.
-      </p>
-      
-      <div class="bg-[#FFF9E6] dark:bg-amber-950/40 border border-[#FFEAA7] dark:border-amber-800/50 rounded-2xl p-4 text-xs font-semibold text-[#B27D11] dark:text-amber-300 leading-relaxed text-left">
-        <p class="font-bold mb-1">Queue Fulfilments:</p>
-        <p>Restocking loads will prioritize certified validated deposits in chronological order.</p>
+  <style>
+    .dark #reservation-blocker-dialog > .res-modal-outer,
+    .dark #confirm-order-modal > #confirm-order-modal-card {
+      background-color: #0F172A !important;
+      border: 1px solid rgba(255, 255, 255, 0.18) !important;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.65) !important;
+    }
+    .dark #reservation-blocker-dialog > .res-modal-outer > .res-modal-nobox,
+    .dark #confirm-order-modal > #confirm-order-modal-card > #confirm-order-modal-body,
+    .dark #confirm-order-modal > #confirm-order-modal-card > .res-modal-nobox {
+      background-color: transparent !important;
+      border: 0 !important;
+      box-shadow: none !important;
+    }
+    .dark #reservation-blocker-dialog .res-card-avail,
+    .dark #confirm-order-modal .res-card-avail {
+      background-color: rgba(6, 78, 59, 0.4) !important;
+      border: 1px solid rgba(16, 185, 129, 0.4) !important;
+    }
+    .dark #reservation-blocker-dialog .res-card-reserve,
+    .dark #confirm-order-modal .res-card-reserve {
+      background-color: rgba(120, 53, 15, 0.4) !important;
+      border: 1px solid rgba(245, 158, 11, 0.4) !important;
+    }
+    .dark #reservation-blocker-dialog .res-card-est,
+    .dark #confirm-order-modal .res-card-est {
+      background-color: rgba(30, 58, 138, 0.4) !important;
+      border: 2px solid rgba(96, 165, 250, 0.55) !important;
+    }
+    .dark #reservation-blocker-dialog .res-card-payment,
+    .dark #confirm-order-modal .res-card-payment {
+      background-color: rgba(120, 53, 15, 0.35) !important;
+      border: 1px solid rgba(245, 158, 11, 0.4) !important;
+    }
+  </style>
+  <div id="reservation-blocker-dialog" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden">
+    <div class="res-modal-outer bg-white dark:bg-slate-900 rounded-[28px] max-w-lg w-full shadow-2xl p-6 sm:p-7 border border-gray-200 dark:border-slate-700 animate-in fade-in zoom-in-95 duration-200 space-y-5 max-h-[92vh] overflow-y-auto text-left">
+      <div class="res-modal-nobox flex items-center gap-3.5">
+        <div class="bg-amber-100 dark:bg-amber-950/80 border border-amber-200 dark:border-amber-800 p-2.5 rounded-2xl text-amber-700 dark:text-amber-300 shrink-0">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-6 h-6"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+        </div>
+        <div>
+          <h3 class="text-xl sm:text-2xl font-black text-gray-900 dark:text-white tracking-tight">Out of Stock Notice</h3>
+          <p class="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-300 mt-0.5">Reservation Confirmation</p>
+        </div>
       </div>
 
-      <div class="bg-gray-50 dark:bg-slate-800 rounded-2xl p-4 flex items-start gap-3 text-left border border-gray-150 dark:border-slate-700">
+      <!-- 1. Reservation: What the customer is reserving -->
+      <div class="res-modal-nobox space-y-1.5">
+        <p class="text-xs font-extrabold uppercase tracking-wider text-gray-500 dark:text-gray-400">Reservation</p>
+        <p class="text-base sm:text-lg font-bold text-gray-800 dark:text-gray-100 leading-snug">
+          You're reserving <span id="blocker-res-pn" class="text-[#1E6C02] dark:text-emerald-400 font-black">your selected rice</span>.
+        </p>
+        <p class="text-sm text-gray-700 dark:text-gray-300 font-medium leading-relaxed">
+          Some of the rice is not available right now. The unavailable sacks will be placed in the reservation queue.
+        </p>
+      </div>
+
+      <!-- 2. Availability: Available Now / For Reservation -->
+      <div class="res-modal-nobox space-y-2">
+        <p class="text-xs font-extrabold uppercase tracking-wider text-gray-500 dark:text-gray-400">Availability</p>
+        <div class="grid grid-cols-2 gap-3">
+          <div class="res-card-avail bg-[#F4FAF3] dark:bg-emerald-950/40 border border-[#C6EFCE] dark:border-emerald-800/70 rounded-2xl p-3.5">
+            <span class="block text-xs font-extrabold uppercase tracking-wide text-[#1E6C02] dark:text-emerald-300">Available Now</span>
+            <span id="blocker-avail-qty" class="block text-lg sm:text-xl font-black text-gray-900 dark:text-white mt-1">0 sacks</span>
+          </div>
+          <div class="res-card-reserve bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/70 rounded-2xl p-3.5">
+            <span class="block text-xs font-extrabold uppercase tracking-wide text-amber-900 dark:text-amber-300">For Reservation</span>
+            <span id="blocker-reserve-qty" class="block text-lg sm:text-xl font-black text-gray-900 dark:text-white mt-1">1 sack</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. Estimated Delivery or Pickup -->
+      <div class="res-card-est bg-[#EFF6FF] dark:bg-blue-950/50 border-2 border-[#93C5FD] dark:border-blue-700 rounded-2xl p-4 sm:p-5 shadow-xs">
+        <div class="flex items-center gap-2 text-xs sm:text-sm font-black uppercase tracking-wider text-[#1E3A8A] dark:text-blue-300">
+          <span class="text-base">📅</span>
+          <span id="blocker-est-label">ESTIMATED DELIVERY</span>
+        </div>
+        <p id="blocker-est-date" class="text-xl sm:text-2xl font-black text-gray-950 dark:text-white mt-1.5 tracking-tight">
+          Waiting for Restock
+        </p>
+      </div>
+
+      <!-- 4. Payment Reminder -->
+      <div class="res-card-payment bg-[#FFF8EB] dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/70 rounded-2xl p-4 space-y-1.5">
+        <div class="flex items-center gap-2 text-xs sm:text-sm font-extrabold uppercase tracking-wider text-amber-950 dark:text-amber-200">
+          <span>💳</span>
+          <span>Payment Reminder</span>
+        </div>
+        <p class="text-sm sm:text-[15px] font-extrabold text-[#1E6C02] dark:text-emerald-300">
+          No payment is needed yet.
+        </p>
+        <p class="text-xs sm:text-sm text-gray-800 dark:text-gray-200 font-medium leading-relaxed">
+          We'll notify you when your reserved rice becomes available. After we notify you, please send the required down payment within <strong>48 hours</strong>. If payment is not sent within 48 hours, your reservation will be cancelled automatically.
+        </p>
+      </div>
+
+      <!-- 5. Acknowledgement Checkbox -->
+      <div class="res-modal-nobox flex items-start gap-3 text-left pt-1">
         <input 
           type="checkbox" 
           id="blocker-terms-check" 
-          class="mt-1.5 h-4 w-4 text-[#1E6C02] rounded border-gray-300 focus:ring-[#1E6C02]"
+          class="mt-1 h-5 w-5 text-[#1E6C02] rounded border-gray-300 dark:border-slate-600 focus:ring-[#1E6C02] shrink-0 cursor-pointer"
         />
-        <label for="blocker-terms-check" class="text-xs text-gray-650 dark:text-gray-300 block leading-relaxed pointer-events-auto font-bold cursor-pointer select-none">
-          I understand these bags represent upcoming restocking cycles.
+        <label for="blocker-terms-check" class="text-xs sm:text-sm text-gray-800 dark:text-gray-100 block leading-relaxed pointer-events-auto font-semibold cursor-pointer select-none">
+          I understand that this rice is currently unavailable and will be provided when stock is replenished.
         </label>
       </div>
 
-      <div class="flex gap-3 pt-3 border-t border-gray-100 dark:border-slate-800 text-sm">
-        <button id="blocker-close-btn" class="flex-1 h-12 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-2xl font-bold transition-all bg-white dark:bg-slate-800">Go Back</button>
-        <button id="blocker-submit-btn" disabled class="flex-1 h-12 bg-gray-200 dark:bg-slate-800 text-gray-400 dark:text-gray-500 rounded-xl font-bold cursor-not-allowed transition-all">Submit Anyway</button>
+      <!-- 6. Actions -->
+      <div class="res-modal-nobox flex flex-col-reverse sm:flex-row gap-3 pt-1 text-sm sm:text-base">
+        <button id="blocker-close-btn" class="flex-1 h-12 px-4 text-gray-800 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded-2xl font-bold transition-all bg-white dark:bg-slate-800 cursor-pointer">Cancel</button>
+        <button id="blocker-submit-btn" disabled class="flex-1 h-12 px-4 bg-gray-200 dark:bg-slate-800 text-gray-400 dark:text-gray-500 rounded-2xl font-extrabold cursor-not-allowed transition-all">Confirm & Checkout</button>
       </div>
     </div>
   </div>
 
   <!-- Confirm Order Modal Dialog -->
-  <div id="confirm-order-modal" class="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden">
-    <div class="bg-white dark:bg-slate-900 rounded-[24px] max-w-md w-full p-8 shadow-2xl border border-gray-100 dark:border-slate-800 animate-in fade-in zoom-in-95 duration-200 text-center">
-      <div class="h-16 w-16 bg-emerald-50 dark:bg-emerald-950/60 text-[#1E6C02] dark:text-emerald-400 rounded-full flex items-center justify-center mb-6 mx-auto border border-emerald-100 dark:border-emerald-800/60">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-8 h-8"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
+  <div id="confirm-order-modal" class="fixed inset-0 bg-black/55 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden">
+    <div id="confirm-order-modal-card" class="bg-white dark:bg-slate-900 rounded-[28px] max-w-lg w-full p-6 sm:p-7 shadow-2xl border border-gray-100 dark:border-slate-800 animate-in fade-in zoom-in-95 duration-200 text-center max-h-[92vh] overflow-y-auto">
+      <div id="confirm-order-modal-icon" class="h-14 w-14 bg-emerald-50 dark:bg-emerald-950/60 text-[#1E6C02] dark:text-emerald-400 rounded-2xl flex items-center justify-center mb-4 mx-auto border border-emerald-100 dark:border-emerald-800/60">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-7 h-7"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
       </div>
-      <h3 class="text-xl font-black text-gray-900 dark:text-gray-100 mb-2">Confirm Order</h3>
-      <p class="text-sm font-semibold text-gray-500 dark:text-gray-400 leading-relaxed mb-8">
-        Are you sure you want to place this order?
-      </p>
-      <div class="flex gap-4">
-        <button id="btn-cancel-confirm" class="flex-1 h-12 border border-gray-200 dark:border-slate-700 text-gray-700 dark:text-gray-200 bg-white dark:bg-slate-800 font-bold rounded-2xl hover:bg-gray-50 dark:hover:bg-slate-700 transition-all cursor-pointer">Cancel</button>
-        <button id="btn-submit-confirm" class="flex-1 h-12 bg-[#1E6C02] text-white font-bold rounded-2xl hover:bg-[#145001] transition-all cursor-pointer shadow-lg shadow-green-900/10">Confirm Order</button>
+      <h3 class="text-xl sm:text-2xl font-black text-gray-900 dark:text-gray-100 mb-1.5 tracking-tight">Confirm Order</h3>
+      <div id="confirm-order-modal-body" class="res-modal-nobox mb-6">
+        <p class="text-sm sm:text-base font-semibold text-gray-600 dark:text-gray-300 leading-relaxed">
+          Are you sure you want to place this order?
+        </p>
+      </div>
+      <div class="res-modal-nobox flex flex-col-reverse sm:flex-row gap-3">
+        <button id="btn-cancel-confirm" class="flex-1 h-12 px-4 border border-gray-300 dark:border-slate-700 text-gray-800 dark:text-gray-200 bg-white dark:bg-slate-800 font-bold text-sm sm:text-base rounded-2xl hover:bg-gray-50 dark:hover:bg-slate-700 transition-all cursor-pointer">Cancel</button>
+        <button id="btn-submit-confirm" class="flex-1 h-12 px-4 bg-[#1E6C02] text-white font-extrabold text-sm sm:text-base rounded-2xl hover:bg-[#145001] transition-all cursor-pointer shadow-lg shadow-green-900/10">Confirm Order</button>
       </div>
     </div>
   </div>
@@ -669,12 +756,23 @@
             </div>
           </div>
           ${reservedQty > 0 ? `
-            <div class="bg-amber-50 border border-amber-200 rounded-xl p-3 text-xs text-amber-900 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-              <div>
-                <span class="font-bold">📦 Available Stock Order:</span> ${availQty} sacks (₱${(availQty * prodPrice).toLocaleString()}.00)
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+              <div class="bg-[#F4FAF3] dark:bg-emerald-950/30 border border-[#C6EFCE] dark:border-emerald-800/60 rounded-xl p-3.5 text-xs text-[#145001] dark:text-emerald-100 flex flex-col gap-1">
+                <div class="font-extrabold text-[#1E6C02] dark:text-emerald-300 flex items-center gap-1.5">
+                  <span>📦 Available Stock Order:</span>
+                </div>
+                <div class="font-bold text-sm text-[#222222] dark:text-white mt-0.5">
+                  ${availQty} sacks <span class="text-[#1E6C02] dark:text-emerald-400 font-extrabold">(₱${(availQty * prodPrice).toLocaleString()}.00)</span>
+                </div>
               </div>
-              <div>
-                <span class="font-bold">⏳ Reservation Queue:</span> ${reservedQty} sacks <span class="text-blue-700 font-extrabold">(No Payment Required Now - ₱0.00)</span>
+              <div class="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/60 rounded-xl p-3.5 text-xs text-amber-900 dark:text-amber-100 flex flex-col gap-1">
+                <div class="font-extrabold text-amber-900 dark:text-amber-300 flex items-center gap-1.5">
+                  <span>⏳ Reservation Queue:</span>
+                </div>
+                <div class="font-bold text-sm text-amber-950 dark:text-white mt-0.5 flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5">
+                  <span>${reservedQty} sacks</span>
+                  <span class="text-xs text-blue-700 dark:text-blue-300 font-extrabold">(No Payment Required Now - ₱0.00)</span>
+                </div>
               </div>
             </div>
           ` : ''}
@@ -888,7 +986,7 @@
       let pendingPartialSplit = null;
 
       function triggerOrderConfirmation() {
-        let partialNoticeMsg = null;
+        let partialNoticeHtml = null;
         pendingPartialSplit = null;
 
         if (checkoutItems && checkoutItems.length > 0) {
@@ -903,12 +1001,85 @@
                 const avail = Math.max(0, availStock);
                 const reserved = requestedQty - avail;
                 pendingPartialSplit = { item, avail, reserved, requestedQty, product: p };
-                
-                if (avail > 0) {
-                  partialNoticeMsg = `${avail} sacks are currently available.\n\nThe remaining ${reserved} sacks are currently out of stock.\n\nThose ${reserved} sacks can be placed into the Reservation Queue.\n\nNo payment is required yet for the reservation.\n\nYou will only be notified once stocks become available.\n\nWould you like to continue?`;
-                } else {
-                  partialNoticeMsg = `0 sacks are currently available in stock.\n\nAll ${requestedQty} sacks can be placed into the Reservation Queue.\n\nNo payment is required yet for the reservation.\n\nYou will only be notified once stocks become available.\n\nWould you like to continue?`;
-                }
+
+                const previewResOrder = {
+                  isPreOrder: true,
+                  isReservation: true,
+                  status: 'pre-order',
+                  deliveryOption: deliveryOption || 'delivery',
+                  productId: p.id,
+                  productName: p.name,
+                  product: p,
+                  estimatedRestockDate: p.restockDate || p.estimatedRestockDate || null,
+                  items: [{
+                    product: p,
+                    productId: p.id,
+                    productName: p.name,
+                    quantity: reserved,
+                    isReservation: true
+                  }]
+                };
+                const estDateText = getEstimatedArrivalDate(previewResOrder) || 'Waiting for Restock';
+                const isPickupMethod = deliveryOption === 'pickup';
+                const estLabelText = isPickupMethod ? 'ESTIMATED PICKUP' : 'ESTIMATED DELIVERY';
+
+                const availSackNoun = avail === 1 ? 'sack' : 'sacks';
+                const reservedSackNoun = reserved === 1 ? 'sack' : 'sacks';
+
+                partialNoticeHtml = `
+                  <span class="block text-left space-y-5 mt-2">
+                    <!-- 1. Reservation: What the customer is reserving -->
+                    <span class="block space-y-1.5">
+                      <span class="block text-xs font-extrabold uppercase tracking-wider text-gray-500 dark:text-gray-400">Reservation</span>
+                      <span class="block text-base sm:text-lg font-bold text-gray-800 dark:text-gray-100 leading-snug">
+                        You're reserving <strong class="text-[#1E6C02] dark:text-emerald-400 font-black">${p.name || 'Rice'}</strong>.
+                      </span>
+                      <span class="block text-sm text-gray-700 dark:text-gray-300 font-medium leading-relaxed">
+                        Some of the rice is not available right now. The unavailable sacks will be placed in the reservation queue.
+                      </span>
+                    </span>
+
+                    <!-- 2. Availability: Available Now / For Reservation -->
+                    <span class="block space-y-2">
+                      <span class="block text-xs font-extrabold uppercase tracking-wider text-gray-500 dark:text-gray-400">Availability</span>
+                      <span class="grid grid-cols-2 gap-3">
+                        <span class="res-card-avail block bg-[#F4FAF3] dark:bg-emerald-950/40 border border-[#C6EFCE] dark:border-emerald-800/70 rounded-2xl p-3.5">
+                          <span class="block text-xs font-extrabold uppercase tracking-wide text-[#1E6C02] dark:text-emerald-300">Available Now</span>
+                          <span class="block text-lg sm:text-xl font-black text-gray-900 dark:text-white mt-1">${avail} ${availSackNoun}</span>
+                        </span>
+                        <span class="res-card-reserve block bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/70 rounded-2xl p-3.5">
+                          <span class="block text-xs font-extrabold uppercase tracking-wide text-amber-900 dark:text-amber-300">For Reservation</span>
+                          <span class="block text-lg sm:text-xl font-black text-gray-900 dark:text-white mt-1">${reserved} ${reservedSackNoun}</span>
+                        </span>
+                      </span>
+                    </span>
+
+                    <!-- 3. Estimated Delivery or Pickup (Main Visual Focus) -->
+                    <span class="res-card-est block bg-[#EFF6FF] dark:bg-blue-950/50 border-2 border-[#93C5FD] dark:border-blue-700 rounded-2xl p-4 sm:p-5 shadow-xs">
+                      <span class="flex items-center gap-2 text-xs sm:text-sm font-black uppercase tracking-wider text-[#1E3A8A] dark:text-blue-300">
+                        <span class="text-base">📅</span>
+                        <span>${estLabelText}</span>
+                      </span>
+                      <span class="block text-xl sm:text-2xl font-black text-gray-950 dark:text-white mt-1.5 tracking-tight">
+                        ${estDateText}
+                      </span>
+                    </span>
+
+                    <!-- 4. Payment Reminder -->
+                    <span class="res-card-payment block bg-[#FFF8EB] dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/70 rounded-2xl p-4 space-y-1.5">
+                      <span class="flex items-center gap-2 text-xs sm:text-sm font-extrabold uppercase tracking-wider text-amber-950 dark:text-amber-200">
+                        <span>💳</span>
+                        <span>Payment Reminder</span>
+                      </span>
+                      <span class="block text-sm sm:text-[15px] font-extrabold text-[#1E6C02] dark:text-emerald-300">
+                        No payment is needed yet.
+                      </span>
+                      <span class="block text-xs sm:text-sm text-gray-800 dark:text-gray-200 font-medium leading-relaxed">
+                        We'll notify you when your reserved rice becomes available. After we notify you, please send the required down payment within <strong>48 hours</strong>. If payment is not sent within 48 hours, your reservation will be cancelled automatically.
+                      </span>
+                    </span>
+                  </span>
+                `;
                 break;
               }
             }
@@ -917,14 +1088,23 @@
 
         const confirmTextPara = document.querySelector('#confirm-order-modal p');
         const confirmTitle = document.querySelector('#confirm-order-modal h3');
+        const confirmIcon = document.getElementById('confirm-order-modal-icon');
         if (confirmTextPara) {
-          if (partialNoticeMsg) {
+          if (partialNoticeHtml) {
             if (confirmTitle) confirmTitle.textContent = 'Stock Availability Notice';
-            confirmTextPara.innerHTML = `<span class="block bg-amber-50 border border-amber-200 text-amber-900 p-4 rounded-2xl text-xs font-bold mb-2 text-left leading-relaxed whitespace-pre-line">${partialNoticeMsg}</span>`;
+            if (confirmIcon) {
+              confirmIcon.className = 'h-14 w-14 bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 rounded-2xl flex items-center justify-center mb-3 mx-auto border border-amber-200 dark:border-amber-800/60';
+              confirmIcon.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" class="w-7 h-7"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>';
+            }
+            confirmTextPara.innerHTML = partialNoticeHtml;
             if (btnCancelConfirm) btnCancelConfirm.textContent = 'Cancel Reservation';
             if (btnSubmitConfirm) btnSubmitConfirm.textContent = 'Continue Reservation';
           } else {
             if (confirmTitle) confirmTitle.textContent = 'Confirm Order';
+            if (confirmIcon) {
+              confirmIcon.className = 'h-14 w-14 bg-emerald-50 dark:bg-emerald-950/60 text-[#1E6C02] dark:text-emerald-400 rounded-2xl flex items-center justify-center mb-4 mx-auto border border-emerald-100 dark:border-emerald-800/60';
+              confirmIcon.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-7 h-7"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>';
+            }
             confirmTextPara.textContent = 'Are you sure you want to place this order?';
             if (btnCancelConfirm) btnCancelConfirm.textContent = 'Cancel';
             if (btnSubmitConfirm) btnSubmitConfirm.textContent = 'Confirm Order';
@@ -977,6 +1157,132 @@
         return false;
       }
 
+      // Preserve checkout context for Payment Guide navigation
+      const paymentGuideLink = document.getElementById('payment-guide-info-link');
+      if (paymentGuideLink) {
+        const pgParams = new URLSearchParams(window.location.search);
+        pgParams.set('from', 'checkout');
+        paymentGuideLink.href = `payment-guide.html?${pgParams.toString()}`;
+      }
+
+      function saveCheckoutContextForGuide() {
+        try {
+          const ctx = {
+            page: 'checkout.html',
+            search: window.location.search || '',
+            url: 'checkout.html' + (window.location.search || ''),
+            fullName: inpFullName ? inpFullName.value : '',
+            phone: inpPhone ? inpPhone.value : '',
+            address: addressInput ? addressInput.value : '',
+            notes: document.getElementById('inp-notes')?.value || '',
+            deliveryOption,
+            paymentMethod,
+            hasPaymentProof: Boolean(paymentProofFile || paymentProofBase64),
+            paymentProofName: paymentProofFile ? paymentProofFile.name : '',
+            paymentProofType: paymentProofFile ? paymentProofFile.type : 'image/jpeg',
+            paymentProofBase64: paymentProofBase64 || '',
+            blockerChecked: blockerCheck ? blockerCheck.checked : false,
+            savedAt: Date.now()
+          };
+          sessionStorage.setItem('riceflow-checkout-context', JSON.stringify(ctx));
+        } catch (err) {
+          console.warn('[CHECKOUT] Unable to save checkout context:', err);
+        }
+      }
+
+      function restoreCheckoutContextFromGuide() {
+        try {
+          const raw = sessionStorage.getItem('riceflow-checkout-context');
+          if (!raw) return;
+          const ctx = JSON.parse(raw);
+          if (!ctx || ctx.page !== 'checkout.html') return;
+          if ((ctx.search || '') !== (window.location.search || '')) return;
+
+          if (ctx.fullName && inpFullName) inpFullName.value = ctx.fullName;
+          if (ctx.phone && inpPhone) inpPhone.value = ctx.phone;
+          if (ctx.address !== undefined && addressInput) addressInput.value = ctx.address;
+          const inpNotes = document.getElementById('inp-notes');
+          if (ctx.notes !== undefined && inpNotes) inpNotes.value = ctx.notes;
+
+          if (ctx.deliveryOption === 'pickup' && divPic) {
+            divPic.click();
+          } else if (ctx.deliveryOption === 'delivery' && divDel) {
+            divDel.click();
+          }
+
+          if (ctx.paymentMethod === 'cash' && divPmCash) {
+            divPmCash.click();
+          } else if (ctx.paymentMethod === 'gcash' && divPmGcash) {
+            divPmGcash.click();
+          }
+
+          if (ctx.blockerChecked && blockerCheck) {
+            blockerCheck.checked = true;
+            if (blockerSubmit) {
+              blockerSubmit.disabled = false;
+              blockerSubmit.className = "flex-1 h-12 bg-[#1E6C02] text-white rounded-2xl font-bold cursor-pointer transition-all";
+            }
+          }
+
+          if (ctx.paymentProofBase64 && ctx.paymentProofName) {
+            try {
+              const parts = ctx.paymentProofBase64.split(',');
+              const mimeMatch = parts[0].match(/:(.*?);/);
+              const mime = ctx.paymentProofType || (mimeMatch ? mimeMatch[1] : 'image/jpeg');
+              const bstr = atob(parts[1]);
+              let n = bstr.length;
+              const u8arr = new Uint8Array(n);
+              while (n--) {
+                u8arr[n] = bstr.charCodeAt(n);
+              }
+              paymentProofFile = new File([u8arr], ctx.paymentProofName, { type: mime });
+              paymentProofBase64 = ctx.paymentProofBase64;
+              if (screenshotFn) screenshotFn.textContent = ctx.paymentProofName;
+              if (screenshotMiniPreview) screenshotMiniPreview.src = ctx.paymentProofBase64;
+              if (screenshotSuccess) screenshotSuccess.classList.remove('hidden');
+            } catch (_) {}
+          }
+        } catch (err) {
+          console.warn('[CHECKOUT] Unable to restore checkout context:', err);
+        }
+      }
+
+      restoreCheckoutContextFromGuide();
+      saveCheckoutContextForGuide();
+
+      if (sessionStorage.getItem('riceflow-proceed-from-guide') === 'true') {
+        sessionStorage.removeItem('riceflow-proceed-from-guide');
+        setTimeout(() => {
+          const fullNameVal = inpFullName ? inpFullName.value.trim() : '';
+          const phoneVal = inpPhone ? inpPhone.value.trim() : '';
+          const normPhone = normalizePhilippinePhone(phoneVal);
+          const addrVal = addressInput ? addressInput.value.trim() : '';
+
+          if (!fullNameVal && inpFullName) {
+            inpFullName.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            inpFullName.focus();
+            showToast('Please enter your full name to continue.', 'info');
+          } else if (!normPhone.isValid && inpPhone) {
+            inpPhone.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            inpPhone.focus();
+            showToast('Please enter a valid Philippine contact number.', 'info');
+          } else if (deliveryOption === 'delivery' && !addrVal && addressInput) {
+            addressInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            addressInput.focus();
+            showToast('Please enter your delivery address and attach your payment screenshot to complete your order.', 'info');
+          } else if (!paymentProofFile && dropzone) {
+            dropzone.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            showToast('Please attach your GCash payment confirmation screenshot to complete your order.', 'info');
+          } else {
+            const submitBtnEl = document.getElementById('btn-submit-order');
+            if (submitBtnEl) {
+              submitBtnEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+            showToast('Your checkout details are ready. Click Submit Order to place your order.');
+          }
+        }, 150);
+      }
+
       // Exit Confirmation Modal wiring
       document.body.addEventListener('click', (e) => {
         const anchor = e.target.closest('a');
@@ -987,11 +1293,18 @@
           if (!href || href.startsWith('#') || href.startsWith('javascript:') || target === '_blank') {
             return;
           }
+
+          if (anchor.id === 'payment-guide-info-link' || href.startsWith('payment-guide.html')) {
+            saveCheckoutContextForGuide();
+            return;
+          }
           
           if (hasUnsavedChanges()) {
             e.preventDefault();
             pendingNavigationUrl = href;
             document.getElementById('exit-confirm-modal').classList.remove('hidden');
+          } else {
+            sessionStorage.removeItem('riceflow-checkout-context');
           }
         }
       });
@@ -1002,6 +1315,7 @@
       });
 
       document.getElementById('btn-leave-page').addEventListener('click', () => {
+        sessionStorage.removeItem('riceflow-checkout-context');
         if (pendingNavigationUrl) {
           window.location.href = pendingNavigationUrl;
         }
@@ -1009,6 +1323,9 @@
 
       // Browser event handler for leaving tab or reloading
       window.addEventListener('beforeunload', (e) => {
+        if (document.activeElement && (document.activeElement.id === 'payment-guide-info-link' || (document.activeElement.getAttribute && String(document.activeElement.getAttribute('href') || '').startsWith('payment-guide.html')))) {
+          return;
+        }
         if (hasUnsavedChanges()) {
           e.preventDefault();
           e.returnValue = 'You have unsaved changes. Are you sure you want to leave?';
@@ -1207,6 +1524,57 @@
         }
 
         if (hasReservations && !blockerCheck.checked) {
+          let totalAvailNow = 0;
+          let totalForRes = 0;
+          let targetResProd = null;
+          checkoutItems.forEach(item => {
+            const { availQty, reservedQty, product: prod } = getItemStockBreakdown(item);
+            totalAvailNow += availQty;
+            totalForRes += reservedQty;
+            if (!targetResProd && reservedQty > 0 && prod) {
+              targetResProd = prod;
+            }
+          });
+          if (!targetResProd && checkoutItems[0]?.product) {
+            targetResProd = checkoutItems[0].product;
+          }
+          const blockerPnEl = document.getElementById('blocker-res-pn');
+          if (blockerPnEl && targetResProd) {
+            blockerPnEl.textContent = targetResProd.name || 'Rice';
+          }
+          const blockerAvailEl = document.getElementById('blocker-avail-qty');
+          if (blockerAvailEl) {
+            blockerAvailEl.textContent = `${totalAvailNow} ${totalAvailNow === 1 ? 'sack' : 'sacks'}`;
+          }
+          const blockerResEl = document.getElementById('blocker-reserve-qty');
+          if (blockerResEl) {
+            blockerResEl.textContent = `${totalForRes} ${totalForRes === 1 ? 'sack' : 'sacks'}`;
+          }
+          const blockerEstLabelEl = document.getElementById('blocker-est-label');
+          if (blockerEstLabelEl) {
+            blockerEstLabelEl.textContent = deliveryOption === 'pickup' ? 'ESTIMATED PICKUP' : 'ESTIMATED DELIVERY';
+          }
+          const blockerEstDateEl = document.getElementById('blocker-est-date');
+          if (blockerEstDateEl && targetResProd) {
+            const previewBlockerOrder = {
+              isPreOrder: true,
+              isReservation: true,
+              status: 'pre-order',
+              deliveryOption: deliveryOption || 'delivery',
+              productId: targetResProd.id,
+              productName: targetResProd.name,
+              product: targetResProd,
+              estimatedRestockDate: targetResProd.restockDate || targetResProd.estimatedRestockDate || null,
+              items: [{
+                product: targetResProd,
+                productId: targetResProd.id,
+                productName: targetResProd.name,
+                quantity: totalForRes || 1,
+                isReservation: true
+              }]
+            };
+            blockerEstDateEl.textContent = getEstimatedArrivalDate(previewBlockerOrder) || 'Waiting for Restock';
+          }
           blockerDialog.classList.remove('hidden');
           return;
         }
@@ -1402,6 +1770,7 @@
         // Slice checked out elements from storage cart
         const outIds = checkoutItems.map(i => i.product.id);
         clearCartItems(outIds);
+        sessionStorage.removeItem('riceflow-checkout-context');
 
         // Transition Splash
         document.getElementById('checkout-form-container').classList.add('hidden');
