@@ -65,7 +65,7 @@
 <body class="bg-[#F5F5F5] min-h-screen">
   <div id="auth-guard-loader" class="fixed inset-0 bg-[#F5F5F5] z-[99999] flex flex-col items-center justify-center font-sans">
     <div class="w-9 h-9 border-3 border-[#1E6C02]/20 border-t-[#1E6C02] rounded-full animate-spin mb-3"></div>
-    <p class="text-xs font-semibold text-gray-700">Verifying account access...</p>
+    <p class="text-xs font-semibold text-gray-900 dark:text-gray-100">Verifying account access...</p>
   </div>
 
   <!-- Dynamic Header Bar -->
@@ -98,13 +98,13 @@
         <!-- Live Category state Tabs -->
         <div class="flex items-center bg-[#E5E7EB] dark:bg-slate-800 p-1 rounded-2xl md:rounded-full gap-1 mb-8 w-full overflow-x-auto scrollbar-none" id="purchase-tabs-header">
           <button data-tab="all" class="purchase-tab-btn flex-1 py-2.5 px-3 md:px-5 rounded-xl md:rounded-full text-xs sm:text-sm font-bold text-gray-900 dark:text-gray-100 transition-all cursor-pointer text-center whitespace-nowrap bg-white dark:bg-slate-900 shadow-sm border border-gray-100/40 dark:border-slate-700">All</button>
-          <button data-tab="reservations" class="purchase-tab-btn flex-1 py-2.5 px-3 md:px-5 rounded-xl md:rounded-full text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-all cursor-pointer text-center whitespace-nowrap">Reservations</button>
-          <button data-tab="to-pay" class="purchase-tab-btn flex-1 py-2.5 px-3 md:px-5 rounded-xl md:rounded-full text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-all cursor-pointer text-center whitespace-nowrap">To Pay</button>
-          <button data-tab="to-ship" class="purchase-tab-btn flex-1 py-2.5 px-3 md:px-5 rounded-xl md:rounded-full text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-all cursor-pointer text-center whitespace-nowrap">To Ship</button>
-          <button data-tab="to-receive" class="purchase-tab-btn flex-1 py-2.5 px-3 md:px-5 rounded-xl md:rounded-full text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-all cursor-pointer text-center whitespace-nowrap">To Receive</button>
-          <button data-tab="delivered" class="purchase-tab-btn flex-1 py-2.5 px-3 md:px-5 rounded-xl md:rounded-full text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-all cursor-pointer text-center whitespace-nowrap">Delivered</button>
-          <button data-tab="completed" class="purchase-tab-btn flex-1 py-2.5 px-3 md:px-5 rounded-xl md:rounded-full text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-all cursor-pointer text-center whitespace-nowrap">Completed</button>
-          <button data-tab="cancelled" class="purchase-tab-btn flex-1 py-2.5 px-3 md:px-5 rounded-xl md:rounded-full text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-all cursor-pointer text-center whitespace-nowrap">Cancelled</button>
+          <button data-tab="reservations" class="purchase-tab-btn flex-1 py-2.5 px-3 md:px-5 rounded-xl md:rounded-full text-xs sm:text-sm font-semibold text-gray-900 dark:text-gray-100 hover:text-black dark:hover:text-white transition-all cursor-pointer text-center whitespace-nowrap">Reservations</button>
+          <button data-tab="to-pay" class="purchase-tab-btn flex-1 py-2.5 px-3 md:px-5 rounded-xl md:rounded-full text-xs sm:text-sm font-semibold text-gray-900 dark:text-gray-100 hover:text-black dark:hover:text-white transition-all cursor-pointer text-center whitespace-nowrap">To Pay</button>
+          <button data-tab="to-ship" class="purchase-tab-btn flex-1 py-2.5 px-3 md:px-5 rounded-xl md:rounded-full text-xs sm:text-sm font-semibold text-gray-900 dark:text-gray-100 hover:text-black dark:hover:text-white transition-all cursor-pointer text-center whitespace-nowrap">To Ship</button>
+          <button data-tab="to-receive" class="purchase-tab-btn flex-1 py-2.5 px-3 md:px-5 rounded-xl md:rounded-full text-xs sm:text-sm font-semibold text-gray-900 dark:text-gray-100 hover:text-black dark:hover:text-white transition-all cursor-pointer text-center whitespace-nowrap">To Receive</button>
+          <button data-tab="delivered" class="purchase-tab-btn flex-1 py-2.5 px-3 md:px-5 rounded-xl md:rounded-full text-xs sm:text-sm font-semibold text-gray-900 dark:text-gray-100 hover:text-black dark:hover:text-white transition-all cursor-pointer text-center whitespace-nowrap">Delivered</button>
+          <button data-tab="completed" class="purchase-tab-btn flex-1 py-2.5 px-3 md:px-5 rounded-xl md:rounded-full text-xs sm:text-sm font-semibold text-gray-900 dark:text-gray-100 hover:text-black dark:hover:text-white transition-all cursor-pointer text-center whitespace-nowrap">Completed</button>
+          <button data-tab="cancelled" class="purchase-tab-btn flex-1 py-2.5 px-3 md:px-5 rounded-xl md:rounded-full text-xs sm:text-sm font-semibold text-gray-900 dark:text-gray-100 hover:text-black dark:hover:text-white transition-all cursor-pointer text-center whitespace-nowrap">Cancelled</button>
         </div>
 
         <!-- Listings target container (scrollable with custom height limits) -->
@@ -129,9 +129,9 @@
       <div class="flex justify-between items-start mb-4 sm:mb-6 shrink-0">
         <div>
           <h3 class="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100">Edit Profile</h3>
-          <p class="text-xs sm:text-sm text-gray-400 mt-1">Update your personal information and profile picture.</p>
+          <p class="text-xs sm:text-sm text-gray-900 dark:text-gray-100 mt-1">Update your personal information and profile picture.</p>
         </div>
-        <button class="close-profile-modal text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors cursor-pointer pt-1">
+        <button class="close-profile-modal text-gray-900 dark:text-gray-100 hover:text-[#1E6C02] dark:hover:text-emerald-400 transition-colors cursor-pointer pt-1">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-4 h-4"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
         </button>
       </div>
@@ -156,18 +156,18 @@
           <!-- Row 1: Full Name and Gender -->
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div class="space-y-1.5">
-              <label class="text-xs font-bold text-gray-900 dark:text-gray-200">Full Name</label>
-              <input type="text" id="modal-inp-fullName" name="profile_full_name" autocomplete="name" class="w-full bg-[#F8F9FA] dark:bg-slate-800 border border-transparent dark:border-slate-700 text-sm font-medium text-[#222222] dark:text-gray-100 px-4 py-3 rounded-2xl focus:bg-white dark:focus:bg-slate-700 focus:border-[#1E6C02] outline-none transition-all placeholder-gray-400 dark:placeholder-gray-500" />
+              <label class="text-xs font-bold text-gray-900 dark:text-gray-100">Full Name</label>
+              <input type="text" id="modal-inp-fullName" name="profile_full_name" autocomplete="name" class="w-full bg-[#F8F9FA] dark:bg-slate-800 border border-transparent dark:border-slate-700 text-sm font-medium text-gray-900 dark:text-gray-100 px-4 py-3 rounded-2xl focus:bg-white dark:focus:bg-slate-700 focus:border-[#1E6C02] outline-none transition-all placeholder-gray-700 dark:placeholder-gray-300" />
             </div>
             <div class="space-y-1.5">
-              <label class="text-xs font-bold text-gray-900 dark:text-gray-200">Gender</label>
+              <label class="text-xs font-bold text-gray-900 dark:text-gray-100">Gender</label>
               <div class="relative">
-                <select id="modal-inp-gender" name="profile_gender" autocomplete="sex" class="w-full bg-[#F8F9FA] dark:bg-slate-800 border border-transparent dark:border-slate-700 text-sm font-medium text-[#222222] dark:text-gray-100 px-4 py-3 rounded-2xl focus:bg-white dark:focus:bg-slate-700 focus:border-[#1E6C02] outline-none transition-all appearance-none cursor-pointer">
+                <select id="modal-inp-gender" name="profile_gender" autocomplete="sex" class="w-full bg-[#F8F9FA] dark:bg-slate-800 border border-transparent dark:border-slate-700 text-sm font-medium text-gray-900 dark:text-gray-100 px-4 py-3 rounded-2xl focus:bg-white dark:focus:bg-slate-700 focus:border-[#1E6C02] outline-none transition-all appearance-none cursor-pointer">
                   <option value="male">Male</option>
                   <option value="female">Female</option>
                   <option value="prefer-not-to-say">Prefer not to say</option>
                 </select>
-                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-400">
+                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-900 dark:text-gray-100">
                   <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
                 </div>
               </div>
@@ -177,25 +177,25 @@
           <!-- Row 2: Email and Phone with 'Change' CTA buttons -->
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div class="space-y-1.5">
-              <label class="text-xs font-bold text-gray-900 dark:text-gray-200">Email Address</label>
+              <label class="text-xs font-bold text-gray-900 dark:text-gray-100">Email Address</label>
               <div class="flex gap-2">
-                <input type="email" id="modal-inp-email" name="profile_email" autocomplete="email" readonly class="min-w-0 flex-grow bg-[#F1F3F5] dark:bg-slate-800/60 border border-transparent dark:border-slate-700 text-sm font-medium text-gray-400 dark:text-gray-400 px-4 py-3 rounded-2xl cursor-not-allowed outline-none select-none" />
-                <button type="button" id="btn-change-email" class="px-4 py-3 border border-gray-200 dark:border-slate-700 text-sm font-bold text-gray-850 dark:text-gray-200 rounded-2xl hover:bg-gray-50 dark:hover:bg-slate-800 flex items-center justify-center shrink-0 cursor-pointer bg-white dark:bg-slate-800 transition-all">Change</button>
+                <input type="email" id="modal-inp-email" name="profile_email" autocomplete="email" readonly class="min-w-0 flex-grow bg-[#F1F3F5] dark:bg-slate-800/60 border border-transparent dark:border-slate-700 text-sm font-medium text-gray-900 dark:text-gray-100 px-4 py-3 rounded-2xl cursor-not-allowed outline-none select-none" />
+                <button type="button" id="btn-change-email" class="px-4 py-3 border border-gray-200 dark:border-slate-700 text-sm font-bold text-gray-900 dark:text-gray-100 rounded-2xl hover:bg-gray-50 dark:hover:bg-slate-800 flex items-center justify-center shrink-0 cursor-pointer bg-white dark:bg-slate-800 transition-all">Change</button>
               </div>
             </div>
             <div class="space-y-1.5">
-              <label class="text-xs font-bold text-gray-900 dark:text-gray-200">Phone Number</label>
+              <label class="text-xs font-bold text-gray-900 dark:text-gray-100">Phone Number</label>
               <div class="flex gap-2">
-                <input type="tel" id="modal-inp-phone" name="profile_phone" autocomplete="tel" class="min-w-0 flex-grow bg-[#F8F9FA] dark:bg-slate-800 border border-transparent dark:border-slate-700 text-sm font-medium text-[#222222] dark:text-gray-100 px-4 py-3 rounded-2xl focus:bg-white dark:focus:bg-slate-700 focus:border-[#1E6C02] outline-none transition-all placeholder-gray-400 dark:placeholder-gray-500" />
-                <button type="button" id="btn-change-phone" class="px-4 py-3 border border-gray-200 dark:border-slate-700 text-sm font-bold text-gray-850 dark:text-gray-200 rounded-2xl hover:bg-gray-50 dark:hover:bg-slate-800 flex items-center justify-center shrink-0 cursor-pointer bg-white dark:bg-slate-800 transition-all">Change</button>
+                <input type="tel" id="modal-inp-phone" name="profile_phone" autocomplete="tel" class="min-w-0 flex-grow bg-[#F8F9FA] dark:bg-slate-800 border border-transparent dark:border-slate-700 text-sm font-medium text-gray-900 dark:text-gray-100 px-4 py-3 rounded-2xl focus:bg-white dark:focus:bg-slate-700 focus:border-[#1E6C02] outline-none transition-all placeholder-gray-700 dark:placeholder-gray-300" />
+                <button type="button" id="btn-change-phone" class="px-4 py-3 border border-gray-200 dark:border-slate-700 text-sm font-bold text-gray-900 dark:text-gray-100 rounded-2xl hover:bg-gray-50 dark:hover:bg-slate-800 flex items-center justify-center shrink-0 cursor-pointer bg-white dark:bg-slate-800 transition-all">Change</button>
               </div>
             </div>
           </div>
 
           <!-- Row 3: Address -->
           <div class="space-y-1.5">
-            <label class="text-xs font-bold text-gray-900 dark:text-gray-200">Address</label>
-            <input type="text" id="modal-inp-address" name="profile_address" autocomplete="street-address" class="w-full bg-[#F8F9FA] dark:bg-slate-800 border border-transparent dark:border-slate-700 text-sm font-medium text-[#222222] dark:text-gray-100 px-4 py-3 rounded-2xl focus:bg-white dark:focus:bg-slate-700 focus:border-[#1E6C02] outline-none transition-all placeholder-gray-400 dark:placeholder-gray-500" />
+            <label class="text-xs font-bold text-gray-900 dark:text-gray-100">Address</label>
+            <input type="text" id="modal-inp-address" name="profile_address" autocomplete="street-address" class="w-full bg-[#F8F9FA] dark:bg-slate-800 border border-transparent dark:border-slate-700 text-sm font-medium text-gray-900 dark:text-gray-100 px-4 py-3 rounded-2xl focus:bg-white dark:focus:bg-slate-700 focus:border-[#1E6C02] outline-none transition-all placeholder-gray-700 dark:placeholder-gray-300" />
           </div>
 
           <!-- Row 4: Change Password -->
@@ -213,7 +213,7 @@
 
       <!-- Action buttons -->
       <div class="flex gap-3 justify-end items-center shrink-0">
-        <button type="button" class="close-profile-modal px-5 sm:px-6 h-11 sm:h-12 border border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-800 text-[#222222] dark:text-gray-200 text-sm font-bold rounded-2xl cursor-pointer transition-all bg-white dark:bg-slate-800">Cancel</button>
+        <button type="button" class="close-profile-modal px-5 sm:px-6 h-11 sm:h-12 border border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-800 text-gray-900 dark:text-gray-100 text-sm font-bold rounded-2xl cursor-pointer transition-all bg-white dark:bg-slate-800">Cancel</button>
         <button type="button" id="btn-save-profile-data" class="px-5 sm:px-6 h-11 sm:h-12 bg-[#1E6C02] hover:bg-[#145001] text-white text-sm font-bold rounded-2xl cursor-pointer transition-all">Save Changes</button>
       </div>
 
@@ -228,9 +228,9 @@
       <div class="flex justify-between items-start mb-6">
         <div class="text-left">
           <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100 leading-none">Change Password</h3>
-          <p class="text-sm font-medium text-gray-400 mt-2 leading-relaxed">Enter your current password and choose a new password for your account.</p>
+          <p class="text-sm font-medium text-gray-900 dark:text-gray-100 mt-2 leading-relaxed">Enter your current password and choose a new password for your account.</p>
         </div>
-        <button id="close-password-dialog-btn" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors cursor-pointer p-1">
+        <button id="close-password-dialog-btn" class="text-gray-900 dark:text-gray-100 hover:text-[#1E6C02] dark:hover:text-emerald-400 transition-colors cursor-pointer p-1">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-5 h-5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
         </button>
       </div>
@@ -240,10 +240,10 @@
         <div class="space-y-4">
           <!-- Current Password -->
           <div class="space-y-1.5 text-left">
-            <label class="text-xs font-bold text-gray-900 dark:text-gray-200 block">Current Password</label>
+            <label class="text-xs font-bold text-gray-900 dark:text-gray-100 block">Current Password</label>
             <div class="relative">
-              <input type="password" id="modal-pass-current" name="current_account_password" autocomplete="current-password" placeholder="Enter current password" class="w-full bg-[#F8F9FA] dark:bg-slate-800 border-0 dark:border dark:border-slate-700 text-sm font-medium text-[#222222] dark:text-gray-100 pl-4 pr-12 h-12 rounded-2xl outline-none focus:bg-white dark:focus:bg-slate-700 focus:ring-1 focus:ring-[#1E6C02] transition-all placeholder-gray-400 dark:placeholder-gray-500" />
-              <button type="button" id="btn-toggle-pass-current" class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors cursor-pointer focus:outline-none flex items-center justify-center">
+              <input type="password" id="modal-pass-current" name="current_account_password" autocomplete="current-password" placeholder="Enter current password" class="w-full bg-[#F8F9FA] dark:bg-slate-800 border-0 dark:border dark:border-slate-700 text-sm font-medium text-gray-900 dark:text-gray-100 pl-4 pr-12 h-12 rounded-2xl outline-none focus:bg-white dark:focus:bg-slate-700 focus:ring-1 focus:ring-[#1E6C02] transition-all placeholder-gray-700 dark:placeholder-gray-300" />
+              <button type="button" id="btn-toggle-pass-current" class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-900 dark:text-gray-100 hover:text-[#1E6C02] dark:hover:text-emerald-400 transition-colors cursor-pointer focus:outline-none flex items-center justify-center">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
               </button>
             </div>
@@ -251,10 +251,10 @@
 
           <!-- New Password -->
           <div class="space-y-1.5 text-left">
-            <label class="text-xs font-bold text-gray-900 dark:text-gray-200 block">New Password</label>
+            <label class="text-xs font-bold text-gray-900 dark:text-gray-100 block">New Password</label>
             <div class="relative">
-              <input type="password" id="modal-pass-new" name="new_account_password" autocomplete="new-password" placeholder="Enter new password" class="w-full bg-[#F8F9FA] dark:bg-slate-800 border-0 dark:border dark:border-slate-700 text-sm font-medium text-[#222222] dark:text-gray-100 pl-4 pr-12 h-12 rounded-2xl outline-none focus:bg-white dark:focus:bg-slate-700 focus:ring-1 focus:ring-[#1E6C02] transition-all placeholder-gray-400 dark:placeholder-gray-500" />
-              <button type="button" id="btn-toggle-pass-new" class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors cursor-pointer focus:outline-none flex items-center justify-center">
+              <input type="password" id="modal-pass-new" name="new_account_password" autocomplete="new-password" placeholder="Enter new password" class="w-full bg-[#F8F9FA] dark:bg-slate-800 border-0 dark:border dark:border-slate-700 text-sm font-medium text-gray-900 dark:text-gray-100 pl-4 pr-12 h-12 rounded-2xl outline-none focus:bg-white dark:focus:bg-slate-700 focus:ring-1 focus:ring-[#1E6C02] transition-all placeholder-gray-700 dark:placeholder-gray-300" />
+              <button type="button" id="btn-toggle-pass-new" class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-900 dark:text-gray-100 hover:text-[#1E6C02] dark:hover:text-emerald-400 transition-colors cursor-pointer focus:outline-none flex items-center justify-center">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
               </button>
             </div>
@@ -262,10 +262,10 @@
 
           <!-- Confirm Password -->
           <div class="space-y-1.5 text-left">
-            <label class="text-xs font-bold text-gray-900 dark:text-gray-200 block">Confirm New Password</label>
+            <label class="text-xs font-bold text-gray-900 dark:text-gray-100 block">Confirm New Password</label>
             <div class="relative">
-              <input type="password" id="modal-pass-confirm" name="confirm_new_account_password" autocomplete="new-password" placeholder="Confirm new password" class="w-full bg-[#F8F9FA] dark:bg-slate-800 border-0 dark:border dark:border-slate-700 text-sm font-medium text-[#222222] dark:text-gray-100 pl-4 pr-12 h-12 rounded-2xl outline-none focus:bg-white dark:focus:bg-slate-700 focus:ring-1 focus:ring-[#1E6C02] transition-all placeholder-gray-400 dark:placeholder-gray-500" />
-              <button type="button" id="btn-toggle-pass-confirm" class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors cursor-pointer focus:outline-none flex items-center justify-center">
+              <input type="password" id="modal-pass-confirm" name="confirm_new_account_password" autocomplete="new-password" placeholder="Confirm new password" class="w-full bg-[#F8F9FA] dark:bg-slate-800 border-0 dark:border dark:border-slate-700 text-sm font-medium text-gray-900 dark:text-gray-100 pl-4 pr-12 h-12 rounded-2xl outline-none focus:bg-white dark:focus:bg-slate-700 focus:ring-1 focus:ring-[#1E6C02] transition-all placeholder-gray-700 dark:placeholder-gray-300" />
+              <button type="button" id="btn-toggle-pass-confirm" class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-900 dark:text-gray-100 hover:text-[#1E6C02] dark:hover:text-emerald-400 transition-colors cursor-pointer focus:outline-none flex items-center justify-center">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
               </button>
             </div>
@@ -299,7 +299,7 @@
         <h3 class="text-sm font-black text-gray-900 dark:text-gray-100 flex items-center gap-1.5 uppercase tracking-wider">
           <span>📝</span> Edit Customer Information
         </h3>
-        <button id="close-order-customer-btn" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 cursor-pointer p-1">
+        <button id="close-order-customer-btn" class="text-gray-900 dark:text-gray-100 hover:text-[#1E6C02] dark:hover:text-emerald-400 cursor-pointer p-1">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-4 h-4"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
         </button>
       </div>
@@ -308,28 +308,28 @@
       
       <div class="space-y-4 mb-6">
         <div class="space-y-1.5 text-left">
-          <label class="text-xs font-bold text-gray-950 dark:text-gray-200">Full Name</label>
-          <input required type="text" id="customer-edit-name" placeholder="Full name of customer" class="w-full bg-[#F8F9FA] dark:bg-slate-800 border-0 dark:border dark:border-slate-700 text-sm font-medium text-[#222222] dark:text-gray-100 px-4 h-12 rounded-2xl outline-none focus:bg-white dark:focus:bg-slate-700 focus:ring-1 focus:ring-[#1E6C02] transition-all placeholder-gray-400 dark:placeholder-gray-500" />
+          <label class="text-xs font-bold text-gray-900 dark:text-gray-100">Full Name</label>
+          <input required type="text" id="customer-edit-name" placeholder="Full name of customer" class="w-full bg-[#F8F9FA] dark:bg-slate-800 border-0 dark:border dark:border-slate-700 text-sm font-medium text-gray-900 dark:text-gray-100 px-4 h-12 rounded-2xl outline-none focus:bg-white dark:focus:bg-slate-700 focus:ring-1 focus:ring-[#1E6C02] transition-all placeholder-gray-700 dark:placeholder-gray-300" />
         </div>
         
         <div class="space-y-1.5 text-left">
-          <label class="text-xs font-bold text-gray-950 dark:text-gray-200">Contact Number</label>
-          <input required type="tel" id="customer-edit-phone" placeholder="Phone contact number" class="w-full bg-[#F8F9FA] dark:bg-slate-800 border-0 dark:border dark:border-slate-700 text-sm font-medium text-[#222222] dark:text-gray-100 px-4 h-12 rounded-2xl outline-none focus:bg-white dark:focus:bg-slate-700 focus:ring-1 focus:ring-[#1E6C02] transition-all placeholder-gray-400 dark:placeholder-gray-500" />
+          <label class="text-xs font-bold text-gray-900 dark:text-gray-100">Contact Number</label>
+          <input required type="tel" id="customer-edit-phone" placeholder="Phone contact number" class="w-full bg-[#F8F9FA] dark:bg-slate-800 border-0 dark:border dark:border-slate-700 text-sm font-medium text-gray-900 dark:text-gray-100 px-4 h-12 rounded-2xl outline-none focus:bg-white dark:focus:bg-slate-700 focus:ring-1 focus:ring-[#1E6C02] transition-all placeholder-gray-700 dark:placeholder-gray-300" />
         </div>
 
         <div class="space-y-1.5 text-left">
-          <label class="text-xs font-bold text-gray-950 dark:text-gray-200">Delivery Address</label>
-          <textarea required id="customer-edit-address" rows="3" placeholder="House No., Street name, Barangay, Aurora, Zamboanga del Sur" class="w-full bg-[#F8F9FA] dark:bg-slate-800 border-0 dark:border dark:border-slate-700 text-sm font-medium text-[#222222] dark:text-gray-100 p-4 rounded-2xl outline-none focus:bg-white dark:focus:bg-slate-700 focus:ring-1 focus:ring-[#1E6C02] transition-all placeholder-gray-400 dark:placeholder-gray-500 resize-none"></textarea>
+          <label class="text-xs font-bold text-gray-900 dark:text-gray-100">Delivery Address</label>
+          <textarea required id="customer-edit-address" rows="3" placeholder="House No., Street name, Barangay, Aurora, Zamboanga del Sur" class="w-full bg-[#F8F9FA] dark:bg-slate-800 border-0 dark:border dark:border-slate-700 text-sm font-medium text-gray-900 dark:text-gray-100 p-4 rounded-2xl outline-none focus:bg-white dark:focus:bg-slate-700 focus:ring-1 focus:ring-[#1E6C02] transition-all placeholder-gray-700 dark:placeholder-gray-300 resize-none"></textarea>
         </div>
 
         <div class="space-y-1.5 text-left">
-          <label class="text-xs font-semibold text-gray-650 dark:text-gray-300">Notes / Special Instructions</label>
-          <input type="text" id="customer-edit-notes" placeholder="Any special instructions for delivery" class="w-full bg-[#F8F9FA] dark:bg-slate-800 border-0 dark:border dark:border-slate-700 text-sm font-medium text-[#222222] dark:text-gray-100 px-4 h-12 rounded-2xl outline-none focus:bg-white dark:focus:bg-slate-700 focus:ring-1 focus:ring-[#1E6C02] transition-all placeholder-gray-400 dark:placeholder-gray-500" />
+          <label class="text-xs font-semibold text-gray-900 dark:text-gray-100">Notes / Special Instructions</label>
+          <input type="text" id="customer-edit-notes" placeholder="Any special instructions for delivery" class="w-full bg-[#F8F9FA] dark:bg-slate-800 border-0 dark:border dark:border-slate-700 text-sm font-medium text-gray-900 dark:text-gray-100 px-4 h-12 rounded-2xl outline-none focus:bg-white dark:focus:bg-slate-700 focus:ring-1 focus:ring-[#1E6C02] transition-all placeholder-gray-700 dark:placeholder-gray-300" />
         </div>
       </div>
 
       <div class="flex gap-2 justify-end">
-        <button id="cancel-order-customer-btn" class="px-5 py-2.5 border border-gray-200 dark:border-slate-700 rounded-xl text-xs font-bold text-gray-500 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-800 cursor-pointer transition-all bg-white dark:bg-slate-800">Cancel</button>
+        <button id="cancel-order-customer-btn" class="px-5 py-2.5 border border-gray-200 dark:border-slate-700 rounded-xl text-xs font-bold text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-slate-800 cursor-pointer transition-all bg-white dark:bg-slate-800">Cancel</button>
         <button id="save-order-customer-btn" class="px-6 py-2.5 bg-[#1E6C02] text-white rounded-xl text-xs font-bold hover:bg-[#145001] cursor-pointer transition-all">Save Changes</button>
       </div>
     </div>
@@ -344,12 +344,12 @@
       </div>
       
       <h3 id="cancel-order-dialog-title" class="text-lg font-black text-gray-900 dark:text-gray-100 mb-2.5 tracking-tight">Cancel this order?</h3>
-      <p id="cancel-order-dialog-message" class="text-sm text-gray-600 dark:text-gray-300 font-medium leading-relaxed mb-6 whitespace-pre-line text-center">Are you sure you want to cancel this order?</p>
+      <p id="cancel-order-dialog-message" class="text-sm text-gray-900 dark:text-gray-100 font-medium leading-relaxed mb-6 whitespace-pre-line text-center">Are you sure you want to cancel this order?</p>
       
       <input type="hidden" id="cancel-order-id-hidden" />
       
       <div class="flex gap-2.5 justify-center">
-        <button id="keep-order-btn" class="px-5 py-2.5 border border-gray-300 dark:border-slate-600 rounded-xl text-sm font-bold text-gray-700 dark:text-gray-200 bg-white dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-700 hover:border-gray-500 dark:hover:border-slate-400 hover:text-gray-950 dark:hover:text-white hover:shadow-md hover:ring-2 hover:ring-gray-300 dark:hover:ring-slate-500 hover:-translate-y-0.5 active:translate-y-0 active:bg-gray-200 dark:active:bg-slate-600 active:shadow-xs cursor-pointer transition-all duration-200 flex-1">Keep Order</button>
+        <button id="keep-order-btn" class="px-5 py-2.5 border border-gray-300 dark:border-slate-600 rounded-xl text-sm font-bold text-gray-900 dark:text-gray-100 bg-white dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-700 hover:border-gray-500 dark:hover:border-slate-400 hover:text-gray-950 dark:hover:text-white hover:shadow-md hover:ring-2 hover:ring-gray-300 dark:hover:ring-slate-500 hover:-translate-y-0.5 active:translate-y-0 active:bg-gray-200 dark:active:bg-slate-600 active:shadow-xs cursor-pointer transition-all duration-200 flex-1">Keep Order</button>
         <button id="confirm-cancel-order-btn" class="px-5 py-2.5 bg-red-600 hover:bg-red-700 active:bg-red-800 text-white rounded-xl text-sm font-bold border border-red-600 hover:border-red-700 hover:shadow-md hover:shadow-red-500/25 dark:hover:shadow-red-950/50 hover:ring-2 hover:ring-red-400 dark:hover:ring-red-500 hover:brightness-110 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.99] active:shadow-xs cursor-pointer transition-all duration-200 flex-1">Yes, Cancel Order</button>
       </div>
     </div>
@@ -361,9 +361,9 @@
       <div class="flex items-center justify-between pb-3 border-b border-gray-100 dark:border-slate-800 mb-4">
         <div>
           <h3 class="text-lg font-black text-gray-900 dark:text-gray-100 tracking-tight">Refund Information</h3>
-          <p class="text-xs text-gray-500 dark:text-gray-400 font-medium mt-0.5">Please provide the details where the store should send your refund.</p>
+          <p class="text-xs text-gray-900 dark:text-gray-100 font-medium mt-0.5">Please provide the details where the store should send your refund.</p>
         </div>
-        <button id="close-refund-info-dialog-btn" type="button" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 p-1.5 rounded-full hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors cursor-pointer">
+        <button id="close-refund-info-dialog-btn" type="button" class="text-gray-900 dark:text-gray-100 hover:text-[#1E6C02] dark:hover:text-emerald-400 p-1.5 rounded-full hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors cursor-pointer">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-5 h-5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
         </button>
       </div>
@@ -384,12 +384,12 @@
 
       <!-- Method selection -->
       <div class="mb-4">
-        <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-2">Select Refund Method</label>
+        <label class="block text-xs font-bold text-gray-900 dark:text-gray-100 uppercase tracking-wider mb-2">Select Refund Method</label>
         <div class="grid grid-cols-2 gap-2.5">
           <button type="button" id="refund-method-gcash-btn" class="refund-method-tab py-2.5 px-4 rounded-xl border text-xs font-bold flex items-center justify-center gap-2 cursor-pointer transition-all bg-emerald-50 dark:bg-emerald-950/50 border-emerald-500 text-emerald-800 dark:text-emerald-300">
             <span>📱</span> GCash
           </button>
-          <button type="button" id="refund-method-bank-btn" class="refund-method-tab py-2.5 px-4 rounded-xl border text-xs font-bold flex items-center justify-center gap-2 cursor-pointer transition-all bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-slate-700">
+          <button type="button" id="refund-method-bank-btn" class="refund-method-tab py-2.5 px-4 rounded-xl border text-xs font-bold flex items-center justify-center gap-2 cursor-pointer transition-all bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-slate-700">
             <span>🏦</span> Bank
           </button>
         </div>
@@ -398,33 +398,33 @@
       <!-- GCash Fields -->
       <div id="refund-gcash-fields" class="space-y-3 mb-5">
         <div>
-          <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Account Name</label>
-          <input type="text" id="refund-gcash-name" class="w-full text-sm px-3.5 py-2.5 border border-gray-300 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-emerald-500 outline-none" placeholder="e.g., Juan Dela Cruz" />
+          <label class="block text-xs font-bold text-gray-900 dark:text-gray-100 mb-1">Account Name</label>
+          <input type="text" id="refund-gcash-name" class="w-full text-sm px-3.5 py-2.5 border border-gray-300 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-emerald-500 outline-none placeholder-gray-700 dark:placeholder-gray-300" placeholder="e.g., Juan Dela Cruz" />
         </div>
         <div>
-          <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">GCash Number</label>
-          <input type="tel" id="refund-gcash-number" class="w-full text-sm px-3.5 py-2.5 border border-gray-300 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-emerald-500 outline-none" placeholder="09XXXXXXXXX" />
+          <label class="block text-xs font-bold text-gray-900 dark:text-gray-100 mb-1">GCash Number</label>
+          <input type="tel" id="refund-gcash-number" class="w-full text-sm px-3.5 py-2.5 border border-gray-300 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-emerald-500 outline-none placeholder-gray-700 dark:placeholder-gray-300" placeholder="09XXXXXXXXX" />
         </div>
       </div>
 
       <!-- Bank Fields (hidden by default) -->
       <div id="refund-bank-fields" class="space-y-3 mb-5 hidden">
         <div>
-          <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Bank Name</label>
-          <input type="text" id="refund-bank-name" class="w-full text-sm px-3.5 py-2.5 border border-gray-300 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-emerald-500 outline-none" placeholder="e.g., BDO, BPI, UnionBank, Metrobank" />
+          <label class="block text-xs font-bold text-gray-900 dark:text-gray-100 mb-1">Bank Name</label>
+          <input type="text" id="refund-bank-name" class="w-full text-sm px-3.5 py-2.5 border border-gray-300 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-emerald-500 outline-none placeholder-gray-700 dark:placeholder-gray-300" placeholder="e.g., BDO, BPI, UnionBank, Metrobank" />
         </div>
         <div>
-          <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Account Name</label>
-          <input type="text" id="refund-bank-account-name" class="w-full text-sm px-3.5 py-2.5 border border-gray-300 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-emerald-500 outline-none" placeholder="Account Holder Name" />
+          <label class="block text-xs font-bold text-gray-900 dark:text-gray-100 mb-1">Account Name</label>
+          <input type="text" id="refund-bank-account-name" class="w-full text-sm px-3.5 py-2.5 border border-gray-300 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-emerald-500 outline-none placeholder-gray-700 dark:placeholder-gray-300" placeholder="Account Holder Name" />
         </div>
         <div>
-          <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Account Number</label>
-          <input type="text" id="refund-bank-account-number" class="w-full text-sm px-3.5 py-2.5 border border-gray-300 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-emerald-500 outline-none" placeholder="Bank Account Number" />
+          <label class="block text-xs font-bold text-gray-900 dark:text-gray-100 mb-1">Account Number</label>
+          <input type="text" id="refund-bank-account-number" class="w-full text-sm px-3.5 py-2.5 border border-gray-300 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-emerald-500 outline-none placeholder-gray-700 dark:placeholder-gray-300" placeholder="Bank Account Number" />
         </div>
       </div>
 
       <div class="flex gap-2.5 justify-end pt-3 border-t border-gray-100 dark:border-slate-800">
-        <button id="cancel-refund-info-btn" type="button" class="px-5 py-2.5 border border-gray-300 dark:border-slate-700 rounded-xl text-xs font-bold text-gray-700 dark:text-gray-300 bg-white dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-700 cursor-pointer transition-all">Cancel</button>
+        <button id="cancel-refund-info-btn" type="button" class="px-5 py-2.5 border border-gray-300 dark:border-slate-700 rounded-xl text-xs font-bold text-gray-900 dark:text-gray-100 bg-white dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-700 cursor-pointer transition-all">Cancel</button>
         <button id="submit-refund-info-btn" type="button" class="px-5 py-2.5 bg-[#1E6C02] hover:bg-[#145001] text-white rounded-xl text-xs font-bold cursor-pointer transition-all shadow-xs">Submit Details</button>
       </div>
     </div>
@@ -441,9 +441,9 @@
         </svg>
       </div>
       <h3 class="text-base font-black text-gray-900 dark:text-gray-100 mb-2">Do you want to log out?</h3>
-      <p class="text-xs text-gray-600 dark:text-gray-300 font-semibold leading-relaxed mb-6">You will need to sign in again to access your account and orders.</p>
+      <p class="text-xs text-gray-900 dark:text-gray-100 font-semibold leading-relaxed mb-6">You will need to sign in again to access your account and orders.</p>
       <div class="flex gap-2.5 justify-center">
-        <button id="cancel-customer-logout-btn" type="button" class="px-5 py-2.5 border border-gray-200 dark:border-slate-700 rounded-xl text-xs font-bold text-gray-700 dark:text-gray-200 hover:bg-gray-100 hover:border-gray-300 dark:hover:bg-slate-700 dark:hover:border-slate-500 cursor-pointer transition-all duration-200 bg-white dark:bg-slate-800 flex-1">Cancel</button>
+        <button id="cancel-customer-logout-btn" type="button" class="px-5 py-2.5 border border-gray-200 dark:border-slate-700 rounded-xl text-xs font-bold text-gray-900 dark:text-gray-100 hover:bg-gray-100 hover:border-gray-300 dark:hover:bg-slate-700 dark:hover:border-slate-500 cursor-pointer transition-all duration-200 bg-white dark:bg-slate-800 flex-1">Cancel</button>
         <button id="confirm-customer-logout-btn" type="button" class="px-5 py-2.5 bg-[#EF4444] hover:bg-[#DC2626] border border-transparent hover:border-red-700 dark:hover:border-red-400 text-white rounded-xl text-xs font-bold cursor-pointer transition-all duration-200 flex-1">Confirm Logout</button>
       </div>
     </div>
@@ -462,13 +462,13 @@
       </div>
       
       <h3 class="text-base font-black text-gray-900 dark:text-gray-100 mb-2 uppercase tracking-wider">Submit Issue Report?</h3>
-      <p class="text-xs text-black dark:text-gray-300 font-semibold leading-relaxed mb-6">
+      <p class="text-xs text-gray-900 dark:text-gray-100 font-semibold leading-relaxed mb-6">
         You are about to submit this issue report. <br/><br/>
         After submission, your order status will become "Issue Reported" and cannot be marked as completed until the issue has been reviewed.
       </p>
       
       <div class="flex gap-2.5 justify-center">
-        <button id="report-issue-confirm-cancel-btn" type="button" class="px-5 py-2.5 border border-gray-200 dark:border-slate-700 rounded-xl text-xs font-bold text-gray-500 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-800 cursor-pointer transition-all bg-white dark:bg-slate-900 flex-1">Cancel</button>
+        <button id="report-issue-confirm-cancel-btn" type="button" class="px-5 py-2.5 border border-gray-200 dark:border-slate-700 rounded-xl text-xs font-bold text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-slate-800 cursor-pointer transition-all bg-white dark:bg-slate-900 flex-1">Cancel</button>
         <button id="report-issue-confirm-submit-btn" type="button" class="px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold cursor-pointer transition-all flex-1">Submit Report</button>
       </div>
     </div>
@@ -483,11 +483,11 @@
         </div>
         <div class="text-left">
           <h3 class="text-lg font-black text-gray-900 dark:text-gray-100 tracking-tight leading-tight">Submit Delivery Feedback</h3>
-          <p class="text-[11px] text-gray-500 dark:text-gray-400 font-bold uppercase tracking-wider mt-0.5">Tell us about your delivery experience</p>
+          <p class="text-[11px] text-gray-900 dark:text-gray-100 font-bold uppercase tracking-wider mt-0.5">Tell us about your delivery experience</p>
         </div>
       </div>
       
-      <p class="text-xs text-black dark:text-gray-300 font-semibold leading-relaxed mb-4">
+      <p class="text-xs text-gray-900 dark:text-gray-100 font-semibold leading-relaxed mb-4">
         We value your feedback. If you experienced issues with your grain delivery, please let us know so we can improve.
       </p>
 
@@ -499,7 +499,7 @@
             <input type="checkbox" id="feedback-missing" class="mt-0.5 w-4.5 h-4.5 text-purple-600 border-gray-300 rounded focus:ring-purple-500" />
             <div class="text-left">
               <span class="text-xs font-bold text-gray-950 dark:text-gray-100 block leading-tight">Missing Items</span>
-              <span class="text-[10px] text-gray-500 dark:text-gray-400 font-medium block mt-0.5">Some items in the invoice were not found in the delivered package</span>
+              <span class="text-[10px] text-gray-900 dark:text-gray-100 font-medium block mt-0.5">Some items in the invoice were not found in the delivered package</span>
             </div>
           </label>
 
@@ -507,7 +507,7 @@
             <input type="checkbox" id="feedback-damaged" class="mt-0.5 w-4.5 h-4.5 text-purple-600 border-gray-300 rounded focus:ring-purple-500" />
             <div class="text-left">
               <span class="text-xs font-bold text-gray-950 dark:text-gray-100 block leading-tight">Damaged Packaging</span>
-              <span class="text-[10px] text-gray-500 dark:text-gray-400 font-medium block mt-0.5">The grain sacks or box packaging were torn, wet, or damaged</span>
+              <span class="text-[10px] text-gray-900 dark:text-gray-100 font-medium block mt-0.5">The grain sacks or box packaging were torn, wet, or damaged</span>
             </div>
           </label>
 
@@ -515,7 +515,7 @@
             <input type="checkbox" id="feedback-wrong-qty" class="mt-0.5 w-4.5 h-4.5 text-purple-600 border-gray-300 rounded focus:ring-purple-500" />
             <div class="text-left">
               <span class="text-xs font-bold text-gray-950 dark:text-gray-100 block leading-tight">Wrong Quantity</span>
-              <span class="text-[10px] text-gray-500 dark:text-gray-400 font-medium block mt-0.5">The number of delivered sacks does not match your invoice</span>
+              <span class="text-[10px] text-gray-900 dark:text-gray-100 font-medium block mt-0.5">The number of delivered sacks does not match your invoice</span>
             </div>
           </label>
 
@@ -523,18 +523,18 @@
             <input type="checkbox" id="feedback-concern" class="mt-0.5 w-4.5 h-4.5 text-purple-600 border-gray-300 rounded focus:ring-purple-500" />
             <div class="text-left">
               <span class="text-xs font-bold text-gray-950 dark:text-gray-100 block leading-tight">Delivery Concern</span>
-              <span class="text-[10px] text-gray-500 dark:text-gray-400 font-medium block mt-0.5">Issues with rider behavior, timing, location, or general transit details</span>
+              <span class="text-[10px] text-gray-900 dark:text-gray-100 font-medium block mt-0.5">Issues with rider behavior, timing, location, or general transit details</span>
             </div>
           </label>
         </div>
 
         <div class="text-left">
-          <label class="block text-xs font-bold text-gray-800 dark:text-gray-300 uppercase tracking-wider mb-1.5">General Message</label>
-          <textarea id="feedback-message" rows="3" placeholder="Provide extra details about your concerns..." class="w-full text-xs font-medium p-3 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl outline-none focus:border-purple-600 text-black dark:text-gray-100 placeholder-gray-400"></textarea>
+          <label class="block text-xs font-bold text-gray-900 dark:text-gray-100 uppercase tracking-wider mb-1.5">General Message</label>
+          <textarea id="feedback-message" rows="3" placeholder="Provide extra details about your concerns..." class="w-full text-xs font-medium p-3 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl outline-none focus:border-purple-600 text-gray-900 dark:text-gray-100 placeholder-gray-700 dark:placeholder-gray-300"></textarea>
         </div>
 
         <div class="flex gap-2.5 pt-2 border-t border-gray-100 dark:border-slate-800">
-          <button type="button" id="close-feedback-btn" class="px-5 py-2.5 border border-gray-200 dark:border-slate-700 rounded-xl text-xs font-bold text-gray-500 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-800 cursor-pointer transition-all bg-white dark:bg-slate-900 flex-1">Cancel</button>
+          <button type="button" id="close-feedback-btn" class="px-5 py-2.5 border border-gray-200 dark:border-slate-700 rounded-xl text-xs font-bold text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-slate-800 cursor-pointer transition-all bg-white dark:bg-slate-900 flex-1">Cancel</button>
           <button type="button" id="submit-feedback-btn" class="px-5 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-bold cursor-pointer transition-all flex-1 shadow-md">Submit Feedback</button>
         </div>
       </form>
@@ -548,7 +548,7 @@
         <h3 class="text-lg font-black text-gray-900 dark:text-gray-100 flex items-center gap-2">
           <span>📊</span> Reservation Queue Details
         </h3>
-        <button id="close-queue-dialog-btn" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 cursor-pointer p-1">
+        <button id="close-queue-dialog-btn" class="text-gray-900 dark:text-gray-100 hover:text-[#1E6C02] dark:hover:text-emerald-400 cursor-pointer p-1">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-5 h-5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
         </button>
       </div>
@@ -563,10 +563,10 @@
   <div id="receipt-modal" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden animate-in fade-in duration-200">
     <div class="bg-white dark:bg-slate-900 rounded-3xl max-w-sm w-full shadow-2xl overflow-hidden border border-gray-150 dark:border-slate-800 flex flex-col max-h-[92vh] animate-in fade-in zoom-in-95 duration-200">
       <div class="px-5 py-3.5 bg-gray-50 dark:bg-slate-800 border-b border-gray-100 dark:border-slate-700 flex justify-between items-center shrink-0">
-        <h3 class="text-xs font-black text-gray-550 dark:text-gray-300 uppercase tracking-widest flex items-center gap-1.5">
+        <h3 class="text-xs font-black text-gray-900 dark:text-gray-100 uppercase tracking-widest flex items-center gap-1.5">
           <span>🧾</span> Official Invoice Receipt
         </h3>
-        <button id="close-receipt-modal-btn" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 cursor-pointer p-1">
+        <button id="close-receipt-modal-btn" class="text-gray-900 dark:text-gray-100 hover:text-[#1E6C02] dark:hover:text-emerald-400 cursor-pointer p-1">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-4 h-4"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
         </button>
       </div>
@@ -590,10 +590,10 @@
   <div id="customer-order-qr-modal" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden animate-in fade-in duration-200">
     <div class="bg-white dark:bg-slate-900 rounded-3xl max-w-sm w-full shadow-2xl overflow-hidden border border-gray-150 dark:border-slate-800 flex flex-col animate-in fade-in zoom-in-95 duration-200">
       <div class="px-5 py-3.5 bg-gray-50 dark:bg-slate-800 border-b border-gray-100 dark:border-slate-700 flex justify-between items-center shrink-0">
-        <h3 class="text-xs font-black text-black dark:text-gray-100 uppercase tracking-widest flex items-center gap-1.5">
+        <h3 class="text-xs font-black text-gray-900 dark:text-gray-100 uppercase tracking-widest flex items-center gap-1.5">
           <span>📱</span> Order QR Code Verification
         </h3>
-        <button id="close-customer-order-qr-modal-btn" class="text-gray-400 hover:text-gray-650 dark:hover:text-gray-200 p-1 rounded-full hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors cursor-pointer">
+        <button id="close-customer-order-qr-modal-btn" class="text-gray-900 dark:text-gray-100 hover:text-[#1E6C02] dark:hover:text-emerald-400 p-1 rounded-full hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors cursor-pointer">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-4 h-4"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
         </button>
       </div>
@@ -608,19 +608,19 @@
         <!-- Text details -->
         <div class="w-full space-y-2 text-sm text-left px-1">
           <div class="flex justify-between border-b border-gray-100 dark:border-slate-800 pb-2">
-            <span class="text-black dark:text-gray-300 font-bold">Order ID:</span>
+            <span class="text-gray-900 dark:text-gray-100 font-bold">Order ID:</span>
             <span id="customer-order-qr-id" class="font-black text-gray-900 dark:text-gray-100">#RF123456</span>
           </div>
           <div class="flex justify-between border-b border-gray-100 dark:border-slate-800 pb-2">
-            <span class="text-black dark:text-gray-300 font-bold">Customer Name:</span>
+            <span class="text-gray-900 dark:text-gray-100 font-bold">Customer Name:</span>
             <span id="customer-order-qr-customer" class="font-bold text-gray-900 dark:text-gray-100">Juan Santos</span>
           </div>
           <div id="customer-order-qr-payment-row" class="hidden flex justify-between border-b border-gray-100 dark:border-slate-800 pb-2">
-            <span class="text-black dark:text-gray-300 font-bold">Payment Status:</span>
+            <span class="text-gray-900 dark:text-gray-100 font-bold">Payment Status:</span>
             <span id="customer-order-qr-pay-status" class="font-extrabold text-blue-800 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/50 px-2 py-0.5 rounded border border-blue-200 dark:border-blue-800 text-xs">Replacement Delivery</span>
           </div>
           <div class="flex justify-between pt-1">
-            <span class="text-black dark:text-gray-300 font-bold">Verification Code:</span>
+            <span class="text-gray-900 dark:text-gray-100 font-bold">Verification Code:</span>
             <span id="customer-order-qr-code" class="font-mono font-bold text-[#1E6C02] dark:text-emerald-400 tracking-wider text-base">TOK-XYZ</span>
           </div>
         </div>
@@ -637,7 +637,7 @@
       
       <!-- Footer Actions -->
       <div class="p-4 bg-gray-50 dark:bg-slate-800 border-t border-gray-100 dark:border-slate-700 shrink-0">
-        <button id="close-customer-order-qr-btn" class="w-full py-2.5 bg-gray-100 dark:bg-slate-700 hover:bg-gray-200 dark:hover:bg-slate-600 text-gray-700 dark:text-gray-200 font-bold rounded-xl text-xs transition-all cursor-pointer">
+        <button id="close-customer-order-qr-btn" class="w-full py-2.5 bg-gray-100 dark:bg-slate-700 hover:bg-gray-200 dark:hover:bg-slate-600 text-gray-900 dark:text-gray-100 font-bold rounded-xl text-xs transition-all cursor-pointer">
           Close
         </button>
       </div>
@@ -655,15 +655,15 @@
       </div>
       
       <h3 class="text-base font-black text-gray-900 dark:text-gray-100 mb-2 uppercase tracking-wider">Confirm Delivery</h3>
-      <p class="text-xs text-black dark:text-gray-300 font-bold leading-relaxed mb-6">
+      <p class="text-xs text-gray-900 dark:text-gray-100 font-bold leading-relaxed mb-6">
         Have you already received your rice order?<br>
-        <span class="text-black dark:text-gray-400 font-medium text-[11px] block mt-1.5">Only confirm delivery if you have successfully received the complete order.</span>
+        <span class="text-gray-900 dark:text-gray-100 font-medium text-[11px] block mt-1.5">Only confirm delivery if you have successfully received the complete order.</span>
       </p>
       
       <input type="hidden" id="confirm-delivery-id-hidden" />
       
       <div class="flex gap-2.5 justify-center">
-        <button id="cancel-confirm-delivery-btn" class="px-5 py-2.5 border border-gray-200 dark:border-slate-700 rounded-xl text-xs font-bold text-gray-500 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-800 cursor-pointer transition-all bg-white dark:bg-slate-900 flex-1">
+        <button id="cancel-confirm-delivery-btn" class="px-5 py-2.5 border border-gray-200 dark:border-slate-700 rounded-xl text-xs font-bold text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-slate-800 cursor-pointer transition-all bg-white dark:bg-slate-900 flex-1">
           Cancel
         </button>
         <button id="commit-confirm-delivery-btn" class="px-5 py-2.5 bg-[#1E6C02] hover:bg-[#145001] text-white rounded-xl text-xs font-bold cursor-pointer transition-all flex-1">
@@ -681,7 +681,7 @@
         <h3 class="text-sm font-black text-red-600 dark:text-red-400 flex items-center gap-1.5 uppercase tracking-wide">
           <span>⚠️</span> Report an Issue
         </h3>
-        <button id="report-issue-close" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 cursor-pointer text-lg font-black bg-transparent border-none outline-none">&times;</button>
+        <button id="report-issue-close" class="text-gray-900 dark:text-gray-100 hover:text-red-600 dark:hover:text-red-400 cursor-pointer text-lg font-black bg-transparent border-none outline-none">&times;</button>
       </div>
 
       <input type="hidden" id="report-issue-order-id" />
@@ -689,7 +689,7 @@
       <!-- Form (Full-flex) -->
       <form id="form-report-issue" class="flex-1 flex flex-col overflow-hidden mt-4">
         <!-- Duplicate Warning Banner -->
-        <div id="report-issue-duplicate-warning" class="hidden bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-200 text-xs font-bold p-4 rounded-2xl flex items-center gap-2 mb-4 shrink-0">
+        <div id="report-issue-duplicate-warning" class="hidden bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-amber-900 dark:text-amber-200 text-xs font-bold p-4 rounded-2xl flex items-center gap-2 mb-4 shrink-0">
           <span>⚠️</span>
           <span id="report-issue-duplicate-text">This issue has already been submitted and is currently under review.</span>
         </div>
@@ -697,7 +697,7 @@
         <!-- Scrollable content panel -->
         <div class="flex-1 overflow-y-auto pr-2 space-y-4" style="scrollbar-width: thin;">
           <div>
-            <label class="text-xs font-bold text-gray-700 dark:text-gray-300 block mb-1">Issue Type <span class="text-red-500">*</span></label>
+            <label class="text-xs font-bold text-gray-900 dark:text-gray-100 block mb-1">Issue Type <span class="text-red-500">*</span></label>
             <select 
               id="report-issue-type" 
               class="w-full bg-[#F8F9FA] dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-sm font-medium text-gray-900 dark:text-gray-100 px-4 py-3 rounded-2xl focus:bg-white dark:focus:bg-slate-900 focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition-all outline-none"
@@ -716,39 +716,39 @@
             <p class="text-xs font-black text-red-700 dark:text-red-400 uppercase tracking-wider">Specify Quantities</p>
             <div class="grid grid-cols-3 gap-3">
               <div>
-                <label class="text-[10px] font-bold text-gray-600 dark:text-gray-400 block mb-1">Ordered</label>
-                <input type="number" id="report-issue-ordered-qty" readonly class="w-full bg-gray-100 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-center text-sm font-bold text-gray-700 dark:text-gray-300 py-2 rounded-xl outline-none select-none" value="0">
+                <label class="text-[10px] font-bold text-gray-900 dark:text-gray-100 block mb-1">Ordered</label>
+                <input type="number" id="report-issue-ordered-qty" readonly class="w-full bg-gray-100 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-center text-sm font-bold text-gray-900 dark:text-gray-100 py-2 rounded-xl outline-none select-none" value="0">
               </div>
               <div>
-                <label class="text-[10px] font-bold text-gray-700 dark:text-gray-300 block mb-1">Received <span class="text-red-500">*</span></label>
+                <label class="text-[10px] font-bold text-gray-900 dark:text-gray-100 block mb-1">Received <span class="text-red-500">*</span></label>
                 <input type="number" id="report-issue-received-qty" min="0" class="w-full bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-700 text-center text-sm font-bold text-gray-900 dark:text-gray-100 py-2 rounded-xl focus:border-red-500 focus:ring-1 focus:ring-red-500 outline-none" value="0">
               </div>
               <div>
-                <label class="text-[10px] font-bold text-gray-600 dark:text-gray-400 block mb-1">Missing</label>
+                <label class="text-[10px] font-bold text-gray-900 dark:text-gray-100 block mb-1">Missing</label>
                 <input type="number" id="report-issue-missing-qty" readonly class="w-full bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-900 text-center text-sm font-bold text-red-700 dark:text-red-300 py-2 rounded-xl outline-none select-none" value="0">
               </div>
             </div>
           </div>
 
           <div>
-            <label class="text-xs font-bold text-gray-700 dark:text-gray-300 block mb-1">Issue Description <span class="text-red-500">*</span></label>
+            <label class="text-xs font-bold text-gray-900 dark:text-gray-100 block mb-1">Issue Description <span class="text-red-500">*</span></label>
             <textarea 
               id="report-issue-desc" 
               placeholder="Please detail the issue with your delivery, quantity, or product quality..." 
-              class="w-full bg-[#F8F9FA] dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-sm font-medium text-gray-900 dark:text-gray-100 p-4 h-28 rounded-2xl outline-none focus:bg-white dark:focus:bg-slate-900 focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition-all placeholder-gray-400 resize-none"
+              class="w-full bg-[#F8F9FA] dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-sm font-medium text-gray-900 dark:text-gray-100 p-4 h-28 rounded-2xl outline-none focus:bg-white dark:focus:bg-slate-900 focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition-all placeholder-gray-700 dark:placeholder-gray-300 resize-none"
             ></textarea>
           </div>
 
           <div>
-            <label class="text-xs font-bold text-gray-700 dark:text-gray-300 block mb-1">Supporting Photos</label>
+            <label class="text-xs font-bold text-gray-900 dark:text-gray-100 block mb-1">Supporting Photos</label>
             <div class="flex items-center justify-center w-full">
               <label class="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 dark:border-slate-700 rounded-2xl cursor-pointer bg-gray-50 dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors">
                 <div class="flex flex-col items-center justify-center pt-5 pb-6 text-center px-4">
-                  <svg class="w-8 h-8 mb-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg class="w-8 h-8 mb-3 text-gray-900 dark:text-gray-100" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
                   </svg>
-                  <p class="mb-1 text-xs text-gray-500 dark:text-gray-400 font-bold"><span class="text-[#1E6C02] dark:text-emerald-400">Click to upload</span> or drag and drop</p>
-                  <p class="text-[10px] text-gray-400">PNG, JPG or JPEG up to 5MB</p>
+                  <p class="mb-1 text-xs text-gray-900 dark:text-gray-100 font-bold"><span class="text-[#1E6C02] dark:text-emerald-400">Click to upload</span> or drag and drop</p>
+                  <p class="text-[10px] text-gray-900 dark:text-gray-100">PNG, JPG or JPEG up to 5MB</p>
                 </div>
                 <input type="file" id="report-issue-file" class="hidden" accept="image/*" />
               </label>
@@ -757,7 +757,7 @@
             <div id="report-issue-preview-container" class="hidden mt-3 flex items-center gap-3 bg-gray-50 dark:bg-slate-800 p-2.5 border border-gray-100 dark:border-slate-700 rounded-xl">
               <img id="report-issue-preview-img" class="w-12 h-12 object-cover rounded-lg" />
               <div class="flex-1 min-w-0">
-                <p class="text-xs font-bold text-gray-800 dark:text-gray-200 truncate" id="report-issue-preview-name"></p>
+                <p class="text-xs font-bold text-gray-900 dark:text-gray-100 truncate" id="report-issue-preview-name"></p>
                 <button type="button" id="btn-remove-report-img" class="text-[10px] text-red-500 hover:underline font-bold mt-0.5">Remove photo</button>
               </div>
             </div>
@@ -766,7 +766,7 @@
 
         <!-- Sticky Footer -->
         <div class="flex gap-3 pt-3 border-t border-gray-100 dark:border-slate-800 shrink-0 mt-4">
-          <button type="button" id="report-issue-btn-cancel" class="px-5 py-3 border border-gray-200 dark:border-slate-700 rounded-xl text-xs font-bold text-gray-500 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-800 cursor-pointer transition-all bg-white dark:bg-slate-900 flex-1">
+          <button type="button" id="report-issue-btn-cancel" class="px-5 py-3 border border-gray-200 dark:border-slate-700 rounded-xl text-xs font-bold text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-slate-800 cursor-pointer transition-all bg-white dark:bg-slate-900 flex-1">
             Cancel
           </button>
           <button type="button" id="report-issue-submit-btn" class="px-5 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-extrabold cursor-pointer transition-all flex-1 shadow-sm flex items-center justify-center gap-2">
@@ -785,32 +785,32 @@
         <h3 class="text-sm font-black text-[#1E6C02] dark:text-emerald-400 flex items-center gap-1.5 uppercase tracking-wide">
           <span>📋</span> View Submitted Issue Report
         </h3>
-        <button id="view-issue-close" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 cursor-pointer text-lg font-black bg-transparent border-none outline-none">&times;</button>
+        <button id="view-issue-close" class="text-gray-900 dark:text-gray-100 hover:text-[#1E6C02] dark:hover:text-emerald-400 cursor-pointer text-lg font-black bg-transparent border-none outline-none">&times;</button>
       </div>
 
       <!-- Content (Scrollable) -->
       <div class="flex-1 overflow-y-auto pr-2 mt-4 space-y-4" style="scrollbar-width: thin;">
         <div class="grid grid-cols-2 gap-4 bg-gray-50 dark:bg-slate-800 p-4 rounded-2xl border border-gray-150 dark:border-slate-700">
           <div>
-            <p class="text-[11px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Issue ID</p>
+            <p class="text-[11px] font-bold text-gray-900 dark:text-gray-100 uppercase tracking-wider">Issue ID</p>
             <p id="view-issue-id-text" class="text-sm font-extrabold text-gray-900 dark:text-gray-100 mt-1">N/A</p>
           </div>
           <div>
-            <p class="text-[11px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Order ID</p>
+            <p class="text-[11px] font-bold text-gray-900 dark:text-gray-100 uppercase tracking-wider">Order ID</p>
             <p id="view-issue-order-id-text" class="text-sm font-extrabold text-[#1E6C02] dark:text-emerald-400 mt-1">N/A</p>
           </div>
           <div>
-            <p class="text-[11px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Report Date & Time</p>
-            <p id="view-issue-datetime-text" class="text-xs font-bold text-gray-800 dark:text-gray-200 mt-1">N/A</p>
+            <p class="text-[11px] font-bold text-gray-900 dark:text-gray-100 uppercase tracking-wider">Report Date & Time</p>
+            <p id="view-issue-datetime-text" class="text-xs font-bold text-gray-900 dark:text-gray-100 mt-1">N/A</p>
           </div>
           <div>
-            <p class="text-[11px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</p>
+            <p class="text-[11px] font-bold text-gray-900 dark:text-gray-100 uppercase tracking-wider">Status</p>
             <div id="view-issue-status-badge" class="mt-1">N/A</div>
           </div>
         </div>
 
         <div>
-          <p class="text-[11px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Issue Type</p>
+          <p class="text-[11px] font-bold text-gray-900 dark:text-gray-100 uppercase tracking-wider mb-1">Issue Type</p>
           <p id="view-issue-type-text" class="text-sm font-extrabold text-red-600 dark:text-red-400">N/A</p>
         </div>
 
@@ -819,12 +819,12 @@
           <p class="text-[11px] font-black text-red-800 dark:text-red-300 uppercase tracking-wider mb-2">Quantities</p>
           <div class="grid grid-cols-3 gap-3 text-center">
             <div class="bg-white dark:bg-slate-800 p-2.5 rounded-xl border border-red-50 dark:border-slate-700">
-              <p class="text-[9px] text-gray-500 dark:text-gray-400 font-bold">Ordered</p>
-              <p id="view-issue-ordered-qty-text" class="text-sm font-extrabold text-gray-800 dark:text-gray-200 mt-0.5">0</p>
+              <p class="text-[9px] text-gray-900 dark:text-gray-100 font-bold">Ordered</p>
+              <p id="view-issue-ordered-qty-text" class="text-sm font-extrabold text-gray-900 dark:text-gray-100 mt-0.5">0</p>
             </div>
             <div class="bg-white dark:bg-slate-800 p-2.5 rounded-xl border border-red-50 dark:border-slate-700">
-              <p class="text-[9px] text-gray-500 dark:text-gray-400 font-bold">Received</p>
-              <p id="view-issue-received-qty-text" class="text-sm font-extrabold text-gray-800 dark:text-gray-200 mt-0.5">0</p>
+              <p class="text-[9px] text-gray-900 dark:text-gray-100 font-bold">Received</p>
+              <p id="view-issue-received-qty-text" class="text-sm font-extrabold text-gray-900 dark:text-gray-100 mt-0.5">0</p>
             </div>
             <div class="bg-red-50/60 dark:bg-red-950/50 p-2.5 rounded-xl border border-red-100 dark:border-red-900">
               <p class="text-[9px] text-red-600 dark:text-red-400 font-bold">Missing</p>
@@ -834,8 +834,8 @@
         </div>
 
         <div>
-          <p class="text-[11px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Description</p>
-          <div class="p-4 bg-gray-50 dark:bg-slate-800 border border-gray-150 dark:border-slate-700 rounded-xl text-sm text-gray-800 dark:text-gray-200 leading-relaxed italic" id="view-issue-desc-text">
+          <p class="text-[11px] font-bold text-gray-900 dark:text-gray-100 uppercase tracking-wider mb-1">Description</p>
+          <div class="p-4 bg-gray-50 dark:bg-slate-800 border border-gray-150 dark:border-slate-700 rounded-xl text-sm text-gray-900 dark:text-gray-100 leading-relaxed italic" id="view-issue-desc-text">
             N/A
           </div>
         </div>
@@ -853,10 +853,10 @@
         </div>
 
         <div>
-          <p class="text-[11px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">Supporting Uploaded Photo</p>
+          <p class="text-[11px] font-bold text-gray-900 dark:text-gray-100 uppercase tracking-wider mb-2">Supporting Uploaded Photo</p>
           <div id="view-issue-photo-container" class="flex justify-center bg-gray-50 dark:bg-slate-800 border border-dashed border-gray-200 dark:border-slate-700 rounded-2xl p-4 min-h-[150px] items-center">
             <img id="view-issue-photo-img" class="max-h-48 rounded-xl object-contain shadow-xs hidden" />
-            <p id="view-issue-no-photo-text" class="text-xs text-gray-400 font-bold">No photo uploaded.</p>
+            <p id="view-issue-no-photo-text" class="text-xs text-gray-900 dark:text-gray-100 font-bold">No photo uploaded.</p>
           </div>
         </div>
       </div>
@@ -874,10 +874,10 @@
   <div id="edit-order-dialog" class="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden">
     <div class="bg-white dark:bg-slate-900 rounded-3xl max-w-sm w-full shadow-2xl p-6 border border-gray-100 dark:border-slate-800 animate-in fade-in zoom-in-95 duration-200 text-left">
       <div class="flex justify-between items-center pb-2 border-b border-gray-100 dark:border-slate-800 mb-4">
-        <h3 class="text-sm font-black text-gray-901 dark:text-gray-100 flex items-center gap-1.5 uppercase tracking-wide">
+        <h3 class="text-sm font-black text-gray-900 dark:text-gray-100 flex items-center gap-1.5 uppercase tracking-wide">
           <span>📝</span> Edit Order Details
         </h3>
-        <button id="close-edit-order-btn" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 cursor-pointer p-1">
+        <button id="close-edit-order-btn" class="text-gray-900 dark:text-gray-100 hover:text-[#1E6C02] dark:hover:text-emerald-400 cursor-pointer p-1">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-4 h-4"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
         </button>
       </div>
@@ -887,32 +887,32 @@
       
       <div class="space-y-4 mb-6">
         <div class="space-y-1">
-          <label class="text-xs font-bold text-black dark:text-gray-300">Contact Full Name</label>
-          <input type="text" id="edit-order-fullname" readonly class="w-full bg-gray-100 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-sm font-bold text-gray-500 dark:text-gray-400 px-3.5 py-2.5 rounded-xl outline-none cursor-not-allowed" />
+          <label class="text-xs font-bold text-gray-900 dark:text-gray-100">Contact Full Name</label>
+          <input type="text" id="edit-order-fullname" readonly class="w-full bg-gray-100 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-sm font-bold text-gray-900 dark:text-gray-100 px-3.5 py-2.5 rounded-xl outline-none cursor-not-allowed" />
         </div>
         <div class="space-y-1">
-          <label class="text-xs font-bold text-black dark:text-gray-300">Contact Number (Phone)</label>
-          <input type="tel" id="edit-order-phone" class="w-full bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-sm font-bold text-gray-800 dark:text-gray-100 px-3.5 py-2.5 rounded-xl outline-none focus:border-[#1E6C02] focus:bg-white dark:focus:bg-slate-900 transition-all" />
+          <label class="text-xs font-bold text-gray-900 dark:text-gray-100">Contact Number (Phone)</label>
+          <input type="tel" id="edit-order-phone" class="w-full bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-sm font-bold text-gray-900 dark:text-gray-100 px-3.5 py-2.5 rounded-xl outline-none focus:border-[#1E6C02] focus:bg-white dark:focus:bg-slate-900 transition-all" />
         </div>
         <div class="space-y-1">
-          <label class="text-xs font-bold text-black dark:text-gray-300">Delivery Method</label>
-          <select id="edit-order-delivery-option" class="w-full bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-sm font-bold text-gray-800 dark:text-gray-100 px-3.5 py-2.5 rounded-xl outline-none focus:border-[#1E6C02] focus:bg-white dark:focus:bg-slate-900 transition-all cursor-pointer">
+          <label class="text-xs font-bold text-gray-900 dark:text-gray-100">Delivery Method</label>
+          <select id="edit-order-delivery-option" class="w-full bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-sm font-bold text-gray-900 dark:text-gray-100 px-3.5 py-2.5 rounded-xl outline-none focus:border-[#1E6C02] focus:bg-white dark:focus:bg-slate-900 transition-all cursor-pointer">
             <option value="delivery">Delivery</option>
             <option value="pickup">Pickup</option>
           </select>
         </div>
         <div class="space-y-1" id="edit-order-address-box">
-          <label class="text-xs font-bold text-black dark:text-gray-300">Shipping Delivery Address</label>
-          <input type="text" id="edit-order-address" class="w-full bg-[#FFFFFF] dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-sm font-bold text-gray-800 dark:text-gray-100 px-3.5 py-2.5 rounded-xl outline-none focus:border-[#1E6C02] transition-all" />
+          <label class="text-xs font-bold text-gray-900 dark:text-gray-100">Shipping Delivery Address</label>
+          <input type="text" id="edit-order-address" class="w-full bg-[#FFFFFF] dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-sm font-bold text-gray-900 dark:text-gray-100 px-3.5 py-2.5 rounded-xl outline-none focus:border-[#1E6C02] transition-all" />
         </div>
         <div class="space-y-1">
-          <label class="text-xs font-bold text-black dark:text-gray-300">Special Instructions / Notes</label>
-          <textarea id="edit-order-notes" rows="2" placeholder="Any special instructions" class="w-full bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-sm font-bold text-gray-800 dark:text-gray-100 px-3.5 py-2.5 rounded-xl outline-none focus:border-[#1E6C02] focus:bg-white dark:focus:bg-slate-900 transition-all resize-none"></textarea>
+          <label class="text-xs font-bold text-gray-900 dark:text-gray-100">Special Instructions / Notes</label>
+          <textarea id="edit-order-notes" rows="2" placeholder="Any special instructions" class="w-full bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-sm font-bold text-gray-900 dark:text-gray-100 px-3.5 py-2.5 rounded-xl outline-none focus:border-[#1E6C02] focus:bg-white dark:focus:bg-slate-900 transition-all placeholder-gray-700 dark:placeholder-gray-300 resize-none"></textarea>
         </div>
       </div>
 
       <div class="flex gap-2 justify-end">
-        <button id="discard-edit-order-btn" class="px-4 py-2.5 border border-gray-200 dark:border-slate-700 rounded-xl text-xs font-bold text-gray-500 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-800 cursor-pointer bg-white dark:bg-slate-900">Discard</button>
+        <button id="discard-edit-order-btn" class="px-4 py-2.5 border border-gray-200 dark:border-slate-700 rounded-xl text-xs font-bold text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-slate-800 cursor-pointer bg-white dark:bg-slate-900">Discard</button>
         <button id="confirm-edit-order-btn" class="px-5 py-2.5 bg-[#1E6C02] text-white rounded-xl text-xs font-bold hover:bg-[#145001] cursor-pointer">Save Changes</button>
       </div>
     </div>
@@ -1692,7 +1692,7 @@
             gcashBtn.className = "refund-method-tab py-2.5 px-4 rounded-xl border text-xs font-bold flex items-center justify-center gap-2 cursor-pointer transition-all bg-emerald-50 dark:bg-emerald-950/50 border-emerald-500 text-emerald-800 dark:text-emerald-300";
           }
           if (bankBtn) {
-            bankBtn.className = "refund-method-tab py-2.5 px-4 rounded-xl border text-xs font-bold flex items-center justify-center gap-2 cursor-pointer transition-all bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-slate-700";
+            bankBtn.className = "refund-method-tab py-2.5 px-4 rounded-xl border text-xs font-bold flex items-center justify-center gap-2 cursor-pointer transition-all bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-slate-700";
           }
           if (gcashFields) gcashFields.classList.remove('hidden');
           if (bankFields) bankFields.classList.add('hidden');
@@ -1701,7 +1701,7 @@
             bankBtn.className = "refund-method-tab py-2.5 px-4 rounded-xl border text-xs font-bold flex items-center justify-center gap-2 cursor-pointer transition-all bg-emerald-50 dark:bg-emerald-950/50 border-emerald-500 text-emerald-800 dark:text-emerald-300";
           }
           if (gcashBtn) {
-            gcashBtn.className = "refund-method-tab py-2.5 px-4 rounded-xl border text-xs font-bold flex items-center justify-center gap-2 cursor-pointer transition-all bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-slate-700";
+            gcashBtn.className = "refund-method-tab py-2.5 px-4 rounded-xl border text-xs font-bold flex items-center justify-center gap-2 cursor-pointer transition-all bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-slate-700";
           }
           if (bankFields) bankFields.classList.remove('hidden');
           if (gcashFields) gcashFields.classList.add('hidden');
@@ -2064,8 +2064,8 @@
           const isCompleted = idx < activeStepIndex;
           const isActive = idx === activeStepIndex;
           
-          let circleBgClass = 'bg-gray-100 dark:bg-slate-800 text-gray-400 dark:text-gray-500 border border-gray-200 dark:border-slate-700';
-          let textClass = 'text-gray-400 dark:text-gray-500 font-semibold';
+          let circleBgClass = 'bg-gray-100 dark:bg-slate-800 text-gray-900 dark:text-gray-100 border border-gray-200 dark:border-slate-700';
+          let textClass = 'text-gray-900 dark:text-gray-100 font-semibold';
           let innerIcon = `<span class="text-[10px] font-bold">${idx + 1}</span>`;
 
           if (isCompleted) {
@@ -2401,12 +2401,12 @@
         detailsContainer.innerHTML = `
           <!-- Header and back-button row -->
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-gray-200 dark:border-slate-800 mb-6">
-            <button id="btn-back-to-purchases" class="flex items-center gap-2.5 text-base font-black text-gray-800 dark:text-gray-200 hover:text-[#1E6C02] dark:hover:text-emerald-400 hover:scale-102 transition-all cursor-pointer bg-transparent border-none outline-none">
+            <button id="btn-back-to-purchases" class="flex items-center gap-2.5 text-base font-black text-gray-900 dark:text-gray-100 hover:text-[#1E6C02] dark:hover:text-emerald-400 hover:scale-102 transition-all cursor-pointer bg-transparent border-none outline-none">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" class="w-5 h-5"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
               Back to My Purchases
             </button>
             <div class="flex items-center gap-3 flex-wrap">
-              <span class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest">Order Ticket:</span>
+              <span class="text-xs font-bold text-gray-900 dark:text-gray-100 uppercase tracking-widest">Order Ticket:</span>
               <span class="text-sm font-black text-gray-900 dark:text-gray-100 bg-gray-100 dark:bg-slate-800 px-3.5 py-1.5 rounded-xl border border-gray-200 dark:border-slate-700">#${order.id}</span>
               <span class="text-xs uppercase font-black px-3.5 py-1.5 rounded-full select-none ${orderBadgeClass}">${orderBadgeText}</span>
             </div>
@@ -2415,7 +2415,7 @@
           <!-- MILESTONE TIMELINE (Directly below page header) -->
           <div class="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-3xl p-4 sm:p-6 md:p-7 shadow-sm mb-8 space-y-4 text-left">
             <div class="flex items-center justify-between border-b border-gray-100 dark:border-slate-800 pb-3">
-              <span class="text-xs font-black text-gray-500 dark:text-gray-400 uppercase tracking-widest block">Milestone Timeline</span>
+              <span class="text-xs font-black text-gray-900 dark:text-gray-100 uppercase tracking-widest block">Milestone Timeline</span>
               <span class="text-xs font-bold text-emerald-700 dark:text-emerald-400">Step ${activeStepIndex + 1} of ${steps.length}</span>
             </div>
             
@@ -2443,7 +2443,7 @@
                   </div>
                   <div>
                     <h3 class="text-lg font-black text-gray-900 dark:text-gray-100 uppercase tracking-wide">${isReservationOrder ? 'Reservation Status Summary' : 'Order Status Summary'}</h3>
-                    <p class="text-xs font-semibold text-gray-500 dark:text-gray-400">${isReservationOrder ? 'Current progress and allocation status' : 'Current progress and order status'}</p>
+                    <p class="text-xs font-semibold text-gray-900 dark:text-gray-100">${isReservationOrder ? 'Current progress and allocation status' : 'Current progress and order status'}</p>
                   </div>
                 </div>
                 <span class="hidden sm:inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 font-extrabold text-xs uppercase tracking-wider">
@@ -2455,39 +2455,39 @@
               ${isReservationOrder ? `
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                   <div class="bg-gray-50 dark:bg-slate-800/80 p-4 rounded-2xl border border-gray-150 dark:border-slate-700">
-                    <span class="text-[11px] font-black text-gray-500 dark:text-gray-400 uppercase tracking-wider block mb-1">Reservation Status</span>
+                    <span class="text-[11px] font-black text-gray-900 dark:text-gray-100 uppercase tracking-wider block mb-1">Reservation Status</span>
                     <span class="font-black text-base text-emerald-700 dark:text-emerald-400 block">${currentResStatus}</span>
                   </div>
 
                   <div class="bg-gray-50 dark:bg-slate-800/80 p-4 rounded-2xl border border-gray-150 dark:border-slate-700">
-                    <span class="text-[11px] font-black text-gray-500 dark:text-gray-400 uppercase tracking-wider block mb-1">Queue Position</span>
+                    <span class="text-[11px] font-black text-gray-900 dark:text-gray-100 uppercase tracking-wider block mb-1">Queue Position</span>
                     <span class="font-black text-xl text-gray-900 dark:text-gray-100 block">#${queuePosition}</span>
                   </div>
 
                   <div class="bg-gray-50 dark:bg-slate-800/80 p-4 rounded-2xl border border-gray-150 dark:border-slate-700">
-                    <span class="text-[11px] font-black text-gray-500 dark:text-gray-400 uppercase tracking-wider block mb-1">${order.deliveryOption === 'pickup' ? 'Estimated Pickup' : 'Estimated Delivery'}</span>
+                    <span class="text-[11px] font-black text-gray-900 dark:text-gray-100 uppercase tracking-wider block mb-1">${order.deliveryOption === 'pickup' ? 'Estimated Pickup' : 'Estimated Delivery'}</span>
                     <span class="font-black text-sm ${isStockAllocated ? 'text-gray-900 dark:text-gray-100' : 'text-amber-700 dark:text-amber-400'} block">${estimatedFulfillmentText}</span>
                   </div>
 
                   <div class="bg-gray-50 dark:bg-slate-800/80 p-4 rounded-2xl border border-gray-150 dark:border-slate-700">
-                    <span class="text-[11px] font-black text-gray-500 dark:text-gray-400 uppercase tracking-wider block mb-1">Current Step</span>
+                    <span class="text-[11px] font-black text-gray-900 dark:text-gray-100 uppercase tracking-wider block mb-1">Current Step</span>
                     <span class="font-black text-sm text-blue-700 dark:text-blue-400 block">${steps[activeStepIndex] ? steps[activeStepIndex].name : 'Processing'}</span>
                   </div>
                 </div>
               ` : `
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div class="bg-gray-50 dark:bg-slate-800/80 p-4 rounded-2xl border border-gray-150 dark:border-slate-700">
-                    <span class="text-[11px] font-black text-gray-500 dark:text-gray-400 uppercase tracking-wider block mb-1">Order Status</span>
+                    <span class="text-[11px] font-black text-gray-900 dark:text-gray-100 uppercase tracking-wider block mb-1">Order Status</span>
                     <span class="font-black text-base text-emerald-700 dark:text-emerald-400 block">${regularOrderStatusDisplay}</span>
                   </div>
 
                   <div class="bg-gray-50 dark:bg-slate-800/80 p-4 rounded-2xl border border-gray-150 dark:border-slate-700">
-                    <span class="text-[11px] font-black text-gray-500 dark:text-gray-400 uppercase tracking-wider block mb-1">Current Step</span>
+                    <span class="text-[11px] font-black text-gray-900 dark:text-gray-100 uppercase tracking-wider block mb-1">Current Step</span>
                     <span class="font-black text-sm text-blue-700 dark:text-blue-400 block">${regularOrderCurrentStep}</span>
                   </div>
 
                   <div class="bg-gray-50 dark:bg-slate-800/80 p-4 rounded-2xl border border-gray-150 dark:border-slate-700">
-                    <span class="text-[11px] font-black text-gray-500 dark:text-gray-400 uppercase tracking-wider block mb-1">${order.deliveryOption === 'pickup' ? 'Estimated Pickup' : 'Estimated Delivery'}</span>
+                    <span class="text-[11px] font-black text-gray-900 dark:text-gray-100 uppercase tracking-wider block mb-1">${order.deliveryOption === 'pickup' ? 'Estimated Pickup' : 'Estimated Delivery'}</span>
                     <span class="font-black text-sm text-gray-900 dark:text-gray-100 block">${regularOrderEstimatedFulfillment}</span>
                   </div>
                 </div>
@@ -2505,33 +2505,33 @@
                   </div>
                   <div>
                     <h3 class="text-base font-black text-gray-900 dark:text-gray-100 uppercase tracking-widest">${isReservationOrder ? 'Reservation Summary' : 'Order Summary'}</h3>
-                    <p class="text-xs font-semibold text-gray-500 dark:text-gray-400">Order varieties and financial breakdown</p>
+                    <p class="text-xs font-semibold text-gray-900 dark:text-gray-100">Order varieties and financial breakdown</p>
                   </div>
                 </div>
 
-                <div class="space-y-4 text-sm font-semibold text-gray-800 dark:text-gray-200 leading-relaxed">
+                <div class="space-y-4 text-sm font-semibold text-gray-900 dark:text-gray-100 leading-relaxed">
                   <div class="flex justify-between items-center py-1.5 border-b border-gray-100 dark:border-slate-800">
-                    <span class="text-gray-600 dark:text-gray-400 font-bold">Rice Variety:</span>
+                    <span class="text-gray-900 dark:text-gray-100 font-bold">Rice Variety:</span>
                     <span class="font-extrabold text-gray-900 dark:text-gray-100 text-sm text-right">${riceVarietyNames}</span>
                   </div>
 
                   <div class="flex justify-between items-center py-1.5 border-b border-gray-100 dark:border-slate-800">
-                    <span class="text-gray-600 dark:text-gray-400 font-bold">Quantity:</span>
+                    <span class="text-gray-900 dark:text-gray-100 font-bold">Quantity:</span>
                     <span class="font-extrabold text-gray-900 dark:text-gray-100 text-base">${reqQty} Sack(s)</span>
                   </div>
 
                   <div class="flex justify-between items-center py-1.5 border-b border-gray-100 dark:border-slate-800 text-xs">
-                    <span class="text-gray-600 dark:text-gray-400 font-bold">Subtotal:</span>
-                    <span class="font-bold text-gray-800 dark:text-gray-200">₱${detailSubtotal.toLocaleString()}.00</span>
+                    <span class="text-gray-900 dark:text-gray-100 font-bold">Subtotal:</span>
+                    <span class="font-bold text-gray-900 dark:text-gray-100">₱${detailSubtotal.toLocaleString()}.00</span>
                   </div>
 
                   <div class="flex justify-between items-center py-1.5 border-b border-gray-100 dark:border-slate-800 text-xs">
-                    <span class="text-gray-600 dark:text-gray-400 font-bold">Delivery Fee:</span>
-                    <span class="font-bold text-gray-800 dark:text-gray-200">${detailShippingFee > 0 ? `₱${detailShippingFee.toLocaleString()}.00` : '₱0.00 (Store Pickup)'}</span>
+                    <span class="text-gray-900 dark:text-gray-100 font-bold">Delivery Fee:</span>
+                    <span class="font-bold text-gray-900 dark:text-gray-100">${detailShippingFee > 0 ? `₱${detailShippingFee.toLocaleString()}.00` : '₱0.00 (Store Pickup)'}</span>
                   </div>
 
                   <div class="flex justify-between items-center py-1.5 border-b border-gray-100 dark:border-slate-800">
-                    <span class="text-gray-600 dark:text-gray-400 font-bold">${isReservationOrder ? 'Reservation Total:' : 'Order Total:'}</span>
+                    <span class="text-gray-900 dark:text-gray-100 font-bold">${isReservationOrder ? 'Reservation Total:' : 'Order Total:'}</span>
                     <span class="font-black text-gray-900 dark:text-gray-100 text-lg">₱${totalAmount.toLocaleString()}.00</span>
                   </div>
 
@@ -2545,7 +2545,7 @@
                     </div>
 
                     <div class="flex justify-between items-center p-3.5 bg-gray-50 dark:bg-slate-800/80 rounded-2xl border border-gray-200 dark:border-slate-700">
-                      <span class="text-gray-700 dark:text-gray-300 font-bold text-sm">Remaining Balance:</span>
+                      <span class="text-gray-900 dark:text-gray-100 font-bold text-sm">Remaining Balance:</span>
                       <span class="text-emerald-700 dark:text-emerald-400 font-extrabold text-base">₱0.00</span>
                     </div>
                   ` : (isPaidDownPayment ? `
@@ -2558,7 +2558,7 @@
                     </div>
 
                     <div class="flex justify-between items-center p-3.5 bg-gray-50 dark:bg-slate-800/80 rounded-2xl border border-gray-200 dark:border-slate-700">
-                      <span class="text-gray-700 dark:text-gray-300 font-bold text-sm">Remaining Balance:</span>
+                      <span class="text-gray-900 dark:text-gray-100 font-bold text-sm">Remaining Balance:</span>
                       <span class="text-gray-900 dark:text-gray-100 font-extrabold text-base">₱${remainingBalance.toLocaleString()}.00</span>
                     </div>
                   ` : `
@@ -2571,7 +2571,7 @@
                     </div>
 
                     <div class="flex justify-between items-center p-3.5 bg-gray-50 dark:bg-slate-800/80 rounded-2xl border border-gray-200 dark:border-slate-700">
-                      <span class="text-gray-700 dark:text-gray-300 font-bold text-sm">Remaining Balance:</span>
+                      <span class="text-gray-900 dark:text-gray-100 font-bold text-sm">Remaining Balance:</span>
                       <span class="text-gray-900 dark:text-gray-100 font-extrabold text-base">₱${balanceAfterApproval.toLocaleString()}.00</span>
                     </div>
                   `)}
@@ -2580,16 +2580,16 @@
                 <!-- Customer info drawer/box for delivery context -->
                 <div class="pt-4 border-t border-gray-100 dark:border-slate-800 space-y-3">
                   <div class="flex items-center justify-between">
-                    <span class="text-xs font-black text-gray-500 dark:text-gray-400 uppercase tracking-widest">Customer Details</span>
+                    <span class="text-xs font-black text-gray-900 dark:text-gray-100 uppercase tracking-widest">Customer Details</span>
                     ${['to-pay', 'pending-verification', 'waiting-for-approval'].includes(oStatus) ? `
                       <button id="btn-edit-order-customer" class="text-xs font-bold text-[#1E6C02] dark:text-emerald-400 hover:underline bg-transparent border-none outline-none cursor-pointer">
                         ✏️ Edit Info
                       </button>
                     ` : ''}
                   </div>
-                  <div class="text-xs font-medium text-gray-700 dark:text-gray-300 space-y-1">
+                  <div class="text-xs font-medium text-gray-900 dark:text-gray-100 space-y-1">
                     <p><span class="font-bold text-gray-900 dark:text-gray-100">${order.fullName || user.fullName}</span> (${order.phone || user.phone || 'N/A'})</p>
-                    <p class="text-gray-500 dark:text-gray-400">${order.deliveryOption === 'pickup' ? 'Store Warehouse Pickup' : (order.address || user.address || 'Address not provided')}</p>
+                    <p class="text-gray-900 dark:text-gray-100">${order.deliveryOption === 'pickup' ? 'Store Warehouse Pickup' : (order.address || user.address || 'Address not provided')}</p>
                   </div>
                 </div>
               </div>
@@ -2603,7 +2603,7 @@
                     </div>
                     <div>
                       <h3 class="text-base font-black text-gray-900 dark:text-gray-100 uppercase tracking-widest">Payment</h3>
-                      <p class="text-xs font-semibold text-gray-500 dark:text-gray-400">Proof of transfer and verification</p>
+                      <p class="text-xs font-semibold text-gray-900 dark:text-gray-100">Proof of transfer and verification</p>
                     </div>
                   </div>
                   <span class="px-3 py-1 rounded-lg text-xs font-black uppercase tracking-wider ${paymentStatusClass}">${paymentStatusText}</span>
@@ -2747,10 +2747,10 @@
                     
                     <div class="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 dark:border-slate-600 rounded-2xl p-6 bg-gray-50 dark:bg-slate-800/80 hover:bg-orange-50/50 dark:hover:bg-slate-700 transition-all cursor-pointer relative" id="payment-drop-zone">
                       <input type="file" id="payment-receipt-file" class="hidden" accept="image/*" />
-                      <svg class="w-8 h-8 text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg class="w-8 h-8 text-gray-900 dark:text-gray-100 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
                       </svg>
-                      <p class="text-xs text-gray-600 dark:text-gray-200 font-bold uppercase tracking-wider text-center" id="payment-upload-text">
+                      <p class="text-xs text-gray-900 dark:text-gray-100 font-bold uppercase tracking-wider text-center" id="payment-upload-text">
                         ${order.paymentRejected ? 'Click or Drag Corrected Screenshot Here' : 'Click or Drag Screenshot Here'}
                       </p>
                     </div>
@@ -2775,7 +2775,7 @@
 
               ${isReadyForFulfillment ? `
                 <!-- Display QR Code ONLY when approved & ready -->
-                <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 max-w-md">Present this QR code to store personnel or the delivery rider to verify receipt upon pickup or delivery.</p>
+                <p class="text-xs font-semibold text-gray-900 dark:text-gray-100 max-w-md">Present this QR code to store personnel or the delivery rider to verify receipt upon pickup or delivery.</p>
 
                 <div class="relative p-4 select-none my-2">
                   <div class="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-[#1E6C02] dark:border-emerald-400"></div>
@@ -2789,7 +2789,7 @@
                 </div>
                 
                 <div class="bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-2xl p-3 w-full max-w-xs text-center">
-                  <p class="text-[10px] text-gray-500 dark:text-gray-400 font-extrabold uppercase tracking-widest mb-1">Receipt Token</p>
+                  <p class="text-[10px] text-gray-900 dark:text-gray-100 font-extrabold uppercase tracking-widest mb-1">Receipt Token</p>
                   <span class="text-sm font-black text-gray-900 dark:text-gray-100">ID: #${String(order.id || '').replace(/^#/, '')}</span>
                 </div>
               ` : `
@@ -2811,7 +2811,7 @@
                     </div>
                     <div>
                       <h3 class="text-base font-black text-gray-900 dark:text-gray-100 uppercase tracking-widest">Customer Reviews & Feedback</h3>
-                      <p class="text-xs font-semibold text-gray-500 dark:text-gray-400">Share your review for each purchased rice product and your ordering experience</p>
+                      <p class="text-xs font-semibold text-gray-900 dark:text-gray-100">Share your review for each purchased rice product and your ordering experience</p>
                     </div>
                   </div>
                   <a 
@@ -2824,7 +2824,7 @@
 
                 <!-- Products Review Status List -->
                 <div class="space-y-3">
-                  <h4 class="text-xs font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest">Purchased Products</h4>
+                  <h4 class="text-xs font-black text-gray-900 dark:text-gray-100 uppercase tracking-widest">Purchased Products</h4>
                   ${(() => {
                     const allReviews = getReviews();
                     const orderItems = order.items && order.items.length > 0 ? order.items : [{
@@ -2853,7 +2853,7 @@
                                 <h5 class="text-xs sm:text-sm font-bold text-gray-900 dark:text-gray-100">${pName}</h5>
                                 <div class="flex items-center gap-1 mt-0.5 text-xs text-amber-500 font-bold">
                                   <span>${'★'.repeat(Math.round(existingProductReview.rating || 5))}</span>
-                                  <span class="text-gray-400 text-[11px] font-normal">(${existingProductReview.rating}/5)</span>
+                                  <span class="text-gray-900 dark:text-gray-100 text-[11px] font-semibold">(${existingProductReview.rating}/5)</span>
                                 </div>
                               </div>
                             </div>
@@ -2870,7 +2870,7 @@
                             <img src="${pImg}" alt="${pName}" class="w-10 h-10 object-cover rounded-lg border border-gray-200 dark:border-slate-700" />
                             <div>
                               <h5 class="text-xs sm:text-sm font-bold text-gray-900 dark:text-gray-100">${pName}</h5>
-                              <p class="text-[11px] text-gray-400">Not reviewed yet</p>
+                              <p class="text-[11px] text-gray-900 dark:text-gray-100 font-medium">Not reviewed yet</p>
                             </div>
                           </div>
                           <a 
@@ -2887,7 +2887,7 @@
 
                 <!-- Ordering Experience Review Status -->
                 <div class="pt-3 border-t border-gray-100 dark:border-slate-800 space-y-2">
-                  <h4 class="text-xs font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest">Ordering Experience</h4>
+                  <h4 class="text-xs font-black text-gray-900 dark:text-gray-100 uppercase tracking-widest">Ordering Experience</h4>
                   ${(() => {
                     const allReviews = getReviews();
                     const existingExpReview = allReviews.find(r => 
@@ -2902,7 +2902,7 @@
                             <h5 class="text-xs sm:text-sm font-bold text-gray-900 dark:text-gray-100">Store & Service Rating</h5>
                             <div class="flex items-center gap-1 mt-0.5 text-xs text-amber-500 font-bold">
                               <span>${'★'.repeat(Math.round(existingExpReview.rating || 5))}</span>
-                              <span class="text-gray-400 text-[11px] font-normal">(${existingExpReview.rating}/5)</span>
+                              <span class="text-gray-900 dark:text-gray-100 text-[11px] font-semibold">(${existingExpReview.rating}/5)</span>
                             </div>
                           </div>
                           <span class="px-3 py-1 bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 font-black text-xs rounded-lg border border-emerald-200 dark:border-emerald-800">
@@ -2916,7 +2916,7 @@
                       <div class="flex items-center justify-between p-3.5 bg-emerald-50/40 dark:bg-slate-800/80 rounded-2xl border border-emerald-200/60 dark:border-slate-700">
                         <div>
                           <h5 class="text-xs sm:text-sm font-bold text-gray-900 dark:text-gray-100">Store & Service Rating</h5>
-                          <p class="text-[11px] text-gray-400">Share your checkout and delivery feedback</p>
+                          <p class="text-[11px] text-gray-900 dark:text-gray-100 font-medium">Share your checkout and delivery feedback</p>
                         </div>
                         <a 
                           href="reviews.html?orderId=${encodeURIComponent(order.id)}"
@@ -3268,8 +3268,8 @@
             purchasesTarget.innerHTML = `
               <div class="py-20 text-center flex flex-col items-center justify-center p-8 select-none">
                 <div class="w-9 h-9 border-3 border-[#1E6C02] border-t-transparent rounded-full animate-spin mb-4"></div>
-                <h4 class="text-sm font-bold text-black dark:text-gray-200">Loading your purchases...</h4>
-                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Retrieving authoritative records from server.</p>
+                <h4 class="text-sm font-bold text-gray-900 dark:text-gray-100">Loading your purchases...</h4>
+                <p class="text-xs text-gray-900 dark:text-gray-100 mt-1">Retrieving authoritative records from server.</p>
               </div>
             `;
             return;
@@ -3278,7 +3278,7 @@
           purchasesTarget.innerHTML = `
             <div class="py-20 text-center flex flex-col items-center justify-center p-8 select-none">
               <!-- Beautiful 3D Isometric Wireframe Cube SVG -->
-              <div class="w-16 h-16 text-gray-300 dark:text-gray-600 flex items-center justify-center mb-4 transition-transform hover:scale-105 duration-300">
+              <div class="w-16 h-16 text-gray-900 dark:text-gray-100 flex items-center justify-center mb-4 transition-transform hover:scale-105 duration-300">
                 <svg class="w-12 h-12 stroke-[1.25]" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                   <path d="M12 2L2 7l10 5 10-5-10-5z" stroke-linecap="round" stroke-linejoin="round"></path>
                   <path d="M2 17l10 5 10-5" stroke-linecap="round" stroke-linejoin="round"></path>
@@ -3287,8 +3287,8 @@
                   <path d="M22 7v10" stroke-linecap="round" stroke-linejoin="round"></path>
                 </svg>
               </div>
-              <h4 class="text-sm font-semibold text-black dark:text-gray-200 uppercase tracking-widest">No Purchases Listed</h4>
-              <p class="text-xs text-black dark:text-gray-400 mt-1">Orders in this category show up here once processed.</p>
+              <h4 class="text-sm font-semibold text-gray-900 dark:text-gray-100 uppercase tracking-widest">No Purchases Listed</h4>
+              <p class="text-xs text-gray-900 dark:text-gray-100 mt-1">Orders in this category show up here once processed.</p>
             </div>
           `;
           return;
@@ -3416,13 +3416,13 @@
                   <p class="font-extrabold flex items-center gap-1.5 text-emerald-950 dark:text-emerald-100 text-sm">🚚 Order Delivered Successfully!</p>
                   <span class="text-xs text-emerald-750 dark:text-emerald-300 font-black uppercase tracking-wider bg-emerald-100/70 dark:bg-emerald-900/60 px-2 py-0.5 rounded-md">Awaiting Confirmation</span>
                 </div>
-                <p class="text-xs text-gray-650 dark:text-gray-300 font-semibold">
+                <p class="text-xs text-gray-900 dark:text-gray-100 font-semibold">
                   Your order has been verified and marked as delivered by <span class="font-bold text-gray-900 dark:text-gray-100">${deliveryVerifiedBy}</span> on <span class="font-bold text-gray-900 dark:text-gray-100">${deliveryTimeStr}</span>. 
                   Please inspect your package carefully. If everything is correct, confirm below.
                 </p>
                 <div class="grid grid-cols-2 gap-y-1 text-xs font-semibold text-emerald-800 dark:text-emerald-300 border-t pt-2 border-emerald-100 dark:border-emerald-900/50">
                   <span>Delivered Date:</span>
-                  <span class="text-right text-gray-800 dark:text-gray-200">${deliveryTimeStr}</span>
+                  <span class="text-right text-gray-900 dark:text-gray-100">${deliveryTimeStr}</span>
                   
                   <span>Auto-Completion Deadline:</span>
                   <span class="text-right text-red-600 dark:text-red-400 font-bold">${order.customerConfirmationDeadline ? new Date(order.customerConfirmationDeadline).toLocaleString() : 'After 48 hours'}</span>
@@ -3450,10 +3450,10 @@
               <div class="bg-emerald-50/60 dark:bg-emerald-950/40 border border-emerald-150 dark:border-emerald-800/60 rounded-xl p-4 text-left text-sm font-semibold text-emerald-950 dark:text-emerald-200 leading-relaxed space-y-2.5">
                 <div class="grid grid-cols-2 gap-y-1 text-xs font-bold text-emerald-800 dark:text-emerald-300">
                   <span>Delivered Date:</span>
-                  <span class="text-right text-gray-800 dark:text-gray-200">${deliveredTimestamp}</span>
+                  <span class="text-right text-gray-900 dark:text-gray-100">${deliveredTimestamp}</span>
                   
                   <span>Completed Date:</span>
-                  <span class="text-right text-gray-800 dark:text-gray-200">${completedTimestamp}</span>
+                  <span class="text-right text-gray-900 dark:text-gray-100">${completedTimestamp}</span>
                 </div>
                 <div class="pt-2 border-t border-emerald-100 dark:border-emerald-900/50 flex gap-2 justify-end">
                   <button 
@@ -3471,9 +3471,9 @@
                 </div>
                 
                 <!-- Expanded Toggle Details Container -->
-                <div id="details-fold-${order.id}" class="hidden mt-3 p-4 bg-white/85 dark:bg-slate-800/80 rounded-xl border border-emerald-200/50 dark:border-slate-700 text-sm text-gray-700 dark:text-gray-300 space-y-2.5">
+                <div id="details-fold-${order.id}" class="hidden mt-3 p-4 bg-white/85 dark:bg-slate-800/80 rounded-xl border border-emerald-200/50 dark:border-slate-700 text-sm text-gray-900 dark:text-gray-100 space-y-2.5">
                   <h6 class="font-black text-gray-900 dark:text-gray-100 border-b dark:border-slate-700 pb-1 text-sm">Detailed Invoice Breakdown</h6>
-                  <div class="grid grid-cols-2 gap-y-1.5 font-semibold text-black dark:text-gray-200">
+                  <div class="grid grid-cols-2 gap-y-1.5 font-semibold text-gray-900 dark:text-gray-100">
                     <span>Full Name:</span>
                     <span class="text-right text-gray-900 dark:text-gray-100">${order.fullName}</span>
                     
@@ -3590,7 +3590,7 @@
                           </div>
                         </div>
                         <div class="text-right shrink-0">
-                          <span class="text-black dark:text-gray-400 font-bold uppercase text-[10px] tracking-wider block mb-0.5">Payment Amount</span>
+                          <span class="text-gray-900 dark:text-gray-100 font-bold uppercase text-[10px] tracking-wider block mb-0.5">Payment Amount</span>
                           <span class="font-black ${(!order.notifiedForPayment && !order.paymentVerified) ? 'text-blue-700 dark:text-blue-400 text-sm' : 'text-[#1E6C02] dark:text-emerald-400 text-xl'}">
                             ${(!order.notifiedForPayment && !order.paymentVerified) ? 'No Payment Required' : '₱' + getItemDisplaySubtotal(item).toLocaleString() + '.00'}
                           </span>
@@ -3602,19 +3602,19 @@
                   <!-- Reservation Queue Details Grid -->
                   <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-gray-50 dark:bg-slate-800/60 p-4 rounded-2xl border border-gray-150 dark:border-slate-700 text-xs text-left">
                     <div>
-                      <span class="text-black dark:text-gray-400 font-bold uppercase text-[10px] block">Payment Status</span>
+                      <span class="text-gray-900 dark:text-gray-100 font-bold uppercase text-[10px] block">Payment Status</span>
                       <span class="font-extrabold text-gray-900 dark:text-gray-100">${resStatusTitle}</span>
                     </div>
                     <div>
-                      <span class="text-black dark:text-gray-400 font-bold uppercase text-[10px] block">Queue Position</span>
+                      <span class="text-gray-900 dark:text-gray-100 font-bold uppercase text-[10px] block">Queue Position</span>
                       <span class="font-black text-[#1E6C02] dark:text-emerald-400">#${queuePos}</span>
                     </div>
                     <div>
-                      <span class="text-black dark:text-gray-400 font-bold uppercase text-[10px] block">${order.deliveryOption === 'pickup' ? 'Estimated Pickup' : 'Estimated Delivery'}</span>
+                      <span class="text-gray-900 dark:text-gray-100 font-bold uppercase text-[10px] block">${order.deliveryOption === 'pickup' ? 'Estimated Pickup' : 'Estimated Delivery'}</span>
                       <span class="font-extrabold text-gray-900 dark:text-gray-100">${restockDate}</span>
                     </div>
                     <div>
-                      <span class="text-black dark:text-gray-400 font-bold uppercase text-[10px] block">Reservation Quantity</span>
+                      <span class="text-gray-900 dark:text-gray-100 font-bold uppercase text-[10px] block">Reservation Quantity</span>
                       <span class="font-black text-gray-900 dark:text-gray-100">${resQty} sacks</span>
                     </div>
                   </div>
@@ -3698,7 +3698,7 @@
                           </div>
                         </div>
                         <div class="text-right shrink-0">
-                          <span class="text-black dark:text-gray-400 font-bold uppercase text-[10px] tracking-wider block mb-0.5">Total Amount</span>
+                          <span class="text-gray-900 dark:text-gray-100 font-bold uppercase text-[10px] tracking-wider block mb-0.5">Total Amount</span>
                           <span class="font-black text-[#1E6C02] dark:text-emerald-400 text-xl">₱${getItemDisplaySubtotal(item).toLocaleString()}.00</span>
                         </div>
                       </div>
@@ -3789,25 +3789,25 @@
                       </div>
                     </div>
                     <div>
-                      <span class="text-xs font-semibold px-4 py-1.5 rounded-full bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-gray-300 select-none">Preparing Your Order</span>
+                      <span class="text-xs font-semibold px-4 py-1.5 rounded-full bg-gray-100 dark:bg-slate-800 text-gray-900 dark:text-gray-100 select-none">Preparing Your Order</span>
                     </div>
                   </div>
 
                   <!-- Middle Section: Product info + Total on far right -->
                   <div class="space-y-4">
                     ${order.items.map(item => `
-                      <div class="flex items-center justify-between gap-4 text-xs font-semibold text-black dark:text-gray-200 w-full flex-wrap sm:flex-nowrap">
+                      <div class="flex items-center justify-between gap-4 text-xs font-semibold text-gray-900 dark:text-gray-100 w-full flex-wrap sm:flex-nowrap">
                         <div class="flex items-center gap-4">
                           <div class="w-16 h-16 rounded-xl border border-gray-200 dark:border-slate-700 bg-[#F9F9F9] dark:bg-slate-800 shrink-0 p-1 flex items-center justify-center overflow-hidden">
                             <img src="${item.product?.image || ''}" class="w-12 h-12 object-contain rounded-lg" />
                           </div>
                           <div class="text-left">
                             <h5 class="font-bold text-gray-950 dark:text-gray-100 text-base leading-snug">${item.product?.name || 'Rice Product'}</h5>
-                            <p class="text-sm text-black dark:text-gray-300 font-extrabold mt-1">${getItemQtyPriceStr(item, hasReservations)}</p>
+                            <p class="text-sm text-gray-900 dark:text-gray-100 font-extrabold mt-1">${getItemQtyPriceStr(item, hasReservations)}</p>
                           </div>
                         </div>
                         <div class="text-right shrink-0">
-                          <span class="text-black dark:text-gray-400 font-bold uppercase text-[10px] tracking-wider block mb-0.5">Total Amount</span>
+                          <span class="text-gray-900 dark:text-gray-100 font-bold uppercase text-[10px] tracking-wider block mb-0.5">Total Amount</span>
                           <span class="font-black text-[#1E6C02] dark:text-emerald-400 text-xl">₱${getItemDisplaySubtotal(item).toLocaleString()}.00</span>
                         </div>
                       </div>
@@ -3869,7 +3869,7 @@
                           </div>
                         </div>
                         <div class="text-right shrink-0">
-                          <span class="text-black dark:text-gray-400 font-bold uppercase text-[10px] tracking-wider block mb-0.5">Total Amount</span>
+                          <span class="text-gray-900 dark:text-gray-100 font-bold uppercase text-[10px] tracking-wider block mb-0.5">Total Amount</span>
                           <span class="font-black text-[#1E6C02] dark:text-emerald-400 text-xl">₱${getItemDisplaySubtotal(item).toLocaleString()}.00</span>
                         </div>
                       </div>
@@ -3933,7 +3933,7 @@
                   </div>
                 </div>
                 <div class="text-right shrink-0">
-                  <span class="text-black dark:text-gray-400 font-bold uppercase text-[10px] tracking-wider block mb-0.5">Total Amount</span>
+                  <span class="text-gray-900 dark:text-gray-100 font-bold uppercase text-[10px] tracking-wider block mb-0.5">Total Amount</span>
                   <span class="font-black text-[#1E6C02] dark:text-emerald-400 text-xl">₱${getItemDisplaySubtotal(item).toLocaleString()}.00</span>
                 </div>
               </div>
@@ -3951,7 +3951,7 @@
                 <div class="relative group flex-1 sm:flex-initial">
                   <button 
                     disabled
-                    class="w-full px-5 py-2.5 bg-gray-100 dark:bg-slate-800 text-gray-400 dark:text-gray-500 font-extrabold rounded-xl text-xs sm:text-sm opacity-50 cursor-not-allowed transition-all flex items-center justify-center border border-gray-200 dark:border-slate-700"
+                    class="w-full px-5 py-2.5 bg-gray-100 dark:bg-slate-800 text-gray-900 dark:text-gray-100 font-extrabold rounded-xl text-xs sm:text-sm opacity-50 cursor-not-allowed transition-all flex items-center justify-center border border-gray-200 dark:border-slate-700"
                   >
                     Mark as Completed
                   </button>
@@ -4048,8 +4048,8 @@
                         ✔ Order Delivered Successfully
                       </h5>
                       <p class="text-base sm:text-[17px] font-bold text-[#145001] dark:text-emerald-200 leading-tight">Package Received & Awaiting Your Confirmation</p>
-                      <p class="text-xs sm:text-sm text-gray-650 dark:text-gray-300 font-normal">
-                        Verified by: <span class="font-bold text-gray-800 dark:text-gray-100">${order.deliveryVerificationBy || order.verifiedBy || 'Staff'}</span>
+                      <p class="text-xs sm:text-sm text-gray-900 dark:text-gray-100 font-normal">
+                        Verified by: <span class="font-bold text-gray-900 dark:text-gray-100">${order.deliveryVerificationBy || order.verifiedBy || 'Staff'}</span>
                         • Automatic completion: <span class="font-bold text-red-600 dark:text-red-400">${order.customerConfirmationDeadline ? new Date(order.customerConfirmationDeadline).toLocaleString() : 'After 48 hours'}</span>
                       </p>
                     </div>
@@ -4061,10 +4061,10 @@
                         🚚 Delivery Verification Required
                       </h5>
                       <p class="text-base sm:text-[17px] font-bold text-[#145001] dark:text-emerald-200 leading-tight">Your order is out for delivery</p>
-                      <p class="text-xs sm:text-sm text-gray-600 dark:text-gray-300 font-normal">${order.deliveryOption === 'pickup' ? 'Estimated pickup' : 'Estimated delivery'}: 
+                      <p class="text-xs sm:text-sm text-gray-900 dark:text-gray-100 font-normal">${order.deliveryOption === 'pickup' ? 'Estimated pickup' : 'Estimated delivery'}: 
                         <span 
                           data-id="${order.id}"
-                          class="btn-toggle-arrival font-semibold text-gray-800 dark:text-gray-200 border-b border-dashed border-gray-400 cursor-pointer hover:text-green-700 dark:hover:text-emerald-300 transition-colors ml-0.5"
+                          class="btn-toggle-arrival font-semibold text-gray-900 dark:text-gray-100 border-b border-dashed border-gray-400 cursor-pointer hover:text-green-700 dark:hover:text-emerald-300 transition-colors ml-0.5"
                           title="Click to toggle arrival status (Arrived vs Not Arrived) for testing"
                         >${getEstimatedArrivalDate(order)}</span>
                       </p>
@@ -4096,7 +4096,7 @@
                   <!-- Button 1: Track Order -->
                   <button 
                     data-id="${order.id}" 
-                    class="btn-track-order flex-1 sm:flex-initial px-4 py-2.5 border border-gray-250 dark:border-slate-700 text-gray-700 dark:text-gray-200 bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 font-bold rounded-xl text-xs sm:text-sm transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                    class="btn-track-order flex-1 sm:flex-initial px-4 py-2.5 border border-gray-250 dark:border-slate-700 text-gray-900 dark:text-gray-100 bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 font-bold rounded-xl text-xs sm:text-sm transition-all cursor-pointer flex items-center justify-center gap-1.5"
                   >
                     Track Order
                   </button>
@@ -4134,7 +4134,7 @@
                           data-id="${order.id}" 
                           disabled
                           title="You cannot submit an issue report because your order has not yet been delivered."
-                          class="flex-1 sm:flex-initial px-4 py-2.5 bg-gray-100 dark:bg-slate-800 text-gray-400 dark:text-gray-500 border border-gray-200 dark:border-slate-700 font-bold rounded-xl text-xs sm:text-sm cursor-not-allowed transition-all flex items-center justify-center gap-1.5 opacity-60"
+                          class="flex-1 sm:flex-initial px-4 py-2.5 bg-gray-100 dark:bg-slate-800 text-gray-900 dark:text-gray-100 border border-gray-200 dark:border-slate-700 font-bold rounded-xl text-xs sm:text-sm cursor-not-allowed transition-all flex items-center justify-center gap-1.5 opacity-60"
                           onclick="if(window.RiceFlow && window.RiceFlow.showToast){ window.RiceFlow.showToast('You cannot submit an issue report because your order has not yet been delivered.', 'error'); }"
                         >
                           Report an Issue
@@ -4215,7 +4215,7 @@
                         </div>
                       </div>
                       <div class="text-right shrink-0">
-                        <span class="text-black dark:text-gray-400 font-bold uppercase text-[10px] tracking-wider block mb-0.5">Total Amount</span>
+                        <span class="text-gray-900 dark:text-gray-100 font-bold uppercase text-[10px] tracking-wider block mb-0.5">Total Amount</span>
                         <span class="font-black text-[#1E6C02] dark:text-emerald-400 text-xl">₱${getItemDisplaySubtotal(item).toLocaleString()}.00</span>
                       </div>
                     </div>
@@ -4290,19 +4290,19 @@
               <!-- Product items summary matrix -->
               <div class="space-y-4">
                 ${order.items.map(item => `
-                  <div class="flex items-center justify-between gap-4 text-xs font-semibold text-black w-full flex-wrap sm:flex-nowrap">
+                  <div class="flex items-center justify-between gap-4 text-xs font-semibold text-gray-900 dark:text-gray-100 w-full flex-wrap sm:flex-nowrap">
                     <div class="flex items-center gap-4">
-                      <div class="w-16 h-16 rounded-xl border border-gray-200 bg-[#F9F9F9] shrink-0 p-1 flex items-center justify-center overflow-hidden">
+                      <div class="w-16 h-16 rounded-xl border border-gray-200 dark:border-slate-700 bg-[#F9F9F9] dark:bg-slate-800 shrink-0 p-1 flex items-center justify-center overflow-hidden">
                         <img src="${item.product?.image || ''}" class="w-12 h-12 object-contain rounded-lg" />
                       </div>
                       <div class="text-left">
-                        <h5 class="font-bold text-gray-950 text-base leading-snug">${item.product?.name || 'Rice Product'}</h5>
-                        <p class="text-sm text-black font-extrabold mt-1">${getItemQtyPriceStr(item, hasReservations)}</p>
+                        <h5 class="font-bold text-gray-950 dark:text-gray-100 text-base leading-snug">${item.product?.name || 'Rice Product'}</h5>
+                        <p class="text-sm text-gray-900 dark:text-gray-100 font-extrabold mt-1">${getItemQtyPriceStr(item, hasReservations)}</p>
                       </div>
                     </div>
                     <div class="text-right shrink-0">
-                      <span class="text-black font-bold uppercase text-[10px] tracking-wider block mb-0.5">Total Amount</span>
-                      <span class="font-black text-[#1E6C02] text-xl">₱${getItemDisplaySubtotal(item).toLocaleString()}.00</span>
+                      <span class="text-gray-900 dark:text-gray-100 font-bold uppercase text-[10px] tracking-wider block mb-0.5">Total Amount</span>
+                      <span class="font-black text-[#1E6C02] dark:text-emerald-400 text-xl">₱${getItemDisplaySubtotal(item).toLocaleString()}.00</span>
                     </div>
                   </div>
                 `).join('')}
@@ -4614,7 +4614,7 @@
                 'rejected': 'Claim Rejected'
               };
               const currentStatus = issue.status || 'pending-review';
-              const statusClass = statusColors[currentStatus] || 'text-gray-700 bg-gray-50 border-gray-200';
+              const statusClass = statusColors[currentStatus] || 'text-gray-900 dark:text-gray-100 bg-gray-50 dark:bg-slate-800 border-gray-200 dark:border-slate-700';
               const statusLabel = statusLabels[currentStatus] || 'Pending Review';
               statusBadgeContainer.innerHTML = `<span class="inline-block px-3 py-1 border text-xs font-extrabold rounded-full ${statusClass}">${statusLabel}</span>`;
               
@@ -4716,69 +4716,69 @@
             // Build the detailed invoice receipt content
             receiptContent.innerHTML = `
               <div class="text-center space-y-1 select-none">
-                <div class="w-12 h-12 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-2 border border-green-100">
+                <div class="w-12 h-12 bg-green-50 dark:bg-emerald-950/50 rounded-full flex items-center justify-center mx-auto mb-2 border border-green-100 dark:border-emerald-800">
                   <span class="text-xl">🌾</span>
                 </div>
-                <h4 class="text-lg font-black text-gray-900 tracking-tight leading-none">RiceFlow Grains Corp</h4>
-                <p class="text-[9px] text-gray-400 font-extrabold uppercase tracking-widest mt-1">Premium Rice Distributor</p>
-                <p class="text-[9px] text-gray-400 font-medium">Bocaue Bulacan, Philippines • Tel: +63 912 345 6789</p>
+                <h4 class="text-lg font-black text-gray-900 dark:text-gray-100 tracking-tight leading-none">RiceFlow Grains Corp</h4>
+                <p class="text-[9px] text-gray-900 dark:text-gray-100 font-extrabold uppercase tracking-widest mt-1">Premium Rice Distributor</p>
+                <p class="text-[9px] text-gray-900 dark:text-gray-100 font-medium">Bocaue Bulacan, Philippines • Tel: +63 912 345 6789</p>
               </div>
 
-              <div class="border-t border-dashed border-gray-200 my-4"></div>
+              <div class="border-t border-dashed border-gray-200 dark:border-slate-700 my-4"></div>
 
-              <div class="grid grid-cols-2 gap-y-1.5 text-xs font-semibold text-gray-650 text-left">
-                <span class="text-gray-400 font-bold text-[11px]">Invoice ID:</span>
-                <span class="text-gray-900 text-right font-black uppercase text-[11px]">#${match.id}</span>
+              <div class="grid grid-cols-2 gap-y-1.5 text-xs font-semibold text-gray-900 dark:text-gray-100 text-left">
+                <span class="text-gray-900 dark:text-gray-100 font-bold text-[11px]">Invoice ID:</span>
+                <span class="text-gray-900 dark:text-gray-100 text-right font-black uppercase text-[11px]">#${match.id}</span>
                 
-                <span class="text-gray-400 font-bold text-[11px]">Payment Status:</span>
-                <span class="text-green-700 text-right uppercase font-black text-[11px]">PAID & APPROVED</span>
+                <span class="text-gray-900 dark:text-gray-100 font-bold text-[11px]">Payment Status:</span>
+                <span class="text-green-700 dark:text-emerald-400 text-right uppercase font-black text-[11px]">PAID & APPROVED</span>
                 
-                <span class="text-gray-400 font-bold text-[11px]">Date Issued:</span>
-                <span class="text-gray-800 text-right text-[11px]">${match.createdAt ? new Date(match.createdAt).toLocaleString() : 'N/A'}</span>
+                <span class="text-gray-900 dark:text-gray-100 font-bold text-[11px]">Date Issued:</span>
+                <span class="text-gray-900 dark:text-gray-100 text-right text-[11px]">${match.createdAt ? new Date(match.createdAt).toLocaleString() : 'N/A'}</span>
                 
-                <span class="text-gray-400 font-bold text-[11px]">Method:</span>
-                <span class="text-gray-800 text-right uppercase text-[11px]">${match.paymentMethod} • ${match.paymentType === 'full' ? 'FULL' : '30% DEPOSIT'}</span>
+                <span class="text-gray-900 dark:text-gray-100 font-bold text-[11px]">Method:</span>
+                <span class="text-gray-900 dark:text-gray-100 text-right uppercase text-[11px]">${match.paymentMethod} • ${match.paymentType === 'full' ? 'FULL' : '30% DEPOSIT'}</span>
               </div>
 
-              <div class="border-t border-dashed border-gray-200 my-4"></div>
+              <div class="border-t border-dashed border-gray-200 dark:border-slate-700 my-4"></div>
 
               <!-- Intermediary Grain sack product lists -->
               <div class="space-y-3.5 text-left">
-                <p class="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Purchased Items</p>
+                <p class="text-[9px] font-bold text-gray-900 dark:text-gray-100 uppercase tracking-widest">Purchased Items</p>
                 ${match.items.map(item => `
                   <div class="flex items-start justify-between text-xs gap-4">
                     <div>
-                      <p class="font-extrabold text-gray-800 leading-tight">${item.product?.name || 'Rice Product'}</p>
-                      <p class="text-[10px] text-gray-405 mt-0.5">${item.product?.type || ''} Rice • ${item.quantity} sack(s) × ₱${(item.product?.price ?? 0).toLocaleString()}</p>
+                      <p class="font-extrabold text-gray-900 dark:text-gray-100 leading-tight">${item.product?.name || 'Rice Product'}</p>
+                      <p class="text-[10px] text-gray-900 dark:text-gray-100 mt-0.5">${item.product?.type || ''} Rice • ${item.quantity} sack(s) × ₱${(item.product?.price ?? 0).toLocaleString()}</p>
                     </div>
-                    <span class="font-black text-gray-900 shrink-0">₱${((item.product?.price ?? 0) * item.quantity).toLocaleString()}.00</span>
+                    <span class="font-black text-gray-900 dark:text-gray-100 shrink-0">₱${((item.product?.price ?? 0) * item.quantity).toLocaleString()}.00</span>
                   </div>
                 `).join('')}
               </div>
 
-              <div class="border-t border-dashed border-gray-200 my-4"></div>
+              <div class="border-t border-dashed border-gray-200 dark:border-slate-700 my-4"></div>
 
               <!-- Cost Summary Block specs -->
               <div class="space-y-2 text-xs text-left">
-                <div class="flex justify-between font-semibold text-gray-600">
-                  <span class="text-gray-400">Inventory Subtotal:</span>
-                  <span class="text-gray-800 font-extrabold">₱${((match.total ?? 0) - (match.deliveryOption === 'delivery' ? 80 : 0)).toLocaleString()}.00</span>
+                <div class="flex justify-between font-semibold text-gray-900 dark:text-gray-100">
+                  <span class="text-gray-900 dark:text-gray-100">Inventory Subtotal:</span>
+                  <span class="text-gray-900 dark:text-gray-100 font-extrabold">₱${((match.total ?? 0) - (match.deliveryOption === 'delivery' ? 80 : 0)).toLocaleString()}.00</span>
                 </div>
                 ${match.deliveryOption === 'delivery' ? `
-                  <div class="flex justify-between font-semibold text-gray-650">
-                    <span class="text-gray-400">Fixed Delivery Fee:</span>
-                    <span class="text-gray-800 font-extrabold">₱80.00</span>
+                  <div class="flex justify-between font-semibold text-gray-900 dark:text-gray-100">
+                    <span class="text-gray-900 dark:text-gray-100">Fixed Delivery Fee:</span>
+                    <span class="text-gray-900 dark:text-gray-100 font-extrabold">₱80.00</span>
                   </div>
                 ` : ''}
-                <div class="flex justify-between text-sm font-black border-t pt-2 border-gray-100">
-                  <span class="text-gray-850">TOTAL PAID SUM:</span>
-                  <span class="text-[#1E6C02] text-sm">₱${(match.total ?? 0).toLocaleString()}.00</span>
+                <div class="flex justify-between text-sm font-black border-t pt-2 border-gray-100 dark:border-slate-700">
+                  <span class="text-gray-900 dark:text-gray-100">TOTAL PAID SUM:</span>
+                  <span class="text-[#1E6C02] dark:text-emerald-400 text-sm">₱${(match.total ?? 0).toLocaleString()}.00</span>
                 </div>
               </div>
 
-              <div class="border-t border-dashed border-gray-200 my-4"></div>
+              <div class="border-t border-dashed border-gray-200 dark:border-slate-700 my-4"></div>
 
-              <div class="bg-gray-50 rounded-xl p-3 text-[9px] leading-relaxed text-gray-500 font-semibold text-center uppercase tracking-wider">
+              <div class="bg-gray-50 dark:bg-slate-800 rounded-xl p-3 text-[9px] leading-relaxed text-gray-900 dark:text-gray-100 font-semibold text-center uppercase tracking-wider">
                 <p>Thank you for purchasing with RiceFlow!</p>
                 <p class="mt-0.5">Please present this screen copy of receipt upon physical warehouse collection/delivery checks.</p>
               </div>
@@ -4828,7 +4828,7 @@
           if (btnTab === finalTab || (btnTab === 'reservations' && finalTab === 'pre-order') || (btnTab === 'pre-order' && finalTab === 'reservations')) {
             btn.className = "purchase-tab-btn flex-1 py-2.5 px-3 md:px-5 rounded-xl md:rounded-full text-xs font-bold text-gray-900 dark:text-gray-100 transition-all cursor-pointer text-center whitespace-nowrap bg-white dark:bg-slate-800 shadow-md border border-gray-100/40 dark:border-slate-700";
           } else {
-            btn.className = "purchase-tab-btn flex-1 py-2.5 px-3 md:px-5 rounded-xl md:rounded-full text-xs font-semibold text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-all cursor-pointer text-center whitespace-nowrap";
+            btn.className = "purchase-tab-btn flex-1 py-2.5 px-3 md:px-5 rounded-xl md:rounded-full text-xs font-semibold text-gray-900 dark:text-gray-100 hover:text-black dark:hover:text-white transition-all cursor-pointer text-center whitespace-nowrap";
           }
         });
 
@@ -5511,7 +5511,7 @@
           if (b.getAttribute('data-tab') === 'cancelled') {
             b.className = "purchase-tab-btn flex-1 py-2.5 px-3 md:px-5 rounded-xl md:rounded-full text-xs font-bold text-gray-900 dark:text-gray-100 transition-all cursor-pointer text-center whitespace-nowrap bg-white dark:bg-slate-800 shadow-md border border-gray-100/40 dark:border-slate-700";
           } else {
-            b.className = "purchase-tab-btn flex-1 py-2.5 px-3 md:px-5 rounded-xl md:rounded-full text-xs font-semibold text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-all cursor-pointer text-center whitespace-nowrap";
+            b.className = "purchase-tab-btn flex-1 py-2.5 px-3 md:px-5 rounded-xl md:rounded-full text-xs font-semibold text-gray-900 dark:text-gray-100 hover:text-black dark:hover:text-white transition-all cursor-pointer text-center whitespace-nowrap";
           }
         });
 
@@ -6281,7 +6281,7 @@
               if (b.getAttribute('data-tab') === 'completed') {
                 b.className = "purchase-tab-btn flex-1 py-2.5 px-3 md:px-5 rounded-xl md:rounded-full text-xs font-bold text-gray-900 dark:text-gray-100 transition-all cursor-pointer text-center whitespace-nowrap bg-white dark:bg-slate-800 shadow-md border border-gray-100/40 dark:border-slate-700";
               } else {
-                b.className = "purchase-tab-btn flex-1 py-2.5 px-3 md:px-5 rounded-xl md:rounded-full text-xs font-semibold text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-all cursor-pointer text-center whitespace-nowrap";
+                b.className = "purchase-tab-btn flex-1 py-2.5 px-3 md:px-5 rounded-xl md:rounded-full text-xs font-semibold text-gray-900 dark:text-gray-100 hover:text-black dark:hover:text-white transition-all cursor-pointer text-center whitespace-nowrap";
               }
             });
           } else {

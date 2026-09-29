@@ -96,13 +96,13 @@
     <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl p-6 border border-gray-100 animate-in fade-in zoom-in duration-200">
       <div class="flex items-center gap-3 pb-3 border-b border-gray-100">
         <span class="text-orange-500">⚠️</span>
-        <h3 class="text-xl font-extrabold text-[#222222]">Add Pre-Order Anyway?</h3>
+        <h3 class="text-xl font-extrabold text-[#111827] dark:text-white">Add Pre-Order Anyway?</h3>
       </div>
-      <p class="text-gray-500 font-semibold text-sm leading-relaxed py-5">
+      <p class="text-[#111827] dark:text-white font-semibold text-sm leading-relaxed py-5">
         This product variety is out of stock. Adding it to your cart will tag it as a reservation. You can proceed with a 30% downpayment standard at checkout. Continue?
       </p>
       <div class="flex gap-3 pt-3 border-t">
-        <button id="cancel-addto-btn" class="flex-1 py-3 text-gray-600 hover:bg-gray-50 border rounded-xl font-bold transition-all cursor-pointer">Cancel</button>
+        <button id="cancel-addto-btn" class="flex-1 py-3 text-[#111827] dark:text-white hover:bg-gray-50 border rounded-xl font-bold transition-all cursor-pointer">Cancel</button>
         <button id="confirm-addto-btn" class="flex-1 py-3 bg-[#1E6C02] hover:bg-[#145001] text-white rounded-xl font-bold transition-all cursor-pointer">Yes, Add</button>
       </div>
     </div>
@@ -145,33 +145,33 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-6 h-6"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
         </div>
         <div>
-          <h3 class="text-xl sm:text-2xl font-black text-gray-900 dark:text-white tracking-tight">Out of Stock Notice</h3>
-          <p class="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-300 mt-0.5">Reservation Confirmation</p>
+          <h3 class="text-xl sm:text-2xl font-black text-[#111827] dark:text-white tracking-tight">Out of Stock Notice</h3>
+          <p class="text-xs sm:text-sm font-medium text-[#111827] dark:text-white mt-0.5">Reservation Confirmation</p>
         </div>
       </div>
 
       <!-- 1. Reservation: What the customer is reserving -->
       <div class="res-modal-nobox space-y-1.5">
-        <p class="text-xs font-extrabold uppercase tracking-wider text-gray-500 dark:text-gray-400">Reservation</p>
-        <p class="text-base sm:text-lg font-bold text-gray-800 dark:text-gray-100 leading-snug">
+        <p class="text-xs font-extrabold uppercase tracking-wider text-[#111827] dark:text-white">Reservation</p>
+        <p class="text-base sm:text-lg font-bold text-[#111827] dark:text-white leading-snug">
           You're reserving <span id="direct-res-pn" class="text-[#1E6C02] dark:text-emerald-400 font-black"></span>.
         </p>
-        <p id="direct-res-avail-desc" class="text-sm text-gray-700 dark:text-gray-300 font-medium leading-relaxed">
+        <p id="direct-res-avail-desc" class="text-sm text-[#111827] dark:text-white font-medium leading-relaxed">
           Some of the rice is not available right now. The unavailable sacks will be placed in the reservation queue.
         </p>
       </div>
 
       <!-- 2. Availability: Available Now / For Reservation -->
       <div class="res-modal-nobox space-y-2">
-        <p class="text-xs font-extrabold uppercase tracking-wider text-gray-500 dark:text-gray-400">Availability</p>
+        <p class="text-xs font-extrabold uppercase tracking-wider text-[#111827] dark:text-white">Availability</p>
         <div class="grid grid-cols-2 gap-3">
           <div class="res-card-avail bg-[#F4FAF3] dark:bg-emerald-950/40 border border-[#C6EFCE] dark:border-emerald-800/70 rounded-2xl p-3.5">
             <span class="block text-xs font-extrabold uppercase tracking-wide text-[#1E6C02] dark:text-emerald-300">Available Now</span>
-            <span id="direct-res-avail-qty" class="block text-lg sm:text-xl font-black text-gray-900 dark:text-white mt-1">0 sacks</span>
+            <span id="direct-res-avail-qty" class="block text-lg sm:text-xl font-black text-[#111827] dark:text-white mt-1">0 sacks</span>
           </div>
           <div class="res-card-reserve bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/70 rounded-2xl p-3.5">
             <span class="block text-xs font-extrabold uppercase tracking-wide text-amber-900 dark:text-amber-300">For Reservation</span>
-            <span id="direct-res-reserve-qty" class="block text-lg sm:text-xl font-black text-gray-900 dark:text-white mt-1">1 sack</span>
+            <span id="direct-res-reserve-qty" class="block text-lg sm:text-xl font-black text-[#111827] dark:text-white mt-1">1 sack</span>
           </div>
         </div>
       </div>
@@ -182,7 +182,7 @@
           <span class="text-base">📅</span>
           <span id="direct-res-est-label">ESTIMATED DELIVERY</span>
         </div>
-        <p id="direct-res-est-date" class="text-xl sm:text-2xl font-black text-gray-950 dark:text-white mt-1.5 tracking-tight">
+        <p id="direct-res-est-date" class="text-xl sm:text-2xl font-black text-[#111827] dark:text-white mt-1.5 tracking-tight">
           Waiting for Restock
         </p>
       </div>
@@ -196,7 +196,7 @@
         <p class="text-sm sm:text-[15px] font-extrabold text-[#1E6C02] dark:text-emerald-300">
           No payment is needed yet.
         </p>
-        <p class="text-xs sm:text-sm text-gray-800 dark:text-gray-200 font-medium leading-relaxed">
+        <p class="text-xs sm:text-sm text-[#111827] dark:text-white font-medium leading-relaxed">
           We'll notify you when your reserved rice becomes available. After we notify you, please send the required down payment within <strong>48 hours</strong>. If payment is not sent within 48 hours, your reservation will be cancelled automatically.
         </p>
       </div>
@@ -208,15 +208,15 @@
           id="agreement-check" 
           class="mt-1 h-5 w-5 text-[#1E6C02] rounded border-gray-300 dark:border-slate-600 focus:ring-[#1E6C02] shrink-0 cursor-pointer"
         />
-        <label for="agreement-check" class="text-xs sm:text-sm text-gray-800 dark:text-gray-100 select-none cursor-pointer leading-relaxed font-semibold">
+        <label for="agreement-check" class="text-xs sm:text-sm text-[#111827] dark:text-white select-none cursor-pointer leading-relaxed font-semibold">
           I understand that this rice is currently unavailable and will be provided when stock is replenished.
         </label>
       </div>
 
       <!-- 6. Actions: Cancel / Confirm & Checkout -->
       <div class="res-modal-nobox flex flex-col-reverse sm:flex-row gap-3 pt-1">
-        <button id="direct-close-btn" class="flex-1 py-3.5 px-4 text-gray-800 dark:text-gray-100 bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded-2xl font-bold text-sm sm:text-base cursor-pointer transition-all">Cancel</button>
-        <button id="direct-confirm-btn" disabled class="flex-1 py-3.5 px-4 bg-gray-300 dark:bg-slate-800 text-gray-500 dark:text-gray-500 rounded-2xl font-extrabold text-sm sm:text-base cursor-not-allowed transition-all" style="cursor: not-allowed;">Confirm & Checkout</button>
+        <button id="direct-close-btn" class="flex-1 py-3.5 px-4 text-[#111827] dark:text-white bg-white dark:bg-slate-800 hover:bg-gray-100 hover:text-black dark:hover:bg-slate-700 dark:hover:text-white border border-gray-300 dark:border-slate-600 rounded-2xl font-bold text-sm sm:text-base cursor-pointer transition-all">Cancel</button>
+        <button id="direct-confirm-btn" disabled class="flex-1 py-3.5 px-4 bg-gray-200 dark:bg-slate-800 text-[#111827] dark:text-white rounded-2xl font-extrabold text-sm sm:text-base cursor-not-allowed transition-all" style="cursor: not-allowed;">Confirm & Checkout</button>
       </div>
     </div>
   </div>
@@ -227,11 +227,11 @@
       <div class="w-16 h-16 bg-green-50 text-[#1E6C02] rounded-full flex items-center justify-center mx-auto mb-4 border border-green-100 font-bold">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-8 h-8"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
       </div>
-      <h3 class="text-xl font-extrabold text-[#222222] mb-2">Login Required</h3>
-      <p class="text-gray-500 font-medium text-sm leading-relaxed mb-6">Join our network or log in to secure bags, queue pre-orders, and leave grain reviews.</p>
+      <h3 class="text-xl font-extrabold text-[#111827] dark:text-white mb-2">Login Required</h3>
+      <p class="text-[#111827] dark:text-white font-medium text-sm leading-relaxed mb-6">Join our network or log in to secure bags, queue pre-orders, and leave grain reviews.</p>
       <div class="flex flex-col gap-2">
         <a href="login.html" class="block w-full py-3 bg-[#1E6C02] hover:bg-[#145001] text-white rounded-xl font-bold shadow-lg">Sign In Now</a>
-        <button id="close-login-dialog-btn" class="w-full py-2.5 text-gray-400 hover:text-gray-600 font-bold text-xs uppercase tracking-wider">Cancel</button>
+        <button id="close-login-dialog-btn" class="w-full py-2.5 text-[#111827] dark:text-white hover:text-[#1E6C02] font-bold text-xs uppercase tracking-wider">Cancel</button>
       </div>
     </div>
   </div>
@@ -306,7 +306,7 @@
               </div>
             </div>
             
-            <h1 class="text-3xl sm:text-5xl lg:text-[44px] font-black text-[#222222] leading-none tracking-tight mb-6">
+            <h1 class="text-3xl sm:text-5xl lg:text-[44px] font-black text-[#111827] dark:text-white leading-none tracking-tight mb-6">
               ${product.name}
             </h1>
 
@@ -315,9 +315,9 @@
                 <span class="text-[#1E6C02] text-4xl sm:text-5xl font-black">
                   ₱${product.price.toLocaleString()}
                 </span>
-                <span class="text-black font-bold text-base">/25kg sack</span>
+                <span class="text-[#111827] dark:text-white font-bold text-base">/25kg sack</span>
               </div>
-              <div class="flex items-center gap-2 text-black text-sm font-normal leading-none mt-1">
+              <div class="flex items-center gap-2 text-[#111827] dark:text-white text-sm font-normal leading-none mt-1">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-4 h-4 text-[#1E6C02]"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
                 <span>${product.stock} sacks currently available in warehouse</span>
               </div>
@@ -339,20 +339,20 @@
             <div class="mt-4 pt-4">
               <div class="grid grid-cols-2 gap-4 mb-6">
                 <div class="space-y-2">
-                  <span class="text-xs font-bold uppercase tracking-wider text-black block">Quantity (Sacks)</span>
-                  <div class="flex items-center justify-between h-14 bg-white rounded-2xl border border-gray-150 px-3 shadow-xs">
+                  <span class="text-xs font-bold uppercase tracking-wider text-[#111827] dark:text-white block">Quantity (Sacks)</span>
+                  <div class="flex items-center justify-between h-14 bg-white rounded-2xl border border-gray-200 px-3 shadow-xs">
                     <button 
                       id="btn-decrement"
-                      class="w-10 h-10 hover:bg-gray-100 rounded-xl flex items-center justify-center font-black text-gray-500 transition-colors cursor-pointer border-0 bg-transparent"
+                      class="w-10 h-10 hover:bg-gray-100 rounded-xl flex items-center justify-center font-black text-[#111827] dark:text-white transition-colors cursor-pointer border-0 bg-transparent"
                     >
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-4 h-4"><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                     </button>
-                    <span class="font-extrabold text-[#222222] text-lg select-none" id="qty-indicator">
+                    <span class="font-extrabold text-[#111827] dark:text-white text-lg select-none" id="qty-indicator">
                       ${currentQuantityValue}
                     </span>
                     <button 
                       id="btn-increment"
-                      class="w-10 h-10 hover:bg-gray-100 rounded-xl flex items-center justify-center font-black text-gray-500 transition-colors cursor-pointer border-0 bg-transparent"
+                      class="w-10 h-10 hover:bg-gray-100 rounded-xl flex items-center justify-center font-black text-[#111827] dark:text-white transition-colors cursor-pointer border-0 bg-transparent"
                     >
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-4 h-4"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                     </button>
@@ -360,8 +360,8 @@
                 </div>
 
                 <div class="space-y-2 col-span-1">
-                  <span class="text-xs font-bold uppercase tracking-wider text-black block">Total Amount</span>
-                  <div class="flex items-center justify-center h-14 bg-[#F1F3F5] rounded-2xl font-black text-lg text-[#222222] tracking-tight">
+                  <span class="text-xs font-bold uppercase tracking-wider text-[#111827] dark:text-white block">Total Amount</span>
+                  <div class="flex items-center justify-center h-14 bg-[#F1F3F5] dark:bg-slate-800 rounded-2xl font-black text-lg text-[#111827] dark:text-white tracking-tight">
                     ₱${totalCost.toLocaleString()}
                   </div>
                 </div>
@@ -385,12 +385,12 @@
               </div>
 
               <!-- Product Details Text Description -->
-              <div class="mt-8 pt-8 border-t border-gray-150 space-y-4 text-black leading-relaxed text-base font-normal">
-                <h3 class="text-xl font-bold text-gray-900 mb-4">${product.name} – ${product.type} Rice (Bulk Available)</h3>
-                <p class="text-black text-base font-normal leading-relaxed">${product.description || `Locally grown organic ${product.type} rice harvested with care. Soft fluff texture, premium grain length. Sourced through certified farming systems in Zamboanga del Sur.`}</p>
-                <p class="text-black text-base font-normal leading-relaxed">When cooked, ${product.name} becomes tender and fluffy, creating the perfect balance of texture and taste. It is most commonly used for everyday meals, but it can also be used in specialty dishes and traditional recipes.</p>
-                <p class="text-black text-base font-normal leading-relaxed">Our ${product.name} is carefully selected to ensure quality, freshness, and consistent cooking results. Perfect for restaurants, catering businesses, and home cooks who want authentic, high-quality rice for special recipes.</p>
-                <p class="font-bold text-gray-900 mt-4 text-base">Available in bulk sacks for wholesale and commercial use.</p>
+              <div class="mt-8 pt-8 border-t border-gray-150 space-y-4 text-[#111827] dark:text-white leading-relaxed text-base font-normal">
+                <h3 class="text-xl font-bold text-[#111827] dark:text-white mb-4">${product.name} – ${product.type} Rice (Bulk Available)</h3>
+                <p class="text-[#111827] dark:text-white text-base font-normal leading-relaxed">${product.description || `Locally grown organic ${product.type} rice harvested with care. Soft fluff texture, premium grain length. Sourced through certified farming systems in Zamboanga del Sur.`}</p>
+                <p class="text-[#111827] dark:text-white text-base font-normal leading-relaxed">When cooked, ${product.name} becomes tender and fluffy, creating the perfect balance of texture and taste. It is most commonly used for everyday meals, but it can also be used in specialty dishes and traditional recipes.</p>
+                <p class="text-[#111827] dark:text-white text-base font-normal leading-relaxed">Our ${product.name} is carefully selected to ensure quality, freshness, and consistent cooking results. Perfect for restaurants, catering businesses, and home cooks who want authentic, high-quality rice for special recipes.</p>
+                <p class="font-bold text-[#111827] dark:text-white mt-4 text-base">Available in bulk sacks for wholesale and commercial use.</p>
               </div>
             </div>
           </div>
@@ -518,7 +518,7 @@
           directConfirm.style.cursor = "pointer";
         } else {
           directConfirm.disabled = true;
-          directConfirm.className = "flex-1 py-3.5 px-4 bg-gray-300 dark:bg-slate-800 text-gray-500 dark:text-gray-500 rounded-2xl font-extrabold text-sm sm:text-base cursor-not-allowed transition-all";
+          directConfirm.className = "flex-1 py-3.5 px-4 bg-gray-200 dark:bg-slate-800 text-[#111827] dark:text-white rounded-2xl font-extrabold text-sm sm:text-base cursor-not-allowed transition-all";
           directConfirm.style.cursor = "not-allowed";
         }
       });

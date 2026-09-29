@@ -311,41 +311,423 @@ body > main,
 }
 
 /* ==========================================================================
-   DAY MODE (LIGHT MODE) HIGH-CONTRAST ACCESSIBILITY ENHANCEMENTS
+   DAY MODE (LIGHT MODE) HIGH-CONTRAST ACCESSIBILITY ENHANCEMENTS (NO-GRAY RULE)
    ========================================================================== */
-html:not(.dark) #admin-layout-container .text-gray-400,
-html:not(.dark) #admin-layout-container .text-xs.text-gray-400 {
-  color: #5A6578 !important; /* Boost light grey text to highly visible slate grey (> 4.5:1) */
-}
-html:not(.dark) #admin-layout-container .text-gray-400 * {
-  color: #5A6578 !important;
+
+/* Enforce NO-GRAY text and numbers across the entire Admin/Staff interface in Day Mode */
+html:not(.dark) #admin-layout-container,
+html:not(.dark) [id*="modal"],
+html:not(.dark) [id*="dialog"],
+html:not(.dark) .fixed.inset-0 {
+  --admin-day-text: #000000;
 }
 
-html:not(.dark) #admin-layout-container .text-gray-500,
-html:not(.dark) #admin-layout-container .text-gray-550 {
-  color: #475569 !important; /* Slate grey with outstanding readability */
-}
-html:not(.dark) #admin-layout-container .text-gray-500 *,
-html:not(.dark) #admin-layout-container .text-gray-550 * {
-  color: #475569 !important;
-}
-
-html:not(.dark) #admin-layout-container .text-gray-600,
-html:not(.dark) #admin-layout-container .text-gray-650 {
-  color: #334155 !important; /* Deep charcoal for excellent scanning contrast */
-}
-html:not(.dark) #admin-layout-container .text-gray-600 *,
-html:not(.dark) #admin-layout-container .text-gray-650 * {
-  color: #334155 !important;
+/* In Day Mode, replace ALL gray and slate text classes with solid pure black (#000000) for readable text/numbers */
+html:not(.dark) #admin-layout-container [class*="text-gray-"]:not(button):not(button *):not([class*="bg-"]):not(.badge):not([class*="text-amber"]):not([class*="text-emerald"]):not([class*="text-green"]):not([class*="text-blue"]):not([class*="text-red"]):not([class*="text-rose"]):not([class*="text-purple"]):not([class*="text-orange"]),
+html:not(.dark) #admin-layout-container [class*="text-slate-"]:not(button):not(button *):not([class*="bg-"]):not(.badge):not([class*="text-amber"]):not([class*="text-emerald"]):not([class*="text-green"]):not([class*="text-blue"]):not([class*="text-red"]):not([class*="text-rose"]):not([class*="text-purple"]):not([class*="text-orange"]),
+html:not(.dark) [id*="modal"] [class*="text-gray-"]:not(button):not(button *):not([class*="bg-"]):not(.badge):not([class*="text-amber"]):not([class*="text-emerald"]):not([class*="text-green"]):not([class*="text-blue"]):not([class*="text-red"]):not([class*="text-rose"]):not([class*="text-purple"]):not([class*="text-orange"]),
+html:not(.dark) [id*="modal"] [class*="text-slate-"]:not(button):not(button *):not([class*="bg-"]):not(.badge):not([class*="text-amber"]):not([class*="text-emerald"]):not([class*="text-green"]):not([class*="text-blue"]):not([class*="text-red"]):not([class*="text-rose"]):not([class*="text-purple"]):not([class*="text-orange"]),
+html:not(.dark) [id*="dialog"] [class*="text-gray-"]:not(button):not(button *):not([class*="bg-"]):not(.badge):not([class*="text-amber"]):not([class*="text-emerald"]):not([class*="text-green"]):not([class*="text-blue"]):not([class*="text-red"]):not([class*="text-rose"]):not([class*="text-purple"]):not([class*="text-orange"]),
+html:not(.dark) [id*="dialog"] [class*="text-slate-"]:not(button):not(button *):not([class*="bg-"]):not(.badge):not([class*="text-amber"]):not([class*="text-emerald"]):not([class*="text-green"]):not([class*="text-blue"]):not([class*="text-red"]):not([class*="text-rose"]):not([class*="text-purple"]):not([class*="text-orange"]) {
+  color: #000000 !important;
 }
 
-html:not(.dark) #admin-layout-container .text-gray-700,
-html:not(.dark) #admin-layout-container .text-gray-750 {
-  color: #1E293B !important; /* Almost black */
+/* Specifically target all individual text-gray-* and text-slate-* classes in Day Mode for 100% elimination of gray text */
+html:not(.dark) #admin-layout-container .text-gray-300:not(button):not(button *),
+html:not(.dark) #admin-layout-container .text-gray-400:not(button):not(button *),
+html:not(.dark) #admin-layout-container .text-gray-500:not(button):not(button *),
+html:not(.dark) #admin-layout-container .text-gray-550:not(button):not(button *),
+html:not(.dark) #admin-layout-container .text-gray-600:not(button):not(button *),
+html:not(.dark) #admin-layout-container .text-gray-650:not(button):not(button *),
+html:not(.dark) #admin-layout-container .text-gray-700:not(button):not(button *),
+html:not(.dark) #admin-layout-container .text-gray-750:not(button):not(button *),
+html:not(.dark) #admin-layout-container .text-gray-800:not(button):not(button *),
+html:not(.dark) #admin-layout-container .text-gray-850:not(button):not(button *),
+html:not(.dark) #admin-layout-container .text-gray-900:not(button):not(button *),
+html:not(.dark) #admin-layout-container .text-gray-950:not(button):not(button *),
+html:not(.dark) #admin-layout-container .text-slate-300:not(button):not(button *),
+html:not(.dark) #admin-layout-container .text-slate-400:not(button):not(button *),
+html:not(.dark) #admin-layout-container .text-slate-500:not(button):not(button *),
+html:not(.dark) #admin-layout-container .text-slate-600:not(button):not(button *),
+html:not(.dark) #admin-layout-container .text-slate-700:not(button):not(button *),
+html:not(.dark) #admin-layout-container .text-slate-800:not(button):not(button *),
+html:not(.dark) #admin-layout-container .text-slate-900:not(button):not(button *),
+html:not(.dark) [id*="modal"] .text-gray-400:not(button):not(button *),
+html:not(.dark) [id*="modal"] .text-gray-500:not(button):not(button *),
+html:not(.dark) [id*="modal"] .text-gray-600:not(button):not(button *),
+html:not(.dark) [id*="modal"] .text-gray-700:not(button):not(button *),
+html:not(.dark) [id*="dialog"] .text-gray-400:not(button):not(button *),
+html:not(.dark) [id*="dialog"] .text-gray-500:not(button):not(button *),
+html:not(.dark) [id*="dialog"] .text-gray-600:not(button):not(button *),
+html:not(.dark) [id*="dialog"] .text-gray-700:not(button):not(button *) {
+  color: #000000 !important;
 }
-html:not(.dark) #admin-layout-container .text-gray-700 *,
-html:not(.dark) #admin-layout-container .text-gray-750 * {
-  color: #1E293B !important;
+
+/* Day Mode table contents, cells, headers, paragraphs, and labels */
+html:not(.dark) #admin-layout-container table th,
+html:not(.dark) #admin-layout-container table td:not(:has(button)):not([class*="text-emerald"]):not([class*="text-red"]):not([class*="text-amber"]):not([class*="text-blue"]):not([class*="text-rose"]):not([class*="text-green"]):not([class*="text-purple"]),
+html:not(.dark) #admin-layout-container label:not(button *),
+html:not(.dark) #admin-layout-container p:not(button *):not([class*="text-emerald"]):not([class*="text-red"]):not([class*="text-amber"]):not([class*="text-blue"]):not([class*="text-rose"]):not([class*="text-green"]):not([class*="text-purple"]) {
+  color: #000000 !important;
+}
+
+/* Day Mode input text and search input placeholders */
+html:not(.dark) #admin-layout-container input[type="text"],
+html:not(.dark) #admin-layout-container input[type="search"],
+html:not(.dark) #admin-layout-container select,
+html:not(.dark) #admin-layout-container textarea,
+html:not(.dark) [id*="modal"] input,
+html:not(.dark) [id*="dialog"] input {
+  color: #000000 !important;
+}
+html:not(.dark) #admin-layout-container input::placeholder,
+html:not(.dark) [id*="modal"] input::placeholder {
+  color: #1F2937 !important;
+  opacity: 0.85 !important;
+}
+
+/* Product Stock Numbers & Sack Quantities Visibility Boost */
+html:not(.dark) #admin-layout-container td .text-gray-900,
+html:not(.dark) #admin-layout-container td span.text-gray-900 {
+  color: #000000 !important;
+  font-weight: 700 !important;
+}
+html:not(.dark) #admin-layout-container td span.text-amber-600 {
+  color: #B45309 !important; /* High-contrast amber for low stock (visible in Day Mode) */
+  font-weight: 800 !important;
+}
+html:not(.dark) #admin-layout-container td span.text-red-600 {
+  color: #DC2626 !important; /* Bold red for out of stock */
+  font-weight: 800 !important;
+}
+
+.dark #admin-layout-container td span.text-amber-600 {
+  color: #FBBF24 !important; /* Vibrant golden amber in Dark Mode */
+  font-weight: 800 !important;
+}
+.dark #admin-layout-container td span.text-red-600 {
+  color: #F87171 !important; /* Vibrant bright red in Dark Mode */
+  font-weight: 800 !important;
+}
+
+/* Day Mode table wrapper rules: prevent table text-gray-* from propagating gray/charcoal to buttons */
+html:not(.dark) #admin-layout-container table.text-gray-700,
+html:not(.dark) #admin-layout-container table.text-gray-700 th,
+html:not(.dark) #admin-layout-container table.text-gray-700 td:not(:has(button)) {
+  color: #000000 !important;
+}
+
+.dark #admin-layout-container table.text-gray-700,
+.dark #admin-layout-container table.text-gray-700 th,
+.dark #admin-layout-container table.text-gray-700 td:not(:has(button)) {
+  color: #FFFFFF !important;
+}
+
+/* ==========================================================================
+   ADMIN / STAFF ACTION BUTTONS FIX (DAY MODE & DARK MODE)
+   CRITICAL: Keep existing button backgrounds, ONLY fix text/icon colors inside!
+   Buttons such as Review Order, Prepare Order, Review Issue, Manage Reservation, etc.
+   MUST NOT use black text on dark/vibrant backgrounds!
+   ========================================================================== */
+
+/* 1. Green Action Buttons: Prepare Order, Review Order, Prepare Shipment, Manage Reservation, Verify Delivery, Adjust Stock, Audit, Finalize Order, View Inquiry, View Cancellation, View Record, Scan Order QR Code */
+#admin-layout-container button.bg-\[\#1E6C02\],
+#admin-layout-container button.bg-\[\#145001\],
+#admin-layout-container button.bg-emerald-600,
+#admin-layout-container button.bg-emerald-700,
+#admin-layout-container button.bg-green-600,
+#admin-layout-container button.bg-green-700,
+#admin-layout-container .btn-grid-action-trigger.bg-\[\#1E6C02\],
+#admin-layout-container .btn-trigger-verify-cash-badge,
+#admin-layout-container .btn-trigger-finalize-order,
+#admin-layout-container #btn-scan-qr-trigger,
+#admin-layout-container .btn-stock-click,
+#admin-layout-container .btn-view-inquiry,
+#admin-layout-container button[class*="bg-[#1E6C02]"]:not(.btn-mark-read),
+[id*="modal"] button.bg-\[\#1E6C02\],
+[id*="dialog"] button.bg-\[\#1E6C02\],
+.fixed.inset-0 button.bg-\[\#1E6C02\],
+.fixed.inset-0 button[class*="bg-[#1E6C02]"] {
+  color: #FFFFFF !important;
+}
+
+#admin-layout-container button.bg-\[\#1E6C02\] *,
+#admin-layout-container button.bg-\[\#145001\] *,
+#admin-layout-container button.bg-emerald-600 *,
+#admin-layout-container button.bg-emerald-700 *,
+#admin-layout-container button.bg-green-600 *,
+#admin-layout-container .btn-grid-action-trigger.bg-\[\#1E6C02\] *,
+#admin-layout-container .btn-trigger-verify-cash-badge *,
+#admin-layout-container .btn-trigger-finalize-order *,
+#admin-layout-container #btn-scan-qr-trigger *,
+#admin-layout-container .btn-stock-click *,
+#admin-layout-container .btn-view-inquiry *,
+#admin-layout-container button[class*="bg-[#1E6C02]"]:not(.btn-mark-read) *,
+[id*="modal"] button.bg-\[\#1E6C02\] *,
+[id*="dialog"] button.bg-\[\#1E6C02\] *,
+.fixed.inset-0 button.bg-\[\#1E6C02\] *,
+.fixed.inset-0 button[class*="bg-[#1E6C02]"] * {
+  color: #FFFFFF !important;
+}
+
+#admin-layout-container button.bg-\[\#1E6C02\] svg,
+#admin-layout-container button.bg-\[\#145001\] svg,
+#admin-layout-container #btn-scan-qr-trigger svg,
+#admin-layout-container .btn-stock-click svg,
+#admin-layout-container .btn-view-inquiry svg,
+.fixed.inset-0 button.bg-\[\#1E6C02\] svg {
+  color: #FFFFFF !important;
+  stroke: #FFFFFF !important;
+}
+
+/* 2. Red Action Buttons: Review Issue, Archive Product, Archive Customer, Cancel/Reject buttons */
+#admin-layout-container button.bg-red-600,
+#admin-layout-container button.bg-red-700,
+#admin-layout-container button.bg-rose-600,
+#admin-layout-container button.bg-rose-700,
+#admin-layout-container .btn-grid-action-trigger.bg-red-600,
+#admin-layout-container .btn-archive-click.bg-red-600,
+[id*="modal"] button.bg-red-600,
+[id*="modal"] button.bg-rose-600,
+[id*="dialog"] button.bg-red-600,
+[id*="dialog"] button.bg-rose-600,
+.fixed.inset-0 button.bg-red-600,
+.fixed.inset-0 button.bg-rose-600 {
+  color: #FFFFFF !important;
+}
+
+#admin-layout-container button.bg-red-600 *,
+#admin-layout-container button.bg-red-700 *,
+#admin-layout-container button.bg-rose-600 *,
+#admin-layout-container .btn-grid-action-trigger.bg-red-600 *,
+#admin-layout-container .btn-archive-click.bg-red-600 *,
+[id*="modal"] button.bg-red-600 *,
+[id*="modal"] button.bg-rose-600 *,
+.fixed.inset-0 button.bg-red-600 *,
+.fixed.inset-0 button.bg-rose-600 * {
+  color: #FFFFFF !important;
+}
+
+#admin-layout-container button.bg-red-600 svg,
+#admin-layout-container .btn-archive-click.bg-red-600 svg,
+.fixed.inset-0 button.bg-red-600 svg,
+.fixed.inset-0 button.bg-rose-600 svg {
+  color: #FFFFFF !important;
+  stroke: #FFFFFF !important;
+}
+
+/* 3. Blue Action Buttons: Review Payment, Edit Product (btn-info-click), etc. */
+#admin-layout-container button.bg-blue-600,
+#admin-layout-container button.bg-blue-700,
+#admin-layout-container .btn-info-click,
+#admin-layout-container .btn-view-details.bg-blue-700,
+[id*="modal"] button.bg-blue-600,
+[id*="dialog"] button.bg-blue-600 {
+  color: #FFFFFF !important;
+}
+#admin-layout-container button.bg-blue-600 *,
+#admin-layout-container button.bg-blue-700 *,
+#admin-layout-container .btn-info-click *,
+#admin-layout-container .btn-view-details.bg-blue-700 * {
+  color: #FFFFFF !important;
+}
+#admin-layout-container button.bg-blue-600 svg,
+#admin-layout-container .btn-info-click svg {
+  color: #FFFFFF !important;
+  stroke: #FFFFFF !important;
+}
+
+/* 4. Amber Action Buttons: Review Status, etc. */
+#admin-layout-container button.bg-amber-600,
+#admin-layout-container button.bg-amber-700,
+#admin-layout-container .btn-view-details.bg-amber-600 {
+  color: #FFFFFF !important;
+}
+#admin-layout-container button.bg-amber-600 *,
+#admin-layout-container button.bg-amber-700 *,
+#admin-layout-container .btn-view-details.bg-amber-600 * {
+  color: #FFFFFF !important;
+}
+
+/* 5. Teal Action Buttons: Restore Product, etc. */
+#admin-layout-container button.bg-teal-600,
+#admin-layout-container button.bg-teal-700,
+#admin-layout-container .btn-archive-click.bg-teal-600 {
+  color: #FFFFFF !important;
+}
+#admin-layout-container button.bg-teal-600 *,
+#admin-layout-container button.bg-teal-700 *,
+#admin-layout-container .btn-archive-click.bg-teal-600 * {
+  color: #FFFFFF !important;
+}
+#admin-layout-container .btn-archive-click.bg-teal-600 svg {
+  color: #FFFFFF !important;
+  stroke: #FFFFFF !important;
+}
+
+/* 6. Delivered / Awaiting Action Button */
+#admin-layout-container button.bg-gray-500,
+#admin-layout-container button.bg-gray-600 {
+  color: #FFFFFF !important;
+}
+#admin-layout-container button.bg-gray-500 *,
+#admin-layout-container button.bg-gray-600 * {
+  color: #FFFFFF !important;
+}
+
+/* 7. General rule for ALL action buttons in Orders, Reservations, Products, Customers, Inquiries, Reports, Staff */
+#admin-layout-container .btn-grid-action-trigger,
+#admin-layout-container .btn-view-details:not(.border) {
+  color: #FFFFFF !important;
+}
+#admin-layout-container .btn-grid-action-trigger *,
+#admin-layout-container .btn-view-details:not(.border) * {
+  color: #FFFFFF !important;
+}
+
+/* 8. Secondary outline/neutral buttons in Day Mode */
+html:not(.dark) #admin-layout-container button.border:not([class*="text-emerald"]):not([class*="text-green"]):not([class*="text-blue"]):not([class*="text-red"]):not([class*="text-[#1E6C02]"]),
+html:not(.dark) #admin-layout-container .filter-tab-btn:not(.bg-\[\#1E6C02\]),
+html:not(.dark) #admin-layout-container .btn-filter-tab:not(.bg-\[\#1E6C02\]):not([class*="bg-amber"]):not([class*="bg-blue"]):not([class*="bg-emerald"]),
+html:not(.dark) [id*="modal"] button.border:not([class*="text-emerald"]):not([class*="text-green"]):not([class*="text-blue"]):not([class*="text-red"]):not([class*="text-[#1E6C02]"]),
+html:not(.dark) [id*="dialog"] button.border:not([class*="text-emerald"]):not([class*="text-green"]):not([class*="text-blue"]):not([class*="text-red"]):not([class*="text-[#1E6C02]"]) {
+  color: #000000 !important;
+  border-color: #9CA3AF !important;
+}
+html:not(.dark) #admin-layout-container .filter-tab-btn:not(.bg-\[\#1E6C02\]) *,
+html:not(.dark) #admin-layout-container .btn-filter-tab:not(.bg-\[\#1E6C02\]) * {
+  color: #000000 !important;
+}
+
+/* 9. Customer action buttons (View Customer Details, Archive Customer) */
+html:not(.dark) #admin-layout-container .btn-edit-client {
+  color: #000000 !important;
+}
+html:not(.dark) #admin-layout-container .btn-edit-client svg {
+  color: #000000 !important;
+  stroke: #000000 !important;
+}
+html:not(.dark) #admin-layout-container .btn-edit-client:hover svg {
+  color: #1E6C02 !important;
+  stroke: #1E6C02 !important;
+}
+
+html:not(.dark) #admin-layout-container .btn-archive-direct {
+  color: #000000 !important;
+}
+html:not(.dark) #admin-layout-container .btn-archive-direct svg {
+  color: #000000 !important;
+  stroke: #000000 !important;
+}
+
+.dark #admin-layout-container .btn-edit-client,
+.dark #admin-layout-container .btn-edit-client svg {
+  color: #FFFFFF !important;
+  stroke: #FFFFFF !important;
+}
+.dark #admin-layout-container .btn-edit-client:hover svg {
+  color: #34D399 !important;
+  stroke: #34D399 !important;
+}
+
+.dark #admin-layout-container .btn-archive-direct,
+.dark #admin-layout-container .btn-archive-direct svg {
+  color: #FFFFFF !important;
+  stroke: #FFFFFF !important;
+}
+.dark #admin-layout-container .btn-archive-direct:hover svg {
+  color: #FB7185 !important;
+  stroke: #FB7185 !important;
+}
+
+/* 10. Staff action buttons (View Activities Logs, Edit, Archive) */
+html:not(.dark) #admin-layout-container .btn-staff-history {
+  color: #1E6C02 !important;
+  border-color: #1E6C02 !important;
+}
+html:not(.dark) #admin-layout-container .btn-staff-history svg {
+  color: #1E6C02 !important;
+  stroke: #1E6C02 !important;
+}
+html:not(.dark) #admin-layout-container .btn-staff-edit svg {
+  color: #1D4ED8 !important;
+  stroke: #1D4ED8 !important;
+}
+html:not(.dark) #admin-layout-container .btn-staff-archive svg {
+  color: #C2410C !important;
+  stroke: #C2410C !important;
+}
+
+.dark #admin-layout-container .btn-staff-history {
+  background-color: #064E3B !important;
+  color: #34D399 !important;
+  border-color: #059669 !important;
+}
+.dark #admin-layout-container .btn-staff-history svg {
+  color: #34D399 !important;
+  stroke: #34D399 !important;
+}
+.dark #admin-layout-container .btn-staff-edit svg {
+  color: #60A5FA !important;
+  stroke: #60A5FA !important;
+}
+.dark #admin-layout-container .btn-staff-archive svg {
+  color: #FB923C !important;
+  stroke: #FB923C !important;
+}
+
+/* 11. Reports Export Buttons */
+html:not(.dark) .btn-export-trigger[data-export="Excel"] {
+  border-color: #059669 !important;
+  color: #047857 !important;
+}
+html:not(.dark) .btn-export-trigger[data-export="Excel"] svg {
+  color: #047857 !important;
+  stroke: #047857 !important;
+}
+html:not(.dark) .btn-export-trigger[data-export="CSV"] {
+  border-color: #2563EB !important;
+  color: #1D4ED8 !important;
+}
+html:not(.dark) .btn-export-trigger[data-export="CSV"] svg {
+  color: #1D4ED8 !important;
+  stroke: #1D4ED8 !important;
+}
+html:not(.dark) .btn-export-trigger[data-export="PDF"] {
+  border-color: #DC2626 !important;
+  color: #B91C1C !important;
+}
+html:not(.dark) .btn-export-trigger[data-export="PDF"] svg {
+  color: #B91C1C !important;
+  stroke: #B91C1C !important;
+}
+
+.dark .btn-export-trigger[data-export="Excel"] {
+  background-color: rgba(16, 185, 129, 0.2) !important;
+  border-color: #34D399 !important;
+  color: #FFFFFF !important;
+}
+.dark .btn-export-trigger[data-export="Excel"] svg {
+  color: #34D399 !important;
+  stroke: #34D399 !important;
+}
+.dark .btn-export-trigger[data-export="CSV"] {
+  background-color: rgba(59, 130, 246, 0.2) !important;
+  border-color: #60A5FA !important;
+  color: #FFFFFF !important;
+}
+.dark .btn-export-trigger[data-export="CSV"] svg {
+  color: #60A5FA !important;
+  stroke: #60A5FA !important;
+}
+.dark .btn-export-trigger[data-export="PDF"] {
+  background-color: rgba(239, 68, 68, 0.2) !important;
+  border-color: #F87171 !important;
+  color: #FFFFFF !important;
+}
+.dark .btn-export-trigger[data-export="PDF"] svg {
+  color: #F87171 !important;
+  stroke: #F87171 !important;
 }
 
 /* Day Mode primary green disabled buttons contrast fix (white text on #A3DDA1 is unreadable) */
@@ -363,7 +745,7 @@ html:not(.dark) button[disabled].disabled\:bg-\[\#A3DDA1\] {
 html:not(.dark) button:disabled:not(.bg-\[\#1E6C02\]):not(.disabled\:bg-\[\#A3DDA1\]),
 html:not(.dark) button[disabled]:not(.bg-\[\#1E6C02\]):not(.disabled\:bg-\[\#A3DDA1\]) {
   background-color: #F3F4F6 !important;
-  color: #4B5563 !important; /* Strong charcoal text */
+  color: #1F2937 !important; /* Strong text */
   border: 1px solid #D1D5DB !important;
 }
 
@@ -466,7 +848,7 @@ html:not(.dark) button[disabled]:not(.bg-\[\#1E6C02\]):not(.disabled\:bg-\[\#A3D
   color: #FFFFFF !important;
 }
 
-/* Typography contrast and readability overrides - ABSOLUTELY NO GRAY TEXT FOR SENSITIVE LABELS */
+/* Typography contrast and readability overrides - ABSOLUTELY NO GRAY TEXT FOR READABLE CONTENT */
 .dark #admin-layout-container .text-black,
 .dark #admin-layout-container .text-gray-950,
 .dark #admin-layout-container .text-gray-900,
@@ -485,7 +867,7 @@ html:not(.dark) button[disabled]:not(.bg-\[\#1E6C02\]):not(.disabled\:bg-\[\#A3D
 .dark #admin-layout-container h3,
 .dark #admin-layout-container h4,
 .dark #admin-layout-container th,
-.dark #admin-layout-container .font-extrabold {
+.dark #admin-layout-container .font-extrabold:not(button):not(button *) {
   color: #FFFFFF !important; /* Pure high-contrast white headings */
 }
 
@@ -505,13 +887,13 @@ html:not(.dark) button[disabled]:not(.bg-\[\#1E6C02\]):not(.disabled\:bg-\[\#A3D
 .dark .text-slate-650,
 .dark .text-slate-600,
 .dark .text-slate-550,
-.dark #admin-layout-container p,
-.dark #admin-layout-container label,
-.dark #admin-layout-container td,
-.dark p,
-.dark label,
-.dark td {
-  color: #F9FAFB !important; /* Ultra high-contrast near-white text for elderly users */
+.dark #admin-layout-container p:not(button *):not([class*="text-emerald"]):not([class*="text-red"]):not([class*="text-amber"]):not([class*="text-blue"]):not([class*="text-rose"]):not([class*="text-green"]):not([class*="text-purple"]),
+.dark #admin-layout-container label:not(button *),
+.dark #admin-layout-container td:not(:has(button)):not([class*="text-emerald"]):not([class*="text-red"]):not([class*="text-amber"]):not([class*="text-blue"]):not([class*="text-rose"]):not([class*="text-green"]):not([class*="text-purple"]),
+.dark p:not(button *):not([class*="text-emerald"]):not([class*="text-red"]):not([class*="text-amber"]):not([class*="text-blue"]):not([class*="text-rose"]):not([class*="text-green"]):not([class*="text-purple"]),
+.dark label:not(button *),
+.dark td:not(:has(button)):not([class*="text-emerald"]):not([class*="text-red"]):not([class*="text-amber"]):not([class*="text-blue"]):not([class*="text-rose"]):not([class*="text-green"]):not([class*="text-purple"]) {
+  color: #FFFFFF !important; /* Pure high-contrast white text - NO GRAY */
 }
 
 .dark #admin-layout-container .text-gray-500,
@@ -531,7 +913,7 @@ html:not(.dark) button[disabled]:not(.bg-\[\#1E6C02\]):not(.disabled\:bg-\[\#A3D
 .dark .text-gray-500,
 .dark .text-slate-400,
 .dark .text-slate-500 {
-  color: #E5E7EB !important; /* Bright light gray for captions and minor text (replaces low contrast gray) */
+  color: #FFFFFF !important; /* Pure white text - NO GRAY */
 }
 
 /* Calendar widget & Notification Badge readability */
@@ -1050,7 +1432,7 @@ html:not(.dark) button[disabled]:not(.bg-\[\#1E6C02\]):not(.disabled\:bg-\[\#A3D
 .dark [id*="dialog"] td:not([class*="text-green"]):not([class*="text-red"]):not([class*="text-emerald"]):not([class*="text-amber"]):not([class*="text-orange"]):not([class*="text-blue"]):not([class*="text-rose"]):not([class*="text-yellow"]),
 .dark [id*="dialog"] span:not([class*="text-green"]):not([class*="text-red"]):not([class*="text-emerald"]):not([class*="text-amber"]):not([class*="text-orange"]):not([class*="text-blue"]):not([class*="text-[#1E6C02]"]):not([class*="text-rose"]):not([class*="text-yellow"]),
 .dark [id*="dialog"] div:not([class*="text-green"]):not([class*="text-red"]):not([class*="text-emerald"]):not([class*="text-amber"]):not([class*="text-orange"]):not([class*="text-blue"]):not([class*="text-[#1E6C02]"]):not([class*="text-rose"]):not([class*="text-yellow"]):not([class*="bg-green"]):not([class*="bg-red"]):not([class*="bg-emerald"]):not([class*="bg-amber"]):not([class*="bg-orange"]):not([class*="bg-blue"]):not([class*="bg-rose"]):not([class*="bg-yellow"]) {
-  color: rgba(255, 255, 255, 0.92) !important;
+  color: #FFFFFF !important;
 }
 
 /* Override all hardcoded Tailwind text-gray and text-black classes inside modals, turning them into pure White */
@@ -1563,10 +1945,42 @@ html.dark:has(#admin-layout-container),
    ========================================================================== */
 
 /* 1. Checkout & Reservation (Delivery Method buttons) */
+html:not(.dark) #div-del,
+html:not(.dark) #div-pic {
+  background-color: #FFFFFF !important;
+  border: 1.5px solid #E5E7EB !important;
+  color: #111827 !important;
+  transition: all 0.2s ease-in-out !important;
+}
+html:not(.dark) #div-del label,
+html:not(.dark) #div-pic label,
+html:not(.dark) #div-del span,
+html:not(.dark) #div-pic span {
+  color: #111827 !important;
+}
+html:not(.dark) #div-del:hover,
+html:not(.dark) #div-pic:hover {
+  background-color: #F0FDF4 !important;
+  border-color: #1E6C02 !important;
+}
+html:not(.dark) #div-del:hover label,
+html:not(.dark) #div-pic:hover label,
+html:not(.dark) #div-del:hover span,
+html:not(.dark) #div-pic:hover span {
+  color: #000000 !important;
+}
+html:not(.dark) #div-del:has(input:checked),
+html:not(.dark) #div-pic:has(input:checked) {
+  background-color: #F4FAF3 !important;
+  border: 2px solid #1E6C02 !important;
+}
+
 .dark #div-del,
 .dark #div-pic {
-  background-color: transparent !important;
-  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  background-color: #1E293B !important;
+  border: 1.5px solid #334155 !important;
+  color: #FFFFFF !important;
+  transition: all 0.2s ease-in-out !important;
 }
 .dark #div-del label,
 .dark #div-pic label,
@@ -1576,36 +1990,130 @@ html.dark:has(#admin-layout-container),
 .dark #div-pic svg {
   color: #FFFFFF !important;
 }
+.dark #div-del:hover,
+.dark #div-pic:hover {
+  background-color: #334155 !important;
+  border-color: #10B981 !important;
+}
+.dark #div-del:hover label,
+.dark #div-pic:hover label,
+.dark #div-del:hover span,
+.dark #div-pic:hover span {
+  color: #FFFFFF !important;
+}
 .dark #div-del:has(input:checked),
 .dark #div-pic:has(input:checked) {
-  background-color: #1E6C02 !important;
-  border-color: #1E6C02 !important;
+  background-color: #064E3B !important;
+  border: 2px solid #10B981 !important;
 }
-.dark #div-del:not(:has(input:checked)):hover,
-.dark #div-pic:not(:has(input:checked)):hover {
-  background-color: rgba(255, 255, 255, 0.08) !important;
+.dark #div-del:has(input:checked):hover,
+.dark #div-pic:has(input:checked):hover {
+  background-color: #047857 !important;
+  border-color: #34D399 !important;
 }
 
-/* 2. Payment Method (GCash, Cash) */
+/* 2. Payment Method (GCash, Cash, Reserve Without Payment) */
+html:not(.dark) #div-pm-gcash,
+html:not(.dark) #div-pm-cash,
+html:not(.dark) #div-pm-none {
+  background-color: #FFFFFF !important;
+  border: 1.5px solid #E5E7EB !important;
+  color: #111827 !important;
+  transition: all 0.2s ease-in-out !important;
+}
+html:not(.dark) #div-pm-gcash label,
+html:not(.dark) #div-pm-cash label,
+html:not(.dark) #div-pm-none label,
+html:not(.dark) #div-pm-gcash span,
+html:not(.dark) #div-pm-cash span,
+html:not(.dark) #div-pm-none span {
+  color: #111827 !important;
+}
+html:not(.dark) #div-pm-gcash:hover,
+html:not(.dark) #div-pm-cash:hover,
+html:not(.dark) #div-pm-none:hover {
+  background-color: #F0FDF4 !important;
+  border-color: #1E6C02 !important;
+}
+html:not(.dark) #div-pm-gcash:hover label,
+html:not(.dark) #div-pm-cash:hover label,
+html:not(.dark) #div-pm-none:hover label,
+html:not(.dark) #div-pm-gcash:hover span,
+html:not(.dark) #div-pm-cash:hover span,
+html:not(.dark) #div-pm-none:hover span {
+  color: #000000 !important;
+}
+html:not(.dark) #div-pm-gcash:has(input:checked),
+html:not(.dark) #div-pm-cash:has(input:checked),
+html:not(.dark) #div-pm-none:has(input:checked) {
+  background-color: #F4FAF3 !important;
+  border: 2px solid #1E6C02 !important;
+}
+
 .dark #div-pm-gcash,
-.dark #div-pm-cash {
-  background-color: transparent !important;
-  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+.dark #div-pm-cash,
+.dark #div-pm-none {
+  background-color: #1E293B !important;
+  border: 1.5px solid #334155 !important;
+  color: #FFFFFF !important;
+  transition: all 0.2s ease-in-out !important;
 }
 .dark #div-pm-gcash label,
 .dark #div-pm-cash label,
+.dark #div-pm-none label,
 .dark #div-pm-gcash span,
-.dark #div-pm-cash span {
+.dark #div-pm-cash span,
+.dark #div-pm-none span {
+  color: #FFFFFF !important;
+}
+.dark #div-pm-gcash:hover,
+.dark #div-pm-cash:hover,
+.dark #div-pm-none:hover {
+  background-color: #334155 !important;
+  border-color: #10B981 !important;
+}
+.dark #div-pm-gcash:hover label,
+.dark #div-pm-cash:hover label,
+.dark #div-pm-none:hover label,
+.dark #div-pm-gcash:hover span,
+.dark #div-pm-cash:hover span,
+.dark #div-pm-none:hover span {
   color: #FFFFFF !important;
 }
 .dark #div-pm-gcash:has(input:checked),
-.dark #div-pm-cash:has(input:checked) {
-  background-color: #1E6C02 !important;
-  border-color: #1E6C02 !important;
+.dark #div-pm-cash:has(input:checked),
+.dark #div-pm-none:has(input:checked) {
+  background-color: #064E3B !important;
+  border: 2px solid #10B981 !important;
 }
-.dark #div-pm-gcash:not(:has(input:checked)):hover,
-.dark #div-pm-cash:not(:has(input:checked)):hover {
-  background-color: rgba(255, 255, 255, 0.08) !important;
+.dark #div-pm-gcash:has(input:checked):hover,
+.dark #div-pm-cash:has(input:checked):hover,
+.dark #div-pm-none:has(input:checked):hover {
+  background-color: #047857 !important;
+  border-color: #34D399 !important;
+}
+
+/* Out of Stock Notice container */
+.dark #out-of-stock-notice-container {
+  background-color: #1E293B !important;
+  border-color: #3B82F6 !important;
+}
+.dark #out-of-stock-notice-container * {
+  color: #FFFFFF !important;
+}
+
+/* Quantity buttons & browse files */
+html:not(.dark) #btn-qty-dec:hover,
+html:not(.dark) #btn-qty-inc:hover {
+  background-color: #E5E7EB !important;
+  border-color: #9CA3AF !important;
+  color: #000000 !important;
+}
+.dark #btn-qty-dec:hover,
+.dark #btn-qty-inc:hover {
+  background-color: #475569 !important;
+  border-color: #64748B !important;
+  color: #FFFFFF !important;
 }
 
 /* 3. Store Pickup Location Box */
@@ -1698,27 +2206,174 @@ html.dark:has(#admin-layout-container),
   color: #FFFFFF !important;
 }
 
-/* 8. Notifications Dropdown Panel */
+/* 8. Customer Notifications Dropdown Panel, Items, Hover & Read/Unread States */
+#customer-notif-dropdown {
+  background-color: #FFFFFF;
+}
+
 .dark #customer-notif-dropdown {
   background-color: #0F172A !important;
-  border-color: rgba(255, 255, 255, 0.2) !important;
+  border-color: #334155 !important;
 }
-.dark #customer-notif-dropdown * {
+
+/* Day Mode Notification Item states */
+html:not(.dark) #customer-notif-list > .notif-item-read,
+html:not(.dark) #admin-notif-list > .notif-item-read {
+  background-color: #FFFFFF !important;
+  border-left: 4px solid transparent !important;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+html:not(.dark) #customer-notif-list > .notif-item-read:hover,
+html:not(.dark) #admin-notif-list > .notif-item-read:hover {
+  background-color: #F1F5F9 !important; /* Visible light slate highlight */
+  border-left-color: #94A3B8 !important;
+}
+
+html:not(.dark) #customer-notif-list > .notif-item-unread,
+html:not(.dark) #admin-notif-list > .notif-item-unread {
+  background-color: #F0FDF4 !important; /* Emerald-50 tint */
+  border-left: 4px solid #1E6C02 !important;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+html:not(.dark) #customer-notif-list > .notif-item-unread:hover,
+html:not(.dark) #admin-notif-list > .notif-item-unread:hover {
+  background-color: #DCFCE7 !important; /* Visible active emerald-100 highlight */
+  border-left-color: #145001 !important;
+}
+
+/* Dark Mode Notification Item states */
+.dark #customer-notif-list > .notif-item-read,
+.dark #admin-notif-list > .notif-item-read {
+  background-color: #0F172A !important;
+  border-left: 4px solid transparent !important;
+  border-bottom: 1px solid #1E293B !important;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+.dark #customer-notif-list > .notif-item-read:hover,
+.dark #admin-notif-list > .notif-item-read:hover {
+  background-color: #1E293B !important; /* Clearly visible elevated slate-800 highlight */
+  border-left-color: #64748B !important;
+}
+
+.dark #customer-notif-list > .notif-item-unread,
+.dark #admin-notif-list > .notif-item-unread {
+  background-color: rgba(6, 78, 59, 0.32) !important; /* Rich deep emerald tint */
+  border-left: 4px solid #10B981 !important;
+  border-bottom: 1px solid #1E293B !important;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+.dark #customer-notif-list > .notif-item-unread:hover,
+.dark #admin-notif-list > .notif-item-unread:hover {
+  background-color: rgba(6, 78, 59, 0.65) !important; /* Elevated deep emerald highlight */
+  border-left-color: #34D399 !important;
+}
+
+/* Text readability in dark mode */
+.dark #customer-notif-list .notif-item-read h5,
+.dark #admin-notif-list .notif-item-read h5 {
+  color: #E2E8F0 !important;
+}
+.dark #customer-notif-list .notif-item-unread h5,
+.dark #admin-notif-list .notif-item-unread h5 {
   color: #FFFFFF !important;
 }
-.dark #customer-notif-list > div {
-  background-color: #111827 !important;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+.dark #customer-notif-list .notif-item-read p,
+.dark #admin-notif-list .notif-item-read p {
+  color: #CBD5E1 !important;
 }
-.dark #customer-notif-list > div:hover {
-  background-color: rgba(255, 255, 255, 0.08) !important;
+.dark #customer-notif-list .notif-item-unread p,
+.dark #admin-notif-list .notif-item-unread p {
+  color: #F8FAFC !important;
 }
-.dark #customer-notif-list > div.bg-green-50\/10 {
-  background-color: rgba(30, 108, 2, 0.15) !important;
+
+/* Day Mode Text Readability */
+html:not(.dark) #customer-notif-list .notif-item-read h5,
+html:not(.dark) #admin-notif-list .notif-item-read h5 {
+  color: #1E293B !important;
 }
-.dark #customer-notif-list .w-8.h-8 {
-  background-color: #1F2937 !important;
-  border-color: rgba(255, 255, 255, 0.2) !important;
+html:not(.dark) #customer-notif-list .notif-item-unread h5,
+html:not(.dark) #admin-notif-list .notif-item-unread h5 {
+  color: #0F172A !important;
+}
+html:not(.dark) #customer-notif-list .notif-item-read p,
+html:not(.dark) #admin-notif-list .notif-item-read p {
+  color: #334155 !important;
+}
+html:not(.dark) #customer-notif-list .notif-item-unread p,
+html:not(.dark) #admin-notif-list .notif-item-unread p {
+  color: #0F172A !important;
+}
+
+/* Dark Mode Icon Badges Container */
+.dark #customer-notif-list .w-8.h-8,
+.dark #admin-notif-list .w-8.h-8 {
+  background-color: #1E293B !important;
+  border-color: #334155 !important;
+}
+
+/* Filter buttons in Day Mode and Dark Mode */
+.customer-notif-filter-btn.notif-filter-active,
+.admin-notif-filter-btn.notif-filter-active {
+  background-color: #1E6C02 !important;
+  border-color: #1E6C02 !important;
+  color: #FFFFFF !important;
+}
+.dark .customer-notif-filter-btn.notif-filter-active,
+.dark .admin-notif-filter-btn.notif-filter-active {
+  background-color: #059669 !important;
+  border-color: #10B981 !important;
+  color: #FFFFFF !important;
+}
+html:not(.dark) .customer-notif-filter-btn:not(.notif-filter-active),
+html:not(.dark) .admin-notif-filter-btn:not(.notif-filter-active) {
+  background-color: #FFFFFF !important;
+  border-color: #D1D5DB !important;
+  color: #1E293B !important;
+}
+html:not(.dark) .customer-notif-filter-btn:not(.notif-filter-active):hover,
+html:not(.dark) .admin-notif-filter-btn:not(.notif-filter-active):hover {
+  background-color: #F3F4F6 !important;
+  border-color: #9CA3AF !important;
+  color: #000000 !important;
+}
+.dark .customer-notif-filter-btn:not(.notif-filter-active),
+.dark .admin-notif-filter-btn:not(.notif-filter-active) {
+  background-color: #1E293B !important;
+  border-color: #334155 !important;
+  color: #E2E8F0 !important;
+}
+.dark .customer-notif-filter-btn:not(.notif-filter-active):hover,
+.dark .admin-notif-filter-btn:not(.notif-filter-active):hover {
+  background-color: #334155 !important;
+  border-color: #64748B !important;
+  color: #FFFFFF !important;
+}
+
+/* Mark as Read button styling in Day Mode and Dark Mode */
+html:not(.dark) #admin-notif-list .btn-mark-read,
+html:not(.dark) #customer-notif-list .btn-mark-read {
+  background-color: #FFFFFF !important;
+  color: #1E6C02 !important;
+  border-color: #86EFAC !important;
+}
+html:not(.dark) #admin-notif-list .btn-mark-read:hover,
+html:not(.dark) #customer-notif-list .btn-mark-read:hover {
+  background-color: #1E6C02 !important;
+  color: #FFFFFF !important;
+  border-color: #1E6C02 !important;
+}
+
+.dark #admin-notif-list .btn-mark-read,
+.dark #customer-notif-list .btn-mark-read {
+  background-color: #1E293B !important;
+  color: #34D399 !important;
+  border-color: #047857 !important;
+}
+.dark #admin-notif-list .btn-mark-read:hover,
+.dark #customer-notif-list .btn-mark-read:hover {
+  background-color: #059669 !important;
+  color: #FFFFFF !important;
+  border-color: #10B981 !important;
 }
 
 /* 9. My Purchases Category Tabs */
@@ -2282,6 +2937,120 @@ html:not(.dark) #customer-logout-confirm-dialog #confirm-customer-logout-btn:hov
   box-shadow: 0 4px 14px rgba(239, 68, 68, 0.42) !important;
 }
 
+/* ==========================================================================
+   CUSTOMER SEARCH BAR & CUSTOMER PORTAL READABILITY (DAY MODE & DARK MODE)
+   ========================================================================== */
+html:not(.dark) #top-search-input,
+html:not(.dark) #mobile-search-input,
+html:not(.dark) #reviews-search,
+html:not(.dark) #contact-form input,
+html:not(.dark) #contact-form select,
+html:not(.dark) #contact-form textarea,
+html:not(.dark) #review-form input,
+html:not(.dark) #review-form select,
+html:not(.dark) #review-form textarea,
+html:not(.dark) #inp-qty {
+  color: #111827 !important;
+}
 
+html:not(.dark) #top-search-input::placeholder,
+html:not(.dark) #mobile-search-input::placeholder,
+html:not(.dark) #reviews-search::placeholder,
+html:not(.dark) #contact-form input::placeholder,
+html:not(.dark) #contact-form textarea::placeholder,
+html:not(.dark) #review-form input::placeholder,
+html:not(.dark) #review-form textarea::placeholder {
+  color: #111827 !important;
+  opacity: 0.8 !important;
+}
 
+.dark #top-search-input,
+.dark #mobile-search-input,
+.dark #reviews-search,
+.dark #contact-form input,
+.dark #contact-form select,
+.dark #contact-form textarea,
+.dark #review-form input,
+.dark #review-form select,
+.dark #review-form textarea,
+.dark #inp-qty {
+  color: #FFFFFF !important;
+}
 
+.dark #top-search-input::placeholder,
+.dark #mobile-search-input::placeholder,
+.dark #reviews-search::placeholder,
+.dark #contact-form input::placeholder,
+.dark #contact-form textarea::placeholder,
+.dark #review-form input::placeholder,
+.dark #review-form textarea::placeholder {
+  color: #FFFFFF !important;
+  opacity: 0.85 !important;
+}
+
+html:not(.dark) #navbar-container .relative svg,
+html:not(.dark) #mobile-drawer .relative svg,
+html:not(.dark) #top-search-clear,
+html:not(.dark) #mobile-search-clear {
+  color: #111827 !important;
+}
+
+.dark #navbar-container .relative svg,
+.dark #mobile-drawer .relative svg,
+.dark #top-search-clear,
+.dark #mobile-search-clear {
+  color: #FFFFFF !important;
+}
+
+/* ==========================================================================
+   CHECKOUT SUCCESS SCREEN POSITION & CONTINUE SHOPPING BUTTON HOVER
+   ========================================================================== */
+#success-splash {
+  scroll-margin-top: 1rem;
+}
+
+/* Day Mode Continue Shopping button - ensure visible interactive contrast, never turn white */
+html:not(.dark) #success-splash a[href*="products.html"],
+html:not(.dark) #success-splash a:not([class*="bg-[#1E6C02]"]):not([class*="bg-emerald"]) {
+  background-color: #F3F4F6 !important;
+  border: 2px solid #D1D5DB !important;
+  color: #111827 !important;
+}
+
+html:not(.dark) #success-splash a[href*="products.html"]:hover,
+html:not(.dark) #success-splash a:not([class*="bg-[#1E6C02]"]):not([class*="bg-emerald"]):hover {
+  background-color: #E5E7EB !important; /* Visible light-gray interactive hover - definitely NOT white */
+  border-color: #9CA3AF !important;
+  color: #000000 !important;
+}
+
+/* Dark Mode Continue Shopping button - ensure visible interactive contrast, never turn white */
+html.dark #success-splash a[href*="products.html"],
+html.dark #success-splash a:not([class*="bg-[#1E6C02]"]):not([class*="bg-emerald"]),
+.dark #success-splash a[href*="products.html"],
+.dark #success-splash a:not([class*="bg-[#1E6C02]"]):not([class*="bg-emerald"]) {
+  background-color: #1E293B !important;
+  border: 2px solid #334155 !important;
+  color: #FFFFFF !important;
+}
+
+html.dark #success-splash a[href*="products.html"]:hover,
+html.dark #success-splash a:not([class*="bg-[#1E6C02]"]):not([class*="bg-emerald"]):hover,
+.dark #success-splash a[href*="products.html"]:hover,
+.dark #success-splash a:not([class*="bg-[#1E6C02]"]):not([class*="bg-emerald"]):hover {
+  background-color: #334155 !important; /* Visible elevated dark slate hover - definitely NOT white */
+  border-color: #64748B !important;
+  color: #FFFFFF !important;
+}
+
+/* High-contrast View My Orders button in success splash */
+#success-splash a[href*="profile.html"],
+#success-splash a.bg-\[\#1E6C02\] {
+  background-color: #1E6C02 !important;
+  color: #FFFFFF !important;
+}
+#success-splash a[href*="profile.html"]:hover,
+#success-splash a.bg-\[\#1E6C02\]:hover {
+  background-color: #145001 !important;
+  color: #FFFFFF !important;
+}

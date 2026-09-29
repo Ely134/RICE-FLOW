@@ -47,7 +47,7 @@
 <body class="bg-[#F5F5F7] min-h-screen font-sans">
   <div id="auth-guard-loader" class="fixed inset-0 bg-[#F5F5F5] z-[99999] flex flex-col items-center justify-center font-sans">
     <div class="w-9 h-9 border-3 border-[#1E6C02]/20 border-t-[#1E6C02] rounded-full animate-spin mb-3"></div>
-    <p class="text-xs font-semibold text-gray-700">Verifying account access...</p>
+    <p class="text-xs font-semibold text-gray-900 dark:text-gray-100">Verifying account access...</p>
   </div>
 
   <!-- Dynamic Header Bar -->
@@ -57,34 +57,34 @@
   <main class="py-8 max-w-[1240px] mx-auto px-4 sm:px-6 lg:px-8 min-h-screen">
     
     <!-- SUBMISSION CONFIRMATION SPLASH -->
-    <div id="success-splash" class="hidden max-w-2xl mx-auto bg-white rounded-[24px] p-12 text-center border border-gray-100 shadow-2xl animate-in fade-in zoom-in-95 duration-300">
-      <div id="success-queue-badge" class="h-20 w-20 bg-amber-50 text-amber-700 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner border border-amber-200">
+    <div id="success-splash" class="hidden max-w-2xl mx-auto bg-white dark:bg-slate-900 rounded-[24px] p-12 text-center border border-gray-100 dark:border-slate-800 shadow-2xl animate-in fade-in zoom-in-95 duration-300">
+      <div id="success-queue-badge" class="h-20 w-20 bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner border border-amber-200 dark:border-amber-800">
         <span class="text-2xl font-black">#1</span>
       </div>
-      <h2 class="text-3xl font-black text-[#222222] mb-3 tracking-tight">Order Submitted Successfully!</h2>
-      <p class="text-gray-500 font-bold text-sm leading-relaxed max-w-md mx-auto mb-6">
+      <h2 class="text-3xl font-black text-[#111827] dark:text-white mb-3 tracking-tight">Order Submitted Successfully!</h2>
+      <p class="text-gray-900 dark:text-gray-100 font-bold text-sm leading-relaxed max-w-md mx-auto mb-6">
         Your order has been received and is now waiting for processing.
       </p>
 
-      <div class="bg-amber-50 border border-amber-200 rounded-2xl p-5 mb-8 max-w-md mx-auto text-left space-y-2.5 text-xs font-semibold text-amber-900">
-        <p class="font-extrabold text-[#7A4B00] text-sm border-b pb-1.5">📋 Reservation Receipt Logged</p>
+      <div class="bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 rounded-2xl p-5 mb-8 max-w-md mx-auto text-left space-y-2.5 text-xs font-semibold text-amber-950 dark:text-amber-100">
+        <p class="font-extrabold text-[#7A4B00] dark:text-amber-300 text-sm border-b border-amber-200 dark:border-amber-800 pb-1.5">📋 Reservation Receipt Logged</p>
         <div class="grid grid-cols-2 gap-y-2 pt-1 font-bold">
-          <span class="text-amber-700">Queue Position:</span>
-          <span class="text-gray-900 text-right" id="success-queue-pos">Queue Position #1</span>
+          <span class="text-amber-900 dark:text-amber-200">Queue Position:</span>
+          <span class="text-gray-950 dark:text-white text-right" id="success-queue-pos">Queue Position #1</span>
 
-          <span class="text-amber-700">Reservation Date:</span>
-          <span class="text-gray-900 text-right" id="success-date">June 19, 2026</span>
+          <span class="text-amber-900 dark:text-amber-200">Reservation Date:</span>
+          <span class="text-gray-950 dark:text-white text-right" id="success-date">June 19, 2026</span>
 
-          <span class="text-amber-700" id="success-est-label">Estimated Delivery:</span>
-          <span class="text-gray-900 text-right" id="success-est-avail">Waiting for Restock</span>
+          <span class="text-amber-900 dark:text-amber-200" id="success-est-label">Estimated Delivery:</span>
+          <span class="text-gray-950 dark:text-white text-right" id="success-est-avail">Waiting for Restock</span>
 
-          <span class="text-amber-700">Status:</span>
-          <span class="text-right text-orange-600 uppercase font-black tracking-wider" id="success-status">Pending Reservation</span>
+          <span class="text-amber-900 dark:text-amber-200">Status:</span>
+          <span class="text-right text-orange-700 dark:text-orange-300 uppercase font-black tracking-wider" id="success-status">Pending Reservation</span>
         </div>
       </div>
 
       <div class="flex flex-col sm:flex-row gap-4 justify-center">
-        <a href="products.html" class="px-6 h-12 flex items-center justify-center border border-gray-200 text-gray-700 font-bold rounded-2xl hover:bg-gray-50 transition-all cursor-pointer">Continue Shopping</a>
+        <a href="products.html" class="px-6 h-12 flex items-center justify-center border-2 border-gray-300 dark:border-slate-700 bg-gray-50/80 dark:bg-slate-800 text-gray-900 dark:text-gray-100 font-bold rounded-2xl hover:bg-gray-200 dark:hover:bg-slate-700 hover:border-gray-400 dark:hover:border-slate-600 hover:text-black dark:hover:text-white transition-all cursor-pointer">Continue Shopping</a>
         <a href="profile.html" class="px-6 h-12 flex items-center justify-center bg-[#1E6C02] text-white font-bold rounded-2xl hover:bg-[#145001] transition-all shadow-lg hover:shadow-xl cursor-pointer">View My Orders</a>
       </div>
     </div>
@@ -118,7 +118,7 @@
                   </div>
                   <div class="text-left">
                     <h4 id="p-name" class="font-extrabold text-sm sm:text-base text-black dark:text-gray-100 leading-tight">Hope 160 Rice</h4>
-                    <p class="text-xs text-gray-400 font-semibold mt-1">25 kg</p>
+                    <p class="text-xs text-gray-800 dark:text-gray-200 font-semibold mt-1">25 kg</p>
                     
                     <div class="mt-2 text-left flex items-center gap-3">
                       <span id="p-price" class="text-[#1E6C02] dark:text-emerald-400 font-black underline decoration-2 underline-offset-4 text-base">
@@ -131,15 +131,15 @@
 
                 <!-- Interactive Qty Adjusters -->
                 <div class="flex items-center gap-2.5 shrink-0 select-none bg-gray-50 dark:bg-slate-800 p-1 rounded-xl border border-gray-200 dark:border-slate-700 self-end sm:self-center">
-                  <button type="button" id="btn-qty-dec" class="w-8 h-8 rounded-lg bg-white dark:bg-slate-700 hover:bg-gray-100 dark:hover:bg-slate-600 flex items-center justify-center font-bold text-gray-600 dark:text-gray-200 border border-gray-200 dark:border-slate-600 shadow-xs transition-colors cursor-pointer">-</button>
-                  <span id="qty-val" class="w-8 text-center font-black text-sm text-[#222222] dark:text-gray-100">x1</span>
-                  <button type="button" id="btn-qty-inc" class="w-8 h-8 rounded-lg bg-white dark:bg-slate-700 hover:bg-gray-100 dark:hover:bg-slate-600 flex items-center justify-center font-bold text-gray-600 dark:text-gray-200 border border-gray-200 dark:border-slate-600 shadow-xs transition-colors cursor-pointer">+</button>
+                  <button type="button" id="btn-qty-dec" class="w-8 h-8 rounded-lg bg-white dark:bg-slate-700 hover:bg-gray-100 dark:hover:bg-slate-600 flex items-center justify-center font-bold text-gray-900 dark:text-gray-100 border border-gray-200 dark:border-slate-600 shadow-xs transition-colors cursor-pointer">-</button>
+                  <span id="qty-val" class="w-8 text-center font-black text-sm text-[#111827] dark:text-white">x1</span>
+                  <button type="button" id="btn-qty-inc" class="w-8 h-8 rounded-lg bg-white dark:bg-slate-700 hover:bg-gray-100 dark:hover:bg-slate-600 flex items-center justify-center font-bold text-gray-900 dark:text-gray-100 border border-gray-200 dark:border-slate-600 shadow-xs transition-colors cursor-pointer">+</button>
                 </div>
               </div>
 
               <!-- Reservation informational alert banner -->
               <div class="bg-[#FFF3E0] dark:bg-amber-950/40 border border-[#FFCC80] dark:border-amber-800/50 rounded-2xl p-4.5 text-left">
-                <p class="text-sm sm:text-[15px] font-normal leading-relaxed flex items-start gap-2.5 text-black dark:text-gray-200">
+                <p class="text-sm sm:text-[15px] font-medium leading-relaxed flex items-start gap-2.5 text-gray-950 dark:text-gray-100">
                   <span class="text-base select-none shrink-0">⚠️</span>
                   <span>This product is currently unavailable. You may reserve this item, and your order will be placed in the queue once confirmed by the admin.</span>
                 </p>
@@ -149,7 +149,7 @@
             <!-- Delivery Method Card -->
             <div class="bg-white dark:bg-slate-900 rounded-[24px] p-6 border border-gray-100 dark:border-slate-800 shadow-sm space-y-5 text-left">
               <div class="flex items-center gap-2 pb-1 border-b border-gray-50 dark:border-slate-800">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-5 h-5 text-gray-500 dark:text-gray-400"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-5 h-5 text-[#1E6C02] dark:text-emerald-400"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
                 <h3 class="text-base font-bold text-gray-900 dark:text-gray-100">Delivery Method</h3>
               </div>
 
@@ -157,8 +157,8 @@
                 <!-- Option 1: Delivery -->
                 <div id="div-del" class="flex items-center space-x-3 rounded-2xl p-4 border border-[#1E6C02] cursor-pointer bg-[#F8FAF8] dark:bg-emerald-950/40 transition-all">
                   <input type="radio" value="delivery" name="delivery-radio" id="rad-delivery" checked class="h-4 w-4 text-[#1E6C02] focus:ring-[#1E6C02]" />
-                  <label for="rad-delivery" class="font-bold text-gray-800 dark:text-gray-200 flex items-center gap-2 cursor-pointer flex-1 text-sm select-none">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-4 h-4 text-[#1E6C02]"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
+                  <label for="rad-delivery" class="font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2 cursor-pointer flex-1 text-sm select-none">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-4 h-4 text-[#1E6C02] dark:text-emerald-400"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
                     <span>Delivery (₱80)</span>
                   </label>
                 </div>
@@ -166,8 +166,8 @@
                 <!-- Option 2: Store Pickup -->
                 <div id="div-pic" class="flex items-center space-x-3 rounded-2xl p-4 border border-gray-200 dark:border-slate-700 cursor-pointer bg-white dark:bg-slate-800 transition-all hover:bg-gray-50 dark:hover:bg-slate-700">
                   <input type="radio" value="pickup" name="delivery-radio" id="rad-pickup" class="h-4 w-4 text-[#1E6C02] focus:ring-[#1E6C02]" />
-                  <label for="rad-pickup" class="font-bold text-gray-800 dark:text-gray-200 flex items-center gap-2 cursor-pointer flex-1 text-sm select-none">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-4 h-4 text-gray-400"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                  <label for="rad-pickup" class="font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2 cursor-pointer flex-1 text-sm select-none">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-4 h-4 text-[#1E6C02] dark:text-emerald-400"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
                     <span>Store Pickup (Free)</span>
                   </label>
                 </div>
@@ -185,31 +185,31 @@
               <div class="grid sm:grid-cols-2 gap-4">
                 <div class="space-y-1.5 text-left">
                   <div class="flex items-center justify-between">
-                    <label class="text-xs font-bold text-gray-950 dark:text-gray-200">Full Name</label>
+                    <label class="text-xs font-bold text-gray-950 dark:text-gray-100">Full Name</label>
                     <span class="bg-[#E2F9E5] text-[#1E6C02] dark:bg-emerald-950/60 dark:text-emerald-300 text-[9px] font-black px-1.5 py-0.5 rounded-md tracking-wider">SAVED INFO</span>
                   </div>
-                  <input required readonly type="text" name="fullName" id="inp-fullName" class="w-full bg-[#F5F5F7] dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-sm font-semibold text-gray-650 dark:text-gray-300 px-4 h-12 rounded-2xl outline-none transition-all placeholder-gray-400 dark:placeholder-gray-500 shadow-none cursor-not-allowed" />
+                  <input required readonly type="text" name="fullName" id="inp-fullName" class="w-full bg-[#F5F5F7] dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-sm font-semibold text-gray-900 dark:text-gray-100 px-4 h-12 rounded-2xl outline-none transition-all placeholder-gray-700 dark:placeholder-gray-300 shadow-none cursor-not-allowed" />
                 </div>
 
                 <div class="space-y-1.5 text-left">
                   <div class="flex items-center justify-between">
-                    <label class="text-xs font-bold text-gray-950 dark:text-gray-200">Contact Number</label>
+                    <label class="text-xs font-bold text-gray-950 dark:text-gray-100">Contact Number</label>
                     <span class="bg-[#E2F9E5] text-[#1E6C02] dark:bg-emerald-950/60 dark:text-emerald-300 text-[9px] font-black px-1.5 py-0.5 rounded-md tracking-wider">SAVED INFO</span>
                   </div>
-                  <input required readonly type="tel" name="phone" id="inp-phone" class="w-full bg-[#F5F5F7] dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-sm font-semibold text-gray-650 dark:text-gray-300 px-4 h-12 rounded-2xl outline-none transition-all placeholder-gray-400 dark:placeholder-gray-500 shadow-none cursor-not-allowed" />
+                  <input required readonly type="tel" name="phone" id="inp-phone" class="w-full bg-[#F5F5F7] dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-sm font-semibold text-gray-900 dark:text-gray-100 px-4 h-12 rounded-2xl outline-none transition-all placeholder-gray-700 dark:placeholder-gray-300 shadow-none cursor-not-allowed" />
                 </div>
               </div>
 
               <!-- Address Block -->
               <div id="address-container" class="space-y-1.5 text-left">
-                <label class="text-xs font-bold text-gray-950 dark:text-gray-200">Delivery Address</label>
-                <textarea required name="address" id="inp-address" rows="3" placeholder="House No., Street name, Barangay, Aurora, Zamboanga del Sur" class="w-full bg-[#F8F9FA] dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-sm font-medium text-[#222222] dark:text-gray-100 p-4 rounded-2xl outline-none focus:bg-white dark:focus:bg-slate-700 focus:ring-1 focus:ring-[#1E6C02] transition-all placeholder-gray-400 dark:placeholder-gray-500 shadow-none resize-none"></textarea>
+                <label class="text-xs font-bold text-gray-950 dark:text-gray-100">Delivery Address</label>
+                <textarea required name="address" id="inp-address" rows="3" placeholder="House No., Street name, Barangay, Aurora, Zamboanga del Sur" class="w-full bg-[#F8F9FA] dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-sm font-medium text-[#111827] dark:text-gray-100 p-4 rounded-2xl outline-none focus:bg-white dark:focus:bg-slate-700 focus:ring-1 focus:ring-[#1E6C02] transition-all placeholder-gray-700 dark:placeholder-gray-300 shadow-none resize-none"></textarea>
               </div>
 
               <!-- Additional special instructions field -->
               <div class="space-y-1.5 text-left">
-                <label class="text-xs font-semibold text-gray-600 dark:text-gray-400">Special Instructions (Optional)</label>
-                <input type="text" id="inp-notes" placeholder="Any special instructions for delivery" class="w-full bg-[#F8F9FA] dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-sm font-medium text-[#222222] dark:text-gray-100 px-4 h-12 rounded-2xl outline-none focus:bg-white dark:focus:bg-slate-700 focus:ring-1 focus:ring-[#1E6C02] transition-all placeholder-gray-400 dark:placeholder-gray-500 shadow-none" />
+                <label class="text-xs font-bold text-gray-900 dark:text-gray-100">Special Instructions (Optional)</label>
+                <input type="text" id="inp-notes" placeholder="Any special instructions for delivery" class="w-full bg-[#F8F9FA] dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-sm font-medium text-[#111827] dark:text-gray-100 px-4 h-12 rounded-2xl outline-none focus:bg-white dark:focus:bg-slate-700 focus:ring-1 focus:ring-[#1E6C02] transition-all placeholder-gray-700 dark:placeholder-gray-300 shadow-none" />
               </div>
 
               <!-- Pickup warehouse notification (Hidden initially) -->
@@ -217,11 +217,11 @@
                 <p class="font-black text-[#1E3A8A] dark:text-blue-300 flex items-center gap-2 text-base">
                   <span>🏪</span> Store Pick-Up Location
                 </p>
-                <div class="text-sm text-gray-700 dark:text-gray-300 font-semibold leading-relaxed pl-7 space-y-2">
-                  <div class="font-black text-gray-900 dark:text-gray-100 text-base">RiceFlow Local Grains Warehouse</div>
+                <div class="text-sm text-gray-900 dark:text-gray-100 font-semibold leading-relaxed pl-7 space-y-2">
+                  <div class="font-black text-gray-950 dark:text-white text-base">RiceFlow Local Grains Warehouse</div>
                   <div>Main Street, Aurora, Zamboanga del Sur.</div>
-                  <div class="pt-1 text-gray-650 dark:text-gray-400">
-                    Contact Number: <span class="font-bold text-gray-900 dark:text-gray-100 text-base">+63 912 345 6789</span>
+                  <div class="pt-1 text-gray-900 dark:text-gray-200">
+                    Contact Number: <span class="font-bold text-gray-950 dark:text-white text-base">+63 912 345 6789</span>
                   </div>
                 </div>
               </div>
@@ -255,14 +255,40 @@
                 </div>
               </div>
 
-              <div class="space-y-3">
-                <label class="text-xs font-bold text-gray-500 dark:text-gray-400 block">Choose Payment Option:</label>
+              <!-- Out of Stock No Payment Notice (Shown only for currently out-of-stock products) -->
+              <div id="out-of-stock-notice-container" class="hidden bg-[#EFF6FF] dark:bg-slate-800/95 border-2 border-[#93C5FD] dark:border-blue-700/80 rounded-2xl p-5 space-y-4">
+                <div class="flex items-start gap-3">
+                  <div class="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-950/70 border border-blue-200 dark:border-blue-800 flex items-center justify-center shrink-0 text-xl select-none">
+                    ⏱️
+                  </div>
+                  <div class="flex-1">
+                    <h4 class="text-sm font-extrabold uppercase tracking-wide text-[#1E3A8A] dark:text-blue-300">No Payment Required Now</h4>
+                    <p class="text-xs font-semibold text-gray-800 dark:text-gray-200 mt-0.5">Out-of-Stock Priority Reservation</p>
+                  </div>
+                  <span class="px-2.5 py-1 bg-emerald-100 dark:bg-emerald-950/60 text-[#1E6C02] dark:text-emerald-300 text-[11px] font-extrabold rounded-lg uppercase tracking-wider select-none">
+                    ₱0.00 Due Now
+                  </span>
+                </div>
+                <div class="bg-white/90 dark:bg-slate-900/90 border border-blue-100 dark:border-slate-700/70 rounded-xl p-4 space-y-2">
+                  <div class="flex items-center gap-2 text-xs font-bold text-[#1E6C02] dark:text-emerald-400">
+                    <span>✅</span>
+                    <span>No payment is collected or recorded for this reservation.</span>
+                  </div>
+                  <p class="text-xs sm:text-sm text-gray-800 dark:text-gray-200 font-medium leading-relaxed">
+                    Your reservation will be added to the queue in <strong>Waiting</strong> status. We will notify you when warehouse stock arrives. After we notify you, please send the required down payment within <strong>48 hours</strong> to secure your sacks.
+                  </p>
+                </div>
+              </div>
+
+              <!-- Payment Options Container (Shown for in-stock reservations) -->
+              <div id="payment-options-container" class="space-y-3">
+                <label class="text-xs font-bold text-gray-900 dark:text-gray-100 block">Choose Payment Option:</label>
                 
                 <div class="space-y-3">
                   <!-- option gcash -->
                   <div id="div-pm-gcash" class="flex items-center space-x-3 rounded-2xl p-4 border border-[#1E6C02] cursor-pointer bg-[#F8FAF8] dark:bg-emerald-950/40 transition-all">
                     <input type="radio" value="gcash" name="payment-radio" id="rad-pm-gcash" checked class="h-4 w-4 text-[#1E6C02] focus:ring-[#1E6C02]" />
-                    <label for="rad-pm-gcash" class="font-bold text-gray-800 dark:text-gray-200 flex items-center justify-between cursor-pointer flex-1 text-sm select-none">
+                    <label for="rad-pm-gcash" class="font-bold text-gray-900 dark:text-gray-100 flex items-center justify-between cursor-pointer flex-1 text-sm select-none">
                       <span class="flex items-center gap-2">📱 GCash</span>
                       <span class="text-[10px] text-[#1E6C02] dark:text-emerald-400 font-black uppercase tracking-wider">Full Payment Required</span>
                     </label>
@@ -271,31 +297,31 @@
                   <!-- option cash on delivery -->
                   <div id="div-pm-cash" class="flex items-center space-x-3 rounded-2xl p-4 border border-gray-200 dark:border-slate-700 cursor-pointer bg-white dark:bg-slate-800 transition-all hover:bg-gray-50 dark:hover:bg-slate-700">
                     <input type="radio" value="cash" name="payment-radio" id="rad-pm-cash" class="h-4 w-4 text-[#1E6C02] focus:ring-[#1E6C02]" />
-                    <label for="rad-pm-cash" class="font-bold text-gray-800 dark:text-gray-200 flex items-center justify-between cursor-pointer flex-1 text-sm select-none">
+                    <label for="rad-pm-cash" class="font-bold text-gray-900 dark:text-gray-100 flex items-center justify-between cursor-pointer flex-1 text-sm select-none">
                       <span class="flex items-center gap-2">💵 Cash Deposit (30%)</span>
-                      <span class="text-[10px] text-amber-600 dark:text-amber-400 font-extrabold uppercase tracking-wider">30% Down Payment Required</span>
+                      <span class="text-[10px] text-amber-700 dark:text-amber-300 font-extrabold uppercase tracking-wider">30% Down Payment Required</span>
                     </label>
                   </div>
 
                   <!-- option reserve without payment -->
                   <div id="div-pm-none" class="flex items-center space-x-3 rounded-2xl p-4 border border-gray-200 dark:border-slate-700 cursor-pointer bg-white dark:bg-slate-800 transition-all hover:bg-gray-50 dark:hover:bg-slate-700">
                     <input type="radio" value="none" name="payment-radio" id="rad-pm-none" class="h-4 w-4 text-[#1E6C02] focus:ring-[#1E6C02]" />
-                    <label for="rad-pm-none" class="font-bold text-gray-800 dark:text-gray-200 flex items-center justify-between cursor-pointer flex-1 text-sm select-none">
+                    <label for="rad-pm-none" class="font-bold text-gray-900 dark:text-gray-100 flex items-center justify-between cursor-pointer flex-1 text-sm select-none">
                       <span class="flex items-center gap-2">⏱️ Reserve Without Payment</span>
-                      <span class="text-[10px] text-blue-600 dark:text-blue-400 font-extrabold uppercase tracking-wider">Pay Later Upon Restock (48h)</span>
+                      <span class="text-[10px] text-blue-700 dark:text-blue-300 font-extrabold uppercase tracking-wider">Pay Later Upon Restock (48h)</span>
                     </label>
                   </div>
                 </div>
               </div>
 
-              <!-- GCash Visual QR Code and upload screenshot card -->
-              <div class="bg-white dark:bg-slate-900 rounded-[24px] border border-gray-150 dark:border-slate-800 p-5 space-y-5">
+              <!-- GCash Visual QR Code and upload screenshot card (Shown for in-stock reservations with payment) -->
+              <div id="payment-upload-card" class="bg-white dark:bg-slate-900 rounded-[24px] border border-gray-150 dark:border-slate-800 p-5 space-y-5">
                 <!-- Checkmark notification -->
                 <div class="flex gap-2 items-start bg-[#E2F9E5] dark:bg-emerald-950/50 border border-[#C6EFCE] dark:border-emerald-800/60 rounded-xl p-3 text-[#1E6C02] dark:text-emerald-300">
                   <span class="text-sm select-none">✅</span>
                   <div class="text-xs font-bold leading-relaxed">
                     <span id="payment-req-title">Full Payment Required</span>
-                    <p class="text-gray-600 dark:text-gray-300 font-medium mt-0.5" id="payment-req-desc">Please send the FULL payment amount via GCash and upload your screenshot for verification.</p>
+                    <p class="text-gray-900 dark:text-gray-100 font-semibold mt-0.5" id="payment-req-desc">Please send the FULL payment amount via GCash and upload your screenshot for verification.</p>
                   </div>
                 </div>
 
@@ -309,8 +335,8 @@
                       class="w-full h-full object-contain"
                     />
                   </div>
-                  <h5 class="text-sm font-bold text-gray-500 dark:text-gray-400">Account Name: <span class="text-gray-900 dark:text-gray-100 font-extrabold" id="gcash-account-name">Aurora Local Rice</span></h5>
-                  <p class="text-xs text-gray-500 dark:text-gray-400 font-bold mt-1">GCash Number: <span class="text-[#1E6C02] dark:text-emerald-400 font-black" id="gcash-number-lbl">0912 345 6789</span></p>
+                  <h5 class="text-sm font-bold text-gray-900 dark:text-gray-100">Account Name: <span class="text-gray-950 dark:text-white font-extrabold" id="gcash-account-name">Aurora Local Rice</span></h5>
+                  <p class="text-xs text-gray-900 dark:text-gray-100 font-bold mt-1">GCash Number: <span class="text-[#1E6C02] dark:text-emerald-400 font-black" id="gcash-number-lbl">0912 345 6789</span></p>
                   
                   <div class="mt-4 bg-[#E2F9E5] dark:bg-emerald-950/60 border border-[#C6EFCE] dark:border-emerald-800/60 py-2 px-4 rounded-xl inline-block">
                     <span class="text-xs font-extrabold text-[#1E6C02] dark:text-emerald-300" id="lbl-pay-amount">Amount to Pay: ₱1,430.00</span>
@@ -319,7 +345,7 @@
 
                 <!-- Screenshot dropbox zone -->
                 <div class="space-y-2">
-                  <label class="text-xs font-bold text-gray-900 dark:text-gray-200 block flex items-center gap-1.5">
+                  <label class="text-xs font-bold text-gray-900 dark:text-gray-100 block flex items-center gap-1.5">
                     <span>📎</span> Upload Payment Screenshot
                   </label>
                   
@@ -328,12 +354,12 @@
                     id="dropzone"
                     class="flex flex-col items-center justify-center w-full h-44 border-2 border-dashed border-[#C6EFCE] dark:border-slate-700 bg-white dark:bg-slate-800/90 rounded-2xl cursor-pointer hover:bg-emerald-50/10 dark:hover:bg-slate-700 transition-all text-center p-4 group"
                   >
-                    <div class="w-10 h-10 rounded-full bg-gray-50 dark:bg-slate-700 flex items-center justify-center mb-2 text-gray-400 dark:text-gray-300 group-hover:scale-105 transition-transform border border-gray-100 dark:border-slate-600">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-5 h-5 text-gray-500 dark:text-gray-300"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                    <div class="w-10 h-10 rounded-full bg-gray-50 dark:bg-slate-700 flex items-center justify-center mb-2 text-[#1E6C02] dark:text-emerald-400 group-hover:scale-105 transition-transform border border-gray-200 dark:border-slate-600">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-5 h-5 text-[#1E6C02] dark:text-emerald-400"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
                     </div>
-                    <p class="text-sm font-bold text-gray-800 dark:text-gray-200">Upload payment screenshot here</p>
-                    <p class="text-xs text-gray-400 dark:text-gray-400 mt-1">JPEG, PNG, or WEBP images, up to 5MB</p>
-                    <span class="mt-3 inline-block px-4 py-2 border border-gray-200 dark:border-slate-600 text-xs font-bold text-[#222222] dark:text-gray-100 bg-white dark:bg-slate-700 rounded-xl shadow-xs group-hover:bg-gray-50 dark:group-hover:bg-slate-600 transition-colors">Browse File</span>
+                    <p class="text-sm font-bold text-gray-900 dark:text-gray-100">Upload payment screenshot here</p>
+                    <p class="text-xs text-gray-800 dark:text-gray-200 font-semibold mt-1">JPEG, PNG, or WEBP images, up to 5MB</p>
+                    <span class="mt-3 inline-block px-4 py-2 border border-gray-300 dark:border-slate-600 text-xs font-bold text-[#111827] dark:text-gray-100 bg-white dark:bg-slate-700 rounded-xl shadow-xs group-hover:bg-gray-50 dark:group-hover:bg-slate-600 transition-colors">Browse File</span>
                     <input required type="file" accept="image/jpeg,image/png,image/webp,image/jpg" name="screenshot" id="inp-screenshot" class="hidden" />
                   </label>
 
@@ -342,7 +368,7 @@
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" class="w-5 h-5 text-[#1E6C02] dark:text-emerald-300 flex-shrink-0"><polyline points="20 6 9 17 4 12"></polyline></svg>
                     <div class="flex-1 truncate">
                       <span class="text-xs font-bold truncate block" id="screenshot-success-fn">screenshot.jpg</span>
-                      <p class="text-[10px] text-[#1D931D] dark:text-emerald-400 font-semibold mt-0.5">Reference attached successfully</p>
+                      <p class="text-[10px] text-[#145001] dark:text-emerald-300 font-semibold mt-0.5">Reference attached successfully</p>
                     </div>
                     <div id="screenshot-preview-container" class="w-10 h-10 rounded-lg overflow-hidden border border-emerald-250 dark:border-emerald-800 select-none bg-white dark:bg-slate-800">
                       <img id="screenshot-mini-preview" class="w-full h-full object-cover" />
@@ -366,30 +392,30 @@
               <!-- Cost invoice details -->
               <div class="border-t border-gray-150 dark:border-slate-800 pt-4 space-y-3 text-sm sm:text-[15px]">
                 <div class="flex justify-between items-center py-1">
-                  <span class="font-bold text-black dark:text-gray-100">Subtotal</span>
-                  <span class="font-normal text-black dark:text-gray-200" id="subtotal-val">₱0.00</span>
+                  <span class="font-bold text-gray-900 dark:text-gray-100">Subtotal</span>
+                  <span class="font-bold text-gray-950 dark:text-white" id="subtotal-val">₱0.00</span>
                 </div>
                 <div class="flex justify-between items-center py-1">
-                  <span class="font-bold text-black dark:text-gray-100">Delivery Fee</span>
-                  <span class="font-normal text-black dark:text-gray-200" id="delivery-val">₱80.00</span>
+                  <span class="font-bold text-gray-900 dark:text-gray-100">Delivery Fee</span>
+                  <span class="font-bold text-gray-950 dark:text-white" id="delivery-val">₱80.00</span>
                 </div>
                 <div class="border-t border-gray-150 dark:border-slate-800 pt-3 pb-1 flex justify-between items-center select-none">
-                  <span class="font-bold text-black dark:text-gray-100 text-base sm:text-lg">Total</span>
+                  <span class="font-bold text-gray-900 dark:text-gray-100 text-base sm:text-lg">Total</span>
                   <span class="text-[#1E6C02] dark:text-emerald-400 font-black text-lg sm:text-xl" id="total-val">₱0.00</span>
                 </div>
                 <div class="flex justify-between items-center py-1">
-                  <span class="font-bold text-black dark:text-gray-100">Paid Amount</span>
-                  <span class="font-normal text-black dark:text-gray-200" id="paid-val">₱0.00</span>
+                  <span class="font-bold text-gray-900 dark:text-gray-100">Paid Amount</span>
+                  <span class="font-bold text-gray-950 dark:text-white" id="paid-val">₱0.00</span>
                 </div>
                 <div class="flex justify-between items-center py-1">
-                  <span class="font-bold text-black dark:text-gray-100">Remaining Balance</span>
-                  <span class="font-normal text-black dark:text-gray-200" id="remaining-val">₱0.00</span>
+                  <span class="font-bold text-gray-900 dark:text-gray-100">Remaining Balance</span>
+                  <span class="font-bold text-gray-950 dark:text-white" id="remaining-val">₱0.00</span>
                 </div>
 
                 <!-- Blue Accent Details Payment Due Box -->
                 <div class="bg-[#EBF3FF] dark:bg-slate-800 border border-[#C5DFFF] dark:border-slate-700 p-4 rounded-2xl flex flex-col justify-center mt-2">
-                  <p class="text-xs font-bold text-[#3B82F6] uppercase tracking-wider" id="lbl-send-amount-desc">FULL PAYMENT:</p>
-                  <p class="text-2xl font-black text-[#1E3A8A] dark:text-blue-300 mt-1 select-none" id="lbl-send-amount">₱0.00</p>
+                  <p class="text-xs font-extrabold text-[#1E3A8A] dark:text-blue-300 uppercase tracking-wider" id="lbl-send-amount-desc">FULL PAYMENT:</p>
+                  <p class="text-2xl font-black text-[#1E3A8A] dark:text-white mt-1 select-none" id="lbl-send-amount">₱0.00</p>
                 </div>
               </div>
 
@@ -414,12 +440,12 @@
       <div class="h-16 w-16 bg-emerald-50 text-[#1E6C02] rounded-full flex items-center justify-center mb-6 mx-auto border border-emerald-100">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-8 h-8"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
       </div>
-      <h3 class="text-xl font-black text-gray-900 mb-2">Confirm Reservation</h3>
-      <p class="text-sm font-semibold text-gray-500 leading-relaxed mb-8">
+      <h3 class="text-xl font-black text-gray-900 dark:text-gray-100 mb-2">Confirm Reservation</h3>
+      <p class="text-sm font-semibold text-gray-900 dark:text-gray-100 leading-relaxed mb-8">
         Are you sure you want to place this reservation order?
       </p>
       <div class="flex gap-4">
-        <button id="btn-cancel-confirm" class="flex-1 h-12 border border-gray-200 text-gray-700 font-bold rounded-2xl hover:bg-gray-50 transition-all cursor-pointer">Cancel</button>
+        <button id="btn-cancel-confirm" class="flex-1 h-12 border border-gray-300 dark:border-slate-700 text-gray-900 dark:text-gray-100 font-bold rounded-2xl hover:bg-gray-50 dark:hover:bg-slate-800 transition-all cursor-pointer">Cancel</button>
         <button id="btn-submit-confirm" class="flex-1 h-12 bg-[#1E6C02] text-white font-bold rounded-2xl hover:bg-[#145001] transition-all cursor-pointer shadow-lg shadow-green-900/10">Confirm Reservation</button>
       </div>
     </div>
@@ -431,12 +457,12 @@
       <div class="h-16 w-16 bg-red-50 text-red-650 rounded-full flex items-center justify-center mb-6 mx-auto border border-red-100">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-8 h-8"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
       </div>
-      <h3 class="text-xl font-black text-gray-900 mb-2">Unsaved Information</h3>
-      <p class="text-sm font-semibold text-gray-500 leading-relaxed mb-8">
+      <h3 class="text-xl font-black text-gray-900 dark:text-gray-100 mb-2">Unsaved Information</h3>
+      <p class="text-sm font-semibold text-gray-900 dark:text-gray-100 leading-relaxed mb-8">
         You have unsaved information on the checkout form. If you leave now, your changes will be lost.
       </p>
       <div class="flex gap-4">
-        <button id="btn-stay-checkout" class="flex-1 h-12 border border-gray-200 text-gray-700 font-bold rounded-2xl hover:bg-gray-50 transition-all cursor-pointer">Stay on Checkout</button>
+        <button id="btn-stay-checkout" class="flex-1 h-12 border border-gray-300 dark:border-slate-700 text-gray-900 dark:text-gray-100 font-bold rounded-2xl hover:bg-gray-50 dark:hover:bg-slate-800 transition-all cursor-pointer">Stay on Checkout</button>
         <button id="btn-leave-page" class="flex-1 h-12 bg-red-600 text-white font-bold rounded-2xl hover:bg-red-700 transition-all cursor-pointer shadow-lg shadow-red-900/10">Leave Page</button>
       </div>
     </div>
@@ -447,7 +473,7 @@
     <div class="bg-white dark:bg-slate-900 rounded-[28px] max-w-md w-full p-6 sm:p-8 shadow-2xl border border-gray-100 dark:border-slate-800 animate-in fade-in zoom-in-95 duration-200 text-center relative">
       
       <!-- Close / Dismiss button -->
-      <button type="button" id="btn-close-phone-modal" class="absolute top-5 right-5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors p-1">
+      <button type="button" id="btn-close-phone-modal" class="absolute top-5 right-5 text-gray-800 hover:text-gray-950 dark:text-gray-200 dark:hover:text-white transition-colors p-1">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-5 h-5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
       </button>
 
@@ -457,7 +483,7 @@
       </div>
 
       <h3 class="text-xl font-black text-gray-900 dark:text-gray-100 mb-2 tracking-tight">Verify Your Contact Number</h3>
-      <p class="text-xs sm:text-sm font-semibold text-gray-500 dark:text-gray-400 leading-relaxed mb-5">
+      <p class="text-xs sm:text-sm font-semibold text-gray-900 dark:text-gray-100 leading-relaxed mb-5">
         To secure your reservation and prevent duplicate queues, please verify your mobile number with a one-time SMS verification code.
       </p>
 
@@ -491,8 +517,8 @@
       <div id="otp-step-verify" class="hidden space-y-4 text-left">
         <div class="space-y-1.5">
           <div class="flex justify-between items-center">
-            <label for="inp-otp-code" class="text-xs font-bold text-gray-950 dark:text-gray-200">Enter 6-Digit SMS Code</label>
-            <span id="otp-timer-display" class="text-[11px] font-semibold text-gray-500 dark:text-gray-400">Resend in <span class="font-bold text-[#1E6C02]" id="otp-countdown">60</span>s</span>
+            <label for="inp-otp-code" class="text-xs font-bold text-gray-950 dark:text-gray-100">Enter 6-Digit SMS Code</label>
+            <span id="otp-timer-display" class="text-[11px] font-semibold text-gray-900 dark:text-gray-100">Resend in <span class="font-bold text-[#1E6C02] dark:text-emerald-400" id="otp-countdown">60</span>s</span>
           </div>
           <input 
             type="text" 
@@ -501,7 +527,7 @@
             inputmode="numeric" 
             autocomplete="one-time-code" 
             placeholder="• • • • • •" 
-            class="w-full bg-[#F8F9FA] dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-center tracking-[0.5em] text-xl font-black text-[#222222] dark:text-white px-4 h-14 rounded-2xl outline-none focus:bg-white dark:focus:bg-slate-700 focus:ring-2 focus:ring-[#1E6C02] transition-all placeholder-gray-300"
+            class="w-full bg-[#F8F9FA] dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-center tracking-[0.5em] text-xl font-black text-[#111827] dark:text-white px-4 h-14 rounded-2xl outline-none focus:bg-white dark:focus:bg-slate-700 focus:ring-2 focus:ring-[#1E6C02] transition-all placeholder-gray-700 dark:placeholder-gray-300"
           />
         </div>
 
@@ -514,7 +540,7 @@
             type="button" 
             id="btn-resend-otp" 
             disabled 
-            class="flex-1 h-12 border border-gray-200 dark:border-slate-700 text-gray-400 dark:text-gray-500 bg-gray-50 dark:bg-slate-800 font-bold rounded-2xl transition-all text-xs cursor-not-allowed"
+            class="flex-1 h-12 border border-gray-200 dark:border-slate-700 text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-slate-800 font-bold rounded-2xl transition-all text-xs cursor-not-allowed"
           >
             Resend Code
           </button>
@@ -611,10 +637,14 @@
         inpAddress.value = user.address || '';
       }
 
+      // Stock check: determine if target product is currently out of stock
+      const availStock = Math.max(0, Number(product.availableStock !== undefined ? product.availableStock : (product.stock !== undefined ? product.stock : 0)));
+      const isOutOfStock = availStock <= 0;
+
       // Interactive state variables
       let quantity = initialQty < 1 ? 1 : initialQty;
       let deliveryOption = 'delivery'; // Default is Delivery
-      let paymentMethod = 'gcash'; // Default is GCash (matching checked radio in UI)
+      let paymentMethod = isOutOfStock ? 'none' : 'gcash'; // Out-of-stock reservations must follow No Payment rule
       let paymentProofFile = null;
 
       // HTML Elements
@@ -639,6 +669,9 @@
       const divPmNone = document.getElementById('div-pm-none');
       const payReqTitle = document.getElementById('payment-req-title');
       const payReqDesc = document.getElementById('payment-req-desc');
+      const paymentOptionsCont = document.getElementById('payment-options-container');
+      const paymentUploadCard = document.getElementById('payment-upload-card');
+      const outOfStockNoticeCont = document.getElementById('out-of-stock-notice-container');
 
       const screenshotSuccess = document.getElementById('screenshot-success');
       const screenshotFn = document.getElementById('screenshot-success-fn');
@@ -653,6 +686,75 @@
       const lblSendAmount = document.getElementById('lbl-send-amount');
       const lblSendAmountDesc = document.getElementById('lbl-send-amount-desc');
       const selectedReviewList = document.getElementById('selected-items-review');
+
+      // Out-of-stock rule: hide Down/Full/No payment radios and screenshot upload
+      if (isOutOfStock) {
+        if (paymentOptionsCont) paymentOptionsCont.classList.add('hidden');
+        if (paymentUploadCard) paymentUploadCard.classList.add('hidden');
+        if (outOfStockNoticeCont) outOfStockNoticeCont.classList.remove('hidden');
+        if (screenshotInput) screenshotInput.required = false;
+        paymentMethod = 'none';
+        if (radNone) radNone.checked = true;
+      } else {
+        if (paymentOptionsCont) paymentOptionsCont.classList.remove('hidden');
+        if (paymentUploadCard) paymentUploadCard.classList.remove('hidden');
+        if (outOfStockNoticeCont) outOfStockNoticeCont.classList.add('hidden');
+      }
+
+      function updateDeliveryUI() {
+        if (deliveryOption === 'delivery') {
+          radDel.checked = true;
+          divDel.className = "flex items-center space-x-3 rounded-2xl p-4 border-2 border-[#1E6C02] dark:border-emerald-500 cursor-pointer bg-[#F4FAF3] dark:bg-emerald-950/40 transition-all";
+          divPic.className = "flex items-center space-x-3 rounded-2xl p-4 border border-gray-200 dark:border-slate-700 cursor-pointer bg-white dark:bg-slate-800 transition-all hover:bg-[#F0FDF4] dark:hover:bg-slate-700";
+          
+          infoHeader.textContent = "Delivery Information";
+          addressCont.classList.remove('hidden');
+          pickupCont.classList.add('hidden');
+          addressInput.required = true;
+        } else {
+          radPic.checked = true;
+          divPic.className = "flex items-center space-x-3 rounded-2xl p-4 border-2 border-[#1E6C02] dark:border-emerald-500 cursor-pointer bg-[#F4FAF3] dark:bg-emerald-950/40 transition-all";
+          divDel.className = "flex items-center space-x-3 rounded-2xl p-4 border border-gray-200 dark:border-slate-700 cursor-pointer bg-white dark:bg-slate-800 transition-all hover:bg-[#F0FDF4] dark:hover:bg-slate-700";
+          
+          infoHeader.textContent = "Pick-Up Operations Contact";
+          addressCont.classList.add('hidden');
+          pickupCont.classList.remove('hidden');
+          addressInput.required = false;
+        }
+      }
+
+      function updatePaymentMethodUI() {
+        if (isOutOfStock) {
+          paymentMethod = 'none';
+          if (radNone) radNone.checked = true;
+          return;
+        }
+        const activeClass = "flex items-center space-x-3 rounded-2xl p-4 border-2 border-[#1E6C02] dark:border-emerald-500 cursor-pointer bg-[#F4FAF3] dark:bg-emerald-950/40 transition-all";
+        const inactiveClass = "flex items-center space-x-3 rounded-2xl p-4 border border-gray-200 dark:border-slate-700 cursor-pointer bg-white dark:bg-slate-800 transition-all hover:bg-[#F0FDF4] dark:hover:bg-slate-700";
+
+        if (paymentMethod === 'gcash') {
+          if (radGcash) radGcash.checked = true;
+          if (divPmGcash) divPmGcash.className = activeClass;
+          if (divPmCash) divPmCash.className = inactiveClass;
+          if (divPmNone) divPmNone.className = inactiveClass;
+          if (payReqTitle) payReqTitle.textContent = "Full Payment Required";
+          if (payReqDesc) payReqDesc.textContent = "Please send the FULL payment amount via GCash and upload your screenshot for verification.";
+        } else if (paymentMethod === 'cash') {
+          if (radCash) radCash.checked = true;
+          if (divPmCash) divPmCash.className = activeClass;
+          if (divPmGcash) divPmGcash.className = inactiveClass;
+          if (divPmNone) divPmNone.className = inactiveClass;
+          if (payReqTitle) payReqTitle.textContent = "30% Down Payment Required";
+          if (payReqDesc) payReqDesc.textContent = "Secures your allocation in our delivery systems. Please pay the 30% deposit via GCash and upload the receipt verification screenshot.";
+        } else {
+          if (radNone) radNone.checked = true;
+          if (divPmNone) divPmNone.className = activeClass;
+          if (divPmGcash) divPmGcash.className = inactiveClass;
+          if (divPmCash) divPmCash.className = inactiveClass;
+          if (payReqTitle) payReqTitle.textContent = "No Payment Required Now";
+          if (payReqDesc) payReqDesc.textContent = "Your reservation will be added to the queue in Waiting status. You will be notified to pay within 48 hours once warehouse stock arrives.";
+        }
+      }
 
       // Recalculations function
       function refreshCalculations() {
@@ -693,14 +795,18 @@
 
         selectedReviewList.innerHTML = `
           <div class="flex justify-between items-center text-sm sm:text-[15px] py-1 border-b border-gray-100 dark:border-slate-800 pb-2">
-            <span class="font-normal text-black dark:text-gray-200 truncate max-w-[200px]">${product.name} × ${quantity}</span>
-            <span class="font-normal text-black dark:text-gray-200">₱${subtotal.toLocaleString()}.00</span>
+            <span class="font-semibold text-gray-900 dark:text-gray-100 truncate max-w-[200px]">${product.name} × ${quantity}</span>
+            <span class="font-bold text-gray-950 dark:text-white">₱${subtotal.toLocaleString()}.00</span>
           </div>
         `;
       }
 
       // Initial execution
       refreshCalculations();
+      updateDeliveryUI();
+      if (!isOutOfStock) {
+        updatePaymentMethodUI();
+      }
 
       // Qty adjustments
       btnDec.addEventListener('click', () => {
@@ -718,70 +824,35 @@
       // Delivery Toggles
       divDel.addEventListener('click', () => {
         deliveryOption = 'delivery';
-        radDel.checked = true;
-        divDel.className = "flex items-center space-x-3 rounded-2xl p-4 border border-[#1E6C02] cursor-pointer bg-[#F8FAF8] transition-all";
-        divPic.className = "flex items-center space-x-3 rounded-2xl p-4 border border-gray-200 cursor-pointer bg-white transition-all hover:bg-gray-50";
-        
-        infoHeader.textContent = "Delivery Information";
-        addressCont.classList.remove('hidden');
-        pickupCont.classList.add('hidden');
-        addressInput.required = true;
-
+        updateDeliveryUI();
         refreshCalculations();
       });
 
       divPic.addEventListener('click', () => {
         deliveryOption = 'pickup';
-        radPic.checked = true;
-        divPic.className = "flex items-center space-x-3 rounded-2xl p-4 border border-[#1E6C02] cursor-pointer bg-[#F8FAF8] transition-all";
-        divDel.className = "flex items-center space-x-3 rounded-2xl p-4 border border-gray-200 cursor-pointer bg-white transition-all hover:bg-gray-50";
-        
-        infoHeader.textContent = "Pick-Up Operations Contact";
-        addressCont.classList.add('hidden');
-        pickupCont.classList.remove('hidden');
-        addressInput.required = false;
-
+        updateDeliveryUI();
         refreshCalculations();
       });
 
-      // Payment Preferences switches
+      // Payment Preferences switches (only for in-stock reservations)
       divPmGcash.addEventListener('click', () => {
+        if (isOutOfStock) return;
         paymentMethod = 'gcash';
-        radGcash.checked = true;
-        divPmGcash.className = "flex items-center space-x-3 rounded-2xl p-4 border border-[#1E6C02] cursor-pointer bg-[#F8FAF8] transition-all";
-        divPmCash.className = "flex items-center space-x-3 rounded-2xl p-4 border border-gray-200 cursor-pointer bg-white transition-all hover:bg-gray-50";
-        if (divPmNone) divPmNone.className = "flex items-center space-x-3 rounded-2xl p-4 border border-gray-200 cursor-pointer bg-white transition-all hover:bg-gray-50";
-
-        payReqTitle.textContent = "Full Payment Required";
-        payReqDesc.textContent = "Please send the FULL payment amount via GCash and upload your screenshot for verification.";
-
+        updatePaymentMethodUI();
         refreshCalculations();
       });
 
       divPmCash.addEventListener('click', () => {
+        if (isOutOfStock) return;
         paymentMethod = 'cash';
-        radCash.checked = true;
-        divPmCash.className = "flex items-center space-x-3 rounded-2xl p-4 border border-[#1E6C02] cursor-pointer bg-[#F8FAF8] transition-all";
-        divPmGcash.className = "flex items-center space-x-3 rounded-2xl p-4 border border-gray-200 cursor-pointer bg-white transition-all hover:bg-gray-50";
-        if (divPmNone) divPmNone.className = "flex items-center space-x-3 rounded-2xl p-4 border border-gray-200 cursor-pointer bg-white transition-all hover:bg-gray-50";
-
-        payReqTitle.textContent = "30% Down Payment Required";
-        payReqDesc.textContent = "Secures your allocation in our delivery systems. Please pay the 30% deposit via GCash and upload the receipt verification screenshot.";
-
+        updatePaymentMethodUI();
         refreshCalculations();
       });
 
       if (divPmNone) {
         divPmNone.addEventListener('click', () => {
           paymentMethod = 'none';
-          radNone.checked = true;
-          divPmNone.className = "flex items-center space-x-3 rounded-2xl p-4 border border-[#1E6C02] cursor-pointer bg-[#F8FAF8] transition-all";
-          divPmGcash.className = "flex items-center space-x-3 rounded-2xl p-4 border border-gray-200 cursor-pointer bg-white transition-all hover:bg-gray-50";
-          divPmCash.className = "flex items-center space-x-3 rounded-2xl p-4 border border-gray-200 cursor-pointer bg-white transition-all hover:bg-gray-50";
-
-          payReqTitle.textContent = "No Payment Required Now";
-          payReqDesc.textContent = "Your reservation will be added to the queue in Waiting status. You will be notified to pay within 48 hours once warehouse stock arrives.";
-
+          updatePaymentMethodUI();
           refreshCalculations();
         });
       }
@@ -970,12 +1041,16 @@
             divDel.click();
           }
 
-          if (ctx.paymentMethod === 'cash' && divPmCash) {
-            divPmCash.click();
-          } else if (ctx.paymentMethod === 'none' && divPmNone) {
-            divPmNone.click();
-          } else if (ctx.paymentMethod === 'gcash' && divPmGcash) {
-            divPmGcash.click();
+          if (!isOutOfStock) {
+            if (ctx.paymentMethod === 'cash' && divPmCash) {
+              divPmCash.click();
+            } else if (ctx.paymentMethod === 'none' && divPmNone) {
+              divPmNone.click();
+            } else if (ctx.paymentMethod === 'gcash' && divPmGcash) {
+              divPmGcash.click();
+            }
+          } else {
+            paymentMethod = 'none';
           }
 
           refreshCalculations();
@@ -1265,6 +1340,11 @@
       });
 
       async function submitReservationToDB() {
+        if (isOutOfStock) {
+          paymentMethod = 'none';
+          paymentProofFile = null;
+        }
+
         const subtotal = product.price * quantity;
         const deliveryFee = deliveryOption === 'delivery' ? 80 : 0;
         const total = subtotal + deliveryFee;
@@ -1274,6 +1354,8 @@
           amountPaid = total;
         } else if (paymentMethod === 'cash') {
           amountPaid = Math.round(total * 0.3 * 100) / 100;
+        } else {
+          amountPaid = 0;
         }
         const remainingAmount = Math.max(0, total - amountPaid);
 
@@ -1448,9 +1530,27 @@
         const estEl = document.getElementById('success-est-avail');
         if (estEl) estEl.textContent = estDate;
         
-        document.getElementById('success-splash').classList.remove('hidden');
+        const splashEl = document.getElementById('success-splash');
+        splashEl.classList.remove('hidden');
         showToast('Reservation submitted successfully!');
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+
+        // Immediately position customer viewport at the top of the reservation success confirmation
+        const scrollToTopView = () => {
+          window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+          document.documentElement.scrollTop = 0;
+          document.body.scrollTop = 0;
+          if (splashEl && typeof splashEl.scrollIntoView === 'function') {
+            try {
+              splashEl.scrollIntoView({ behavior: 'instant', block: 'start' });
+            } catch (e) {
+              splashEl.scrollIntoView(true);
+            }
+          }
+        };
+        scrollToTopView();
+        requestAnimationFrame(scrollToTopView);
+        setTimeout(scrollToTopView, 50);
+        setTimeout(scrollToTopView, 150);
         return true;
       }
     });

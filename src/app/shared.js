@@ -35,12 +35,14 @@ import {
   CONFIRMED_STALE_RESERVATION_IDS,
   registerPendingOrderWrite,
   unregisterPendingOrderWrite,
-  syncOrdersFromFirestore
+  syncOrdersFromFirestore,
+  syncStoreSettingsFromFirestore
 } from '../lib/firebase.js';
 
 export { 
   saveFirestoreDoc,
   initFirestoreSync,
+  syncStoreSettingsFromFirestore,
   createStaffAuthAccount, 
   sendFirebasePhoneVerification, 
   verifyAndLinkPhoneCredential, 
@@ -664,6 +666,7 @@ if (typeof window !== 'undefined') {
 
 // Initialize Database Storage
 export function initDB() {
+  syncStoreSettingsFromFirestore().catch(() => {});
   initFirestoreSync().catch(err => console.warn('[FIREBASE] Sync error on init:', err));
 
   if (auth && typeof onAuthStateChanged === 'function') {
@@ -8411,8 +8414,21 @@ if (typeof window !== 'undefined') {
     }
   });
   window.addEventListener('aurora-sync-event', (e) => {
-    if (!e.detail || !e.detail.key || e.detail.key.startsWith('settings-gcash') || e.detail.key === 'aurora-store-settings') {
+    if (!e.detail || !e.detail.key || e.detail.key.startsWith('settings-gcash') || e.detail.key === 'aurora-store-settings' || e.detail.key === 'settings-store-logo') {
       applyGcashSettings();
+      const s = getStoreSettings();
+      if (s.logo) {
+        const navLogo = document.getElementById('navbar-store-logo');
+        if (navLogo) {
+          if (navLogo.src !== s.logo) navLogo.src = s.logo;
+        } else if (typeof document !== 'undefined' && document.getElementById('navbar-container')) {
+          try { renderLayout(); } catch (_) {}
+        }
+        const footLogo = document.getElementById('footer-store-logo');
+        if (footLogo && footLogo.src !== s.logo) {
+          footLogo.src = s.logo;
+        }
+      }
     }
     if (e.detail && (e.detail.key === 'aurora-user' || e.detail.key === 'aurora-logged-in')) {
       if (typeof document !== 'undefined' && document.getElementById('navbar-container')) {
@@ -8570,20 +8586,20 @@ export function initReviewReminderPopup() {
         ⭐
       </div>
       <div class="flex-1 min-w-0">
-        <h4 class="text-sm font-black text-gray-900 dark:text-gray-100 leading-tight">How was your order?</h4>
-        <p class="text-xs text-gray-600 dark:text-gray-400 mt-1 leading-relaxed">
+        <h4 class="text-sm font-black text-[#111827] dark:text-white leading-tight">How was your order?</h4>
+        <p class="text-xs text-[#111827] dark:text-white mt-1 leading-relaxed">
           We'd love to hear about your experience with Order #${pendingOrder.id}.
         </p>
         <div class="flex items-center gap-2 mt-3.5">
           <button id="btn-review-reminder-rate" class="px-3.5 py-1.5 bg-[#1E6C02] hover:bg-[#145001] text-white text-xs font-bold rounded-lg cursor-pointer transition-all shadow-xs">
             Rate Now
           </button>
-          <button id="btn-review-reminder-dismiss" class="px-3 py-1.5 bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700 text-gray-600 dark:text-gray-300 text-xs font-semibold rounded-lg cursor-pointer transition-all">
+          <button id="btn-review-reminder-dismiss" class="px-3 py-1.5 bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700 text-[#111827] dark:text-white text-xs font-semibold rounded-lg cursor-pointer transition-all">
             Not Now
           </button>
         </div>
       </div>
-      <button id="btn-review-reminder-close" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 p-1 -mr-1 -mt-1 cursor-pointer bg-transparent border-none">
+      <button id="btn-review-reminder-close" class="text-[#111827] dark:text-white hover:text-[#1E6C02] p-1 -mr-1 -mt-1 cursor-pointer bg-transparent border-none">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-4 h-4"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
       </button>
     </div>
@@ -8655,12 +8671,12 @@ export function renderLayout() {
         <!-- Logo and brand -->
         <a href="${p}index.html" class="flex items-center group decoration-none">
           <div class="w-10 h-10 rounded-full overflow-hidden flex items-center justify-center shadow-md group-hover:scale-105 transition-transform border border-gray-150 shrink-0">
-            <img src="${settings.logo}" alt="${settings.storeName} Logo" class="w-full h-full object-cover" />
+            <img id="navbar-store-logo" src="${settings.logo}" alt="${settings.storeName} Logo" class="w-full h-full object-cover" />
           </div>
         </a>
 
         <!-- Desktop Navigation Items -->
-        <nav class="hidden md:flex items-center gap-8 font-semibold text-gray-700 dark:text-gray-200">
+        <nav class="hidden md:flex items-center gap-8 font-semibold text-[#111827] dark:text-white">
           <a href="${p}index.html" class="hover:text-[#1E6C02] transition-colors ${window.location.pathname.endsWith('index.html') || window.location.pathname === '/' ? 'text-[#1E6C02] border-b-2 border-[#1E6C02] pb-1' : ''}">Home</a>
           <a href="${p}products.html" class="hover:text-[#1E6C02] transition-colors ${isProductsPage ? 'text-[#1E6C02] border-b-2 border-[#1E6C02] pb-1' : ''}">Rice Products</a>
           <a href="${p}reviews.html" class="hover:text-[#1E6C02] transition-colors ${isReviewsPage ? 'text-[#1E6C02] border-b-2 border-[#1E6C02] pb-1' : ''}">Reviews</a>
@@ -8671,7 +8687,7 @@ export function renderLayout() {
         <div class="flex items-center gap-4">
           <!-- Desktop Search -->
           <div class="relative hidden sm:block w-64">
-            <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">${ICONS.search}</span>
+            <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#111827] dark:text-white pointer-events-none">${ICONS.search}</span>
             <input 
               id="top-search-input"
               type="search" 
@@ -8683,11 +8699,11 @@ export function renderLayout() {
               data-lpignore="true"
               data-form-type="other"
               placeholder="Search rice products..." 
-              class="w-full pl-11 pr-10 py-2 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-900 dark:text-gray-100 rounded-xl font-medium outline-none text-sm focus:bg-white dark:focus:bg-slate-700 focus:ring-2 focus:ring-[#1E6C02]/20 focus:border-[#1E6C02] transition-all"
+              class="w-full pl-11 pr-10 py-2 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-[#111827] dark:text-white placeholder:text-[#111827]/80 dark:placeholder:text-white rounded-xl font-medium outline-none text-sm focus:bg-white dark:focus:bg-slate-700 focus:ring-2 focus:ring-[#1E6C02]/20 focus:border-[#1E6C02] transition-all"
             />
             <button 
               id="top-search-clear" 
-              class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors hidden cursor-pointer flex items-center justify-center p-0.5 rounded-full hover:bg-gray-100 dark:hover:bg-slate-700"
+              class="absolute right-3 top-1/2 -translate-y-1/2 text-[#111827] dark:text-white hover:text-[#1E6C02] transition-colors hidden cursor-pointer flex items-center justify-center p-0.5 rounded-full hover:bg-gray-100 dark:hover:bg-slate-700"
               aria-label="Clear Search"
             >
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="w-3.5 h-3.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
@@ -8695,12 +8711,12 @@ export function renderLayout() {
           </div>
 
           <!-- Night Mode Toggle Button -->
-          <button id="customer-dark-mode-toggle" class="flex items-center justify-center p-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-200/60 dark:border-slate-700 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-xl text-xs font-bold text-gray-700 dark:text-gray-200 transition-all cursor-pointer" title="Toggle Day/Night Mode">
+          <button id="customer-dark-mode-toggle" class="flex items-center justify-center p-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-200/60 dark:border-slate-700 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-xl text-xs font-bold text-[#111827] dark:text-white transition-all cursor-pointer" title="Toggle Day/Night Mode">
             <span id="customer-dark-mode-icon" class="w-4 h-4 flex items-center justify-center shrink-0"></span>
           </button>
 
           <!-- Checkout Cart -->
-          <a href="${p}cart.html" class="relative p-2.5 rounded-xl border border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-800 hover:border-gray-300 dark:hover:border-slate-600 transition-colors cursor-pointer text-gray-700 dark:text-gray-200">
+          <a href="${p}cart.html" class="relative p-2.5 rounded-xl border border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-800 hover:border-gray-300 dark:hover:border-slate-600 transition-colors cursor-pointer text-[#111827] dark:text-white">
             ${ICONS.shoppingBag}
             ${cartCount > 0 ? `<span class="absolute -top-1.5 -right-1.5 bg-[#1E6C02] text-white font-bold text-[11px] w-5.5 h-5.5 rounded-full flex items-center justify-center animate-pulse border-2 border-white dark:border-slate-900">${cartCount}</span>` : ''}
           </a>
@@ -8708,18 +8724,37 @@ export function renderLayout() {
           ${user ? `
             <!-- Customer Notification Bell Icon -->
             <div class="relative flex items-center">
-              <button id="customer-notif-btn" class="relative p-2.5 rounded-xl border border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-800 hover:border-gray-300 dark:hover:border-slate-600 transition-colors cursor-pointer text-gray-700 dark:text-gray-200 flex items-center justify-center focus:outline-none">
+              <button id="customer-notif-btn" class="relative p-2.5 rounded-xl border border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-800 hover:border-gray-300 dark:hover:border-slate-600 transition-colors cursor-pointer text-[#111827] dark:text-white flex items-center justify-center focus:outline-none">
                 ${ICONS.bell}
                 <span id="customer-notif-badge" class="absolute -top-1.5 -right-1.5 bg-red-500 text-white font-black text-[9px] min-w-5 h-5 px-1 rounded-full flex items-center justify-center border-2 border-white dark:border-slate-900 hidden">0</span>
               </button>
               
               <!-- Dropdown Panel (hidden by default) -->
-              <div id="customer-notif-dropdown" class="fixed sm:absolute left-3 right-3 sm:left-auto sm:right-0 top-20 sm:top-full mt-2 sm:mt-3.5 w-auto sm:w-96 max-w-[calc(100vw-1.5rem)] sm:max-w-none bg-white dark:bg-slate-900 border border-gray-150 dark:border-slate-800 rounded-2xl shadow-xl z-50 hidden flex flex-col overflow-hidden max-h-[calc(100vh-100px)] sm:max-h-[480px]">
-                <div class="p-4 border-b border-gray-100 dark:border-slate-800 flex items-center justify-between bg-gray-50/50 dark:bg-slate-800/50 shrink-0">
-                  <span class="font-extrabold text-sm text-gray-850 dark:text-gray-100">Notifications</span>
-                  <button id="customer-notif-mark-all" class="text-xs font-bold text-[#1E6C02] dark:text-emerald-400 hover:text-[#145001] transition-colors cursor-pointer">Mark all as read</button>
+              <div id="customer-notif-dropdown" class="fixed sm:absolute left-3 right-3 sm:left-auto sm:right-0 top-20 sm:top-full mt-2 sm:mt-3.5 w-auto sm:w-96 max-w-[calc(100vw-1.5rem)] sm:max-w-none bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl shadow-2xl z-50 hidden flex flex-col overflow-hidden max-h-[calc(100vh-100px)] sm:max-h-[520px]">
+                <div class="p-3.5 border-b border-gray-200 dark:border-slate-800 flex items-center justify-between bg-gray-50/90 dark:bg-slate-800/80 shrink-0">
+                  <div class="flex items-center gap-2">
+                    <span class="font-extrabold text-sm text-[#111827] dark:text-white">Notifications</span>
+                  </div>
+                  <button id="customer-notif-mark-all" class="text-xs font-bold text-[#1E6C02] dark:text-emerald-400 hover:text-[#145001] dark:hover:text-emerald-300 transition-colors cursor-pointer focus:outline-none">Mark all as read</button>
                 </div>
-                <div id="customer-notif-list" class="overflow-y-auto flex-1 divide-y divide-gray-100 dark:divide-slate-800 max-h-[350px]">
+
+                <!-- Notification Filter Controls: All / Unread / Read -->
+                <div id="customer-notif-filter-bar" class="px-3 py-2 bg-gray-100/70 dark:bg-slate-800/70 border-b border-gray-200 dark:border-slate-800 flex items-center gap-1.5 shrink-0">
+                  <button type="button" data-filter="all" class="customer-notif-filter-btn notif-filter-active flex-1 py-1.5 px-2 text-xs rounded-xl font-bold transition-all text-center flex items-center justify-center gap-1 cursor-pointer">
+                    <span>All</span>
+                    <span id="notif-count-all" class="text-[10px] px-1.5 py-0.2 rounded-full font-black">0</span>
+                  </button>
+                  <button type="button" data-filter="unread" class="customer-notif-filter-btn flex-1 py-1.5 px-2 text-xs rounded-xl font-bold transition-all text-center flex items-center justify-center gap-1 cursor-pointer">
+                    <span>Unread</span>
+                    <span id="notif-count-unread" class="text-[10px] px-1.5 py-0.2 rounded-full font-black">0</span>
+                  </button>
+                  <button type="button" data-filter="read" class="customer-notif-filter-btn flex-1 py-1.5 px-2 text-xs rounded-xl font-bold transition-all text-center flex items-center justify-center gap-1 cursor-pointer">
+                    <span>Read</span>
+                    <span id="notif-count-read" class="text-[10px] px-1.5 py-0.2 rounded-full font-black">0</span>
+                  </button>
+                </div>
+
+                <div id="customer-notif-list" class="overflow-y-auto flex-1 divide-y divide-gray-100 dark:divide-slate-800 max-h-[360px]">
                   <!-- Dynamic Notifications -->
                 </div>
               </div>
@@ -8744,7 +8779,7 @@ export function renderLayout() {
           `}
 
           <!-- Mobile drawer toggle button -->
-          <button id="mobile-menu-toggle" class="p-2 border border-gray-200 dark:border-slate-700 rounded-xl hover:bg-gray-50 dark:hover:bg-slate-800 text-gray-700 dark:text-gray-200 md:hidden transition-colors cursor-pointer">
+          <button id="mobile-menu-toggle" class="p-2 border border-gray-200 dark:border-slate-700 rounded-xl hover:bg-gray-50 dark:hover:bg-slate-800 text-[#111827] dark:text-white md:hidden transition-colors cursor-pointer">
             ${ICONS.menu}
           </button>
         </div>
@@ -8755,15 +8790,15 @@ export function renderLayout() {
         <div class="fixed top-0 bottom-0 right-0 w-80 bg-white dark:bg-slate-900 shadow-2xl flex flex-col justify-between p-6">
           <div>
             <div class="flex items-center justify-between mb-8 pb-4 border-b border-gray-100 dark:border-slate-800">
-              <span class="text-xl font-bold text-[#222222] dark:text-gray-100">Menu</span>
-              <button id="mobile-drawer-close" class="p-2 border border-gray-100 dark:border-slate-800 hover:bg-gray-50 dark:hover:bg-slate-800 rounded-lg text-gray-400 cursor-pointer">
+              <span class="text-xl font-bold text-[#111827] dark:text-white">Menu</span>
+              <button id="mobile-drawer-close" class="p-2 border border-gray-100 dark:border-slate-800 hover:bg-gray-50 dark:hover:bg-slate-800 rounded-lg text-[#111827] dark:text-white cursor-pointer">
                 ${ICONS.close}
               </button>
             </div>
 
             <!-- Mobile Search -->
             <div class="relative w-full mb-6 max-h-[44px]">
-              <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 font-bold">${ICONS.search}</span>
+              <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#111827] dark:text-white font-bold">${ICONS.search}</span>
               <input 
                 id="mobile-search-input"
                 type="search" 
@@ -8775,18 +8810,18 @@ export function renderLayout() {
                 data-lpignore="true"
                 data-form-type="other"
                 placeholder="Search products..." 
-                class="w-full pl-11 pr-10 py-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-100 dark:border-slate-700 rounded-xl text-sm outline-none text-gray-900 dark:text-gray-100 focus:bg-white dark:focus:bg-slate-700 focus:ring-2 focus:ring-[#1E6C02]/20 focus:border-[#1E6C02] transition-all"
+                class="w-full pl-11 pr-10 py-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-100 dark:border-slate-700 rounded-xl text-sm outline-none text-[#111827] dark:text-white placeholder:text-[#111827]/80 dark:placeholder:text-white focus:bg-white dark:focus:bg-slate-700 focus:ring-2 focus:ring-[#1E6C02]/20 focus:border-[#1E6C02] transition-all"
               />
               <button 
                 id="mobile-search-clear" 
-                class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors hidden cursor-pointer flex items-center justify-center p-0.5 rounded-full hover:bg-gray-100 dark:hover:bg-slate-700"
+                class="absolute right-3 top-1/2 -translate-y-1/2 text-[#111827] dark:text-white hover:text-[#1E6C02] transition-colors hidden cursor-pointer flex items-center justify-center p-0.5 rounded-full hover:bg-gray-100 dark:hover:bg-slate-700"
                 aria-label="Clear Search"
               >
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="w-3.5 h-3.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
               </button>
             </div>
 
-            <nav class="flex flex-col gap-4 font-bold text-lg text-gray-700 dark:text-gray-200">
+            <nav class="flex flex-col gap-4 font-bold text-lg text-[#111827] dark:text-white">
               <a href="${p}index.html" class="hover:text-[#1E6C02]">Home</a>
               <a href="${p}products.html" class="hover:text-[#1E6C02]">Rice Products</a>
               <a href="${p}reviews.html" class="hover:text-[#1E6C02]">Reviews</a>
@@ -8806,8 +8841,8 @@ export function renderLayout() {
                   })()}
                 </div>
                 <div>
-                  <h4 class="font-bold text-gray-850 dark:text-gray-100 leading-tight">${user.fullName}</h4>
-                  <p class="text-xs text-black dark:text-gray-200 font-normal">${user.email}</p>
+                  <h4 class="font-bold text-[#111827] dark:text-white leading-tight">${user.fullName}</h4>
+                  <p class="text-xs text-[#111827] dark:text-white font-normal">${user.email}</p>
                 </div>
               </div>
               <button id="mobile-btn-logout" class="w-full py-3 border border-red-500 rounded-xl text-red-500 hover:bg-red-50 dark:hover:bg-red-950/40 font-bold flex justify-center items-center gap-2 transition-colors cursor-pointer">
@@ -8818,7 +8853,7 @@ export function renderLayout() {
               <a href="${p}login.html" class="block w-full text-center py-3.5 bg-[#1E6C02] hover:bg-[#145001] text-white font-bold rounded-xl shadow-lg shadow-green-900/10">
                 Log In
               </a>
-              <a href="${p}register.html" class="block w-full text-center py-3.5 border border-gray-200 dark:border-slate-700 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-slate-800 font-bold rounded-xl">
+              <a href="${p}register.html" class="block w-full text-center py-3.5 border border-gray-200 dark:border-slate-700 text-[#111827] dark:text-white hover:bg-gray-50 dark:hover:bg-slate-800 font-bold rounded-xl">
                 Create Account
               </a>
             `}
@@ -9034,7 +9069,7 @@ export function renderLayout() {
         <div>
           <div class="flex items-center gap-2 mb-4">
             <div class="w-8 h-8 rounded-full overflow-hidden flex items-center justify-center shadow-sm shrink-0">
-              <img src="${settings.logo}" alt="${settings.storeName} Logo" class="w-full h-full object-cover" />
+              <img id="footer-store-logo" src="${settings.logo}" alt="${settings.storeName} Logo" class="w-full h-full object-cover" />
             </div>
             <span class="text-xl font-bold text-white">${settings.storeName}</span>
           </div>
@@ -9287,12 +9322,31 @@ export function renderAdminLayout(activeTabId) {
             </button>
             
             <!-- Dropdown Panel (hidden by default) -->
-            <div id="admin-notif-dropdown" class="absolute right-0 top-full mt-3.5 w-80 sm:w-96 bg-white border border-gray-150 rounded-2xl shadow-xl z-50 hidden flex flex-col overflow-hidden max-h-[480px]">
-              <div class="p-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
-                <span class="font-extrabold text-sm text-gray-850">Notifications</span>
-                <button id="admin-notif-mark-all" class="text-xs font-bold text-[#1E6C02] hover:text-[#145001] transition-colors cursor-pointer">Mark all as read</button>
+            <div id="admin-notif-dropdown" class="fixed sm:absolute left-3 right-3 sm:left-auto sm:right-0 top-20 sm:top-full mt-2 sm:mt-3.5 w-auto sm:w-96 max-w-[calc(100vw-1.5rem)] sm:max-w-none bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl shadow-2xl z-50 hidden flex flex-col overflow-hidden max-h-[calc(100vh-100px)] sm:max-h-[520px]">
+              <div class="p-3.5 border-b border-gray-200 dark:border-slate-800 flex items-center justify-between bg-gray-50/90 dark:bg-slate-800/80 shrink-0">
+                <div class="flex items-center gap-2">
+                  <span class="font-extrabold text-sm text-[#111827] dark:text-white">Notifications</span>
+                </div>
+                <button id="admin-notif-mark-all" class="text-xs font-bold text-[#1E6C02] dark:text-emerald-400 hover:text-[#145001] dark:hover:text-emerald-300 transition-colors cursor-pointer focus:outline-none">Mark all as read</button>
               </div>
-              <div id="admin-notif-list" class="overflow-y-auto flex-1 divide-y divide-gray-100 max-h-[350px]">
+
+              <!-- Notification Filter Controls: All / Unread / Read -->
+              <div id="admin-notif-filter-bar" class="px-3 py-2 bg-gray-100/70 dark:bg-slate-800/70 border-b border-gray-200 dark:border-slate-800 flex items-center gap-1.5 shrink-0">
+                <button type="button" data-filter="all" class="admin-notif-filter-btn notif-filter-active flex-1 py-1.5 px-2 text-xs rounded-xl font-bold transition-all text-center flex items-center justify-center gap-1 cursor-pointer">
+                  <span>All</span>
+                  <span id="admin-notif-count-all" class="text-[10px] px-1.5 py-0.2 rounded-full font-black">0</span>
+                </button>
+                <button type="button" data-filter="unread" class="admin-notif-filter-btn flex-1 py-1.5 px-2 text-xs rounded-xl font-bold transition-all text-center flex items-center justify-center gap-1 cursor-pointer">
+                  <span>Unread</span>
+                  <span id="admin-notif-count-unread" class="text-[10px] px-1.5 py-0.2 rounded-full font-black">0</span>
+                </button>
+                <button type="button" data-filter="read" class="admin-notif-filter-btn flex-1 py-1.5 px-2 text-xs rounded-xl font-bold transition-all text-center flex items-center justify-center gap-1 cursor-pointer">
+                  <span>Read</span>
+                  <span id="admin-notif-count-read" class="text-[10px] px-1.5 py-0.2 rounded-full font-black">0</span>
+                </button>
+              </div>
+
+              <div id="admin-notif-list" class="overflow-y-auto flex-1 divide-y divide-gray-100 dark:divide-slate-800 max-h-[360px]">
                 <!-- Dynamic Notifications -->
               </div>
             </div>
@@ -9543,10 +9597,15 @@ export function setupNotifications() {
 
   if (!notifBtn || !dropdown || !badge || !listContainer) return;
 
+  let activeFilter = 'all'; // 'all' | 'unread' | 'read'
+
   // Toggle Dropdown Panel
   const handleDropdownToggle = (e) => {
     e.stopPropagation();
     dropdown.classList.toggle('hidden');
+    if (!dropdown.classList.contains('hidden')) {
+      renderNotifList();
+    }
   };
   
   notifBtn.onclick = handleDropdownToggle;
@@ -9558,54 +9617,136 @@ export function setupNotifications() {
     }
   });
 
+  // Filter button click handling
+  const filterBtns = dropdown.querySelectorAll('.customer-notif-filter-btn');
+  filterBtns.forEach(btn => {
+    btn.onclick = (e) => {
+      e.stopPropagation();
+      const targetFilter = btn.getAttribute('data-filter');
+      if (targetFilter && targetFilter !== activeFilter) {
+        activeFilter = targetFilter;
+        renderNotifList();
+      }
+    };
+  });
+
   const renderNotifList = () => {
     const allNotifs = getNotifications();
     
     // Filter specifically for this logged in customer's userId and role 'customer', sorted newest to oldest
     const customerNotifs = sortNotificationsDescending(allNotifs.filter(n => n.role === 'customer' && String(n.userId) === String(user.id)));
+    const totalCount = customerNotifs.length;
     const unreadCount = customerNotifs.filter(n => !n.read).length;
+    const readCount = customerNotifs.filter(n => n.read).length;
 
     // Update red badge
     if (unreadCount > 0) {
-      badge.textContent = unreadCount;
+      badge.textContent = unreadCount > 99 ? '99+' : unreadCount;
       badge.classList.remove('hidden');
     } else {
       badge.classList.add('hidden');
     }
 
-    if (customerNotifs.length === 0) {
-      listContainer.innerHTML = `
-        <div class="p-8 text-center text-gray-400 dark:text-gray-500 text-xs">
-          <div class="text-3xl mb-2">🔔</div>
-          No notifications yet
-        </div>
-      `;
+    // Update filter count numbers
+    const countAllEl = document.getElementById('notif-count-all');
+    const countUnreadEl = document.getElementById('notif-count-unread');
+    const countReadEl = document.getElementById('notif-count-read');
+    if (countAllEl) countAllEl.textContent = totalCount;
+    if (countUnreadEl) countUnreadEl.textContent = unreadCount;
+    if (countReadEl) countReadEl.textContent = readCount;
+
+    // Update filter button styling and active class
+    filterBtns.forEach(btn => {
+      const f = btn.getAttribute('data-filter');
+      const countPill = btn.querySelector('span:last-child');
+      const isActive = f === activeFilter;
+      if (isActive) {
+        btn.classList.add('notif-filter-active');
+        if (countPill) {
+          countPill.className = 'text-[10px] px-1.5 py-0.2 rounded-full font-black bg-white/25 text-white';
+        }
+      } else {
+        btn.classList.remove('notif-filter-active');
+        if (countPill) {
+          countPill.className = 'text-[10px] px-1.5 py-0.2 rounded-full font-black bg-gray-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200';
+        }
+      }
+    });
+
+    // Filter displayed notifications according to active tab
+    let displayedNotifs = customerNotifs;
+    if (activeFilter === 'unread') {
+      displayedNotifs = customerNotifs.filter(n => !n.read);
+    } else if (activeFilter === 'read') {
+      displayedNotifs = customerNotifs.filter(n => n.read);
+    }
+
+    if (displayedNotifs.length === 0) {
+      if (customerNotifs.length === 0) {
+        listContainer.innerHTML = `
+          <div class="p-8 text-center text-slate-700 dark:text-slate-300 text-xs">
+            <div class="text-3xl mb-2">🔔</div>
+            <p class="font-bold text-sm text-slate-900 dark:text-white mb-1">No notifications yet</p>
+            <p class="text-slate-600 dark:text-slate-300">You will receive updates here about your orders and reservations.</p>
+          </div>
+        `;
+      } else if (activeFilter === 'unread') {
+        listContainer.innerHTML = `
+          <div class="p-8 text-center text-slate-700 dark:text-slate-300 text-xs">
+            <div class="text-3xl mb-2">✨</div>
+            <p class="font-bold text-sm text-slate-900 dark:text-white mb-1">All caught up!</p>
+            <p class="text-slate-600 dark:text-slate-300">You have no unread notifications.</p>
+          </div>
+        `;
+      } else if (activeFilter === 'read') {
+        listContainer.innerHTML = `
+          <div class="p-8 text-center text-slate-700 dark:text-slate-300 text-xs">
+            <div class="text-3xl mb-2">📬</div>
+            <p class="font-bold text-sm text-slate-900 dark:text-white mb-1">No read notifications</p>
+            <p class="text-slate-600 dark:text-slate-300">Read notifications will appear here once you view them.</p>
+          </div>
+        `;
+      }
       return;
     }
 
-    listContainer.innerHTML = customerNotifs.map(n => {
+    listContainer.innerHTML = displayedNotifs.map(n => {
       const style = NOTIF_STYLES[n.type] || NOTIF_STYLES.info;
+      const isUnread = !n.read;
       return `
-        <div class="p-4 hover:bg-gray-50/50 dark:hover:bg-slate-800/50 transition-colors flex gap-3 items-start relative group cursor-pointer ${!n.read ? 'bg-green-50/10 dark:bg-emerald-950/30' : ''}" data-id="${n.id}">
-          <div class="w-8 h-8 rounded-full ${style.bg} border ${style.text} flex items-center justify-center shrink-0 text-sm mt-0.5">
+        <div class="customer-notif-item ${isUnread ? 'notif-item-unread' : 'notif-item-read'} p-3.5 transition-all flex gap-3 items-start relative group cursor-pointer" data-id="${n.id}">
+          <div class="w-8 h-8 rounded-full ${style.bg} border-2 ${style.text} flex items-center justify-center shrink-0 text-sm mt-0.5 shadow-xs">
             ${style.icon}
           </div>
-          <div class="flex-1 min-w-0 pr-4">
-            <div class="flex items-start justify-between gap-1.5 mb-1">
-              <h5 class="font-bold text-xs text-gray-850 dark:text-gray-100 break-words leading-snug">${n.title}</h5>
-              <span class="text-[10px] text-gray-400 dark:text-gray-400 whitespace-nowrap shrink-0 mt-0.5">${n.createdTime || ''}</span>
+          <div class="flex-1 min-w-0 pr-1">
+            <div class="flex items-start justify-between gap-2 mb-1">
+              <div class="flex items-center gap-1.5 min-w-0 flex-wrap">
+                <h5 class="${isUnread ? 'font-black text-slate-900 dark:text-white text-xs' : 'font-bold text-slate-800 dark:text-slate-200 text-xs'} break-words leading-snug">${n.title}</h5>
+                ${isUnread ? `
+                  <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-black bg-[#1E6C02] text-white shrink-0 shadow-xs">
+                    <span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>NEW
+                  </span>
+                ` : `
+                  <span class="inline-flex items-center gap-0.5 text-[10px] font-bold text-slate-600 dark:text-slate-300 shrink-0">
+                    <svg class="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 inline" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>Read
+                  </span>
+                `}
+              </div>
+              <span class="text-[10px] font-semibold text-slate-700 dark:text-slate-300 whitespace-nowrap shrink-0 mt-0.5">${n.createdTime || ''}</span>
             </div>
-            <p class="text-xs text-gray-650 dark:text-gray-300 leading-relaxed font-medium break-words">${n.message}</p>
-            <div class="text-[9px] text-gray-400 dark:text-gray-400 mt-1">${n.createdDate || ''}</div>
+            <p class="${isUnread ? 'text-slate-900 dark:text-slate-100 font-semibold' : 'text-slate-800 dark:text-slate-200 font-medium'} text-xs leading-relaxed break-words">${n.message}</p>
+            <div class="flex items-center justify-between mt-2 pt-1 border-t border-black/5 dark:border-white/5">
+              <div class="text-[10px] font-medium text-slate-700 dark:text-slate-300">${n.createdDate || ''}</div>
+              ${isUnread ? `
+                <button type="button" class="btn-mark-read px-2 py-0.5 text-[10px] font-black text-[#1E6C02] dark:text-emerald-400 bg-white dark:bg-slate-800 border-2 border-emerald-300 dark:border-emerald-700 rounded-lg hover:bg-[#1E6C02] hover:text-white hover:border-[#1E6C02] dark:hover:bg-emerald-600 dark:hover:text-white dark:hover:border-emerald-500 transition-all cursor-pointer shadow-xs" title="Mark as read" data-id="${n.id}">Mark as read</button>
+              ` : ''}
+            </div>
           </div>
-          ${!n.read ? `
-            <button class="btn-mark-read absolute right-3 top-4 w-2.5 h-2.5 rounded-full bg-[#1E6C02] hover:bg-[#145001] cursor-pointer" title="Mark as read" data-id="${n.id}"></button>
-          ` : ''}
         </div>
       `;
     }).join('');
 
-    // Attach click listener for marking single as read or performing deep linking on row click
+    // Attach click listener for marking single as read
     listContainer.querySelectorAll('.btn-mark-read').forEach(el => {
       el.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -9663,10 +9804,15 @@ export function setupAdminNotifications() {
 
   if (!notifBtn || !dropdown || !badge || !listContainer) return;
 
+  let activeFilter = 'all'; // 'all' | 'unread' | 'read'
+
   // Toggle Dropdown Panel
   const handleDropdownToggle = (e) => {
     e.stopPropagation();
     dropdown.classList.toggle('hidden');
+    if (!dropdown.classList.contains('hidden')) {
+      renderNotifList();
+    }
   };
   
   notifBtn.onclick = handleDropdownToggle;
@@ -9676,6 +9822,19 @@ export function setupAdminNotifications() {
     if (!dropdown.contains(e.target) && !notifBtn.contains(e.target)) {
       dropdown.classList.add('hidden');
     }
+  });
+
+  // Filter button click handling
+  const filterBtns = dropdown.querySelectorAll('.admin-notif-filter-btn');
+  filterBtns.forEach(btn => {
+    btn.onclick = (e) => {
+      e.stopPropagation();
+      const targetFilter = btn.getAttribute('data-filter');
+      if (targetFilter && targetFilter !== activeFilter) {
+        activeFilter = targetFilter;
+        renderNotifList();
+      }
+    };
   });
 
   const renderNotifList = () => {
@@ -9692,49 +9851,118 @@ export function setupAdminNotifications() {
       }
     }));
 
+    const totalCount = adminNotifs.length;
     const unreadCount = adminNotifs.filter(n => !n.read).length;
+    const readCount = adminNotifs.filter(n => n.read).length;
 
     // Update red badge
     if (unreadCount > 0) {
-      badge.textContent = unreadCount;
+      badge.textContent = unreadCount > 99 ? '99+' : unreadCount;
       badge.classList.remove('hidden');
     } else {
       badge.classList.add('hidden');
     }
 
-    if (adminNotifs.length === 0) {
-      listContainer.innerHTML = `
-        <div class="p-8 text-center text-gray-400 text-xs">
-          <div class="text-3xl mb-2">🔔</div>
-          No notifications yet
-        </div>
-      `;
+    // Update filter count numbers
+    const countAllEl = document.getElementById('admin-notif-count-all');
+    const countUnreadEl = document.getElementById('admin-notif-count-unread');
+    const countReadEl = document.getElementById('admin-notif-count-read');
+    if (countAllEl) countAllEl.textContent = totalCount;
+    if (countUnreadEl) countUnreadEl.textContent = unreadCount;
+    if (countReadEl) countReadEl.textContent = readCount;
+
+    // Update filter button styling and active class
+    filterBtns.forEach(btn => {
+      const f = btn.getAttribute('data-filter');
+      const countPill = btn.querySelector('span:last-child');
+      const isActive = f === activeFilter;
+      if (isActive) {
+        btn.classList.add('notif-filter-active');
+        if (countPill) {
+          countPill.className = 'text-[10px] px-1.5 py-0.2 rounded-full font-black bg-white/25 text-white';
+        }
+      } else {
+        btn.classList.remove('notif-filter-active');
+        if (countPill) {
+          countPill.className = 'text-[10px] px-1.5 py-0.2 rounded-full font-black bg-gray-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200';
+        }
+      }
+    });
+
+    // Filter displayed notifications according to active tab
+    let displayedNotifs = adminNotifs;
+    if (activeFilter === 'unread') {
+      displayedNotifs = adminNotifs.filter(n => !n.read);
+    } else if (activeFilter === 'read') {
+      displayedNotifs = adminNotifs.filter(n => n.read);
+    }
+
+    if (displayedNotifs.length === 0) {
+      if (adminNotifs.length === 0) {
+        listContainer.innerHTML = `
+          <div class="p-8 text-center text-slate-700 dark:text-slate-300 text-xs">
+            <div class="text-3xl mb-2">🔔</div>
+            <p class="font-bold text-sm text-slate-900 dark:text-white mb-1">No notifications yet</p>
+            <p class="text-slate-600 dark:text-slate-300">You will receive updates here about new orders, reservations, stock alerts, and inquiries.</p>
+          </div>
+        `;
+      } else if (activeFilter === 'unread') {
+        listContainer.innerHTML = `
+          <div class="p-8 text-center text-slate-700 dark:text-slate-300 text-xs">
+            <div class="text-3xl mb-2">✨</div>
+            <p class="font-bold text-sm text-slate-900 dark:text-white mb-1">All caught up!</p>
+            <p class="text-slate-600 dark:text-slate-300">You have no unread notifications.</p>
+          </div>
+        `;
+      } else if (activeFilter === 'read') {
+        listContainer.innerHTML = `
+          <div class="p-8 text-center text-slate-700 dark:text-slate-300 text-xs">
+            <div class="text-3xl mb-2">📬</div>
+            <p class="font-bold text-sm text-slate-900 dark:text-white mb-1">No read notifications</p>
+            <p class="text-slate-600 dark:text-slate-300">Read notifications will appear here once viewed.</p>
+          </div>
+        `;
+      }
       return;
     }
 
-    listContainer.innerHTML = adminNotifs.map(n => {
+    listContainer.innerHTML = displayedNotifs.map(n => {
       const style = NOTIF_STYLES[n.type] || NOTIF_STYLES.info;
+      const isUnread = !n.read;
       return `
-        <div class="p-4 hover:bg-gray-50/50 transition-colors flex gap-3 items-start relative group cursor-pointer ${!n.read ? 'bg-blue-50/10' : ''}" data-id="${n.id}">
-          <div class="w-8 h-8 rounded-full ${style.bg} border ${style.text} flex items-center justify-center shrink-0 text-sm mt-0.5">
+        <div class="admin-notif-item ${isUnread ? 'notif-item-unread' : 'notif-item-read'} p-3.5 transition-all flex gap-3 items-start relative group cursor-pointer" data-id="${n.id}">
+          <div class="w-8 h-8 rounded-full ${style.bg} border-2 ${style.text} flex items-center justify-center shrink-0 text-sm mt-0.5 shadow-xs">
             ${style.icon}
           </div>
-          <div class="flex-1 min-w-0 pr-4">
-            <div class="flex items-center justify-between gap-1 mb-1">
-              <h5 class="font-bold text-xs text-gray-850 truncate">${n.title}</h5>
-              <span class="text-[10px] text-gray-400 whitespace-nowrap shrink-0">${n.createdTime || ''}</span>
+          <div class="flex-1 min-w-0 pr-1">
+            <div class="flex items-start justify-between gap-2 mb-1">
+              <div class="flex items-center gap-1.5 min-w-0 flex-wrap">
+                <h5 class="${isUnread ? 'font-black text-slate-900 dark:text-white text-xs' : 'font-bold text-slate-800 dark:text-slate-200 text-xs'} break-words leading-snug">${n.title}</h5>
+                ${isUnread ? `
+                  <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-black bg-[#1E6C02] text-white shrink-0 shadow-xs">
+                    <span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>NEW
+                  </span>
+                ` : `
+                  <span class="inline-flex items-center gap-0.5 text-[10px] font-bold text-slate-600 dark:text-slate-300 shrink-0">
+                    <svg class="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 inline" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>Read
+                  </span>
+                `}
+              </div>
+              <span class="text-[10px] font-semibold text-slate-700 dark:text-slate-300 whitespace-nowrap shrink-0 mt-0.5">${n.createdTime || ''}</span>
             </div>
-            <p class="text-xs text-gray-650 leading-relaxed font-medium break-words">${n.message}</p>
-            <div class="text-[9px] text-gray-400 mt-1">${n.createdDate || ''}</div>
+            <p class="${isUnread ? 'text-slate-900 dark:text-slate-100 font-semibold' : 'text-slate-800 dark:text-slate-200 font-medium'} text-xs leading-relaxed break-words">${n.message}</p>
+            <div class="flex items-center justify-between mt-2 pt-1 border-t border-black/5 dark:border-white/5">
+              <div class="text-[10px] font-medium text-slate-700 dark:text-slate-300">${n.createdDate || ''}</div>
+              ${isUnread ? `
+                <button type="button" class="btn-mark-read px-2 py-0.5 text-[10px] font-black text-[#1E6C02] dark:text-emerald-400 bg-white dark:bg-slate-800 border-2 border-emerald-300 dark:border-emerald-700 rounded-lg hover:bg-[#1E6C02] hover:text-white hover:border-[#1E6C02] dark:hover:bg-emerald-600 dark:hover:text-white dark:hover:border-emerald-500 transition-all cursor-pointer shadow-xs" title="Mark as read" data-id="${n.id}">Mark as read</button>
+              ` : ''}
+            </div>
           </div>
-          ${!n.read ? `
-            <button class="btn-mark-read absolute right-3 top-4 w-2.5 h-2.5 rounded-full bg-[#1E6C02] hover:bg-[#145001] cursor-pointer" title="Mark as read" data-id="${n.id}"></button>
-          ` : ''}
         </div>
       `;
     }).join('');
 
-    // Attach click listener for marking single as read or performing deep linking on row click
+    // Attach click listener for marking single as read
     listContainer.querySelectorAll('.btn-mark-read').forEach(el => {
       el.addEventListener('click', (e) => {
         e.stopPropagation();

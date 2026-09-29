@@ -54,8 +54,8 @@
     <!-- Title & Action Header -->
     <div class="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
       <div>
-        <h1 class="text-3xl sm:text-4xl lg:text-5xl font-black text-[#222222] mb-2 tracking-tight">Customer Reviews</h1>
-        <p class="text-sm sm:text-base text-gray-600 font-medium">Authentic feedback from verified RiceFlow customers</p>
+        <h1 class="text-3xl sm:text-4xl lg:text-5xl font-black text-[#111827] dark:text-white mb-2 tracking-tight">Customer Reviews</h1>
+        <p class="text-sm sm:text-base text-[#111827] dark:text-white font-medium">Authentic feedback from verified RiceFlow customers</p>
       </div>
 
       <div id="header-action-container" class="flex items-center gap-3">
@@ -78,7 +78,7 @@
         <div class="bg-white rounded-[28px] border border-gray-150 p-6 sm:p-8 shadow-sm text-center flex flex-col items-center">
           <div class="flex items-center gap-2 mb-4">
             <span class="text-lg">🌾</span>
-            <h2 class="text-xs font-black text-gray-800 uppercase tracking-widest">Rice Products Rating</h2>
+            <h2 class="text-xs font-black text-[#111827] dark:text-white uppercase tracking-widest">Rice Products Rating</h2>
           </div>
           
           <!-- Rating numerical score -->
@@ -89,7 +89,7 @@
             <!-- Rendered by controller -->
           </div>
           
-          <p class="text-xs text-gray-500 font-bold select-none" id="product-overall-count">Based on 0 product reviews</p>
+          <p class="text-xs text-[#111827] dark:text-white font-bold select-none" id="product-overall-count">Based on 0 product reviews</p>
 
           <!-- Divider line decoration -->
           <div class="w-full h-px bg-gray-100 my-6"></div>
@@ -104,7 +104,7 @@
         <div class="bg-white rounded-[28px] border border-gray-150 p-6 sm:p-8 shadow-sm text-center flex flex-col items-center">
           <div class="flex items-center gap-2 mb-4">
             <span class="text-lg">🛒</span>
-            <h2 class="text-xs font-black text-gray-800 uppercase tracking-widest">Ordering Experience Rating</h2>
+            <h2 class="text-xs font-black text-[#111827] dark:text-white uppercase tracking-widest">Ordering Experience Rating</h2>
           </div>
           
           <!-- Rating numerical score -->
@@ -115,8 +115,8 @@
             <!-- Rendered by controller -->
           </div>
           
-          <p class="text-xs text-gray-500 font-bold select-none" id="experience-overall-count">No ordering experience ratings yet</p>
-          <p class="text-[11px] text-gray-400 mt-2">Evaluates checkout, customer service, and delivery reliability</p>
+          <p class="text-xs text-[#111827] dark:text-white font-bold select-none" id="experience-overall-count">No ordering experience ratings yet</p>
+          <p class="text-[11px] text-[#111827] dark:text-white font-medium mt-2">Evaluates checkout, customer service, and delivery reliability</p>
         </div>
 
       </div>
@@ -129,14 +129,14 @@
           <div class="flex flex-col sm:flex-row gap-4 items-center justify-between">
             <!-- Search box -->
             <div class="relative w-full sm:flex-1">
-              <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none select-none">
+              <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#111827] dark:text-white pointer-events-none select-none">
                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
               </span>
               <input 
                 type="text" 
                 id="search-reviews-input"
                 placeholder="Search by customer, variety, or feedback..." 
-                class="w-full h-11 pl-10 pr-4 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-[#1E6C02]/10 focus:border-[#1E6C02] transition-all text-xs sm:text-sm font-semibold text-[#222222]"
+                class="w-full h-11 pl-10 pr-4 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-[#1E6C02]/10 focus:border-[#1E6C02] transition-all text-xs sm:text-sm font-semibold text-[#111827] dark:text-white placeholder:text-[#111827]/80 dark:placeholder:text-white"
               />
             </div>
 
@@ -144,13 +144,13 @@
             <div class="relative w-full sm:w-48">
               <select 
                 id="sort-reviews-select"
-                class="w-full h-11 bg-gray-50 appearance-none border border-gray-200 text-xs sm:text-sm font-bold text-gray-700 px-4 pr-9 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-[#1E6C02]/10 focus:border-[#1E6C02] transition-all cursor-pointer"
+                class="w-full h-11 bg-gray-50 appearance-none border border-gray-200 text-xs sm:text-sm font-bold text-[#111827] dark:text-white px-4 pr-9 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-[#1E6C02]/10 focus:border-[#1E6C02] transition-all cursor-pointer"
               >
                 <option value="recent">Most Recent</option>
                 <option value="highest">Highest Rating</option>
                 <option value="lowest">Lowest Rating</option>
               </select>
-              <span class="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none select-none">
+              <span class="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#111827] dark:text-white pointer-events-none select-none">
                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
               </span>
             </div>
@@ -166,13 +166,13 @@
             </button>
             <button 
               data-filter="product"
-              class="review-tab-btn px-3.5 py-1.5 rounded-lg bg-gray-50 hover:bg-gray-100 text-gray-600 border border-gray-200 transition-all cursor-pointer"
+              class="review-tab-btn px-3.5 py-1.5 rounded-lg bg-gray-50 hover:bg-gray-100 text-[#111827] dark:text-white border border-gray-200 transition-all cursor-pointer"
             >
               Product Reviews (<span id="tab-count-product">0</span>)
             </button>
             <button 
               data-filter="experience"
-              class="review-tab-btn px-3.5 py-1.5 rounded-lg bg-gray-50 hover:bg-gray-100 text-gray-600 border border-gray-200 transition-all cursor-pointer"
+              class="review-tab-btn px-3.5 py-1.5 rounded-lg bg-gray-50 hover:bg-gray-100 text-[#111827] dark:text-white border border-gray-200 transition-all cursor-pointer"
             >
               Ordering Experience (<span id="tab-count-experience">0</span>)
             </button>
@@ -287,9 +287,9 @@
         btn.addEventListener('click', () => {
           tabBtns.forEach(b => {
             b.classList.remove('bg-[#1E6C02]', 'text-white', 'border-[#1E6C02]');
-            b.classList.add('bg-gray-50', 'text-gray-600', 'border-gray-200');
+            b.classList.add('bg-gray-50', 'text-[#111827]', 'dark:text-white', 'border-gray-200');
           });
-          btn.classList.remove('bg-gray-50', 'text-gray-600', 'border-gray-200');
+          btn.classList.remove('bg-gray-50', 'text-[#111827]', 'dark:text-white', 'border-gray-200');
           btn.classList.add('bg-[#1E6C02]', 'text-white', 'border-[#1E6C02]');
           activeCategoryFilter = btn.getAttribute('data-filter') || 'all';
           filterAndRenderReviews();
@@ -339,12 +339,12 @@
             const count = pCounts[stars] || 0;
             const percentage = pTotal > 0 ? (count / pTotal) * 100 : 0;
             breakdownHtml += `
-              <div class="flex items-center gap-3 text-xs font-bold text-gray-600 w-full">
+              <div class="flex items-center gap-3 text-xs font-bold text-[#111827] dark:text-white w-full">
                 <span class="w-8 select-none text-right">${stars} ★</span>
                 <div class="flex-grow h-2 bg-gray-100 rounded-full overflow-hidden">
                   <div class="h-full bg-[#1E6C02] rounded-full transition-all duration-500" style="width: ${percentage}%"></div>
                 </div>
-                <span class="w-4 select-none text-left font-black text-gray-400">${count}</span>
+                <span class="w-4 select-none text-left font-black text-[#111827] dark:text-white">${count}</span>
               </div>
             `;
           });
@@ -415,10 +415,10 @@
               <div class="w-16 h-16 rounded-full bg-emerald-50 text-[#1E6C02] flex items-center justify-center mx-auto mb-4 border border-emerald-100">
                 <span class="text-2xl">${isSearching ? '🔍' : '🌾'}</span>
               </div>
-              <h3 class="text-base font-black text-gray-900 mb-1">
+              <h3 class="text-base font-black text-[#111827] dark:text-white mb-1">
                 ${isSearching ? 'No reviews matched your search' : 'No customer reviews yet.'}
               </h3>
-              <p class="text-xs text-gray-500 font-semibold max-w-md mx-auto">
+              <p class="text-xs text-[#111827] dark:text-white font-semibold max-w-md mx-auto">
                 ${isSearching 
                   ? 'Try searching with different keywords, rice varieties, or customer names.' 
                   : 'Customer reviews will appear here once verified orders are completed and reviewed.'}
@@ -478,7 +478,7 @@
                     </div>
                     <div>
                       <div class="flex items-center gap-2">
-                        <h4 class="font-extrabold text-gray-900 text-sm leading-tight">${review.name || 'Verified Customer'}</h4>
+                        <h4 class="font-extrabold text-[#111827] dark:text-white text-sm leading-tight">${review.name || 'Verified Customer'}</h4>
                         <span class="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-blue-50 text-blue-700 border border-blue-200">
                           Ordering Experience
                         </span>
@@ -488,17 +488,17 @@
                       </div>
                     </div>
                   </div>
-                  <span class="text-xs text-gray-400 font-bold select-none whitespace-nowrap">${formattedDate}</span>
+                  <span class="text-xs text-[#111827] dark:text-white font-bold select-none whitespace-nowrap">${formattedDate}</span>
                 </div>
 
                 <div class="mt-3">
-                  <p class="text-xs sm:text-sm font-medium text-gray-600 leading-relaxed italic">
+                  <p class="text-xs sm:text-sm font-medium text-[#111827] dark:text-white leading-relaxed italic">
                     "${review.comment}"
                   </p>
                 </div>
 
                 <div class="mt-5 pt-3 border-t border-gray-100 flex items-center justify-between text-xs">
-                  <span class="text-gray-400 font-bold">RiceFlow Service & Checkout Feedback</span>
+                  <span class="text-[#111827] dark:text-white font-bold">RiceFlow Service & Checkout Feedback</span>
                   <span class="text-blue-700 bg-blue-50 border border-blue-100 px-2.5 py-1 rounded-lg font-bold flex items-center gap-1">
                     <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>Verified Order
                   </span>
@@ -516,18 +516,18 @@
                     ${initialLetter}
                   </div>
                   <div>
-                    <h4 class="font-extrabold text-gray-900 text-sm leading-tight">${review.name || 'Verified Customer'}</h4>
+                    <h4 class="font-extrabold text-[#111827] dark:text-white text-sm leading-tight">${review.name || 'Verified Customer'}</h4>
                     <div class="flex items-center gap-1 mt-1">
                       ${starsCode}
                     </div>
                   </div>
                 </div>
-                <span class="text-xs text-gray-400 font-bold select-none whitespace-nowrap">${formattedDate}</span>
+                <span class="text-xs text-[#111827] dark:text-white font-bold select-none whitespace-nowrap">${formattedDate}</span>
               </div>
 
               <div class="mt-3">
-                <h5 class="text-sm sm:text-base font-black text-gray-900 mb-1 leading-snug">${review.title || 'Quality Rice'}</h5>
-                <p class="text-xs sm:text-sm font-medium text-gray-600 leading-relaxed italic">
+                <h5 class="text-sm sm:text-base font-black text-[#111827] dark:text-white mb-1 leading-snug">${review.title || 'Quality Rice'}</h5>
+                <p class="text-xs sm:text-sm font-medium text-[#111827] dark:text-white leading-relaxed italic">
                   "${review.comment}"
                 </p>
               </div>
@@ -535,7 +535,7 @@
               ${photosHtml}
 
               <div class="mt-5 pt-3.5 border-t border-gray-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-xs">
-                <span class="text-gray-500 font-bold">
+                <span class="text-[#111827] dark:text-white font-bold">
                   Rice Product: <span class="text-[#1E6C02] font-black">${review.productName || 'Rice Variety'}</span>
                 </span>
                 <span class="text-emerald-700 bg-emerald-50 border border-emerald-100 max-w-fit px-2.5 py-1 rounded-lg font-bold flex items-center gap-1">
@@ -562,7 +562,7 @@
         if (!user) {
           if (headerActionContainer) {
             headerActionContainer.innerHTML = `
-              <a href="login.html?redirect=reviews.html" class="px-4 py-2 bg-white hover:bg-gray-50 text-gray-800 border border-gray-200 rounded-xl text-xs sm:text-sm font-bold transition-all shadow-xs flex items-center gap-1.5">
+              <a href="login.html?redirect=reviews.html" class="px-4 py-2 bg-white hover:bg-gray-50 text-[#111827] dark:text-white border border-gray-200 rounded-xl text-xs sm:text-sm font-bold transition-all shadow-xs flex items-center gap-1.5">
                 <span>🔐</span> Log In to Review
               </a>
             `;
@@ -604,7 +604,7 @@
             });
           } else {
             headerActionContainer.innerHTML = `
-              <span class="text-xs text-gray-400 font-bold bg-white px-3.5 py-2 rounded-xl border border-gray-150 select-none">
+              <span class="text-xs text-[#111827] dark:text-white font-bold bg-white px-3.5 py-2 rounded-xl border border-gray-150 select-none">
                 Delivered orders can be reviewed in Profile
               </span>
             `;
@@ -682,9 +682,9 @@
         let orderSelectorHtml = '';
         if (eligibleOrders && eligibleOrders.length > 1) {
           orderSelectorHtml = `
-            <div class="mb-4 flex items-center gap-2 text-xs font-bold text-gray-700 flex-wrap">
+            <div class="mb-4 flex items-center gap-2 text-xs font-bold text-[#111827] dark:text-white flex-wrap">
               <span>Switch Completed Order:</span>
-              <select id="review-order-switcher" class="bg-gray-50 border border-gray-250 rounded-lg px-2.5 py-1 text-xs font-extrabold cursor-pointer outline-none">
+              <select id="review-order-switcher" class="bg-gray-50 border border-gray-250 rounded-lg px-2.5 py-1 text-xs font-extrabold text-[#111827] dark:text-white cursor-pointer outline-none">
                 ${eligibleOrders.map(eo => `
                   <option value="${eo.id}" ${String(eo.id) === String(order.id) ? 'selected' : ''}>
                     Order #${eo.id} (Delivered ${new Date(eo.createdAt).toLocaleDateString()})
@@ -703,13 +703,13 @@
                   <span class="px-2.5 py-0.5 rounded-full text-[11px] font-black uppercase tracking-wider bg-emerald-50 text-[#1E6C02] border border-emerald-200">
                     Verified Purchase Review
                   </span>
-                  <span class="text-xs text-gray-400 font-bold">Order #${order.id}</span>
+                  <span class="text-xs text-[#111827] dark:text-white font-bold">Order #${order.id}</span>
                 </div>
-                <h3 class="text-xl font-black text-gray-900 mt-1">Leave Customer Review</h3>
-                <p class="text-xs text-gray-500 font-medium">Rate the rice varieties you purchased and your overall RiceFlow ordering experience.</p>
+                <h3 class="text-xl font-black text-[#111827] dark:text-white mt-1">Leave Customer Review</h3>
+                <p class="text-xs text-[#111827] dark:text-white font-medium">Rate the rice varieties you purchased and your overall RiceFlow ordering experience.</p>
               </div>
 
-              <button id="btn-close-review-form" class="text-gray-400 hover:text-gray-600 font-bold text-xs p-1.5 cursor-pointer">
+              <button id="btn-close-review-form" class="text-[#111827] dark:text-white hover:text-[#1E6C02] font-bold text-xs p-1.5 cursor-pointer">
                 ✕ Close
               </button>
             </div>
@@ -718,7 +718,7 @@
 
             <!-- PART 1: PRODUCTS IN THIS ORDER -->
             <div class="space-y-6">
-              <h4 class="text-xs font-black text-gray-400 uppercase tracking-widest">1. Purchased Rice Varieties</h4>
+              <h4 class="text-xs font-black text-[#111827] dark:text-white uppercase tracking-widest">1. Purchased Rice Varieties</h4>
               
               <div class="space-y-6">
                 ${orderItems.map((item, idx) => {
@@ -741,12 +741,12 @@
                           <img src="${pImg}" alt="${pName}" class="w-14 h-14 object-cover rounded-xl border border-emerald-150" />
                           <div>
                             <span class="px-2 py-0.5 rounded text-[10px] font-black bg-emerald-100 text-emerald-800 uppercase tracking-wider">✔ Already Reviewed</span>
-                            <h5 class="text-sm font-black text-gray-900 mt-1">${pName}</h5>
+                            <h5 class="text-sm font-black text-[#111827] dark:text-white mt-1">${pName}</h5>
                             <div class="flex items-center gap-1 text-amber-500 text-xs mt-0.5">
                               <span>${'★'.repeat(Math.round(existingPReview.rating || 5))}</span>
-                              <span class="text-gray-500 text-xs font-bold">(${existingPReview.rating}/5)</span>
+                              <span class="text-[#111827] dark:text-white text-xs font-bold">(${existingPReview.rating}/5)</span>
                             </div>
-                            <p class="text-xs text-gray-600 italic mt-1">"${existingPReview.comment}"</p>
+                            <p class="text-xs text-[#111827] dark:text-white italic mt-1">"${existingPReview.comment}"</p>
                           </div>
                         </div>
                       </div>
@@ -759,14 +759,14 @@
                       <div class="flex items-center gap-4 pb-3 border-b border-gray-200/70">
                         <img src="${pImg}" alt="${pName}" class="w-12 h-12 object-cover rounded-xl border border-gray-200" />
                         <div>
-                          <h5 class="text-sm font-black text-gray-900">${pName}</h5>
-                          <span class="text-[11px] text-gray-400 font-bold">Share your product rating & quality assessment</span>
+                          <h5 class="text-sm font-black text-[#111827] dark:text-white">${pName}</h5>
+                          <span class="text-[11px] text-[#111827] dark:text-white font-bold">Share your product rating & quality assessment</span>
                         </div>
                       </div>
 
                       <!-- Interactive Star Rating -->
                       <div>
-                        <label class="block text-xs font-black text-gray-700 uppercase tracking-wider mb-1.5">Rating Score (1-5 Stars)*</label>
+                        <label class="block text-xs font-black text-[#111827] dark:text-white uppercase tracking-wider mb-1.5">Rating Score (1-5 Stars)*</label>
                         <div class="flex items-center gap-1.5 text-2xl cursor-pointer select-none star-rating-picker" data-target-input="rating-input-${idx}" role="radiogroup" aria-label="Rating score from 1 to 5 stars">
                           ${[1, 2, 3, 4, 5].map(starNum => `
                             <button type="button" class="star-item text-gray-300 hover:text-yellow-400 focus:outline-none transition-transform active:scale-95 cursor-pointer bg-transparent border-0 p-0 text-2xl leading-none select-none" data-value="${starNum}" aria-label="${starNum} star${starNum > 1 ? 's' : ''}" role="radio" aria-checked="false">☆</button>
@@ -777,37 +777,37 @@
 
                       <!-- Review Title -->
                       <div>
-                        <label class="block text-xs font-black text-gray-700 uppercase tracking-wider mb-1.5">Review Headline / Title*</label>
+                        <label class="block text-xs font-black text-[#111827] dark:text-white uppercase tracking-wider mb-1.5">Review Headline / Title*</label>
                         <input 
                           type="text" 
                           id="title-input-${idx}" 
                           placeholder="e.g. Excellent grain quality and great fragrance!" 
-                          class="w-full h-11 px-4 bg-white border border-gray-200 rounded-xl text-xs sm:text-sm font-semibold outline-none focus:ring-2 focus:ring-[#1E6C02]/10 focus:border-[#1E6C02]"
+                          class="w-full h-11 px-4 bg-white border border-gray-200 rounded-xl text-xs sm:text-sm font-semibold text-[#111827] dark:text-white outline-none focus:ring-2 focus:ring-[#1E6C02]/10 focus:border-[#1E6C02]"
                         />
                       </div>
 
                       <!-- Review Comments -->
                       <div>
-                        <label class="block text-xs font-black text-gray-700 uppercase tracking-wider mb-1.5">Review Details & Experience*</label>
+                        <label class="block text-xs font-black text-[#111827] dark:text-white uppercase tracking-wider mb-1.5">Review Details & Experience*</label>
                         <textarea 
                           id="comment-input-${idx}" 
                           rows="3" 
                           placeholder="Describe the rice texture, cooking quality, freshness, or packaging..."
-                          class="w-full p-4 bg-white border border-gray-200 rounded-xl text-xs sm:text-sm font-semibold outline-none focus:ring-2 focus:ring-[#1E6C02]/10 focus:border-[#1E6C02] resize-none"
+                          class="w-full p-4 bg-white border border-gray-200 rounded-xl text-xs sm:text-sm font-semibold text-[#111827] dark:text-white outline-none focus:ring-2 focus:ring-[#1E6C02]/10 focus:border-[#1E6C02] resize-none"
                         ></textarea>
                       </div>
 
                       <!-- Photo Upload (Up to 5) -->
                       <div>
                         <div class="flex items-center justify-between mb-1.5">
-                          <label class="text-xs font-black text-gray-700 uppercase tracking-wider">Attach Photos (Optional, Max 5)</label>
-                          <span class="text-[11px] text-gray-400 font-bold" id="photo-count-label-${idx}">0 / 5 photos</span>
+                          <label class="text-xs font-black text-[#111827] dark:text-white uppercase tracking-wider">Attach Photos (Optional, Max 5)</label>
+                          <span class="text-[11px] text-[#111827] dark:text-white font-bold" id="photo-count-label-${idx}">0 / 5 photos</span>
                         </div>
                         
                         <div class="flex flex-wrap gap-3 items-center">
                           <div id="photo-previews-${idx}" class="flex flex-wrap gap-2.5"></div>
                           
-                          <label id="upload-label-${idx}" class="w-20 h-20 rounded-xl border-2 border-dashed border-gray-300 hover:border-[#1E6C02] flex flex-col items-center justify-center cursor-pointer bg-white text-gray-400 hover:text-[#1E6C02] transition-all">
+                          <label id="upload-label-${idx}" class="w-20 h-20 rounded-xl border-2 border-dashed border-gray-300 hover:border-[#1E6C02] flex flex-col items-center justify-center cursor-pointer bg-white text-[#111827] dark:text-white hover:text-[#1E6C02] transition-all">
                             <input type="file" id="photo-file-input-${idx}" accept="image/*" multiple class="hidden" />
                             <span class="text-xl">+</span>
                             <span class="text-[9px] font-black uppercase mt-0.5">Add Photo</span>
@@ -834,25 +834,25 @@
 
             <!-- PART 2: ORDERING EXPERIENCE REVIEW -->
             <div class="pt-6 border-t border-gray-100 space-y-4">
-              <h4 class="text-xs font-black text-gray-400 uppercase tracking-widest">2. Ordering Experience (Store, Checkout & Delivery)</h4>
+              <h4 class="text-xs font-black text-[#111827] dark:text-white uppercase tracking-widest">2. Ordering Experience (Store, Checkout & Delivery)</h4>
               
               ${existingExpReview ? `
                 <div class="p-5 bg-blue-50/60 rounded-2xl border border-blue-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-left">
                   <div>
                     <span class="px-2 py-0.5 rounded text-[10px] font-black bg-blue-100 text-blue-800 uppercase tracking-wider">✔ Experience Already Rated</span>
-                    <h5 class="text-sm font-black text-gray-900 mt-1">RiceFlow Store & Service Rating</h5>
+                    <h5 class="text-sm font-black text-[#111827] dark:text-white mt-1">RiceFlow Store & Service Rating</h5>
                     <div class="flex items-center gap-1 text-amber-500 text-xs mt-0.5">
                       <span>${'★'.repeat(Math.round(existingExpReview.rating || 5))}</span>
-                      <span class="text-gray-500 text-xs font-bold">(${existingExpReview.rating}/5)</span>
+                      <span class="text-[#111827] dark:text-white text-xs font-bold">(${existingExpReview.rating}/5)</span>
                     </div>
-                    <p class="text-xs text-gray-600 italic mt-1">"${existingExpReview.comment}"</p>
+                    <p class="text-xs text-[#111827] dark:text-white italic mt-1">"${existingExpReview.comment}"</p>
                   </div>
                 </div>
               ` : `
                 <div class="p-6 bg-gray-50 rounded-2xl border border-gray-200 space-y-4 text-left" id="experience-review-box">
                   <!-- Interactive Star Rating -->
                   <div>
-                    <label class="block text-xs font-black text-gray-700 uppercase tracking-wider mb-1.5">Service & Experience Rating (1-5 Stars)*</label>
+                    <label class="block text-xs font-black text-[#111827] dark:text-white uppercase tracking-wider mb-1.5">Service & Experience Rating (1-5 Stars)*</label>
                     <div class="flex items-center gap-1.5 text-2xl cursor-pointer select-none star-rating-picker" data-target-input="rating-input-exp" role="radiogroup" aria-label="Service and experience rating from 1 to 5 stars">
                       ${[1, 2, 3, 4, 5].map(starNum => `
                         <button type="button" class="star-item text-gray-300 hover:text-yellow-400 focus:outline-none transition-transform active:scale-95 cursor-pointer bg-transparent border-0 p-0 text-2xl leading-none select-none" data-value="${starNum}" aria-label="${starNum} star${starNum > 1 ? 's' : ''}" role="radio" aria-checked="false">☆</button>
@@ -863,12 +863,12 @@
 
                   <!-- Comments -->
                   <div>
-                    <label class="block text-xs font-black text-gray-700 uppercase tracking-wider mb-1.5">Feedback & Comments (Optional)</label>
+                    <label class="block text-xs font-black text-[#111827] dark:text-white uppercase tracking-wider mb-1.5">Feedback & Comments (Optional)</label>
                     <textarea 
                       id="comment-input-exp" 
                       rows="3" 
                       placeholder="How was the website checkout, stock reservation updates, GCash verification, and delivery?"
-                      class="w-full p-4 bg-white border border-gray-200 rounded-xl text-xs sm:text-sm font-semibold outline-none focus:ring-2 focus:ring-[#1E6C02]/10 focus:border-[#1E6C02] resize-none"
+                      class="w-full p-4 bg-white border border-gray-200 rounded-xl text-xs sm:text-sm font-semibold text-[#111827] dark:text-white outline-none focus:ring-2 focus:ring-[#1E6C02]/10 focus:border-[#1E6C02] resize-none"
                     ></textarea>
                   </div>
 

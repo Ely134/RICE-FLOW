@@ -43,7 +43,7 @@
   </style>
   <link rel="stylesheet" href="src/styles/index.css">
 </head>
-<body class="bg-[#F5F5F5] min-h-screen">
+<body class="bg-[#F5F5F5] min-h-screen text-[#111827] dark:text-white">
 
   <!-- Dynamic Header Bar -->
   <div id="navbar-container"></div>
@@ -60,10 +60,10 @@
         <div class="bg-orange-100 p-2.5 rounded-xl text-orange-600">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-6 h-6"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
         </div>
-        <h3 class="text-xl font-extrabold text-[#222222] tracking-tight">Reservation Notice</h3>
+        <h3 class="text-xl font-extrabold text-[#111827] dark:text-white tracking-tight">Reservation Notice</h3>
       </div>
       <div class="py-5 space-y-4">
-        <p class="text-xs font-semibold text-gray-500">
+        <p class="text-xs font-semibold text-[#111827] dark:text-white">
           Some items in your current selection are backordered (pre-order).
         </p>
         <div class="bg-[#FFF8F0] border border-[#FFE4C4] rounded-xl p-4 text-xs font-semibold leading-relaxed text-[#8B4513]">
@@ -82,14 +82,14 @@
             id="cart-agreement-check" 
             class="mt-1 h-4 w-4 text-[#1E6C02] rounded border-gray-300 focus:ring-[#1E6C02]"
           />
-          <label htmlFor="cart-agreement-check" class="text-xs text-gray-600 font-semibold select-none cursor-pointer leading-relaxed">
+          <label htmlFor="cart-agreement-check" class="text-xs text-[#111827] dark:text-white font-semibold select-none cursor-pointer leading-relaxed">
             I understand that these items will be scheduled for fulfillment as warehouse stocks replenish.
           </label>
         </div>
       </div>
       <div class="flex gap-3 pt-4 border-t">
-        <button id="cart-close-dialog-btn" class="flex-1 py-3 text-gray-600 hover:bg-gray-50 border rounded-xl font-bold transition-all cursor-pointer">Cancel</button>
-        <button id="cart-proceed-btn" disabled class="flex-1 py-3 bg-gray-300 text-gray-500 rounded-xl font-bold cursor-not-allowed transition-all" style="cursor: not-allowed;">Proceed Checkout</button>
+        <button id="cart-close-dialog-btn" class="flex-1 py-3 text-[#111827] dark:text-white hover:bg-gray-50 border rounded-xl font-bold transition-all cursor-pointer">Cancel</button>
+        <button id="cart-proceed-btn" disabled class="flex-1 py-3 bg-gray-200 text-[#111827] dark:bg-slate-800 dark:text-white rounded-xl font-bold cursor-not-allowed transition-all" style="cursor: not-allowed;">Proceed Checkout</button>
       </div>
     </div>
   </div>
@@ -120,13 +120,13 @@
           cartScreen.innerHTML = `
             <div class="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
               <div class="bg-white rounded-[32px] border border-gray-100 p-12 sm:p-20 text-center shadow-xs max-w-4xl mx-auto flex flex-col items-center justify-center">
-                <svg class="w-20 h-20 text-slate-300 mb-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <svg class="w-20 h-20 text-[#111827] dark:text-white mb-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M5 8h14a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-9a2 2 0 0 1 2-2z" />
                   <path d="M9 8a3 3 0 0 0 6 0" />
                   <path d="M10 13a2 2 0 0 0 4 0" />
                 </svg>
-                <h2 class="text-3xl font-black text-[#222222] mb-3 tracking-tight">Your cart is empty</h2>
-                <p class="text-gray-500 font-semibold text-sm mb-8 leading-relaxed">Add some rice products to get started!</p>
+                <h2 class="text-3xl font-black text-[#111827] dark:text-white mb-3 tracking-tight">Your cart is empty</h2>
+                <p class="text-[#111827] dark:text-white font-semibold text-sm mb-8 leading-relaxed">Add some rice products to get started!</p>
                 <a href="products.html" class="inline-flex items-center justify-center bg-[#1E6C02] hover:bg-[#145001] text-white font-black px-8 py-3.5 rounded-xl transition-colors shadow-sm cursor-pointer select-none">
                   Browse Products
                 </a>
@@ -154,12 +154,12 @@
         cartScreen.innerHTML = `
           <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
             <div>
-              <h1 class="text-3xl lg:text-4xl font-black text-[#222222] tracking-tight">My Basket</h1>
-              <p class="text-gray-500 font-semibold text-sm mt-1">Check and adjust your local orders prior to downpayment.</p>
+              <h1 class="text-3xl lg:text-4xl font-black text-[#111827] dark:text-white tracking-tight">My Basket</h1>
+              <p class="text-[#111827] dark:text-white font-semibold text-sm mt-1">Check and adjust your local orders prior to downpayment.</p>
             </div>
             <button 
               id="btn-select-all" 
-              class="flex items-center gap-2 px-5 py-3 bg-white border border-gray-200 rounded-xl text-sm font-semibold text-gray-700 hover:text-[#1E6C02] hover:border-gray-300 transition-colors cursor-pointer shadow-sm"
+              class="flex items-center gap-2 px-5 py-3 bg-white border border-gray-200 rounded-xl text-sm font-semibold text-[#111827] dark:text-white hover:text-[#1E6C02] hover:border-gray-300 transition-colors cursor-pointer shadow-sm"
             >
               <div class="flex-shrink-0">
                 ${selectedItemIds.length === cart.length ? `
@@ -179,8 +179,8 @@
                 <div class="bg-orange-50 border border-orange-200 rounded-2xl p-5 flex items-start gap-3 shadow-sm shadow-orange-900/5">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-5 h-5 text-orange-600 flex-shrink-0 mt-0.5"><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
                   <div>
-                    <h4 class="text-sm font-black text-orange-850">Pre-Order Reservation tagged list</h4>
-                    <p class="text-xs text-orange-700 font-semibold mt-1">Some selected rows are backordered and will require credit screening prior to restock line placement.</p>
+                    <h4 class="text-sm font-black text-orange-900">Pre-Order Reservation tagged list</h4>
+                    <p class="text-xs text-orange-800 font-semibold mt-1">Some selected rows are backordered and will require credit screening prior to restock line placement.</p>
                   </div>
                 </div>
               ` : ''}
@@ -199,7 +199,7 @@
                           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" class="w-4 h-4"><polyline points="20 6 9 17 4 12"></polyline></svg>
                         </div>
                       ` : `
-                        <div class="w-6 h-6 rounded-lg border-2 border-gray-200 bg-white hover:border-gray-300 transition-colors"></div>
+                        <div class="w-6 h-6 rounded-lg border-2 border-gray-300 bg-white hover:border-gray-400 transition-colors"></div>
                       `}
                     </button>
 
@@ -214,8 +214,8 @@
                     <div class="flex-grow flex flex-col">
                       <div class="flex justify-between items-start">
                         <div>
-                          <h4 class="font-bold text-gray-800 leading-tight text-base mb-1">${item.product.name}</h4>
-                          <p class="text-xs text-gray-400 font-semibold uppercase tracking-wider">${item.product.type} Variety</p>
+                          <h4 class="font-bold text-[#111827] dark:text-white leading-tight text-base mb-1">${item.product.name}</h4>
+                          <p class="text-xs text-[#111827] dark:text-white font-semibold uppercase tracking-wider">${item.product.type} Variety</p>
                           ${item.isReservation ? `
                             <span class="inline-block mt-2 font-black text-[9px] uppercase tracking-wider bg-orange-100 text-orange-800 px-2.5 py-1 rounded-md">QUEUE RESERVATION</span>
                           ` : ''}
@@ -229,22 +229,22 @@
                       </div>
 
                       <div class="flex items-center justify-between mt-4">
-                        <div class="flex items-center gap-2.5 bg-gray-50 p-1 border border-gray-150 rounded-xl">
+                        <div class="flex items-center gap-2.5 bg-gray-50 p-1 border border-gray-200 rounded-xl">
                           <button 
                             data-id="${item.product.id}" 
                             data-qty="${item.quantity - 1}"
-                            class="card-qty-btn w-8 h-8 rounded-lg hover:bg-white text-gray-600 flex items-center justify-center font-bold border border-transparent hover:border-gray-200 cursor-pointer"
+                            class="card-qty-btn w-8 h-8 rounded-lg hover:bg-white text-[#111827] dark:text-white flex items-center justify-center font-bold border border-transparent hover:border-gray-200 cursor-pointer"
                           >-</button>
-                          <span class="font-extrabold text-[#222222] w-8 text-center text-sm">${item.quantity}</span>
+                          <span class="font-extrabold text-[#111827] dark:text-white w-8 text-center text-sm">${item.quantity}</span>
                           <button 
                             data-id="${item.product.id}" 
                             data-qty="${item.quantity + 1}"
-                            class="card-qty-btn w-8 h-8 rounded-lg hover:bg-white text-gray-600 flex items-center justify-center font-bold border border-transparent hover:border-gray-200 cursor-pointer"
+                            class="card-qty-btn w-8 h-8 rounded-lg hover:bg-white text-[#111827] dark:text-white flex items-center justify-center font-bold border border-transparent hover:border-gray-200 cursor-pointer"
                           >+</button>
                         </div>
                         <div class="text-right">
                           <p class="text-[#1E6C02] text-lg font-black">₱${(item.product.price * item.quantity).toLocaleString()}.00</p>
-                          <p class="text-[9px] text-gray-400 font-bold uppercase tracking-widest">${item.quantity} Sacks x ₱${item.product.price}</p>
+                          <p class="text-[10px] text-[#111827] dark:text-white font-bold uppercase tracking-widest">${item.quantity} Sacks x ₱${item.product.price}</p>
                         </div>
                       </div>
                     </div>
@@ -256,25 +256,25 @@
             <!-- Right Grid Column: Order sums -->
             <div class="lg:col-span-1">
               <div class="bg-white rounded-2xl border border-gray-150 p-6 sticky top-24 shadow-sm">
-                <h3 class="text-lg font-black text-gray-800 mb-6 pb-3 border-b border-gray-50 tracking-tight">Order Summary</h3>
-                <div class="space-y-4 mb-6 font-semibold text-sm text-gray-600">
+                <h3 class="text-lg font-black text-[#111827] dark:text-white mb-6 pb-3 border-b border-gray-100 tracking-tight">Order Summary</h3>
+                <div class="space-y-4 mb-6 font-semibold text-sm text-[#111827] dark:text-white">
                   <div class="flex justify-between">
                     <span>Rows Selections</span>
-                    <span class="font-extrabold text-gray-800">${selectedItemIds.length} items</span>
+                    <span class="font-extrabold text-[#111827] dark:text-white">${selectedItemIds.length} items</span>
                   </div>
                   <div class="flex justify-between">
                     <span>Total Sacks count</span>
-                    <span class="font-extrabold text-gray-800">${selectedItems.reduce((acc, i) => acc + i.quantity, 0)} sacks</span>
+                    <span class="font-extrabold text-[#111827] dark:text-white">${selectedItems.reduce((acc, i) => acc + i.quantity, 0)} sacks</span>
                   </div>
                   <div class="flex justify-between">
                     <span>Product Subtotal</span>
-                    <span class="font-extrabold text-gray-800">₱${subtotal.toLocaleString()}.00</span>
+                    <span class="font-extrabold text-[#111827] dark:text-white">₱${subtotal.toLocaleString()}.00</span>
                   </div>
-                  <div class="flex justify-between text-gray-400">
+                  <div class="flex justify-between text-[#111827] dark:text-white">
                     <span class="flex items-center gap-1.5">Delivery Flat Charge</span>
                     <span class="font-extrabold">₱${deliveryFee.toLocaleString()}.00</span>
                   </div>
-                  <div class="border-t border-gray-100 pt-4 flex justify-between font-black text-lg text-gray-800 tracking-tight">
+                  <div class="border-t border-gray-100 pt-4 flex justify-between font-black text-lg text-[#111827] dark:text-white tracking-tight">
                     <span>Final Amount</span>
                     <span class="text-[#1E6C02] text-xl">₱${total.toLocaleString()}.00</span>
                   </div>
@@ -287,7 +287,7 @@
                 >
                   Proceed to Checkout
                 </button>
-                <a href="products.html" class="block text-center w-full py-3.5 border-2 border-gray-200 mt-3 text-gray-600 font-extrabold rounded-2xl hover:bg-gray-50 text-sm transition-all">
+                <a href="products.html" class="block text-center w-full py-3.5 border-2 border-gray-200 mt-3 text-[#111827] dark:text-white font-extrabold rounded-2xl hover:bg-gray-50 text-sm transition-all">
                   Keep Browsing Shop
                 </a>
               </div>
@@ -364,7 +364,7 @@
           proceedBtn.style.cursor = "pointer";
         } else {
           proceedBtn.disabled = true;
-          proceedBtn.className = "flex-1 py-3 bg-gray-300 text-gray-500 rounded-xl font-bold cursor-not-allowed transition-all";
+          proceedBtn.className = "flex-1 py-3 bg-gray-200 text-[#111827] dark:bg-slate-800 dark:text-white rounded-xl font-bold cursor-not-allowed transition-all";
           proceedBtn.style.cursor = "not-allowed";
         }
       });

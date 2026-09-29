@@ -1387,27 +1387,27 @@
           return `
             <tr id="reservation-row-${order.id}" class="${rowBgClass}">
               <!-- Queue Position -->
-              <td class="py-5 px-6 font-bold text-gray-900 text-sm">${queuePosHtml}</td>
+              <td class="py-5 px-6 font-bold text-black dark:text-white text-sm">${queuePosHtml}</td>
               
               <!-- Customer details -->
               <td class="py-5 px-6">
-                <p class="font-bold text-gray-900 text-sm leading-tight">${order.fullName || 'Unknown'}</p>
-                <p class="text-xs text-black font-medium mt-1">${order.phone || 'No Phone'}</p>
+                <p class="font-bold text-black dark:text-white text-sm leading-tight">${order.fullName || 'Unknown'}</p>
+                <p class="text-xs text-black dark:text-white font-medium mt-1">${order.phone || 'No Phone'}</p>
               </td>
 
               <!-- Product variety & Image -->
               <td class="py-5 px-6">
                 <div class="flex items-center gap-3">
                   <img src="${productImg}" alt="${productName}" class="w-10 h-10 rounded-lg object-cover border border-gray-200 shrink-0" />
-                  <span class="font-bold text-gray-900 text-sm">${productName}</span>
+                  <span class="font-bold text-black dark:text-white text-sm">${productName}</span>
                 </div>
               </td>
 
               <!-- Quantity (number only) -->
-              <td class="py-5 px-6 font-bold text-gray-900 text-base">${qty}</td>
+              <td class="py-5 px-6 font-bold text-black dark:text-white text-base">${qty}</td>
 
               <!-- Reservation Date -->
-              <td class="py-5 px-6 font-medium text-black text-sm">${dateAndAvailabilityHtml}</td>
+              <td class="py-5 px-6 font-medium text-black dark:text-white text-sm">${dateAndAvailabilityHtml}</td>
 
               <!-- Status -->
               <td class="py-5 px-6">${statusBadge}</td>

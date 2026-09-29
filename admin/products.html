@@ -583,39 +583,39 @@
                           rowHighlightStyle = 'bg-red-100/90 dark:bg-red-950/80 border-2 border-red-500 font-bold text-red-950 dark:text-red-100 shadow-md';
                         }
 
-                        let currentStockColorClass = 'text-gray-900 font-normal';
+                        let currentStockColorClass = 'text-black dark:text-white font-bold';
                         if (cur === 0) {
-                          currentStockColorClass = 'text-red-600 font-normal';
+                          currentStockColorClass = 'text-red-600 font-bold';
                         } else if (cur <= 20) {
-                          currentStockColorClass = 'text-amber-600 font-normal';
+                          currentStockColorClass = 'text-amber-600 font-bold';
                         }
 
                         return `
                           <tr id="product-row-${item.id}" class="${rowHighlightStyle}">
-                            <td class="py-5 px-5 text-gray-900 font-bold text-base text-left whitespace-nowrap">${index + 1}</td>
+                            <td class="py-5 px-5 text-black dark:text-white font-bold text-base text-left whitespace-nowrap">${index + 1}</td>
                             <td class="py-5 px-6 text-left min-w-[280px]">
                               <div class="flex items-center gap-4">
                                 <div class="w-14 h-14 bg-[#F9F9F9] rounded-xl border border-gray-200 shrink-0 p-1.5 flex items-center justify-center overflow-hidden shadow-2xs">
                                   <img src="${item.image || 'https://i.pinimg.com/736x/69/66/78/696678fbb7edb048d016178c6034872d.jpg'}" class="max-w-full max-h-full object-contain rounded-lg" style="image-rendering: -webkit-optimize-contrast; image-rendering: crisp-edges;" />
                                 </div>
                                 <div class="flex flex-col text-left">
-                                  <span class="font-bold text-gray-900 text-[17px] leading-snug block">${item.name}</span>
+                                  <span class="font-bold text-black dark:text-white text-[17px] leading-snug block">${item.name}</span>
                                   ${isHighlighted ? `<span class="text-[11px] font-extrabold uppercase ${stockFilterParam === 'low' ? 'text-amber-800 dark:text-amber-200' : 'text-red-800 dark:text-red-200'}">★ Highlighted Product</span>` : ''}
                                 </div>
                               </div>
                             </td>
-                            <td class="py-5 px-6 font-normal text-gray-900 text-base text-left whitespace-nowrap">
+                            <td class="py-5 px-6 font-bold text-black dark:text-white text-base text-left whitespace-nowrap">
                               ₱${item.price?.toLocaleString()}.00 
-                              <span class="text-xs text-gray-600 font-medium uppercase">/ ${item.weight || item.unit || '25kg'}</span>
+                              <span class="text-xs text-black dark:text-white font-bold uppercase">/ ${item.weight || item.unit || '25kg'}</span>
                             </td>
                             <td class="py-5 px-6 text-center text-base whitespace-nowrap">
                               <span class="${currentStockColorClass}">${cur} Sack${cur !== 1 ? 's' : ''}</span>
                             </td>
                             <td class="py-5 px-6 text-center text-base whitespace-nowrap">
-                              <span class="font-normal text-red-600">${res} Sack${res !== 1 ? 's' : ''}</span>
+                              <span class="font-bold text-red-600">${res} Sack${res !== 1 ? 's' : ''}</span>
                             </td>
                             <td class="py-5 px-6 text-center whitespace-nowrap">
-                              <span class="inline-flex items-center px-3.5 py-1.5 rounded-xl bg-gray-100 text-gray-800 font-bold text-xs tracking-wide uppercase border border-gray-200">${item.type || 'Rice'} Rice</span>
+                              <span class="inline-flex items-center px-3.5 py-1.5 rounded-xl bg-gray-100 dark:bg-gray-800 text-black dark:text-white font-bold text-xs tracking-wide uppercase border border-gray-200 dark:border-gray-700">${item.type || 'Rice'} Rice</span>
                             </td>
                             <td class="py-5 px-6 text-center whitespace-nowrap">
                             <div class="flex gap-2.5 justify-center">

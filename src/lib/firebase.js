@@ -1225,6 +1225,48 @@ export async function syncOrdersFromFirestore() {
   return JSON.parse(localStorage.getItem('aurora-orders') || '[]');
 }
 
+// Authoritative store settings & branding logo hydration helper
+export async function syncStoreSettingsFromFirestore() {
+  if (!db) return null;
+  try {
+    const remoteDocs = await fetchFirestoreCollection('storeSettings');
+    if (remoteDocs !== null && Array.isArray(remoteDocs) && remoteDocs.length > 0) {
+      safeLocalStorageSet('aurora-store-settings', JSON.stringify(remoteDocs));
+      const s = remoteDocs[0];
+      if (s.logo) safeLocalStorageSet('settings-store-logo', s.logo);
+      if (s.banner) safeLocalStorageSet('settings-store-banner', s.banner);
+      if (s.storeName) safeLocalStorageSet('settings-store-name', s.storeName);
+      if (s.description) safeLocalStorageSet('settings-store-description', s.description);
+      if (s.contactNumber) safeLocalStorageSet('settings-contact-number', s.contactNumber);
+      if (s.storeAddress) safeLocalStorageSet('settings-store-address', s.storeAddress);
+      if (s.facebookLink !== undefined) safeLocalStorageSet('settings-facebook-link', s.facebookLink);
+      if (s.businessHours) safeLocalStorageSet('settings-business-hours', s.businessHours);
+      if (s.gcashName) safeLocalStorageSet('settings-gcash-name', s.gcashName);
+      if (s.gcashNumber) safeLocalStorageSet('settings-gcash-number', s.gcashNumber);
+      if (s.gcashQr !== undefined) safeLocalStorageSet('settings-gcash-qr', s.gcashQr);
+
+      if (typeof document !== 'undefined' && s.logo) {
+        const navLogo = document.getElementById('navbar-store-logo');
+        if (navLogo && navLogo.src !== s.logo) {
+          navLogo.src = s.logo;
+        }
+        const footLogo = document.getElementById('footer-store-logo');
+        if (footLogo && footLogo.src !== s.logo) {
+          footLogo.src = s.logo;
+        }
+      }
+
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('aurora-sync-event', { detail: { key: 'aurora-store-settings', remote: true } }));
+      }
+      return remoteDocs;
+    }
+  } catch (err) {
+    console.warn('[FIREBASE] Error in syncStoreSettingsFromFirestore:', err);
+  }
+  return null;
+}
+
 export async function initFirestoreSync(force = false) {
   if (firestoreSyncPromise && !force) return firestoreSyncPromise;
   firestoreSyncPromise = (async () => {
@@ -1253,10 +1295,11 @@ export async function initFirestoreSync(force = false) {
   }
 
   // 1. PUBLIC COLLECTIONS — Synced for all visitors (Guests, Customers, Staff, Admin)
+  // Prioritize storeSettings first to ensure branding & logo are available immediately on initial load
   const publicCollections = [
+    { col: 'storeSettings', key: 'aurora-store-settings' },
     { col: 'products', key: 'aurora-products' },
     { col: 'reviews', key: 'aurora-reviews' },
-    { col: 'storeSettings', key: 'aurora-store-settings' },
     { col: 'inventoryHistory', key: 'aurora-inventory-history' }
   ];
 
@@ -1318,6 +1361,17 @@ export async function initFirestoreSync(force = false) {
             if (s.gcashName) safeLocalStorageSet('settings-gcash-name', s.gcashName);
             if (s.gcashNumber) safeLocalStorageSet('settings-gcash-number', s.gcashNumber);
             if (s.gcashQr !== undefined) safeLocalStorageSet('settings-gcash-qr', s.gcashQr);
+
+            if (typeof document !== 'undefined' && s.logo) {
+              const navLogo = document.getElementById('navbar-store-logo');
+              if (navLogo && navLogo.src !== s.logo) {
+                navLogo.src = s.logo;
+              }
+              const footLogo = document.getElementById('footer-store-logo');
+              if (footLogo && footLogo.src !== s.logo) {
+                footLogo.src = s.logo;
+              }
+            }
           }
           if (typeof window !== 'undefined') {
             window.dispatchEvent(new CustomEvent('aurora-sync-event', { detail: { key, remote: true } }));
@@ -1347,6 +1401,17 @@ export async function initFirestoreSync(force = false) {
             if (s.gcashName) safeLocalStorageSet('settings-gcash-name', s.gcashName);
             if (s.gcashNumber) safeLocalStorageSet('settings-gcash-number', s.gcashNumber);
             if (s.gcashQr !== undefined) safeLocalStorageSet('settings-gcash-qr', s.gcashQr);
+
+            if (typeof document !== 'undefined' && s.logo) {
+              const navLogo = document.getElementById('navbar-store-logo');
+              if (navLogo && navLogo.src !== s.logo) {
+                navLogo.src = s.logo;
+              }
+              const footLogo = document.getElementById('footer-store-logo');
+              if (footLogo && footLogo.src !== s.logo) {
+                footLogo.src = s.logo;
+              }
+            }
           }
           const newRemoteRaw = JSON.stringify(merged);
           if (localStorage.getItem(key) !== newRemoteRaw) {
