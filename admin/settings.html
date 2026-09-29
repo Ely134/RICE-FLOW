@@ -38,6 +38,104 @@
     }
   </style>
   <link rel="stylesheet" href="../src/styles/index.css">
+  <style id="settings-day-mode-button-readability">
+    /* Day Mode: Primary green buttons in Settings & Confirmation Modal (keep green background, force crisp white text/icons) */
+    html:not(.dark) #admin-layout-container #btn-save-storefront,
+    html:not(.dark) #admin-layout-container #btn-save-storefront *,
+    html:not(.dark) #admin-layout-container #btn-save-contact,
+    html:not(.dark) #admin-layout-container #btn-save-contact *,
+    html:not(.dark) #admin-layout-container #btn-save-gcash,
+    html:not(.dark) #admin-layout-container #btn-save-gcash *,
+    html:not(.dark) #admin-layout-container #btn-change-password,
+    html:not(.dark) #admin-layout-container #btn-change-password *,
+    html:not(.dark) #confirmation-modal #btn-confirm-modal,
+    html:not(.dark) #confirmation-modal #btn-confirm-modal * {
+      color: #FFFFFF !important;
+    }
+    html:not(.dark) #admin-layout-container #btn-save-storefront:hover,
+    html:not(.dark) #admin-layout-container #btn-save-storefront:hover *,
+    html:not(.dark) #admin-layout-container #btn-save-contact:hover,
+    html:not(.dark) #admin-layout-container #btn-save-contact:hover *,
+    html:not(.dark) #admin-layout-container #btn-save-gcash:hover,
+    html:not(.dark) #admin-layout-container #btn-save-gcash:hover *,
+    html:not(.dark) #admin-layout-container #btn-change-password:hover,
+    html:not(.dark) #admin-layout-container #btn-change-password:hover *,
+    html:not(.dark) #confirmation-modal #btn-confirm-modal:hover,
+    html:not(.dark) #confirmation-modal #btn-confirm-modal:hover * {
+      color: #FFFFFF !important;
+    }
+
+    /* Day Mode: Outlined storefront & upload buttons (white/light-green bg, high-contrast forest green text/icons) */
+    html:not(.dark) #admin-layout-container #btn-view-storefront,
+    html:not(.dark) #admin-layout-container #btn-view-storefront *,
+    html:not(.dark) #admin-layout-container #btn-upload-logo,
+    html:not(.dark) #admin-layout-container #btn-upload-logo *,
+    html:not(.dark) #admin-layout-container #btn-upload-banner,
+    html:not(.dark) #admin-layout-container #btn-upload-banner *,
+    html:not(.dark) #admin-layout-container #btn-upload-gcash,
+    html:not(.dark) #admin-layout-container #btn-upload-gcash * {
+      color: #1E6C02 !important;
+    }
+    html:not(.dark) #admin-layout-container #btn-view-storefront:hover,
+    html:not(.dark) #admin-layout-container #btn-view-storefront:hover *,
+    html:not(.dark) #admin-layout-container #btn-upload-logo:hover,
+    html:not(.dark) #admin-layout-container #btn-upload-logo:hover *,
+    html:not(.dark) #admin-layout-container #btn-upload-banner:hover,
+    html:not(.dark) #admin-layout-container #btn-upload-banner:hover *,
+    html:not(.dark) #admin-layout-container #btn-upload-gcash:hover,
+    html:not(.dark) #admin-layout-container #btn-upload-gcash:hover * {
+      color: #145001 !important;
+    }
+
+    /* Day Mode: Remove QR Code button (light red bg, high-contrast deep red text/icon) */
+    html:not(.dark) #admin-layout-container #btn-reset-gcash,
+    html:not(.dark) #admin-layout-container #btn-reset-gcash * {
+      color: #B91C1C !important;
+    }
+    html:not(.dark) #admin-layout-container #btn-reset-gcash:hover,
+    html:not(.dark) #admin-layout-container #btn-reset-gcash:hover * {
+      color: #991B1B !important;
+    }
+
+    /* Day Mode: Confirmation Modal Cancel & Close buttons (crisp black text/icon) */
+    html:not(.dark) #confirmation-modal #btn-cancel-modal,
+    html:not(.dark) #confirmation-modal #btn-cancel-modal *,
+    html:not(.dark) #confirmation-modal #btn-cancel-modal:hover,
+    html:not(.dark) #confirmation-modal #btn-cancel-modal:hover *,
+    html:not(.dark) #confirmation-modal #btn-close-modal-x,
+    html:not(.dark) #confirmation-modal #btn-close-modal-x:hover {
+      color: #000000 !important;
+    }
+
+    /* Day Mode: Topbar & Sidebar buttons on Settings page (crisp readable icons/text, no gray) */
+    html:not(.dark) #admin-layout-container #admin-sidebar-toggle,
+    html:not(.dark) #admin-layout-container #admin-sidebar-toggle svg,
+    html:not(.dark) #admin-layout-container #admin-sidebar-toggle:hover,
+    html:not(.dark) #admin-layout-container #admin-sidebar-toggle:hover svg,
+    html:not(.dark) #admin-layout-container #mobile-sidebar-toggle,
+    html:not(.dark) #admin-layout-container #mobile-sidebar-toggle svg,
+    html:not(.dark) #admin-layout-container #mobile-sidebar-close,
+    html:not(.dark) #admin-layout-container #mobile-sidebar-close svg,
+    html:not(.dark) #admin-layout-container #admin-notif-btn,
+    html:not(.dark) #admin-layout-container #admin-notif-btn svg,
+    html:not(.dark) #admin-layout-container #admin-dark-mode-toggle,
+    html:not(.dark) #admin-layout-container #admin-dark-mode-toggle *,
+    html:not(.dark) #admin-layout-container #admin-dark-mode-toggle:hover,
+    html:not(.dark) #admin-layout-container #admin-dark-mode-toggle:hover * {
+      color: #000000 !important;
+      stroke: #000000 !important;
+    }
+    html:not(.dark) #admin-layout-container #admin-sidebar-logout,
+    html:not(.dark) #admin-layout-container #admin-sidebar-logout svg {
+      color: #B91C1C !important;
+      stroke: #B91C1C !important;
+    }
+    html:not(.dark) #admin-layout-container #admin-sidebar-logout:hover,
+    html:not(.dark) #admin-layout-container #admin-sidebar-logout:hover svg {
+      color: #991B1B !important;
+      stroke: #991B1B !important;
+    }
+  </style>
   <style id="auth-guard-style">body { visibility: hidden !important; }</style>
 </head>
 <body class="bg-[#F5F5F5] min-h-screen">

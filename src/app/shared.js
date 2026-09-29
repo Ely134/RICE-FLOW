@@ -4061,11 +4061,336 @@ export function checkAndCancelExpiredPaymentRejections() {
         window.dispatchEvent(new CustomEvent('aurora-orders-updated', { detail: { orders: list } }));
       }
     }
+
+    // Evaluate customer-side 48-hour reminder milestones for active deadlines
+    try {
+      checkAndSendCustomer48HourReminders(list);
+    } catch (remErr) {
+      console.warn('[REMINDERS] Customer 48-hour reminder evaluation notice:', remErr);
+    }
   } catch (err) {
     console.error('Error checking expired rejected orders:', err);
   } finally {
     if (typeof window !== 'undefined') window._checkingExpiredRejections = false;
   }
+}
+
+// ---------------------- 48-HOUR CUSTOMER REMINDER VISIBILITY HELPERS ----------------------
+
+export function formatDeadlineTimestamp(deadlineMs) {
+  if (!deadlineMs || isNaN(Number(deadlineMs)) || Number(deadlineMs) <= 0) return 'N/A';
+  const d = new Date(Number(deadlineMs));
+  if (isNaN(d.getTime())) return 'N/A';
+  const datePart = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  const timePart = d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+  return `${datePart} at ${timePart}`;
+}
+
+export function formatDeadlineCountdown(deadlineMs, includeSeconds = true) {
+  if (!deadlineMs || isNaN(Number(deadlineMs))) {
+    return {
+      expired: true,
+      remainingMs: 0,
+      hours: 0,
+      minutes: 0,
+      seconds: 0,
+      shortText: 'Expired',
+      detailedText: 'Deadline Expired',
+      urgencyLevel: 'expired'
+    };
+  }
+  const diff = Number(deadlineMs) - Date.now();
+  if (diff <= 0) {
+    return {
+      expired: true,
+      remainingMs: 0,
+      hours: 0,
+      minutes: 0,
+      seconds: 0,
+      shortText: 'Expired',
+      detailedText: 'Deadline Expired',
+      urgencyLevel: 'expired'
+    };
+  }
+
+  const hours = Math.floor(diff / (1000 * 60 * 60));
+  const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+  const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+  let urgencyLevel = 'normal';
+  if (diff <= 2 * 3600 * 1000) {
+    urgencyLevel = 'critical';
+  } else if (diff <= 6 * 3600 * 1000) {
+    urgencyLevel = 'urgent';
+  } else if (diff <= 12 * 3600 * 1000) {
+    urgencyLevel = 'urgent';
+  } else if (diff <= 24 * 3600 * 1000) {
+    urgencyLevel = 'warning';
+  }
+
+  const pad2 = n => String(n).padStart(2, '0');
+  const shortText = includeSeconds
+    ? `${hours}h ${pad2(minutes)}m ${pad2(seconds)}s left`
+    : `${hours}h ${minutes}m left`;
+  const detailedText = includeSeconds
+    ? `${hours}h ${pad2(minutes)}m ${pad2(seconds)}s remaining`
+    : `${hours}h ${minutes}m remaining`;
+
+  return {
+    expired: false,
+    remainingMs: diff,
+    hours,
+    minutes,
+    seconds,
+    shortText,
+    detailedText,
+    urgencyLevel
+  };
+}
+
+export function getOrderPaymentReuploadDeadlineMs(order) {
+  if (!order || isStaleOrderOrReservation(order)) return null;
+  const currentStatus = String(order.status || '').toLowerCase().replace(/_/g, '-');
+  if (currentStatus === 'cancelled' || currentStatus === 'completed') return null;
+  if (!order.paymentRejected || order.hasCorrectedProof === true) return null;
+
+  const candidateDeadlines = [];
+  if (order.reuploadDeadline) {
+    const parsed = new Date(order.reuploadDeadline).getTime();
+    if (!isNaN(parsed) && parsed > 0) candidateDeadlines.push(parsed);
+  }
+  if (order.paymentRejectedAt) {
+    const parsed = new Date(order.paymentRejectedAt).getTime();
+    if (!isNaN(parsed) && parsed > 0) candidateDeadlines.push(parsed + 48 * 60 * 60 * 1000);
+  }
+  if (order.reuploadRequestedAt) {
+    const parsed = new Date(order.reuploadRequestedAt).getTime();
+    if (!isNaN(parsed) && parsed > 0) candidateDeadlines.push(parsed + 48 * 60 * 60 * 1000);
+  }
+  return candidateDeadlines.length > 0 ? Math.max(...candidateDeadlines) : null;
+}
+
+export function getActiveReservationPaymentDeadlineInfo(order) {
+  if (!order || isStaleOrderOrReservation(order)) return null;
+  if (!isReservationOrder(order)) return null;
+
+  const currentStatus = String(order.status || '').toLowerCase().replace(/_/g, '-');
+  if (
+    currentStatus === 'cancelled' ||
+    currentStatus === 'completed' ||
+    currentStatus === 'delivered' ||
+    currentStatus === 'processing' ||
+    currentStatus === 'to-ship' ||
+    currentStatus === 'to-receive' ||
+    currentStatus === 'ready-for-processing' ||
+    currentStatus === 'ready' ||
+    currentStatus === 'rejected'
+  ) {
+    return null;
+  }
+
+  // Workflow B handles rejected payment proofs separately
+  if (order.paymentRejected) return null;
+
+  const isPaymentSatisfied =
+    order.paymentVerified === true ||
+    order.paymentStatus === 'verified' ||
+    order.paymentStatus === 'paid';
+  if (isPaymentSatisfied || hasValidReservationPaymentProof(order)) {
+    return null;
+  }
+
+  const deadlineMs = getReservationPaymentDeadlineMs(order);
+  if (!deadlineMs) return null;
+
+  const countdown = formatDeadlineCountdown(deadlineMs, true);
+  const firstItem = Array.isArray(order.items) && order.items.length > 0 ? order.items[0] : null;
+  const varietyName = firstItem?.product?.name || firstItem?.productName || firstItem?.name || order.productName || 'Reserved Rice';
+  const totalQtyNeeded = Number(firstItem?.quantity || order.quantity || 1);
+  const allocatedQty = Number(order.allocatedQuantity || totalQtyNeeded);
+
+  const totalVal = Number(order.total || order.totalPrice || order.totalBill || 0) ||
+    ((Number(firstItem?.product?.price || firstItem?.price || 0) * totalQtyNeeded) + (order.deliveryOption === 'delivery' ? 80 : 0));
+  const isFull = order.paymentType === 'full' || order.paymentType === 'full_advance' || order.paymentOption === 'Full Payment' || order.paymentOption === 'full';
+  const requiredAmount = isFull
+    ? totalVal
+    : (order.depositAmount && Number(order.depositAmount) > 0 ? Number(order.depositAmount) : Math.round(totalVal * 0.3));
+
+  return {
+    workflow: 'reservation_payment',
+    orderId: String(order.id),
+    isReservation: true,
+    deadlineMs,
+    deadlineFormatted: formatDeadlineTimestamp(deadlineMs),
+    expired: countdown.expired,
+    remainingMs: countdown.remainingMs,
+    shortCountdown: countdown.shortText,
+    detailedCountdown: countdown.detailedText,
+    urgencyLevel: countdown.urgencyLevel,
+    varietyName,
+    allocatedQty,
+    totalQtyNeeded,
+    requiredAmount,
+    paymentLabel: isFull ? 'Full Payment' : '30% Down Payment'
+  };
+}
+
+export function getActivePaymentReuploadDeadlineInfo(order) {
+  if (!order || isStaleOrderOrReservation(order)) return null;
+  const deadlineMs = getOrderPaymentReuploadDeadlineMs(order);
+  if (!deadlineMs) return null;
+
+  const countdown = formatDeadlineCountdown(deadlineMs, true);
+  const isRes = isReservationOrder(order);
+  const firstItem = Array.isArray(order.items) && order.items.length > 0 ? order.items[0] : null;
+  const varietyName = firstItem?.product?.name || firstItem?.productName || firstItem?.name || order.productName || 'Rice Order';
+  const totalQty = Number(firstItem?.quantity || order.quantity || 1);
+
+  return {
+    workflow: 'payment_reupload',
+    orderId: String(order.id),
+    isReservation: isRes,
+    deadlineMs,
+    deadlineFormatted: formatDeadlineTimestamp(deadlineMs),
+    expired: countdown.expired,
+    remainingMs: countdown.remainingMs,
+    shortCountdown: countdown.shortText,
+    detailedCountdown: countdown.detailedText,
+    urgencyLevel: countdown.urgencyLevel,
+    varietyName,
+    totalQty,
+    rejectionReason: order.paymentRejectionReason || 'Payment screenshot needs correction',
+    rejectionExplanation: order.paymentRejectionExplanation || order.paymentRejectionDetails || ''
+  };
+}
+
+export function checkAndSendCustomer48HourReminders(ordersInput = null) {
+  if (typeof localStorage === 'undefined') return;
+  const list = Array.isArray(ordersInput)
+    ? ordersInput
+    : (JSON.parse(localStorage.getItem('aurora-orders') || '[]') || []).filter(o => !isStaleOrderOrReservation(o));
+
+  if (!list || list.length === 0) return;
+
+  let sentMap = {};
+  try {
+    sentMap = JSON.parse(localStorage.getItem('aurora-customer-deadline-reminders') || '{}') || {};
+  } catch (_) {
+    sentMap = {};
+  }
+  let mapChanged = false;
+
+  const resolveMilestone = (remainingMs) => {
+    if (remainingMs <= 0) return null;
+    const oneHour = 3600 * 1000;
+    if (remainingMs <= 2 * oneHour) {
+      return { key: '2h', label: 'Final 2-Hour Reminder' };
+    }
+    if (remainingMs <= 6 * oneHour) {
+      return { key: '6h', label: '6-Hour Reminder' };
+    }
+    if (remainingMs <= 12 * oneHour) {
+      return { key: '12h', label: '12-Hour Reminder' };
+    }
+    if (remainingMs <= 24 * oneHour) {
+      return { key: '24h', label: '24-Hour Reminder' };
+    }
+    return null;
+  };
+
+  list.forEach(order => {
+    if (!order) return;
+    const custId = order.userId || order.customerId;
+    if (!custId) return;
+
+    // WORKFLOW A: Reservation 48-Hour Payment Deadline
+    const resPayInfo = getActiveReservationPaymentDeadlineInfo(order);
+    if (resPayInfo && !resPayInfo.expired) {
+      const milestone = resolveMilestone(resPayInfo.remainingMs);
+      if (milestone) {
+        const dedupKey = `res-pay-rem-${milestone.key}-${order.id}-${resPayInfo.deadlineMs}`;
+        if (!sentMap[dedupKey]) {
+          sentMap[dedupKey] = Date.now();
+          mapChanged = true;
+          const amtFormatted = Number(resPayInfo.requiredAmount || 0).toLocaleString();
+          addNotification(
+            custId,
+            `⏰ ${milestone.label}: Reservation Down Payment Due (#${order.id})`,
+            `Your allocated stock (${resPayInfo.allocatedQty} sack${resPayInfo.allocatedQty !== 1 ? 's' : ''} of ${resPayInfo.varietyName}) for Reservation #${order.id} is awaiting your ${resPayInfo.paymentLabel} of ₱${amtFormatted}.00. Please submit your payment proof before ${resPayInfo.deadlineFormatted} (${resPayInfo.shortCountdown}) to avoid automatic cancellation.`,
+            {
+              role: 'customer',
+              type: 'reservation',
+              targetType: 'reservation',
+              reservationId: String(order.id),
+              orderId: String(order.id),
+              targetId: String(order.id),
+              tab: 'reservations',
+              destinationTab: 'reservations',
+              scrollPayment: true,
+              eventKey: dedupKey,
+              notificationId: `notif-${dedupKey}`
+            }
+          );
+        }
+      }
+    }
+
+    // WORKFLOW B: Payment-Proof 48-Hour Re-upload Deadline
+    const reuploadInfo = getActivePaymentReuploadDeadlineInfo(order);
+    if (reuploadInfo && !reuploadInfo.expired) {
+      const milestone = resolveMilestone(reuploadInfo.remainingMs);
+      if (milestone) {
+        const dedupKey = `reupload-rem-${milestone.key}-${order.id}-${reuploadInfo.deadlineMs}`;
+        if (!sentMap[dedupKey]) {
+          sentMap[dedupKey] = Date.now();
+          mapChanged = true;
+          const recLabel = reuploadInfo.isReservation ? `Reservation #${order.id}` : `Order #${order.id}`;
+          addNotification(
+            custId,
+            `⚠️ ${milestone.label}: Re-upload Payment Proof (${recLabel})`,
+            `Your payment proof for ${recLabel} (${reuploadInfo.varietyName}) was rejected (${reuploadInfo.rejectionReason}). Please upload a corrected payment screenshot before ${reuploadInfo.deadlineFormatted} (${reuploadInfo.shortCountdown}) to prevent automatic cancellation.`,
+            {
+              role: 'customer',
+              type: reuploadInfo.isReservation ? 'reservation' : 'order',
+              targetType: reuploadInfo.isReservation ? 'reservation' : 'order',
+              reservationId: reuploadInfo.isReservation ? String(order.id) : undefined,
+              orderId: String(order.id),
+              targetId: String(order.id),
+              tab: reuploadInfo.isReservation ? 'reservations' : 'to-pay',
+              destinationTab: reuploadInfo.isReservation ? 'reservations' : 'to-pay',
+              scrollPayment: true,
+              eventKey: dedupKey,
+              notificationId: `notif-${dedupKey}`
+            }
+          );
+        }
+      }
+    }
+  });
+
+  if (mapChanged) {
+    try {
+      localStorage.setItem('aurora-customer-deadline-reminders', JSON.stringify(sentMap));
+    } catch (_) {}
+  }
+}
+
+export function updateAllLiveDeadlineCountdowns() {
+  if (typeof document === 'undefined') return;
+  const nodes = document.querySelectorAll('[data-live-deadline-ms]');
+  nodes.forEach(el => {
+    const rawMs = Number(el.getAttribute('data-live-deadline-ms'));
+    if (!rawMs || isNaN(rawMs)) return;
+    const mode = el.getAttribute('data-live-deadline-mode') || 'short';
+    const prefix = el.getAttribute('data-live-deadline-prefix') || '⏱️ ';
+    const cd = formatDeadlineCountdown(rawMs, true);
+    const nextText = cd.expired
+      ? '⚠️ Deadline Expired'
+      : `${prefix}${mode === 'detailed' ? cd.detailedText : cd.shortText}`;
+    if (el.textContent !== nextText) {
+      el.textContent = nextText;
+    }
+  });
 }
 
 if (typeof window !== 'undefined' && !window.__aurora_deadline_checker_started) {
@@ -4076,6 +4401,11 @@ if (typeof window !== 'undefined' && !window.__aurora_deadline_checker_started) 
       checkAndAutoCompleteOrders();
     } catch (e) {}
   }, 15000);
+  setInterval(() => {
+    try {
+      updateAllLiveDeadlineCountdowns();
+    } catch (e) {}
+  }, 1000);
 }
 
 // ---------------------- ORDERS & QUEUE API ----------------------
@@ -6994,7 +7324,36 @@ if (isApproved && isPaymentSatisfied && isFullyAllocated) {
       }
 
       reservations.forEach(resOrder => {
-        const resItem = resOrder.items?.find(it => String(it.product?.id || it.productId) === productId);
+        const normResStatus = String(resOrder.status || '').toLowerCase().replace(/_/g, '-');
+        if (
+          normResStatus === 'cancelled' ||
+          normResStatus === 'completed' ||
+          normResStatus === 'rejected' ||
+          normResStatus === 'processing' ||
+          normResStatus === 'to-ship' ||
+          normResStatus === 'to-receive' ||
+          normResStatus === 'delivered' ||
+          normResStatus === 'ready-for-processing' ||
+          normResStatus === 'ready'
+        ) {
+          return;
+        }
+
+        const resItem = resOrder.items?.find(it => {
+          if (!it) return false;
+          const itemProductId = String(
+            it.product?.id ??
+            it.productId ??
+            (typeof it.product === 'string' || typeof it.product === 'number' ? it.product : '') ??
+            ''
+          ).trim();
+          if (itemProductId && itemProductId === productId) return true;
+          try {
+            return matchesProductVariety({ id: productId, name: product.name }, it.product || it, products);
+          } catch (e) {
+            return false;
+          }
+        });
         const totalQtyNeeded = Number(resItem?.quantity || resOrder.quantity || 1);
         const allocQty = Number(resOrder.allocatedQuantity || 0);
 
@@ -7010,6 +7369,7 @@ if (isApproved && isPaymentSatisfied && isFullyAllocated) {
 
         if (fitsInCurrentBatch) {
           resOrder.restockBatchExcluded = false;
+          resOrder.unallocatedRestockNoticePending = false;
           const batchDateStr = formatDateOrRange(
             addBusinessDays(currentBatchRestockDate, deliveryLead1),
             addBusinessDays(currentBatchRestockDate, deliveryLead2)
@@ -7042,58 +7402,63 @@ if (isApproved && isPaymentSatisfied && isFullyAllocated) {
             modifiedOrderIds.add(resOrder.id);
           }
         } else {
-  resOrder.restockBatchExcluded = true;
-  resOrder.excludedFromRestockAt = new Date().toISOString();
+          // Active waiting reservation NOT included in this restock allocation because available stock was insufficient.
+          // Preserve original historical estimated-date data (do NOT overwrite resOrder.estimatedFulfillmentDate).
+          resOrder.restockBatchExcluded = true;
+          resOrder.excludedFromRestockAt = new Date().toISOString();
 
-  let nextEstDateStr = null;
+          let nextEstDateStr = getEstimatedArrivalDate(resOrder);
+          if ((!nextEstDateStr || nextEstDateStr === 'Waiting for Restock' || nextEstDateStr === 'Not yet scheduled') && nextBatchRestockDate) {
+            nextEstDateStr = formatDateOrRange(
+              addBusinessDays(nextBatchRestockDate, deliveryLead1),
+              addBusinessDays(nextBatchRestockDate, deliveryLead2)
+            );
+          }
 
-  if (nextBatchRestockDate) {
-    nextEstDateStr = formatDateOrRange(
-      addBusinessDays(nextBatchRestockDate, deliveryLead1),
-      addBusinessDays(nextBatchRestockDate, deliveryLead2)
-    );
-  }
+          const latestHistEntry = posRestocks.length > 0 ? posRestocks[posRestocks.length - 1] : null;
+          const restockEventStamp = product.lastRestockAt || (latestHistEntry ? `${latestHistEntry.date}T${latestHistEntry.time || '00:00'}` : currentBatchRestockDate.toISOString());
+          const restockEventKey = `${productId}:${restockEventStamp}`;
 
-  // IMPORTANT:
-  // If a legitimate next batch date exists, update the reservation.
-  // If no new legitimate date can currently be calculated, preserve
-  // the reservation's existing valid fulfillment date instead of
-  // replacing it with "Waiting for Restock".
-  if (nextEstDateStr && nextEstDateStr !== 'Waiting for Restock' && nextEstDateStr !== 'Not yet scheduled') {
-    if (oldEstDate !== nextEstDateStr) {
-      resOrder.estimatedFulfillmentDate = nextEstDateStr;
-      changed = true;
-      modifiedOrderIds.add(resOrder.id);
+          if (resOrder.lastNotifiedUnallocatedRestockKey !== restockEventKey) {
+            resOrder.lastNotifiedUnallocatedRestockKey = restockEventKey;
+            resOrder.unallocatedRestockNoticePending = true;
+            resOrder.unallocatedRestockChoiceMade = null;
+            resOrder.unallocatedRestockNotifiedAt = new Date().toISOString();
+            changed = true;
+            modifiedOrderIds.add(resOrder.id);
+            registerPendingOrderWrite(resOrder.id, resOrder);
 
-      const fulfillmentLabel = isPickup ? 'pickup' : 'delivery';
-      const prodName = product.name || 'Rice';
+            const fulfillmentLabel = isPickup ? 'pickup' : 'delivery';
+            const prodName = product.name || resItem?.product?.name || resItem?.productName || 'Rice';
+            const displayMovedDate = (nextEstDateStr && nextEstDateStr !== 'Not yet scheduled') ? nextEstDateStr : (oldEstDate || 'Waiting for Restock');
+            const dateExplanation = (displayMovedDate && displayMovedDate !== 'Waiting for Restock')
+              ? `Your estimated ${fulfillmentLabel} date has been moved to ${displayMovedDate}.`
+              : `Your estimated ${fulfillmentLabel} date is currently ${displayMovedDate}.`;
 
-      addNotification(
-        resOrder.userId || resOrder.customerId || '',
-        'Reservation Schedule Updated',
-        `Your estimated ${fulfillmentLabel} date for ${prodName} has been moved from ${oldEstDate} to ${nextEstDateStr} because your reservation could not be included in the latest available stock batch.`,
-        {
-          role: 'customer',
-          type: 'reservation',
-          reservationId: resOrder.id,
-          orderId: resOrder.id
+            const custId = resOrder.userId || resOrder.customerId || '';
+            if (custId) {
+              addNotification(
+                custId,
+                'Reservation Not Included in Latest Stock Allocation',
+                `Your reservation (#${resOrder.id}) for ${prodName} was not included in the latest stock allocation because the available rice was not enough to cover all waiting reservations. ${dateExplanation} You can continue waiting for the next restock or cancel your reservation.`,
+                {
+                  role: 'customer',
+                  type: 'reservation',
+                  targetType: 'reservation',
+                  reservationId: String(resOrder.id),
+                  orderId: String(resOrder.id),
+                  targetId: String(resOrder.id),
+                  tab: 'reservations',
+                  requiresUnallocatedChoice: true,
+                  eventKey: `res-unallocated-${resOrder.id}-${restockEventKey}`
+                }
+              );
+            }
+          } else {
+            changed = true;
+            modifiedOrderIds.add(resOrder.id);
+          }
         }
-      );
-    }
-  } else if (
-    oldEstDate &&
-    oldEstDate !== 'Waiting for Restock' &&
-    oldEstDate !== 'Not yet scheduled'
-  ) {
-    // Preserve the existing valid estimate.
-    // Do NOT overwrite it with "Waiting for Restock".
-    if (resOrder.estimatedFulfillmentDate !== oldEstDate) {
-      resOrder.estimatedFulfillmentDate = oldEstDate;
-      changed = true;
-      modifiedOrderIds.add(resOrder.id);
-    }
-  }
-}
       });
     } else {
       // Sync tentative dates for active reservations not explicitly excluded by a past restock
@@ -7140,6 +7505,31 @@ if (isApproved && isPaymentSatisfied && isFullyAllocated) {
       window.dispatchEvent(new CustomEvent('aurora-sync-event'));
     }
   }
+}
+
+export function confirmContinueUnallocatedReservation(orderId) {
+  if (!orderId) return false;
+  const orders = getOrders();
+  const idx = orders.findIndex(o => String(o.id).trim().toLowerCase() === String(orderId).trim().toLowerCase());
+  if (idx === -1) return false;
+
+  const ord = orders[idx];
+  const normStatus = String(ord.status || '').toLowerCase().replace(/_/g, '-');
+  if (normStatus === 'cancelled' || normStatus === 'completed' || normStatus === 'rejected') {
+    return false;
+  }
+
+  // Keep existing reservation active, preserve queue position, quantity, and waiting-for-stock state.
+  // Only acknowledge the unallocated restock choice so the customer continues waiting in the queue.
+  ord.unallocatedRestockNoticePending = false;
+  ord.unallocatedRestockChoiceMade = 'continue';
+  ord.unallocatedRestockContinuedAt = new Date().toISOString();
+  ord.updatedAt = new Date().toISOString();
+
+  registerPendingOrderWrite(ord.id, ord);
+  saveOrders(orders, { colName: 'orders', docId: ord.id, docData: ord });
+
+  return true;
 }
 
 export function getReservationQueuePosition(targetOrder, allOrders = null, targetProductId = null) {
@@ -7555,6 +7945,7 @@ if (typeof window !== 'undefined') {
     addInventoryHistory,
     getEstimatedAvailabilityDate,
     calculateReservationFulfillmentRestockDate,
+    getAuthoritativeDeliveredDate,
     getEstimatedArrivalDate,
     getContactMessages,
     saveContactMessage,
@@ -7593,7 +7984,14 @@ if (typeof window !== 'undefined') {
     cancelOrder,
     getActualRecordedPaidAmount,
     submitCustomerRefundDetails,
-    updateOrderRefundStatus
+    updateOrderRefundStatus,
+    formatDeadlineTimestamp,
+    formatDeadlineCountdown,
+    getOrderPaymentReuploadDeadlineMs,
+    getActiveReservationPaymentDeadlineInfo,
+    getActivePaymentReuploadDeadlineInfo,
+    checkAndSendCustomer48HourReminders,
+    updateAllLiveDeadlineCountdowns
   };
 }
 
@@ -7739,15 +8137,22 @@ export function calculateReservationFulfillmentRestockDate(order) {
     targetProduct.restockDate
   ];
 
+  const endOfTodayMs = (() => {
+    const d = new Date();
+    d.setHours(23, 59, 59, 999);
+    return d.getTime();
+  })();
+
   for (const value of possibleExplicitDates) {
     if (!value) continue;
 
     const parsed = new Date(value);
 
-    // Only use a legitimate FUTURE restock date.
+    // Only use a legitimate FUTURE restock date (and if excluded from today's restock, strictly after today).
+    const minValidMs = order.restockBatchExcluded === true ? endOfTodayMs : Date.now();
     if (
       !isNaN(parsed.getTime()) &&
-      parsed.getTime() >= Date.now()
+      parsed.getTime() > minValidMs
     ) {
       explicitRestockDate = parsed;
       break;
@@ -7904,10 +8309,9 @@ export function calculateReservationFulfillmentRestockDate(order) {
 
   projectedDate.setHours(0, 0, 0, 0);
 
-  // If the projected date is already past, continue using
-  // the same REAL historical interval until we reach the next
-  // legitimate future restock window.
-  while (projectedDate < today) {
+  // If the projected date is already past (or is today when already excluded from today's restock),
+  // continue using the same REAL historical interval until we reach the next legitimate future restock window.
+  while (order.restockBatchExcluded === true ? projectedDate <= today : projectedDate < today) {
     projectedDate = new Date(
       projectedDate.getTime() +
       intervalMilliseconds
@@ -7929,14 +8333,114 @@ export function calculateReservationFulfillmentRestockDate(order) {
   return projectedDate;
 }
 
+export function getAuthoritativeDeliveredDate(order) {
+  if (!order) return null;
+
+  const oStatus = String(order.status || '').toLowerCase().replace(/_/g, '-');
+  const isDeliveredOrCompleted =
+    oStatus === 'delivered' ||
+    oStatus === 'completed' ||
+    oStatus === 'issue-reported' ||
+    order.deliveryVerified === true ||
+    Boolean(order.deliveredDate || order.deliveryVerificationDate || order.deliveredAt || order.deliveryVerifiedAt);
+
+  if (!isDeliveredOrCompleted) return null;
+
+  const parseAndFormatDeliveredDate = (rawVal) => {
+    if (!rawVal) return null;
+    if (rawVal instanceof Date && !isNaN(rawVal.getTime())) {
+      return rawVal.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+    }
+    if (typeof rawVal === 'number' && !isNaN(rawVal) && rawVal > 0) {
+      const d = new Date(rawVal);
+      if (!isNaN(d.getTime())) {
+        return d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+      }
+    }
+    const str = String(rawVal).trim().replace(/^Delivered:\s*/i, '').trim();
+    if (!str) return null;
+    let d = new Date(str);
+    if (isNaN(d.getTime())) {
+      const datePartOnly = str.replace(/,\s*\d{1,2}:\d{2}(?::\d{2})?\s*(?:AM|PM|am|pm)?.*$/, '').trim();
+      if (datePartOnly && datePartOnly !== str) {
+        d = new Date(datePartOnly);
+      }
+    }
+    if (!isNaN(d.getTime())) {
+      return d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+    }
+    return str;
+  };
+
+  // 1. Check authoritative direct delivery timestamp/date fields recorded on the order
+  const directDeliveryCandidates = [
+    order.deliveredAt,
+    order.deliveryVerifiedAt,
+    order.deliveryVerificationDate,
+    order.deliveredDate
+  ];
+  for (const candidate of directDeliveryCandidates) {
+    const formatted = parseAndFormatDeliveredDate(candidate);
+    if (formatted) return formatted;
+  }
+
+  // 2. Check statusHistory for an authoritative 'Delivered' entry
+  if (Array.isArray(order.statusHistory) && order.statusHistory.length > 0) {
+    const delEntry = [...order.statusHistory].reverse().find(h => {
+      if (!h) return false;
+      const s = String(h.status || '').toLowerCase().replace(/_/g, '-');
+      return s === 'delivered' || s.includes('delivered');
+    });
+    if (delEntry) {
+      const formatted = parseAndFormatDeliveredDate(delEntry.changedAt || delEntry.date || delEntry.timestamp);
+      if (formatted) return formatted;
+    }
+  }
+
+  // 3. When order is completed, reuse existing recorded delivery/completion timestamp if present
+  if (oStatus === 'completed') {
+    const completedDeliveryCandidates = [
+      order.collectedDate,
+      order.completedAt,
+      order.completionDate,
+      order.customerConfirmationDate
+    ];
+    for (const candidate of completedDeliveryCandidates) {
+      const formatted = parseAndFormatDeliveredDate(candidate);
+      if (formatted) return formatted;
+    }
+    if (Array.isArray(order.statusHistory) && order.statusHistory.length > 0) {
+      const compEntry = [...order.statusHistory].reverse().find(h => {
+        if (!h) return false;
+        const s = String(h.status || '').toLowerCase().replace(/_/g, '-');
+        return s === 'completed' || s.includes('completed') || s === 'shipped';
+      });
+      if (compEntry) {
+        const formatted = parseAndFormatDeliveredDate(compEntry.changedAt || compEntry.date || compEntry.timestamp);
+        if (formatted) return formatted;
+      }
+    }
+  }
+
+  return null;
+}
+
 export function getEstimatedArrivalDate(order) {
   if (!order) return 'Not yet scheduled';
 
   const oStatus = (order.status || '').toLowerCase().replace(/_/g, '-');
   const isPickup = order.deliveryOption === 'pickup' || order.fulfillmentMethod === 'pickup';
-  const isReservation = !!order.isPreOrder || !!order.isReservation || (order.items && order.items.some(i => i.isReservation));
+  const isReservation = isReservationOrder(order) || !!order.isPreOrder || !!order.isReservation || (order.items && order.items.some(i => i.isReservation));
 
-  // 1. If explicit completed/delivered date exists on completed/delivered orders
+  // For normal orders: once actually delivered/completed, stop moving the estimate and display the actual delivery date
+  if (!isReservation) {
+    const authDeliveredDate = getAuthoritativeDeliveredDate(order);
+    if (authDeliveredDate) {
+      return `Delivered: ${authDeliveredDate}`;
+    }
+  }
+
+  // 1. If explicit completed/delivered date exists on completed/delivered orders (reservations fallback)
   if (oStatus === 'completed' || oStatus === 'delivered') {
     const delDate = order.deliveredDate || order.deliveryVerificationDate || order.deliveredAt;
     if (delDate) {
@@ -7948,9 +8452,104 @@ export function getEstimatedArrivalDate(order) {
     }
   }
 
+  const isUndeliveredActiveNormalOrder =
+    !isReservation &&
+    !['delivered', 'completed', 'cancelled', 'rejected', 'issue-reported'].includes(oStatus) &&
+    order.deliveryVerified !== true &&
+    !order.deliveredDate &&
+    !order.deliveryVerificationDate &&
+    !order.deliveredAt &&
+    !order.deliveryVerifiedAt;
+
+  // Helper to dynamically move an expired normal-order estimated delivery window forward in ~2-day increments
+  // without mutating or overwriting any stored order fields.
+  const rollForwardExpiredNormalWindow = (d1, d2) => {
+    if (!d1 || isNaN(d1.getTime())) return { start: d1, end: d2 || d1, rolled: false };
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    let start = new Date(d1);
+    start.setHours(0, 0, 0, 0);
+    let end = new Date(d2 && !isNaN(d2.getTime()) ? d2 : d1);
+    end.setHours(0, 0, 0, 0);
+
+    let rolled = false;
+    if (isUndeliveredActiveNormalOrder && end < today) {
+      rolled = true;
+      while (end < today) {
+        start = new Date(end);
+        start.setDate(start.getDate() + 1);
+        start.setHours(0, 0, 0, 0);
+
+        end = new Date(start);
+        end.setDate(end.getDate() + 1);
+        end.setHours(0, 0, 0, 0);
+      }
+    }
+    return { start, end, rolled };
+  };
+
+  // Helper to parse a single date or date-range string (e.g. "Sep 28 – 29, 2026" or "September 28–29")
+  const parseNormalOrderDateOrWindow = (val, fallbackYear) => {
+    if (!val) return null;
+    if (val instanceof Date && !isNaN(val.getTime())) {
+      return { start: new Date(val), end: new Date(val) };
+    }
+    const str = String(val).trim();
+    if (!str) return null;
+
+    const yrDefault = fallbackYear || new Date().getFullYear();
+
+    // Pattern A: Same-month range e.g. "Sep 28 – 29, 2026" or "September 28–29"
+    const sameMonthMatch = str.match(/^([A-Za-z]+)\s+(\d{1,2})\s*(?:–|—|-|to)\s*(\d{1,2})(?:,\s*(\d{4}))?$/i);
+    if (sameMonthMatch) {
+      const mName = sameMonthMatch[1];
+      const day1 = Number(sameMonthMatch[2]);
+      const day2 = Number(sameMonthMatch[3]);
+      const yr = sameMonthMatch[4] ? Number(sameMonthMatch[4]) : yrDefault;
+      const s = new Date(`${mName} ${day1}, ${yr}`);
+      const e = new Date(`${mName} ${day2}, ${yr}`);
+      if (!isNaN(s.getTime()) && !isNaN(e.getTime())) {
+        return { start: s, end: e };
+      }
+    }
+
+    // Pattern B: Cross-month range e.g. "Sep 30 – Oct 1, 2026" or "Sep 30, 2026 – Oct 1, 2026"
+    const crossMonthMatch = str.match(/^([A-Za-z]+)\s+(\d{1,2})(?:,\s*(\d{4}))?\s*(?:–|—|-|to)\s*([A-Za-z]+)\s+(\d{1,2})(?:,\s*(\d{4}))?$/i);
+    if (crossMonthMatch) {
+      const m1 = crossMonthMatch[1];
+      const day1 = Number(crossMonthMatch[2]);
+      const m2 = crossMonthMatch[4];
+      const day2 = Number(crossMonthMatch[5]);
+      const yr2 = crossMonthMatch[6] ? Number(crossMonthMatch[6]) : (crossMonthMatch[3] ? Number(crossMonthMatch[3]) : yrDefault);
+      const yr1 = crossMonthMatch[3] ? Number(crossMonthMatch[3]) : yr2;
+      const s = new Date(`${m1} ${day1}, ${yr1}`);
+      const e = new Date(`${m2} ${day2}, ${yr2}`);
+      if (!isNaN(s.getTime()) && !isNaN(e.getTime())) {
+        return { start: s, end: e };
+      }
+    }
+
+    const directParsed = new Date(str);
+    if (!isNaN(directParsed.getTime())) {
+      return { start: directParsed, end: directParsed };
+    }
+    return null;
+  };
+
   // 2. If Staff/Admin explicit scheduled delivery/pickup date is entered on the order
   const explicitDate = order.deliveryDate || order.estimatedDeliveryDate || order.deliverySchedule || order.dispatchDate || order.pickupDate || order.scheduledDate;
   if (explicitDate) {
+    if (!isReservation) {
+      const refYear = order.createdAt ? new Date(order.createdAt).getFullYear() : new Date().getFullYear();
+      const parsedWin = parseNormalOrderDateOrWindow(explicitDate, isNaN(refYear) ? new Date().getFullYear() : refYear);
+      if (parsedWin) {
+        const rolledWin = rollForwardExpiredNormalWindow(parsedWin.start, parsedWin.end);
+        if (rolledWin.rolled) {
+          return formatDateOrRange(rolledWin.start, rolledWin.end);
+        }
+      }
+    }
     const parsed = new Date(explicitDate);
     if (!isNaN(parsed.getTime())) {
       return parsed.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
@@ -8027,35 +8626,46 @@ export function getEstimatedArrivalDate(order) {
 
   // ==================== REGULAR ORDER ESTIMATION ====================
   if (!isReservation) {
+    // If an explicit estimatedFulfillmentDate window was stored on a normal order, parse & roll it forward if expired
+    if (order.estimatedFulfillmentDate && order.estimatedFulfillmentDate !== 'Waiting for Restock' && order.estimatedFulfillmentDate !== 'Not yet scheduled') {
+      const refYear = refDate ? refDate.getFullYear() : new Date().getFullYear();
+      const parsedStoredWin = parseNormalOrderDateOrWindow(order.estimatedFulfillmentDate, refYear);
+      if (parsedStoredWin) {
+        const rolledStored = rollForwardExpiredNormalWindow(parsedStoredWin.start, parsedStoredWin.end);
+        return formatDateOrRange(rolledStored.start, rolledStored.end);
+      }
+    }
+
     // Regular order (Stock is already available)
+    let d1;
+    let d2;
     if (isPickup) {
       // PICKUP
       // If already prepared (or status to-receive/ready)
       if (order.preparedAt || oStatus === 'to-receive' || oStatus === 'ready' || order.reservationStatus === 'Ready for Pickup') {
-        const d1 = addBusinessDays(refDate, 0);
-        const d2 = addBusinessDays(refDate, 1);
-        return formatDateOrRange(d1, d2);
+        d1 = addBusinessDays(refDate, 0);
+        d2 = addBusinessDays(refDate, 1);
       } else {
         // Processing lead time: 1 to 2 business days
-        const d1 = addBusinessDays(refDate, 1);
-        const d2 = addBusinessDays(refDate, 2);
-        return formatDateOrRange(d1, d2);
+        d1 = addBusinessDays(refDate, 1);
+        d2 = addBusinessDays(refDate, 2);
       }
     } else {
       // HOME DELIVERY
       // If already prepared or dispatched
       if (order.preparedAt || order.dispatchedAt || oStatus === 'to-receive') {
         // Shipment transit: 1 to 2 business days from preparation
-        const d1 = addBusinessDays(refDate, 1);
-        const d2 = addBusinessDays(refDate, 2);
-        return formatDateOrRange(d1, d2);
+        d1 = addBusinessDays(refDate, 1);
+        d2 = addBusinessDays(refDate, 2);
       } else {
         // Newly placed / Processing: Processing (1 business day) + Transit (1-2 business days) = 2 to 3 business days
-        const d1 = addBusinessDays(refDate, 2);
-        const d2 = addBusinessDays(refDate, 3);
-        return formatDateOrRange(d1, d2);
+        d1 = addBusinessDays(refDate, 2);
+        d2 = addBusinessDays(refDate, 3);
       }
     }
+
+    const rolled = rollForwardExpiredNormalWindow(d1, d2);
+    return formatDateOrRange(rolled.start, rolled.end);
   }
 
   // ==================== RESERVATION ESTIMATION ====================
@@ -8089,12 +8699,8 @@ export function getEstimatedArrivalDate(order) {
   }
 
   // BEFORE Restock (Waiting for Stock):
-  // 1. If this reservation was explicitly excluded from a past actual restock event, return its stored updated date:
-  if (order.restockBatchExcluded === true && order.estimatedFulfillmentDate && order.estimatedFulfillmentDate !== 'Waiting for Restock' && order.estimatedFulfillmentDate !== 'Not yet scheduled') {
-    return order.estimatedFulfillmentDate;
-  }
-
-  // 2. Authoritatively determine the projected tentative restock date for this product's upcoming restock:
+  // Authoritatively determine the projected tentative restock date for this product's upcoming restock
+  // without overwriting original historical estimatedFulfillmentDate on the reservation record:
   const fulfillmentRestockDate = calculateReservationFulfillmentRestockDate(order);
 
   if (fulfillmentRestockDate && !isNaN(fulfillmentRestockDate.getTime())) {
@@ -9123,6 +9729,124 @@ export function renderLayout() {
 
   setupNotifications();
   initReviewReminderPopup();
+  initCustomerDeadlineReminderBanner();
+}
+
+export function initCustomerDeadlineReminderBanner() {
+  if (typeof window === 'undefined' || typeof document === 'undefined') return;
+  if (window.location.pathname.includes('/admin/')) return;
+  if (
+    window.location.pathname.includes('login.html') ||
+    window.location.pathname.includes('register.html') ||
+    window.location.pathname.includes('reset-password.html')
+  ) {
+    return;
+  }
+
+  // On profile.html, the dedicated rich reminder section inside My Purchases & Order Details handles visibility
+  if (window.location.pathname.includes('profile.html')) {
+    const existingGlobalBar = document.getElementById('riceflow-global-deadline-bar');
+    if (existingGlobalBar) existingGlobalBar.remove();
+    return;
+  }
+
+  const user = getCurrentUser();
+  const headerContainer = document.getElementById('navbar-container');
+  if (!user || !headerContainer) {
+    const existingGlobalBar = document.getElementById('riceflow-global-deadline-bar');
+    if (existingGlobalBar) existingGlobalBar.remove();
+    return;
+  }
+
+  const allOrders = getOrders();
+  const uId = String(user.id || user.uid || user.firebaseUid || '').trim().toLowerCase();
+  const uEmail = String(user.email || '').trim().toLowerCase();
+
+  const myOrders = allOrders.filter(o => {
+    if (!o) return false;
+    const oUId = String(o.userId || o.uid || o.customerId || '').trim().toLowerCase();
+    const oEmail = String(o.email || o.customerEmail || '').trim().toLowerCase();
+    return (uId && oUId === uId) || (uEmail && oEmail === uEmail);
+  });
+
+  const activeItems = [];
+  myOrders.forEach(ord => {
+    const resPay = getActiveReservationPaymentDeadlineInfo(ord);
+    if (resPay && !resPay.expired) activeItems.push(resPay);
+    const reup = getActivePaymentReuploadDeadlineInfo(ord);
+    if (reup && !reup.expired) activeItems.push(reup);
+  });
+
+  activeItems.sort((a, b) => a.deadlineMs - b.deadlineMs);
+
+  let barEl = document.getElementById('riceflow-global-deadline-bar');
+  if (activeItems.length === 0) {
+    if (barEl) barEl.remove();
+    return;
+  }
+
+  if (!barEl) {
+    barEl = document.createElement('div');
+    barEl.id = 'riceflow-global-deadline-bar';
+    headerContainer.insertAdjacentElement('afterend', barEl);
+  }
+
+  const p = getPathPrefix();
+  barEl.className = 'bg-amber-50 dark:bg-slate-900 border-b border-amber-200 dark:border-amber-800/70 transition-colors';
+  barEl.innerHTML = `
+    <div class="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-2.5 flex flex-col gap-2">
+      ${activeItems.map(item => {
+        const isResPay = item.workflow === 'reservation_payment';
+        const isCritical = item.urgencyLevel === 'critical' || item.urgencyLevel === 'urgent';
+        const badgeCls = isCritical
+          ? 'bg-rose-600 text-white'
+          : 'bg-amber-200 dark:bg-amber-900/80 text-amber-950 dark:text-amber-100';
+        const targetHref = isResPay
+          ? `${p}profile.html?fromNotif=1&targetType=reservation&targetId=${encodeURIComponent(item.orderId)}&reservationId=${encodeURIComponent(item.orderId)}&tab=reservations&scrollPayment=1`
+          : `${p}profile.html?fromNotif=1&targetType=${item.isReservation ? 'reservation' : 'order'}&targetId=${encodeURIComponent(item.orderId)}&orderId=${encodeURIComponent(item.orderId)}&tab=${item.isReservation ? 'reservations' : 'to-pay'}&scrollPayment=1`;
+
+        return `
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+            <div class="flex items-center gap-2 flex-wrap">
+              <span class="px-2 py-0.5 rounded-md font-black uppercase tracking-wider text-[10px] ${isResPay ? 'bg-orange-600 text-white' : 'bg-rose-600 text-white'}">
+                ${isResPay ? '📦 Reservation Payment Due (48h)' : '⚠️ Proof Rejected — Re-upload Required (48h)'}
+              </span>
+              <span class="font-bold text-gray-900 dark:text-gray-100">
+                ${isResPay
+                  ? `Reservation #${item.orderId} (${item.varietyName}) — Submit ₱${Number(item.requiredAmount || 0).toLocaleString()}.00 before ${item.deadlineFormatted}`
+                  : `${item.isReservation ? 'Reservation' : 'Order'} #${item.orderId} (${item.varietyName}) — Re-upload corrected proof before ${item.deadlineFormatted}`}
+              </span>
+              <span
+                data-live-deadline-ms="${item.deadlineMs}"
+                data-live-deadline-mode="short"
+                class="px-2 py-0.5 rounded-md font-black text-[11px] ${badgeCls}"
+              >⏱️ ${item.shortCountdown}</span>
+            </div>
+            <div class="shrink-0">
+              <a
+                href="${targetHref}"
+                class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg font-extrabold text-xs text-white ${isResPay ? 'bg-[#1E6C02] hover:bg-[#145001]' : 'bg-rose-600 hover:bg-rose-700'} transition-all shadow-2xs"
+              >
+                ${isResPay ? '📤 Upload Down Payment' : '🔄 Re-upload Proof'}
+              </a>
+            </div>
+          </div>
+        `;
+      }).join('')}
+    </div>
+  `;
+
+  if (!window.__aurora_deadline_banner_listeners_bound) {
+    window.__aurora_deadline_banner_listeners_bound = true;
+    window.addEventListener('aurora-orders-updated', () => {
+      try { initCustomerDeadlineReminderBanner(); } catch (_) {}
+    });
+    window.addEventListener('aurora-sync-event', (e) => {
+      if (!e.detail || e.detail.key === 'aurora-orders') {
+        try { initCustomerDeadlineReminderBanner(); } catch (_) {}
+      }
+    });
+  }
 }
 
 // ---------------------- ADMINISTRATIVE SIDEBAR RENDERER ----------------------
@@ -9710,9 +10434,37 @@ export function setupNotifications() {
       return;
     }
 
+    const currentOrdersList = getOrders();
+
     listContainer.innerHTML = displayedNotifs.map(n => {
       const style = NOTIF_STYLES[n.type] || NOTIF_STYLES.info;
       const isUnread = !n.read;
+      const targetResId = n.reservationId || n.orderId || n.targetId || '';
+      const isUnallocChoiceNotif = Boolean(
+        n.requiresUnallocatedChoice ||
+        (n.title && String(n.title).includes('Not Included in Latest Stock Allocation'))
+      );
+      const matchedResOrder = (isUnallocChoiceNotif && targetResId)
+        ? currentOrdersList.find(o => String(o.id).trim().toLowerCase() === String(targetResId).trim().toLowerCase())
+        : null;
+      const matchedResStatus = matchedResOrder ? String(matchedResOrder.status || '').toLowerCase().replace(/_/g, '-') : '';
+      const showUnallocChoices = Boolean(
+        isUnallocChoiceNotif &&
+        targetResId &&
+        (!matchedResOrder || (
+          matchedResStatus !== 'cancelled' &&
+          matchedResStatus !== 'completed' &&
+          matchedResStatus !== 'rejected' &&
+          matchedResStatus !== 'processing' &&
+          matchedResStatus !== 'to-ship' &&
+          matchedResStatus !== 'to-receive' &&
+          matchedResStatus !== 'delivered' &&
+          matchedResStatus !== 'ready-for-processing' &&
+          matchedResOrder.unallocatedRestockNoticePending !== false &&
+          !matchedResOrder.notifiedForPayment
+        ))
+      );
+
       return `
         <div class="customer-notif-item ${isUnread ? 'notif-item-unread' : 'notif-item-read'} p-3.5 transition-all flex gap-3 items-start relative group cursor-pointer" data-id="${n.id}">
           <div class="w-8 h-8 rounded-full ${style.bg} border-2 ${style.text} flex items-center justify-center shrink-0 text-sm mt-0.5 shadow-xs">
@@ -9735,6 +10487,26 @@ export function setupNotifications() {
               <span class="text-[10px] font-semibold text-slate-700 dark:text-slate-300 whitespace-nowrap shrink-0 mt-0.5">${n.createdTime || ''}</span>
             </div>
             <p class="${isUnread ? 'text-slate-900 dark:text-slate-100 font-semibold' : 'text-slate-800 dark:text-slate-200 font-medium'} text-xs leading-relaxed break-words">${n.message}</p>
+            ${showUnallocChoices ? `
+              <div class="flex items-center gap-2 mt-2.5 flex-wrap">
+                <button
+                  type="button"
+                  class="btn-notif-continue-res px-2.5 py-1 text-[10px] font-black text-white bg-[#1E6C02] hover:bg-[#145001] rounded-lg transition-all cursor-pointer shadow-2xs"
+                  data-notif-id="${n.id}"
+                  data-res-id="${targetResId}"
+                >Continue Reservation</button>
+                <button
+                  type="button"
+                  class="btn-notif-cancel-res px-2.5 py-1 text-[10px] font-black text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/60 border border-rose-300 dark:border-rose-700 hover:bg-rose-600 hover:text-white dark:hover:bg-rose-600 dark:hover:text-white rounded-lg transition-all cursor-pointer shadow-2xs"
+                  data-notif-id="${n.id}"
+                  data-res-id="${targetResId}"
+                >Cancel Reservation</button>
+              </div>
+            ` : (isUnallocChoiceNotif && matchedResOrder && matchedResOrder.unallocatedRestockChoiceMade === 'continue' && matchedResStatus !== 'cancelled' ? `
+              <div class="mt-2 inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 text-[10px] font-bold text-emerald-800 dark:text-emerald-300">
+                ✔ Continuing in waiting queue
+              </div>
+            ` : '')}
             <div class="flex items-center justify-between mt-2 pt-1 border-t border-black/5 dark:border-white/5">
               <div class="text-[10px] font-medium text-slate-700 dark:text-slate-300">${n.createdDate || ''}</div>
               ${isUnread ? `
@@ -9745,6 +10517,47 @@ export function setupNotifications() {
         </div>
       `;
     }).join('');
+
+    // Attach click listeners for Continue Reservation / Cancel Reservation inside notification items
+    listContainer.querySelectorAll('.btn-notif-continue-res').forEach(el => {
+      el.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const notifId = el.getAttribute('data-notif-id');
+        const resId = el.getAttribute('data-res-id');
+        if (notifId) {
+          markNotificationAsRead(notifId, user.id, 'customer');
+        }
+        if (resId) {
+          confirmContinueUnallocatedReservation(resId);
+          showToast('✔ Your reservation remains active in the waiting queue for the next restock.', 'success');
+        }
+        renderNotifList();
+      });
+    });
+
+    listContainer.querySelectorAll('.btn-notif-cancel-res').forEach(el => {
+      el.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const notifId = el.getAttribute('data-notif-id');
+        const resId = el.getAttribute('data-res-id');
+        if (notifId) {
+          markNotificationAsRead(notifId, user.id, 'customer');
+        }
+        renderNotifList();
+        if (!resId) return;
+        dropdown.classList.add('hidden');
+        if (typeof window !== 'undefined' && window.location.pathname.includes('profile.html') && typeof window.promptCustomerCancelOrder === 'function') {
+          if (typeof window.openCustomerOrderFromNotif === 'function') {
+            window.openCustomerOrderFromNotif(resId, 'reservations', false);
+          }
+          window.promptCustomerCancelOrder(resId);
+        } else {
+          const inAdmin = window.location.pathname.includes('/admin/');
+          const profilePath = inAdmin ? '../profile.html' : 'profile.html';
+          window.location.href = `${profilePath}?fromNotif=1&targetType=reservation&targetId=${encodeURIComponent(resId)}&reservationId=${encodeURIComponent(resId)}&tab=reservations&promptCancel=1`;
+        }
+      });
+    });
 
     // Attach click listener for marking single as read
     listContainer.querySelectorAll('.btn-mark-read').forEach(el => {

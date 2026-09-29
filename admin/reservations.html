@@ -1022,12 +1022,68 @@
         }
       }
 
+      // Authoritative sequential queue position across applicable active waiting reservations (not split by variety)
+      function getActiveWaitingQueuePosition(targetOrder, allOrders = null) {
+        if (!targetOrder) return null;
+
+        const targetStatusClean = String(targetOrder.status || '').toLowerCase().replace(/_/g, '-').trim();
+        const targetIsRes = Boolean(
+          targetOrder.isPreOrder === true ||
+          (targetOrder.items && Array.isArray(targetOrder.items) && targetOrder.items.some(i => i && i.isReservation === true)) ||
+          ['pre-order', 'pre_order', 'waiting', 'payment_verification', 'ready_for_processing', 'ready'].includes(targetStatusClean) ||
+          String(targetOrder.id || '').toUpperCase().replace(/^#/, '').startsWith('RES')
+        );
+        if (!targetIsRes) return null;
+
+        const list = allOrders || getAllOrders();
+
+        const activeReservations = list.filter(o => {
+          if (!o || o.linkedReservationId) return false;
+
+          const cleanStatus = String(o.status || '').toLowerCase().replace(/_/g, '-').trim();
+          const isExcluded = (
+            cleanStatus === 'cancelled' ||
+            cleanStatus === 'completed' ||
+            cleanStatus === 'delivered' ||
+            cleanStatus === 'processing' ||
+            cleanStatus === 'to-ship' ||
+            cleanStatus === 'to-receive' ||
+            cleanStatus === 'rejected' ||
+            cleanStatus === 'expired' ||
+            o.paymentRejected === true ||
+            o.paymentStatus === 'rejected_expired' ||
+            o.autoCancelledDueToRejectionDeadline === true ||
+            o.autoCancelledDueToPaymentDeadline === true
+          );
+          if (isExcluded) return false;
+
+          const oRes = Boolean(
+            o.isPreOrder === true ||
+            (o.items && Array.isArray(o.items) && o.items.some(it => it && it.isReservation === true)) ||
+            ['pre-order', 'pre_order', 'waiting', 'payment_verification', 'ready_for_processing', 'ready'].includes(cleanStatus) ||
+            String(o.id || '').toUpperCase().replace(/^#/, '').startsWith('RES')
+          );
+          return oRes;
+        });
+
+        activeReservations.sort((a, b) => {
+          const tA = new Date(a.createdAt || a.dateCreated || a.date || 0).getTime();
+          const tB = new Date(b.createdAt || b.dateCreated || b.date || 0).getTime();
+          return tA - tB;
+        });
+
+        const targetId = String(targetOrder.id || '').toLowerCase().replace(/^#/, '');
+        const index = activeReservations.findIndex(o => String(o.id || '').toLowerCase().replace(/^#/, '') === targetId);
+
+        return index >= 0 ? (index + 1) : null;
+      }
+
       // Main Queue Render Loop
       function renderQueueTable() {
         const orders = getAllOrders().filter(o => isReservationOrder(o));
 
         function getQueuePosition(order) {
-          return getReservationQueuePosition(order, orders);
+          return getActiveWaitingQueuePosition(order, orders);
         }
 
         // Apply Search query and Status Filters
@@ -1584,7 +1640,7 @@
         if (modalEl) modalEl.classList.remove('hidden');
 
         // Dynamic chronological position calculation for this modal view using authoritative queue function
-        const dynamicPos = getReservationQueuePosition(order, orders) || order.queuePosition || null;
+        const dynamicPos = getActiveWaitingQueuePosition(order, orders) || order.queuePosition || null;
 
         // Shared variables
         const isApproved = order.adminApproved === true || 

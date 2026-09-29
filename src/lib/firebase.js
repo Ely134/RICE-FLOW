@@ -495,8 +495,7 @@ export const CONFIRMED_STALE_RESERVATION_IDS = new Set([
 ]);
 
 export const CONFIRMED_STALE_ORDER_IDS = new Set([
-  'ORD-2026-REG-001',
-  'RF200008'
+  'ORD-2026-REG-001'
 ]);
 
 export const CONFIRMED_STALE_INVENTORY_IDS = new Set([
@@ -596,7 +595,7 @@ export function isStaleInventoryHistory(entry) {
 
   // 2. Check remarks referencing confirmed stale test orders or reservations
   const remarks = String(entry.remarks || entry.reason || '').trim();
-  if (/#(?:ORD-2026-REG-001|RF200008)\b/i.test(remarks)) return true;
+  if (/#(?:ORD-2026-REG-001)\b/i.test(remarks)) return true;
   for (const staleOrdId of CONFIRMED_STALE_ORDER_IDS) {
     if (remarks.includes(staleOrdId)) return true;
   }
