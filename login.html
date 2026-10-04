@@ -95,7 +95,7 @@
         </div>
 
         <!-- Form container -->
-        <form id="form-login" class="space-y-6">
+        <form id="form-login" class="space-y-6" autocomplete="off">
           
           <!-- Email Address input field -->
           <div class="space-y-2">
@@ -106,6 +106,7 @@
               id="email"
               type="email"
               required
+              autocomplete="off"
               placeholder="Enter Email Address"
               class="w-full h-12 px-4 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-[#1E6C02]/20 focus:border-[#1E6C02] transition-all text-sm font-medium text-[#222222]"
             />
@@ -121,6 +122,7 @@
                 id="password"
                 type="password"
                 required
+                autocomplete="new-password"
                 placeholder="Enter Password"
                 class="w-full h-12 pl-4 pr-12 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-[#1E6C02]/20 focus:border-[#1E6C02] transition-all text-sm font-medium text-[#222222]"
               />
@@ -187,17 +189,21 @@
       
       <!-- Input State -->
       <div id="forgot-input-state">
-        <p class="text-sm text-black font-normal mb-5 leading-relaxed">
+        <p class="text-sm text-black dark:text-slate-200 font-normal mb-5 leading-relaxed">
           Please enter your registered email address. We will send a secure password reset link to your inbox.
         </p>
+
+        <!-- Dynamic Limiter Notice / Banner (cooldown countdown & hourly limit) -->
+        <div id="forgot-limiter-notice" class="hidden mb-4 p-3.5 rounded-xl border text-xs font-semibold leading-relaxed"></div>
+
         <div class="space-y-4">
           <div class="space-y-1.5">
-            <label for="forgot-email" class="text-sm font-bold text-black block">Email Address</label>
+            <label for="forgot-email" class="text-sm font-bold text-black dark:text-white block">Email Address</label>
             <input
               id="forgot-email"
               type="email"
               placeholder="Enter your registered email"
-              class="w-full h-12 px-4 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-[#1E6C02]/20 focus:border-[#1E6C02] transition-all text-sm font-medium text-[#222222]"
+              class="w-full h-12 px-4 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl outline-none focus:bg-white dark:focus:bg-slate-800 focus:ring-2 focus:ring-[#1E6C02]/20 focus:border-[#1E6C02] transition-all text-sm font-medium text-[#222222] dark:text-white"
             />
           </div>
           <button
@@ -281,6 +287,25 @@
       const eyeIcon = document.getElementById('eye-icon');
       const submitBtn = document.getElementById('btn-submit');
 
+      // Function to ensure credential fields are clean and empty on page access
+      const clearCredentials = () => {
+        if (form) form.reset();
+        if (emailInput) emailInput.value = '';
+        if (passwordInput) passwordInput.value = '';
+      };
+
+      // Clear immediately on DOM ready
+      clearCredentials();
+
+      // Clear on browser pageshow (handles bfcache / back-forward navigation after logout)
+      window.addEventListener('pageshow', () => {
+        clearCredentials();
+      });
+
+      // Clear with slight delays to defeat aggressive browser autofill on initial mount
+      setTimeout(clearCredentials, 50);
+      setTimeout(clearCredentials, 200);
+
       // Password visibility toggle helpers
       let isVisible = false;
       const eyeOpenSvg = `<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle>`;
@@ -292,18 +317,159 @@
         eyeIcon.innerHTML = isVisible ? eyeClosedSvg : eyeOpenSvg;
       });
 
-      // Forgot Password Modal Integration
+      // Forgot Password Modal Integration & Limiter
       const forgotBtn = document.getElementById('btn-forgot-password');
       const forgotModal = document.getElementById('forgot-password-modal');
       const forgotContent = document.getElementById('forgot-password-content');
       const closeForgotModal = document.getElementById('close-forgot-modal');
       const btnSendReset = document.getElementById('btn-send-reset');
+      const btnSendResetText = document.getElementById('btn-send-reset-text');
       const forgotEmailInput = document.getElementById('forgot-email');
       const forgotInputState = document.getElementById('forgot-input-state');
       const forgotSuccessState = document.getElementById('forgot-success-state');
       const forgotNotFoundState = document.getElementById('forgot-notfound-state');
       const btnBackToLogin = document.getElementById('btn-back-to-login');
       const btnTryAgainForgot = document.getElementById('btn-try-again-forgot');
+      const forgotLimiterNotice = document.getElementById('forgot-limiter-notice');
+
+      // Password reset request limiter constants
+      const RESET_LIMITER_KEY = 'riceflow_pwd_reset_limiter_v1';
+      const COOLDOWN_SECONDS = 60;
+      const HOURLY_LIMIT = 3;
+      const ONE_HOUR_MS = 60 * 60 * 1000;
+
+      let cooldownTimerInterval = null;
+
+      function getResetLimiterData() {
+        try {
+          const raw = localStorage.getItem(RESET_LIMITER_KEY);
+          return raw ? JSON.parse(raw) : { lastSuccessTime: 0, byEmail: {} };
+        } catch (_) {
+          return { lastSuccessTime: 0, byEmail: {} };
+        }
+      }
+
+      function saveResetLimiterData(data) {
+        try {
+          localStorage.setItem(RESET_LIMITER_KEY, JSON.stringify(data));
+        } catch (_) {}
+      }
+
+      function getCooldownRemaining() {
+        const data = getResetLimiterData();
+        const elapsedMs = Date.now() - (data.lastSuccessTime || 0);
+        const remainingSeconds = Math.max(0, Math.ceil((COOLDOWN_SECONDS * 1000 - elapsedMs) / 1000));
+        return remainingSeconds;
+      }
+
+      function getRecentRequestsForEmail(email) {
+        if (!email) return [];
+        const cleanEmail = email.trim().toLowerCase();
+        const data = getResetLimiterData();
+        const history = (data.byEmail && data.byEmail[cleanEmail]) || [];
+        const cutoff = Date.now() - ONE_HOUR_MS;
+        return history.filter(ts => ts > cutoff);
+      }
+
+      function checkHourlyLimitExceeded(email) {
+        if (!email) return false;
+        const recent = getRecentRequestsForEmail(email);
+        return recent.length >= HOURLY_LIMIT;
+      }
+
+      function updateForgotLimiterUI(optionalEmail) {
+        const email = optionalEmail !== undefined ? optionalEmail : (forgotEmailInput ? forgotEmailInput.value.trim().toLowerCase() : '');
+        const cooldownRemaining = getCooldownRemaining();
+
+        // 1. Check 60-second cooldown first
+        if (cooldownRemaining > 0) {
+          if (forgotLimiterNotice) {
+            forgotLimiterNotice.className = 'mb-4 p-3.5 rounded-xl border border-amber-300 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/50 text-amber-900 dark:text-amber-200 text-xs font-semibold leading-relaxed flex items-center gap-2.5';
+            forgotLimiterNotice.innerHTML = `
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" class="w-4 h-4 shrink-0 text-amber-700 dark:text-amber-400"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+              <span>Please wait <strong>${cooldownRemaining}</strong> seconds before requesting another reset email.</span>
+            `;
+            forgotLimiterNotice.classList.remove('hidden');
+          }
+          if (btnSendReset) {
+            btnSendReset.disabled = true;
+            btnSendReset.classList.add('opacity-60', 'cursor-not-allowed');
+            btnSendReset.classList.remove('cursor-pointer');
+            if (btnSendResetText) {
+              btnSendResetText.textContent = `Wait ${cooldownRemaining}s before requesting`;
+            }
+          }
+          startCooldownTimer();
+          return;
+        }
+
+        // 2. Check 3 requests per hour limit for email
+        if (email && checkHourlyLimitExceeded(email)) {
+          if (forgotLimiterNotice) {
+            forgotLimiterNotice.className = 'mb-4 p-3.5 rounded-xl border border-red-300 dark:border-red-800 bg-red-50 dark:bg-red-950/50 text-red-900 dark:text-red-200 text-xs font-semibold leading-relaxed flex items-center gap-2.5';
+            forgotLimiterNotice.innerHTML = `
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" class="w-4 h-4 shrink-0 text-red-600 dark:text-red-400"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+              <span>Too many reset requests. Please wait a while before trying again.</span>
+            `;
+            forgotLimiterNotice.classList.remove('hidden');
+          }
+          if (btnSendReset) {
+            btnSendReset.disabled = true;
+            btnSendReset.classList.add('opacity-60', 'cursor-not-allowed');
+            btnSendReset.classList.remove('cursor-pointer');
+            if (btnSendResetText) {
+              btnSendResetText.textContent = 'Hourly Limit Reached';
+            }
+          }
+          stopCooldownTimer();
+          return;
+        }
+
+        // 3. Neither limit active: clean and ready
+        stopCooldownTimer();
+        if (forgotLimiterNotice) {
+          forgotLimiterNotice.classList.add('hidden');
+          forgotLimiterNotice.innerHTML = '';
+        }
+        if (btnSendReset && !isSendingReset) {
+          btnSendReset.disabled = false;
+          btnSendReset.classList.remove('opacity-60', 'cursor-not-allowed');
+          btnSendReset.classList.add('cursor-pointer');
+          if (btnSendResetText) {
+            btnSendResetText.textContent = 'Send Password Reset Link';
+          }
+        }
+      }
+
+      function startCooldownTimer() {
+        if (cooldownTimerInterval) return;
+        cooldownTimerInterval = setInterval(() => {
+          const remaining = getCooldownRemaining();
+          if (remaining > 0) {
+            if (forgotLimiterNotice) {
+              forgotLimiterNotice.className = 'mb-4 p-3.5 rounded-xl border border-amber-300 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/50 text-amber-900 dark:text-amber-200 text-xs font-semibold leading-relaxed flex items-center gap-2.5';
+              forgotLimiterNotice.innerHTML = `
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" class="w-4 h-4 shrink-0 text-amber-700 dark:text-amber-400"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                <span>Please wait <strong>${remaining}</strong> seconds before requesting another reset email.</span>
+              `;
+              forgotLimiterNotice.classList.remove('hidden');
+            }
+            if (btnSendResetText && btnSendReset && btnSendReset.disabled) {
+              btnSendResetText.textContent = `Wait ${remaining}s before requesting`;
+            }
+          } else {
+            stopCooldownTimer();
+            updateForgotLimiterUI();
+          }
+        }, 1000);
+      }
+
+      function stopCooldownTimer() {
+        if (cooldownTimerInterval) {
+          clearInterval(cooldownTimerInterval);
+          cooldownTimerInterval = null;
+        }
+      }
 
       const openModal = () => {
         forgotModal.classList.remove('hidden');
@@ -315,6 +481,7 @@
         forgotSuccessState.classList.add('hidden');
         forgotNotFoundState.classList.add('hidden');
         forgotEmailInput.value = '';
+        updateForgotLimiterUI('');
       };
 
       const closeModal = () => {
@@ -342,6 +509,11 @@
         forgotNotFoundState.classList.add('hidden');
         forgotInputState.classList.remove('hidden');
         forgotEmailInput.value = '';
+        updateForgotLimiterUI('');
+      });
+
+      forgotEmailInput.addEventListener('input', () => {
+        updateForgotLimiterUI(forgotEmailInput.value.trim().toLowerCase());
       });
 
       let isSendingReset = false;
@@ -358,6 +530,21 @@
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(email)) {
           showToast('Please enter a valid email address structure (e.g., name@domain.com).', 'error');
+          return;
+        }
+
+        // 1. Check 60-second cooldown
+        const cooldownRemaining = getCooldownRemaining();
+        if (cooldownRemaining > 0) {
+          updateForgotLimiterUI(email);
+          showToast(`Please wait ${cooldownRemaining} seconds before requesting another reset email.`, 'error');
+          return;
+        }
+
+        // 2. Check 3 requests per rolling hour limit
+        if (checkHourlyLimitExceeded(email)) {
+          updateForgotLimiterUI(email);
+          showToast('Too many reset requests. Please wait a while before trying again.', 'error');
           return;
         }
 
@@ -378,9 +565,25 @@
           await sendUserPasswordReset(email);
 
           // ONLY after Firebase successfully confirms:
+          // Record successful request timestamp in isolated storage
+          const data = getResetLimiterData();
+          const now = Date.now();
+          data.lastSuccessTime = now;
+          if (!data.byEmail) data.byEmail = {};
+          if (!Array.isArray(data.byEmail[email])) data.byEmail[email] = [];
+          data.byEmail[email].push(now);
+          // Keep only entries from the last rolling hour
+          const cutoff = now - ONE_HOUR_MS;
+          data.byEmail[email] = data.byEmail[email].filter(ts => ts > cutoff);
+          saveResetLimiterData(data);
+
+          // Transition to success screen
           forgotInputState.classList.add('hidden');
           forgotSuccessState.classList.remove('hidden');
           showToast('Password reset link sent! Please check your email.', 'success');
+
+          // Initialize cooldown timer
+          updateForgotLimiterUI(email);
         } catch (err) {
           if (err.message === 'user-not-found') {
             forgotInputState.classList.add('hidden');
@@ -393,6 +596,7 @@
           btnSendReset.disabled = false;
           btnSendReset.classList.remove('opacity-80', 'cursor-not-allowed');
           btnSendReset.innerHTML = originalBtnContent;
+          updateForgotLimiterUI(email);
         }
       });
 
@@ -441,6 +645,7 @@
               sessionStorage.setItem('admin-welcome-message', welcomeMessage);
             } catch (_) {}
 
+            clearCredentials();
             setTimeout(() => {
               window.location.href = 'admin/dashboard.html';
             }, 800);
@@ -450,6 +655,7 @@
           // 2. Try Customer Logins
           const tryCustomer = await loginUser(email, password);
           if (tryCustomer) {
+            clearCredentials();
             showToast('Logged in successfully!');
             setTimeout(() => {
               const storedRedirect = (sessionStorage.getItem('login-redirect') || '').trim();
@@ -476,9 +682,9 @@
           const alertDesc = document.getElementById('login-alert-desc');
           
           alertTitle.textContent = "Sign-in Error";
-          alertDesc.textContent = "Invalid email or password parameters!";
+          alertDesc.textContent = "Invalid email or password.";
           alertBanner.classList.remove('hidden');
-          showToast('Invalid email or password parameters!', 'error');
+          showToast('Invalid email or password.', 'error');
         } catch (err) {
           const errMsg = err.message || '';
           const alertBanner = document.getElementById('login-alert');
