@@ -154,6 +154,15 @@
       border: 1px solid rgba(245, 158, 11, 0.4) !important;
     }
 
+    html:not(.dark) #admin-layout-container #card-res-verification {
+      background: linear-gradient(145deg, #FAF5FF 0%, #FFFFFF 100%) !important;
+      border: 1px solid #D8B4FE !important;
+    }
+    html.dark #admin-layout-container #card-res-verification {
+      background: linear-gradient(145deg, rgba(88, 28, 135, 0.45) 0%, #111827 100%) !important;
+      border: 1px solid rgba(168, 85, 247, 0.4) !important;
+    }
+
     html:not(.dark) #admin-layout-container #card-res-ready {
       background: linear-gradient(145deg, #F0FDF4 0%, #FFFFFF 100%) !important;
       border: 1px solid #6EE7B7 !important;
@@ -417,19 +426,7 @@
                 </div>
               </div>
 
-              <!-- Row 1: Box 2 — Reserved Stock -->
-              <div id="card-res-sacks" class="p-5 sm:p-5.5 rounded-2xl flex flex-col justify-between gap-3 min-h-[140px] shadow-2xs">
-                <div class="flex items-center justify-between gap-2.5">
-                  <span class="ra-card-label text-[13px] sm:text-sm font-extrabold uppercase tracking-wider">Reserved Stock</span>
-                  <span class="ra-kpi-badge text-xs font-extrabold px-2.5 py-1 rounded-lg shadow-2xs shrink-0 whitespace-nowrap">Total Sacks</span>
-                </div>
-                <div class="mt-1">
-                  <p id="res-stat-sacks" class="ra-text-main text-2xl sm:text-3xl font-black tabular-nums tracking-tight">0 Sacks</p>
-                  <p id="res-sub-sacks" class="ra-card-sub text-xs sm:text-[13px] font-bold mt-1">Total sacks needed</p>
-                </div>
-              </div>
-
-              <!-- Row 1: Box 3 — Waiting for Stock -->
+              <!-- Row 1: Box 2 — Waiting for Stock -->
               <div id="card-res-waiting" class="p-5 sm:p-5.5 rounded-2xl flex flex-col justify-between gap-3 min-h-[140px] shadow-2xs">
                 <div class="flex items-center justify-between gap-2.5">
                   <span class="ra-card-label text-[13px] sm:text-sm font-extrabold uppercase tracking-wider">Waiting for Stock</span>
@@ -438,6 +435,18 @@
                 <div class="mt-1">
                   <p id="res-stat-waiting" class="ra-text-main text-2xl sm:text-3xl font-black tabular-nums tracking-tight">0 Orders</p>
                   <p id="res-sub-waiting" class="ra-card-sub text-xs sm:text-[13px] font-bold mt-1">Waiting for rice stock</p>
+                </div>
+              </div>
+
+              <!-- Row 1: Box 3 — Payment Verification -->
+              <div id="card-res-verification" class="p-5 sm:p-5.5 rounded-2xl flex flex-col justify-between gap-3 min-h-[140px] shadow-2xs">
+                <div class="flex items-center justify-between gap-2.5">
+                  <span class="ra-card-label text-[13px] sm:text-sm font-extrabold uppercase tracking-wider">Payment Verification</span>
+                  <span class="ra-kpi-badge text-xs font-extrabold px-2.5 py-1 rounded-lg shadow-2xs shrink-0 whitespace-nowrap">Verification</span>
+                </div>
+                <div class="mt-1">
+                  <p id="res-stat-verification" class="ra-text-main text-2xl sm:text-3xl font-black tabular-nums tracking-tight">0 Orders</p>
+                  <p id="res-sub-verification" class="ra-card-sub text-xs sm:text-[13px] font-bold mt-1">Payment review needed</p>
                 </div>
               </div>
 
@@ -737,27 +746,31 @@
 
         // 1. Metric Cards
         const statActiveEl = document.getElementById('res-stat-active');
-        const statSacksEl = document.getElementById('res-stat-sacks');
         const statWaitingEl = document.getElementById('res-stat-waiting');
+        const statVerificationEl = document.getElementById('res-stat-verification');
+        const statSacksEl = document.getElementById('res-stat-sacks');
         const statReadyEl = document.getElementById('res-stat-ready');
         const statCompletedEl = document.getElementById('res-stat-completed');
         const statCancelledEl = document.getElementById('res-stat-cancelled');
 
         if (statActiveEl) statActiveEl.textContent = `${activeCount} Order${activeCount !== 1 ? 's' : ''}`;
-        if (statSacksEl) statSacksEl.textContent = `${activeSacks} Sack${activeSacks !== 1 ? 's' : ''}`;
         if (statWaitingEl) statWaitingEl.textContent = `${waitingCount} Order${waitingCount !== 1 ? 's' : ''}`;
+        if (statVerificationEl) statVerificationEl.textContent = `${paymentVerificationCount} Order${paymentVerificationCount !== 1 ? 's' : ''}`;
+        if (statSacksEl) statSacksEl.textContent = `${activeSacks} Sack${activeSacks !== 1 ? 's' : ''}`;
         if (statReadyEl) statReadyEl.textContent = `${readyCount} Order${readyCount !== 1 ? 's' : ''}`;
         if (statCompletedEl) statCompletedEl.textContent = `${completedCount} Order${completedCount !== 1 ? 's' : ''}`;
         if (statCancelledEl) statCancelledEl.textContent = `${cancelledCount} Order${cancelledCount !== 1 ? 's' : ''}`;
 
         const subActiveEl = document.getElementById('res-sub-active');
         const subWaitingEl = document.getElementById('res-sub-waiting');
+        const subVerificationEl = document.getElementById('res-sub-verification');
         const subReadyEl = document.getElementById('res-sub-ready');
         const subCompletedEl = document.getElementById('res-sub-completed');
         const subCancelledEl = document.getElementById('res-sub-cancelled');
 
         if (subActiveEl) subActiveEl.textContent = `${activeSacks} sack${activeSacks !== 1 ? 's' : ''} currently reserved`;
         if (subWaitingEl) subWaitingEl.textContent = `${waitingSacks} sack${waitingSacks !== 1 ? 's' : ''} waiting for rice stock`;
+        if (subVerificationEl) subVerificationEl.textContent = `${paymentVerificationSacks} sack${paymentVerificationSacks !== 1 ? 's' : ''} awaiting review`;
         if (subReadyEl) subReadyEl.textContent = `${readySacks} sack${readySacks !== 1 ? 's' : ''} ready in warehouse`;
         if (subCompletedEl) subCompletedEl.textContent = `${completedSacks} sack${completedSacks !== 1 ? 's' : ''} delivered to customers`;
         if (subCancelledEl) subCancelledEl.textContent = `${cancelledSacks} sack${cancelledSacks !== 1 ? 's' : ''} cancelled or expired`;

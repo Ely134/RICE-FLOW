@@ -2439,13 +2439,13 @@
                       <span class="text-[10px] font-bold text-teal-600 dark:text-teal-400 bg-teal-50 dark:bg-teal-950/80 border border-teal-200 dark:border-teal-800/60 px-1.5 py-0.5 rounded-md shrink-0">✓ Delivered</span>
                     </div>
 
-                    <!-- Total Stock Item -->
+                    <!-- Available Stock Item -->
                     <div class="p-2 sm:p-2.5 rounded-xl border border-slate-200/70 dark:border-slate-800/80 bg-slate-50/70 dark:bg-slate-800/40 flex items-center justify-between gap-2 shadow-2xs">
                       <div class="min-w-0">
-                        <span class="text-[11px] font-semibold text-gray-500 dark:text-gray-400 block truncate">Total Stock</span>
+                        <span class="text-[11px] font-semibold text-gray-500 dark:text-gray-400 block truncate">Available Stock</span>
                         <p id="dash-inv-val-total" class="text-xs sm:text-[13px] font-black tabular-nums tracking-tight text-gray-900 dark:text-white leading-tight truncate">0 sacks</p>
                       </div>
-                      <span class="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/80 border border-indigo-200 dark:border-indigo-800/60 px-1.5 py-0.5 rounded-md shrink-0">Total</span>
+                      <span class="text-[10px] font-bold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/80 border border-amber-200 dark:border-amber-800/60 px-1.5 py-0.5 rounded-md shrink-0">Available</span>
                     </div>
                   </div>
                 </div>
@@ -4523,7 +4523,7 @@
         const netMovement = totalPositive - totalDeducted;
         const totalOps = filteredEntries.length;
 
-        // Calculate accurate Total Physical Stock from system products catalog
+        // Use the exact same existing Available Stock calculation from Dashboard Top KPI
         const activeProducts = productsList.filter(p =>
           p && p.name && !p.isArchived && !p.archived && p.status !== 'archived'
         );
@@ -4531,17 +4531,9 @@
           ? activeProducts.filter(p => String(p.id) === String(currentProd) || p.name === currentProd)
           : activeProducts;
 
-        let totalPhysicalSacks = 0;
-        let totalPhysicalKg = 0;
-
-        targetProducts.forEach(p => {
-          const sacks = p.currentStock !== undefined
-            ? Math.max(0, Number(p.currentStock))
-            : (p.stock !== undefined ? Math.max(0, Number(p.stock)) : 0);
-          const sackWeightKg = (typeof getProductSackWeightKg === 'function' ? getProductSackWeightKg(p) : 25);
-          totalPhysicalSacks += sacks;
-          totalPhysicalKg += (sacks * sackWeightKg);
-        });
+        const availableStockData = typeof getDashboardAvailableStockData === 'function'
+          ? getDashboardAvailableStockData({ productsList: targetProducts })
+          : { totalAvailableSacks: 0, totalAvailableKg: 0 };
 
         // Helper to format: "[number] sacks / [number] kg" on the same line with comfortable spacing
         const formatStockDisplay = (sacks, kg) => {
@@ -4587,7 +4579,7 @@
           statDeliveredEl.innerHTML = formatStockDisplay(deliveredSacks, deliveredKg);
         }
         if (statTotalEl) {
-          statTotalEl.innerHTML = formatStockDisplay(totalPhysicalSacks, totalPhysicalKg);
+          statTotalEl.innerHTML = formatStockDisplay(availableStockData.totalAvailableSacks, availableStockData.totalAvailableKg);
         }
 
         // Update Dashboard Compact Inventory Analytics stacked summary items
@@ -4601,7 +4593,7 @@
         if (valDeliveredEl) valDeliveredEl.innerHTML = `${Number(deliveredSacks || 0).toLocaleString()} sacks <span class="text-gray-400 dark:text-gray-500 font-normal">/</span> <span class="text-[11px] font-semibold text-gray-500 dark:text-gray-400">${Number(deliveredKg || 0).toLocaleString()} kg</span>`;
 
         const valTotalEl = document.getElementById('dash-inv-val-total');
-        if (valTotalEl) valTotalEl.innerHTML = `${Number(totalPhysicalSacks || 0).toLocaleString()} sacks <span class="text-gray-400 dark:text-gray-500 font-normal">/</span> <span class="text-[11px] font-semibold text-gray-500 dark:text-gray-400">${Number(totalPhysicalKg || 0).toLocaleString()} kg</span>`;
+        if (valTotalEl) valTotalEl.innerHTML = `${Number(availableStockData.totalAvailableSacks || 0).toLocaleString()} sacks <span class="text-gray-400 dark:text-gray-500 font-normal">/</span> <span class="text-[11px] font-semibold text-gray-500 dark:text-gray-400">${Number(availableStockData.totalAvailableKg || 0).toLocaleString()} kg</span>`;
 
         // Render Reference-Style Smooth SVG Line Chart (LEFT portion of card)
         const invChartEl = document.getElementById('dash-inv-chart-container');

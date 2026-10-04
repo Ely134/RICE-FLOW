@@ -85,6 +85,42 @@
   </style>
   <!-- HTML5 QR Code Library CDN -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js" crossorigin="anonymous"></script>
+  <script>
+    // Safeguard Html5Qrcode.prototype.stop from throwing when scanner is not running or paused
+    if (window.Html5Qrcode && window.Html5Qrcode.prototype && window.Html5Qrcode.prototype.stop) {
+      const _origHtml5QrcodeStop = window.Html5Qrcode.prototype.stop;
+      window.Html5Qrcode.prototype.stop = function() {
+        try {
+          if (this.stateManagerProxy && typeof this.stateManagerProxy.isScanning === 'function') {
+            if (!this.stateManagerProxy.isScanning()) {
+              return Promise.resolve();
+            }
+          }
+          const res = _origHtml5QrcodeStop.apply(this, arguments);
+          if (res && typeof res.catch === 'function') {
+            return res.catch(err => {
+              if (err && String(err).includes('Cannot stop, scanner is not running or paused')) {
+                return Promise.resolve();
+              }
+              return Promise.reject(err);
+            });
+          }
+          return Promise.resolve(res);
+        } catch (err) {
+          if (err && String(err).includes('Cannot stop, scanner is not running or paused')) {
+            return Promise.resolve();
+          }
+          return Promise.reject(err);
+        }
+      };
+    }
+    window.addEventListener('unhandledrejection', function(event) {
+      if (event && event.reason && String(event.reason).includes('Cannot stop, scanner is not running or paused')) {
+        event.preventDefault();
+        console.warn('[DEBUG] Suppressed unhandled rejection from QR scanner stop:', event.reason);
+      }
+    });
+  </script>
   <style id="auth-guard-style">body { visibility: hidden !important; }</style>
 </head>
 <body class="bg-[#F5F5F5] min-h-screen font-sans">
@@ -2742,8 +2778,11 @@
               console.warn('[DEBUG] Camera start attempt failed for target:', target, err);
               lastErr = err;
               try {
-                if (html5QrScanner && html5QrScanner.isScanning) {
-                  await html5QrScanner.stop();
+                if (html5QrScanner) {
+                  const isScanning = typeof html5QrScanner.isScanning === 'function' ? html5QrScanner.isScanning() : false;
+                  if (isScanning) {
+                    await html5QrScanner.stop();
+                  }
                 }
               } catch (_) {}
               html5QrScanner = null;
@@ -2768,7 +2807,7 @@
         });
       }
 
-      function stopCameraScanner() {
+      async function stopCameraScanner() {
         if (scannerObserver) {
           try { scannerObserver.disconnect(); } catch (_) {}
           scannerObserver = null;
@@ -2776,42 +2815,68 @@
         if (html5QrScanner) {
           const scanner = html5QrScanner;
           html5QrScanner = null;
-          return scanner.stop().then(() => {
-            const qrContainer = document.getElementById('qr-reader');
-            if (qrContainer) qrContainer.innerHTML = '';
-          }).catch(err => {
-            console.warn('[DEBUG] Camera stop error:', err);
-            const qrContainer = document.getElementById('qr-reader');
-            if (qrContainer) qrContainer.innerHTML = '';
-          });
+          try {
+            let canStop = false;
+            try {
+              if (typeof scanner.isScanning === 'function') {
+                canStop = Boolean(scanner.isScanning());
+              } else if (scanner.isScanning === true) {
+                canStop = true;
+              }
+              if (!canStop && typeof scanner.getState === 'function') {
+                const st = scanner.getState();
+                // Html5QrcodeScannerState: SCANNING = 2, PAUSED = 3
+                canStop = (st === 2 || st === 3);
+              }
+            } catch (stateErr) {
+              console.warn('[DEBUG] Scanner state check warning:', stateErr);
+            }
+
+            if (canStop) {
+              await scanner.stop();
+            }
+          } catch (err) {
+            console.warn('[DEBUG] Camera stop warning safely handled:', err);
+          }
+
+          try {
+            if (typeof scanner.clear === 'function') {
+              await scanner.clear();
+            }
+          } catch (_) {}
         }
         const qrContainer = document.getElementById('qr-reader');
-        if (qrContainer) qrContainer.innerHTML = '';
-        return Promise.resolve();
+        if (qrContainer) {
+          try { qrContainer.innerHTML = ''; } catch (_) {}
+        }
       }
 
       // Scanner Controls
-      document.getElementById('btn-stop-camera').addEventListener('click', () => {
-        stopCameraScanner().then(() => {
-          document.getElementById('camera-active-container').classList.add('hidden');
-          document.getElementById('camera-loading-container').classList.add('hidden');
-          document.getElementById('camera-denied-container').classList.remove('hidden');
-        });
+      document.getElementById('btn-stop-camera').addEventListener('click', async () => {
+        try {
+          await stopCameraScanner();
+        } catch (_) {}
+        document.getElementById('camera-active-container').classList.add('hidden');
+        document.getElementById('camera-loading-container').classList.add('hidden');
+        document.getElementById('camera-denied-container').classList.remove('hidden');
       });
 
-      document.getElementById('btn-switch-camera').addEventListener('click', () => {
+      document.getElementById('btn-switch-camera').addEventListener('click', async () => {
         currentFacingMode = currentFacingMode === "environment" ? "user" : "environment";
         document.getElementById('camera-loading-container').classList.remove('hidden');
         document.getElementById('camera-active-container').classList.remove('hidden');
         document.getElementById('camera-denied-container').classList.add('hidden');
-        stopCameraScanner().then(() => {
-          startCameraScanner();
-        });
+        try {
+          await stopCameraScanner();
+        } catch (_) {}
+        startCameraScanner();
       });
 
       // Close / Hide Modals Logic
-      const closeScannerFlow = () => {
-        stopCameraScanner();
+      const closeScannerFlow = async () => {
+        try {
+          await stopCameraScanner();
+        } catch (_) {}
         document.getElementById('qr-scanner-modal').classList.add('hidden');
         resetVerificationChecklist();
         const manInp = document.getElementById('manual-verification-code-input');
@@ -3142,7 +3207,9 @@
         document.getElementById('confirm-order-receipt-modal').classList.add('hidden');
         document.getElementById('qr-scanner-modal').classList.add('hidden');
         
-        stopCameraScanner();
+        try {
+          stopCameraScanner();
+        } catch (_) {}
         resetVerificationChecklist();
         document.getElementById('manual-verification-code-input').value = '';
 
@@ -5002,120 +5069,136 @@
             : 'N/A';
 
           templateHtml = `
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 text-left">
-              <div class="lg:col-span-7 space-y-6">
-                <div class="bg-red-50 border border-red-200 p-6 rounded-2xl space-y-3">
-                  <h4 class="text-[21px] font-bold text-black uppercase tracking-wider flex items-center gap-1.5">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 text-left">
+              <!-- LEFT COLUMN: Log, Profile, Voided Items, Refund Details -->
+              <div class="space-y-6">
+                <!-- 1. Cancellation/Rejection Log -->
+                <div class="bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800/60 p-6 rounded-2xl space-y-3">
+                  <h4 class="text-[20px] font-bold text-black dark:text-white uppercase tracking-wider flex items-center gap-1.5">
                     <span>⚠️</span> Cancellation/Rejection Log
                   </h4>
-                  <p class="text-[17px] font-normal text-black">
-                    Reason: <span class="font-bold text-red-700">${displayReason}</span>
+                  <p class="text-[16px] sm:text-[17px] font-normal text-slate-800 dark:text-slate-200">
+                    Reason: <span class="font-bold text-red-700 dark:text-red-400">${displayReason}</span>
                   </p>
                 </div>
 
-                ${hasRefundInfo ? `
-                <div class="bg-blue-50/60 border border-blue-200 p-6 rounded-2xl space-y-4">
-                  <div class="flex items-center justify-between border-b border-blue-200/80 pb-3">
-                    <h4 class="text-[21px] font-bold text-black uppercase tracking-wider flex items-center gap-1.5">
-                      <span>💳</span> Refund Details
-                    </h4>
-                    <span class="inline-flex items-center px-3 py-1 rounded-md text-[13px] font-bold border ${order.refundStatus === 'Refunded' ? 'bg-emerald-100 text-emerald-900 border-emerald-300' : 'bg-blue-100 text-blue-900 border-blue-300'}">
-                      ${displayRefundStatus}
-                    </span>
-                  </div>
-
-                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 text-[16px] font-normal text-black">
-                    <div>
-                      <p class="text-black font-bold text-[16px]">Refund Status</p>
-                      <p class="font-normal text-black text-[17px] mt-1.5">${displayRefundStatus}</p>
-                    </div>
-                    <div>
-                      <p class="text-black font-bold text-[16px]">Refund Amount</p>
-                      <p class="font-bold text-[#1E6C02] text-[18px] mt-1.5">₱${refundAmt.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
-                    </div>
-                    <div class="border-t border-blue-100 pt-3">
-                      <p class="text-black font-bold text-[16px]">Payment Method</p>
-                      <p class="font-normal text-black text-[17px] mt-1.5">${refundMethod}</p>
-                    </div>
-                    <div class="border-t border-blue-100 pt-3">
-                      <p class="text-black font-bold text-[16px]">Account Name</p>
-                      <p class="font-normal text-black text-[17px] mt-1.5">${order.refundAccountName || 'N/A'}</p>
-                    </div>
-                    <div class="border-t border-blue-100 pt-3">
-                      <p class="text-black font-bold text-[16px]">${accountNumberLabel}</p>
-                      <p class="font-normal text-black text-[17px] mt-1.5">${accountNumberVal}</p>
-                    </div>
-                    ${(order.refundBankName || isBank) ? `
-                    <div class="border-t border-blue-100 pt-3">
-                      <p class="text-black font-bold text-[16px]">Bank Name</p>
-                      <p class="font-normal text-black text-[17px] mt-1.5">${order.refundBankName || 'N/A'}</p>
-                    </div>
-                    ` : ''}
-                    <div class="sm:col-span-2 border-t border-blue-100 pt-3">
-                      <p class="text-black font-bold text-[16px]">Submitted Date & Time</p>
-                      <p class="font-normal text-black text-[17px] mt-1.5">${submittedDateStr}</p>
-                    </div>
-
-                    ${order.refundStatus === 'Refunded' ? `
-                    <div class="sm:col-span-2 border-t border-blue-200/80 pt-4 mt-1 bg-emerald-50/80 border border-emerald-200 p-4 rounded-xl">
-                      <div class="flex items-center gap-2 text-emerald-800 font-bold text-[16px]">
-                        <span class="text-emerald-600 text-lg">✓</span> Refund Completed
-                      </div>
-                      <p class="text-[14px] text-emerald-700 font-medium mt-1">
-                        Refund processed on ${order.refundProcessedAt ? new Date(order.refundProcessedAt).toLocaleString(undefined, { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'N/A'}${order.refundProcessedBy ? ` by <span class="font-bold">${order.refundProcessedBy}</span>` : ''}
-                      </p>
-                    </div>
-                    ` : `
-                    <div class="sm:col-span-2 border-t border-blue-200/80 pt-4 mt-1 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-blue-100/40 p-4 rounded-xl border border-blue-200/60">
-                      <div>
-                        <p class="text-[15px] font-bold text-blue-950">Have you already sent the refund to this account via GCash/Bank?</p>
-                        <p class="text-[13px] text-blue-800/80 mt-0.5">Click only after the actual funds have been transferred successfully.</p>
-                      </div>
-                      <button id="btn-mark-refund-completed" data-id="${order.id}" class="inline-flex items-center justify-center gap-1.5 px-5 py-2.5 bg-[#1E6C02] hover:bg-[#145001] text-white font-bold rounded-xl text-[14px] shadow-xs cursor-pointer transition-colors whitespace-nowrap shrink-0">
-                        <span>✓</span> Mark Refund as Completed
-                      </button>
-                    </div>
-                    `}
-                  </div>
-                </div>
-                ` : ''}
-
-                <div class="bg-gray-50/70 p-6 border border-gray-200 rounded-2xl">
-                  <h4 class="text-[21px] font-bold text-black uppercase tracking-wider mb-4 flex items-center gap-1.5">
+                <!-- 2. Profile -->
+                <div class="bg-gray-50/70 dark:bg-slate-800/60 p-6 border border-gray-200 dark:border-slate-700 rounded-2xl">
+                  <h4 class="text-[20px] font-bold text-black dark:text-white uppercase tracking-wider mb-4 flex items-center gap-1.5">
                     <span>👤</span> Profile
                   </h4>
-                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 text-[16px] font-normal text-black">
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 text-[16px] font-normal text-slate-900 dark:text-slate-100">
                     <div>
-                      <p class="text-black font-bold text-[16px]">Name</p>
-                      <p class="font-normal text-black text-[17px] mt-1.5">${order.fullName || 'N/A'}</p>
+                      <p class="text-black dark:text-white font-bold text-[16px]">Name</p>
+                      <p class="font-normal text-slate-800 dark:text-slate-200 text-[17px] mt-1.5">${order.fullName || 'N/A'}</p>
                     </div>
                     <div>
-                      <p class="text-black font-bold text-[16px]">Phone</p>
-                      <p class="font-normal text-black text-[17px] mt-1.5">${order.phone || 'N/A'}</p>
+                      <p class="text-black dark:text-white font-bold text-[16px]">Phone</p>
+                      <p class="font-normal text-slate-800 dark:text-slate-200 text-[17px] mt-1.5">${order.phone || 'N/A'}</p>
                     </div>
                   </div>
                 </div>
 
-                <div class="bg-gray-50/70 p-6 border border-gray-200 rounded-2xl">
-                  <h4 class="text-[21px] font-bold text-black uppercase tracking-wider mb-4 flex items-center gap-1.5">
+                <!-- 3. Voided Items -->
+                <div class="bg-gray-50/70 dark:bg-slate-800/60 p-6 border border-gray-200 dark:border-slate-700 rounded-2xl">
+                  <h4 class="text-[20px] font-bold text-black dark:text-white uppercase tracking-wider mb-4 flex items-center gap-1.5">
                     <span>🌾</span> Voided Items
                   </h4>
                   <div class="space-y-4">${itemsHtml}</div>
                 </div>
+
+                <!-- 4. Refund Details -->
+                ${hasRefundInfo ? `
+                <div class="bg-blue-50/70 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800/60 p-6 rounded-2xl space-y-4">
+                  <div class="flex items-center justify-between border-b border-blue-200/80 dark:border-blue-800/60 pb-3">
+                    <h4 class="text-[20px] font-bold text-black dark:text-white uppercase tracking-wider flex items-center gap-1.5">
+                      <span>💳</span> Refund Details
+                    </h4>
+                    <span class="inline-flex items-center px-3 py-1 rounded-md text-[13px] font-bold border ${order.refundStatus === 'Refunded' ? 'bg-emerald-100 text-emerald-900 border-emerald-300 dark:bg-emerald-950/80 dark:text-emerald-300 dark:border-emerald-700' : 'bg-blue-100 text-blue-900 border-blue-300 dark:bg-blue-900/80 dark:text-blue-200 dark:border-blue-700'}">
+                      ${displayRefundStatus}
+                    </span>
+                  </div>
+
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 text-[16px] font-normal text-black dark:text-white">
+                    <div>
+                      <p class="text-black dark:text-white font-bold text-[16px]">Refund Status</p>
+                      <p class="font-normal text-slate-800 dark:text-slate-200 text-[17px] mt-1.5">${displayRefundStatus}</p>
+                    </div>
+                    <div>
+                      <p class="text-black dark:text-white font-bold text-[16px]">Refund Amount</p>
+                      <p class="font-bold text-[#1E6C02] dark:text-emerald-400 text-[18px] mt-1.5">₱${refundAmt.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                    </div>
+                    <div class="border-t border-blue-100 dark:border-blue-900/40 pt-3">
+                      <p class="text-black dark:text-white font-bold text-[16px]">Payment Method</p>
+                      <p class="font-normal text-slate-800 dark:text-slate-200 text-[17px] mt-1.5">${refundMethod}</p>
+                    </div>
+                    <div class="border-t border-blue-100 dark:border-blue-900/40 pt-3">
+                      <p class="text-black dark:text-white font-bold text-[16px]">Account Name</p>
+                      <p class="font-normal text-slate-800 dark:text-slate-200 text-[17px] mt-1.5">${order.refundAccountName || 'N/A'}</p>
+                    </div>
+                    <div class="border-t border-blue-100 dark:border-blue-900/40 pt-3">
+                      <p class="text-black dark:text-white font-bold text-[16px]">${accountNumberLabel}</p>
+                      <p class="font-normal text-slate-800 dark:text-slate-200 text-[17px] mt-1.5">${accountNumberVal}</p>
+                    </div>
+                    ${(order.refundBankName || isBank) ? `
+                    <div class="border-t border-blue-100 dark:border-blue-900/40 pt-3">
+                      <p class="text-black dark:text-white font-bold text-[16px]">Bank Name</p>
+                      <p class="font-normal text-slate-800 dark:text-slate-200 text-[17px] mt-1.5">${order.refundBankName || 'N/A'}</p>
+                    </div>
+                    ` : ''}
+                    <div class="sm:col-span-2 border-t border-blue-100 dark:border-blue-900/40 pt-3">
+                      <p class="text-black dark:text-white font-bold text-[16px]">Submitted Date & Time</p>
+                      <p class="font-normal text-slate-800 dark:text-slate-200 text-[17px] mt-1.5">${submittedDateStr}</p>
+                    </div>
+                  </div>
+                </div>
+                ` : ''}
               </div>
 
-              <div class="lg:col-span-5 space-y-6">
-                <div class="bg-gray-50/50 p-6 border border-gray-200 rounded-2xl">
-                  <h4 class="text-[21px] font-bold text-black uppercase tracking-wider mb-4 border-b pb-2 flex items-center gap-1.5">
+              <!-- RIGHT COLUMN: Audit Timeline & Refund Confirmation / Completed -->
+              <div class="space-y-6">
+                <!-- Audit Timeline -->
+                <div class="bg-gray-50/50 dark:bg-slate-800/50 p-6 border border-gray-200 dark:border-slate-700 rounded-2xl">
+                  <h4 class="text-[20px] font-bold text-black dark:text-white uppercase tracking-wider mb-4 border-b border-gray-200 dark:border-slate-700 pb-2 flex items-center gap-1.5">
                     <span>⏱️</span> Audit Timeline
                   </h4>
                   <div id="det-timeline-stack">${historyHtml}</div>
                 </div>
+
+                <!-- Refund Confirmation (visually paired beside Refund Details) -->
+                ${hasRefundInfo ? (order.refundStatus === 'Refunded' ? `
+                <div class="bg-emerald-50/90 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/70 p-6 rounded-2xl shadow-xs space-y-3">
+                  <div class="flex items-center gap-2 text-emerald-800 dark:text-emerald-300 font-extrabold text-[17px]">
+                    <span class="text-emerald-600 dark:text-emerald-400 text-xl font-black">✓</span> Refund Completed
+                  </div>
+                  <p class="text-[14px] text-emerald-900 dark:text-emerald-200 font-medium leading-relaxed">
+                    Refund processed on ${order.refundProcessedAt ? new Date(order.refundProcessedAt).toLocaleString(undefined, { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'N/A'}${order.refundProcessedBy ? ` by <span class="font-bold">${order.refundProcessedBy}</span>` : ''}
+                  </p>
+                </div>
+                ` : `
+                <div class="bg-blue-100/60 dark:bg-blue-950/50 border border-blue-200 dark:border-blue-800/70 p-6 rounded-2xl shadow-xs space-y-4">
+                  <div class="flex items-center gap-2">
+                    <span class="inline-block w-2.5 h-2.5 rounded-full bg-blue-600 dark:bg-blue-400"></span>
+                    <span class="text-xs sm:text-[13px] font-extrabold uppercase tracking-wider text-blue-900 dark:text-blue-300">Refund Confirmation</span>
+                  </div>
+                  <p class="text-[16px] sm:text-[17px] font-extrabold text-slate-900 dark:text-white leading-snug">
+                    Have you already sent the refund to this account via GCash/Bank?
+                  </p>
+                  <p class="text-[13px] sm:text-[14px] font-semibold text-blue-900 dark:text-blue-200 leading-normal">
+                    Click only after the actual funds have been transferred successfully.
+                  </p>
+                  <div class="pt-2">
+                    <button id="btn-mark-refund-completed" data-id="${order.id}" class="w-full inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-[#1E6C02] hover:bg-[#145001] active:bg-[#0f3c01] text-white font-extrabold rounded-xl text-[14px] sm:text-[15px] shadow-xs hover:shadow-md cursor-pointer transition-all focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:ring-offset-2">
+                      <span class="text-base font-black">✓</span> Mark Refund as Completed
+                    </button>
+                  </div>
+                </div>
+                `) : ''}
               </div>
             </div>
 
-            <div class="flex flex-wrap gap-2.5 pt-5 border-t border-gray-200 justify-end mt-6">
-              <button id="btn-details-close-modal" class="px-5 py-3 text-[15px] font-bold text-gray-500 border border-gray-200 rounded-xl hover:bg-gray-55 cursor-pointer transition-colors">Close Record</button>
+            <div class="flex flex-wrap gap-2.5 pt-5 border-t border-gray-200 dark:border-slate-700 justify-end mt-6">
+              <button id="btn-details-close-modal" class="px-5 py-3 text-[15px] font-bold text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-slate-700 rounded-xl hover:bg-gray-55 dark:hover:bg-slate-800 cursor-pointer transition-colors">Close Record</button>
             </div>
           `;
         }

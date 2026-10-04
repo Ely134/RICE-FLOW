@@ -320,6 +320,7 @@
       getProducts,
       getProductSackWeightKg,
       getDashboardAvailableStockData,
+      getAllOrders,
       showToast
     } from '../src/app/shared.js';
 
@@ -946,6 +947,27 @@
           return `${sFormatted} sacks <span class="text-base sm:text-lg font-bold text-gray-400 dark:text-gray-500 mx-1.5">/</span> <span class="text-base sm:text-lg font-bold text-gray-500 dark:text-gray-400">${kFormatted} kg</span>`;
         };
 
+        // Calculate delivered stock from completed/delivered orders
+        let deliveredSacks = 0;
+        let deliveredKg = 0;
+        const allOrders = typeof getAllOrders === 'function' ? getAllOrders() : [];
+        allOrders.forEach(o => {
+          const s = String(o.status || '').toLowerCase().trim().replace(/[\s_]+/g, '-');
+          if (s === 'delivered' || s === 'completed' || s === 'fulfilled') {
+            (o.items || []).forEach(it => {
+              const pId = String(it.productId || it.product?.id || it.id || '');
+              const pName = it.name || it.productName || '';
+              if (!currentProd || currentProd === 'all' || pId === String(currentProd) || pName === currentProd) {
+                const qty = Math.max(0, Number(it.quantity || o.quantity || 1));
+                const p = productsList.find(pr => String(pr.id) === pId) || productsList.find(pr => pr.name === pName);
+                const w = (typeof getProductSackWeightKg === 'function' ? getProductSackWeightKg(p) : 25);
+                deliveredSacks += qty;
+                deliveredKg += (qty * w);
+              }
+            });
+          }
+        });
+
         const statAddedEl = document.getElementById('inv-stat-added');
         const statDeductedEl = document.getElementById('inv-stat-deducted');
         const statDeliveredEl = document.getElementById('inv-stat-delivered');
@@ -953,7 +975,7 @@
 
         if (statAddedEl) statAddedEl.innerHTML = formatStockDisplay(totalAdded, totalAddedKg);
         if (statDeductedEl) statDeductedEl.innerHTML = formatStockDisplay(totalDeducted, totalDeductedKg);
-        if (statDeliveredEl) statDeliveredEl.innerHTML = formatStockDisplay(0, 0);
+        if (statDeliveredEl) statDeliveredEl.innerHTML = formatStockDisplay(deliveredSacks, deliveredKg);
         if (statTotalEl) statTotalEl.innerHTML = formatStockDisplay(availableStockData.totalAvailableSacks, availableStockData.totalAvailableKg);
 
         // Chart Rendering
