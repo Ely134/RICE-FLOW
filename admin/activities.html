@@ -602,13 +602,9 @@
 
         updateWidth();
 
-        if (window.ResizeObserver) {
-          const observer = new ResizeObserver(() => updateWidth());
-          observer.observe(tableContainer);
-          if (table) observer.observe(table);
-        } else {
-          window.addEventListener('resize', updateWidth);
-        }
+        window.addEventListener('resize', () => {
+          requestAnimationFrame(() => updateWidth());
+        });
       }
 
       function bindAuditEvents(totalPages) {

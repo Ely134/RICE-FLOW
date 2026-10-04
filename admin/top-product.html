@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Top Rice Product | Aurora Rice Admin</title>
+  <script>
+    (function() {
+      try {
+        var d = document.documentElement;
+        var isDark = localStorage.getItem('aurora-dark-mode') === 'true';
+        d.classList.toggle('dark', isDark);
+        d.style.colorScheme = isDark ? 'dark' : 'light';
+      } catch (e) {}
+    })();
+  </script>
+  <style id="riceflow-theme-init">
+    html { background-color: #F5F5F5; color-scheme: light; }
+    html.dark { background-color: #1F2937 !important; color-scheme: dark; }
+    html.dark body,
+    html.dark #admin-layout-container,
+    html.dark #admin-main-content {
+      background-color: #1F2937;
+      color: #F9FAFB;
+    }
+    html.dark #auth-guard-loader {
+      background-color: #1F2937 !important;
+      color: #F9FAFB !important;
+    }
+    html.dark #admin-sidebar,
+    html.dark aside,
+    html.dark header,
+    html.dark .bg-white,
+    html.dark .bg-gray-50,
+    html.dark .bg-slate-50 {
+      background-color: #111827;
+      color: #F9FAFB;
+    }
+  </style>
+  <link rel="stylesheet" href="../src/styles/index.css">
+  <style id="auth-guard-style">body { visibility: hidden !important; }</style>
+  <style id="top-product-page-styles">
+    /* High contrast back button */
+    html:not(.dark) #admin-layout-container .tp-back-btn {
+      background: #FFFFFF !important;
+      border: 1px solid #CBD5E1 !important;
+      color: #0F172A !important;
+    }
+    html:not(.dark) #admin-layout-container .tp-back-btn:hover {
+      background: #F1F5F9 !important;
+      border-color: #94A3B8 !important;
+    }
+    html.dark #admin-layout-container .tp-back-btn {
+      background: #1E293B !important;
+      border: 1px solid #475569 !important;
+      color: #FFFFFF !important;
+    }
+    html.dark #admin-layout-container .tp-back-btn:hover {
+      background: #334155 !important;
+      border-color: #64748B !important;
+    }
+
+    /* Top Seller luxury badge */
+    html:not(.dark) #admin-layout-container .tp-top-badge {
+      background: #FAF5FF !important;
+      border: 1px solid #D8B4FE !important;
+      color: #6B21A8 !important;
+    }
+    html.dark #admin-layout-container .tp-top-badge {
+      background: rgba(168, 85, 247, 0.22) !important;
+      border: 1px solid rgba(192, 132, 252, 0.5) !important;
+      color: #E9D5FF !important;
+    }
+
+    /* Rank badges */
+    html:not(.dark) #admin-layout-container .tp-rank-pill {
+      background: #F1F5F9 !important;
+      border: 1px solid #CBD5E1 !important;
+      color: #0F172A !important;
+    }
+    html.dark #admin-layout-container .tp-rank-pill {
+      background: #1E293B !important;
+      border: 1px solid #475569 !important;
+      color: #FFFFFF !important;
+    }
+
+    /* Progress bar tracks */
+    html:not(.dark) #admin-layout-container .tp-bar-track {
+      background: #E2E8F0 !important;
+    }
+    html.dark #admin-layout-container .tp-bar-track {
+      background: #334155 !important;
+    }
+
+    /* Top seller progress bar fill */
+    html:not(.dark) #admin-layout-container .tp-bar-fill-top {
+      background: linear-gradient(90deg, #7E22CE 0%, #9333EA 100%) !important;
+    }
+    html.dark #admin-layout-container .tp-bar-fill-top {
+      background: linear-gradient(90deg, #9333EA 0%, #A855F7 100%) !important;
+    }
+
+    /* Regular progress bar fill */
+    html:not(.dark) #admin-layout-container .tp-bar-fill-regular {
+      background: #94A3B8 !important;
+    }
+    html.dark #admin-layout-container .tp-bar-fill-regular {
+      background: #64748B !important;
+    }
+  </style>
+</head>
+<body class="bg-[#F5F5F5] min-h-screen">
+  <div id="auth-guard-loader" class="fixed inset-0 bg-[#F5F5F5] z-[99999] flex flex-col items-center justify-center font-sans">
+    <div class="w-9 h-9 border-3 border-[#1E6C02]/20 border-t-[#1E6C02] rounded-full animate-spin mb-3"></div>
+    <p class="text-xs font-semibold text-slate-800 dark:text-slate-100">Loading top product...</p>
+  </div>
+
+  <!-- ADMIN LAYOUT WRAPPER -->
+  <div id="admin-layout-container"></div>
+
+  <script type="module" src="../src/app/shared.js"></script>
+
+  <script type="module">
+    import {
+      protectAdminPage,
+      renderAdminLayout,
+      getDashboardTopRiceProductData
+    } from '../src/app/shared.js';
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      const authResult = await protectAdminPage({ requiredRole: 'any' });
+      if (!authResult || !authResult.ok) return;
+
+      renderAdminLayout('top-product');
+
+      const targetSpace = document.getElementById('admin-main-content');
+      if (!targetSpace) return;
+
+      function getFilterOptionsFromNavigation() {
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('filtered') === '1') {
+          return {
+            currentRange: urlParams.get('range') || 'all',
+            currentProd: urlParams.get('prod') || 'all',
+            selectedSalesDate: urlParams.get('date') || '',
+            salesCustomStart: urlParams.get('start') || '',
+            salesCustomEnd: urlParams.get('end') || '',
+            hasUserAppliedFilter: true
+          };
+        }
+        try {
+          const savedRaw = sessionStorage.getItem('aurora-dashboard-top-product-state') ||
+            sessionStorage.getItem('aurora-dashboard-total-sales-state') ||
+            sessionStorage.getItem('aurora-dashboard-total-orders-state');
+          if (savedRaw) {
+            const parsed = JSON.parse(savedRaw);
+            if (parsed && parsed.hasUserAppliedFilter) {
+              return parsed;
+            }
+          }
+        } catch (_) {}
+        return {
+          currentRange: 'all',
+          currentProd: 'all',
+          selectedSalesDate: '',
+          salesCustomStart: '',
+          salesCustomEnd: '',
+          hasUserAppliedFilter: false
+        };
+      }
+
+      function renderTopProductPage() {
+        const filterOptions = getFilterOptionsFromNavigation();
+        const topProductData = getDashboardTopRiceProductData(filterOptions);
+
+        const filterSubnote = topProductData.isFilterActive
+          ? `<span class="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1 rounded-lg bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800/60 mt-2">Filtered by: ${topProductData.rangeLabel}${topProductData.currentProd !== 'all' ? ` · ${topProductData.activeVarietyLabel}` : ''}</span>`
+          : '';
+
+        const varieties = topProductData.varieties || [];
+        const topItem = varieties.find(v => v.isTop) || varieties[0] || null;
+        const hasSales = Boolean(topProductData.totalSacks > 0 && topProductData.topProductVol > 0);
+
+        // Highlight card content
+        const heroProductName = hasSales ? topProductData.topProductName : (topItem ? topItem.name : 'No Sales Yet');
+        const heroSacksSold = hasSales ? `${topProductData.topProductVol} sack${topProductData.topProductVol !== 1 ? 's' : ''} sold` : '0 sacks sold';
+        const heroShareText = hasSales && topItem
+          ? `${topItem.sharePercent}% of all sales (${topProductData.topProductVol} of ${topProductData.totalSacks} sacks sold)`
+          : 'No sales recorded for this period';
+
+        // Variety breakdown list
+        const varietyRowsHtml = varieties.length === 0
+          ? `
+            <div class="bg-white dark:bg-[#111827] border border-slate-200/80 dark:border-slate-800 rounded-2xl p-8 text-center shadow-xs">
+              <p class="text-base font-extrabold text-slate-900 dark:text-white">No Rice Types Found</p>
+              <p class="text-xs font-bold text-slate-700 dark:text-slate-200 mt-1">There are no active rice types in the catalog.</p>
+            </div>
+          `
+          : `
+            <div class="space-y-3">
+              ${varieties.map(v => {
+                const isWinner = v.isTop;
+                return `
+                  <div class="bg-white dark:bg-[#111827] border ${isWinner ? 'border-purple-300 dark:border-purple-700/80 ring-1 ring-purple-400/30' : 'border-slate-200/80 dark:border-slate-800'} rounded-2xl p-4 sm:p-5 shadow-xs transition-all">
+                    <div class="flex items-center justify-between gap-3 flex-wrap">
+                      <!-- Left: Rank & Name -->
+                      <div class="flex items-center gap-3 min-w-0">
+                        <span class="tp-rank-pill inline-flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full text-xs font-black shrink-0 ${isWinner ? 'tp-top-badge' : ''}">
+                          ${isWinner ? '🏆' : `#${v.rank}`}
+                        </span>
+                        <div class="min-w-0">
+                          <div class="flex items-center gap-2 flex-wrap">
+                            <span class="text-sm sm:text-base font-bold text-slate-950 dark:text-white truncate">
+                              ${v.name}
+                            </span>
+                            ${isWinner ? `
+                              <span class="tp-top-badge text-[10px] sm:text-xs font-black px-2 py-0.5 rounded-md uppercase tracking-wider shrink-0">
+                                TOP SELLER
+                              </span>
+                            ` : ''}
+                          </div>
+                          <p class="text-xs text-slate-700 dark:text-slate-200 font-semibold mt-0.5">
+                            ${v.sacksSold > 0 ? `${v.sharePercent}% of all sales` : 'No sales yet'}
+                          </p>
+                        </div>
+                      </div>
+
+                      <!-- Right: Sacks Sold Quantity -->
+                      <div class="text-right shrink-0">
+                        <span class="text-base sm:text-lg font-black ${isWinner ? 'text-purple-700 dark:text-purple-300' : 'text-slate-950 dark:text-white'}">
+                          ${v.sacksSold} <span class="text-xs font-bold text-slate-700 dark:text-slate-200">sack${v.sacksSold !== 1 ? 's' : ''} sold</span>
+                        </span>
+                      </div>
+                    </div>
+
+                    <!-- Horizontal Bar Visualization -->
+                    <div class="mt-3.5">
+                      <div class="tp-bar-track w-full h-3 rounded-full overflow-hidden">
+                        <div
+                          class="${isWinner ? 'tp-bar-fill-top' : 'tp-bar-fill-regular'} h-full rounded-full transition-all duration-500"
+                          style="width: ${v.barWidthPercent}%;"
+                          role="progressbar"
+                          aria-valuenow="${v.sacksSold}"
+                          aria-valuemin="0"
+                          aria-valuemax="${topProductData.topProductVol || 1}"
+                        ></div>
+                      </div>
+                    </div>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          `;
+
+        targetSpace.innerHTML = `
+          <div class="space-y-6 pb-12 max-w-5xl mx-auto">
+            
+            <!-- Top Navigation & Return Row -->
+            <div class="flex items-center justify-between gap-4 flex-wrap">
+              <a href="dashboard.html" class="tp-back-btn inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-extrabold shadow-2xs transition-all cursor-pointer">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-4 h-4">
+                  <line x1="19" y1="12" x2="5" y2="12"></line>
+                  <polyline points="12 19 5 12 12 5"></polyline>
+                </svg>
+                Back to Dashboard
+              </a>
+
+              <div class="text-right">
+                <span class="text-xs font-bold text-slate-700 dark:text-slate-200 uppercase tracking-wider">Product Details</span>
+              </div>
+            </div>
+
+            <!-- Page Title Header -->
+            <div class="bg-white dark:bg-[#111827] border border-slate-200/80 dark:border-slate-800 rounded-2xl p-6 sm:p-7 shadow-xs">
+              <div class="flex items-start gap-4">
+                <div class="w-14 h-14 rounded-full bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 flex items-center justify-center shrink-0 border border-purple-100 dark:border-purple-800/60 shadow-2xs">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-7 h-7"><path d="M12 2L2 7l10 5 10-5-10-5z"></path><path d="M2 17l10 5 10-5"></path><path d="M2 12l10 5 10-5"></path></svg>
+                </div>
+                <div class="min-w-0 flex-1">
+                  <div class="flex items-center gap-2.5 flex-wrap">
+                    <h1 class="text-xl sm:text-2xl font-black text-slate-950 dark:text-white tracking-tight">Top Rice Product</h1>
+                    <span class="tp-top-badge text-xs font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+                      Best Seller
+                    </span>
+                  </div>
+                  <p class="text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200 mt-1">
+                    Here are the best-selling rice types based on total sacks sold.
+                  </p>
+                  ${filterSubnote}
+                </div>
+              </div>
+            </div>
+
+            <!-- Visual Highlight: Current Top Rice Product Hero Card -->
+            <div class="bg-gradient-to-br from-purple-50/70 via-white to-indigo-50/50 dark:from-purple-950/30 dark:via-[#111827] dark:to-indigo-950/20 border-2 border-purple-200 dark:border-purple-800/70 rounded-2xl p-6 sm:p-8 shadow-sm">
+              <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+                <div class="min-w-0 flex-1">
+                  <div class="flex items-center gap-2 flex-wrap mb-2">
+                    <span class="tp-top-badge text-xs font-black px-3 py-1 rounded-full uppercase tracking-wider inline-flex items-center gap-1.5 shadow-2xs">
+                      <span>🏆</span> TOP SELLER
+                    </span>
+                    <span class="text-xs font-bold text-purple-900 dark:text-purple-200">
+                      Most sacks sold
+                    </span>
+                  </div>
+                  <h2 class="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-950 dark:text-white tracking-tight leading-tight">
+                    ${heroProductName}
+                  </h2>
+                  <p class="text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200 mt-1.5">
+                    ${heroShareText}
+                  </p>
+                </div>
+
+                <div class="bg-white dark:bg-[#1E293B] border border-purple-100 dark:border-purple-900/60 rounded-2xl px-6 py-5 shadow-xs text-center shrink-0 min-w-[200px]">
+                  <p class="text-xs font-black uppercase tracking-wider text-purple-700 dark:text-purple-300">Sacks Sold</p>
+                  <p class="text-3xl sm:text-4xl font-black text-slate-950 dark:text-white mt-1 tracking-tight">
+                    ${hasSales ? topProductData.topProductVol : 0}
+                  </p>
+                  <p class="text-xs font-bold text-slate-700 dark:text-slate-200 mt-0.5">total sacks sold</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Sales by Rice Variety Comparison Section -->
+            <div class="space-y-4">
+              <div class="flex items-center justify-between gap-3 flex-wrap px-1">
+                <div>
+                  <h3 class="text-lg sm:text-xl font-bold text-slate-950 dark:text-white tracking-tight">Sales by Rice Type</h3>
+                  <p class="text-xs font-semibold text-slate-700 dark:text-slate-200 mt-0.5">
+                    Comparison of sacks sold for each rice type
+                  </p>
+                </div>
+                <div class="text-right">
+                  <span class="text-xs font-bold text-slate-700 dark:text-slate-200">
+                    Total Sold: <strong class="text-slate-950 dark:text-white">${topProductData.totalSacks} sacks</strong>
+                  </span>
+                </div>
+              </div>
+
+              ${varietyRowsHtml}
+            </div>
+
+            <!-- Bottom Summary & Return Section -->
+            <div class="bg-white dark:bg-[#111827] border border-slate-200/80 dark:border-slate-800 rounded-2xl p-6 shadow-xs flex items-center justify-between gap-4 flex-wrap">
+              <div>
+                <p class="text-xs font-black text-slate-700 dark:text-slate-200 uppercase tracking-wider">TOTAL SACKS SOLD</p>
+                <p class="text-xl sm:text-2xl font-black text-slate-950 dark:text-white mt-0.5">
+                  ${topProductData.totalSacks} sack${topProductData.totalSacks !== 1 ? 's' : ''} sold across all rice types
+                </p>
+              </div>
+              <a href="dashboard.html" class="tp-back-btn inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-extrabold shadow-2xs transition-all cursor-pointer">
+                ← Return to Dashboard
+              </a>
+            </div>
+
+          </div>
+        `;
+      }
+
+      renderTopProductPage();
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,1152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Inventory Analytics | Aurora Rice Admin</title>
+  <script>
+    (function() {
+      try {
+        var d = document.documentElement;
+        var isDark = localStorage.getItem('aurora-dark-mode') === 'true';
+        d.classList.toggle('dark', isDark);
+        d.style.colorScheme = isDark ? 'dark' : 'light';
+      } catch (e) {}
+    })();
+  </script>
+  <style id="riceflow-theme-init">
+    html { background-color: #F5F5F5; color-scheme: light; }
+    html.dark { background-color: #1F2937 !important; color-scheme: dark; }
+    html.dark body,
+    html.dark #admin-layout-container,
+    html.dark #admin-main-content {
+      background-color: #1F2937;
+      color: #F9FAFB;
+    }
+    html.dark #auth-guard-loader {
+      background-color: #1F2937 !important;
+      color: #F9FAFB !important;
+    }
+    html.dark #admin-sidebar,
+    html.dark aside,
+    html.dark header,
+    html.dark .bg-white,
+    html.dark .bg-gray-50,
+    html.dark .bg-slate-50 {
+      background-color: #111827;
+      color: #F9FAFB;
+    }
+  </style>
+  <link rel="stylesheet" href="../src/styles/index.css">
+  <style id="auth-guard-style">body { visibility: hidden !important; }</style>
+  <style id="inventory-analytics-page-styles">
+    /* High contrast back button */
+    html:not(.dark) #admin-layout-container .so-back-btn {
+      background: #FFFFFF !important;
+      border: 1px solid #CBD5E1 !important;
+      color: #0F172A !important;
+    }
+    html:not(.dark) #admin-layout-container .so-back-btn:hover {
+      background: #F1F5F9 !important;
+      border-color: #94A3B8 !important;
+    }
+    html.dark #admin-layout-container .so-back-btn {
+      background: #1E293B !important;
+      border: 1px solid #475569 !important;
+      color: #FFFFFF !important;
+    }
+    html.dark #admin-layout-container .so-back-btn:hover {
+      background: #334155 !important;
+      border-color: #64748B !important;
+    }
+
+    /* High-Contrast Typography */
+    html:not(.dark) #admin-layout-container .ia-text-main {
+      color: #0F172A !important;
+    }
+    html.dark #admin-layout-container .ia-text-main {
+      color: #FFFFFF !important;
+    }
+
+    html:not(.dark) #admin-layout-container .ia-text-sub {
+      color: #334155 !important;
+    }
+    html.dark #admin-layout-container .ia-text-sub {
+      color: #CBD5E1 !important;
+    }
+
+    /* Header & Icon */
+    html:not(.dark) #admin-layout-container .ia-header-icon {
+      background: #ECFDF5 !important;
+      border: 1px solid #86EFAC !important;
+      color: #145001 !important;
+    }
+    html.dark #admin-layout-container .ia-header-icon {
+      background: rgba(16, 185, 129, 0.22) !important;
+      border: 1px solid rgba(52, 211, 153, 0.5) !important;
+      color: #A7F3D0 !important;
+    }
+
+    /* Controls & Selects */
+    html:not(.dark) #admin-layout-container .ia-control-select {
+      background-color: #FFFFFF !important;
+      border: 1px solid #CBD5E1 !important;
+      color: #0F172A !important;
+    }
+    html:not(.dark) #admin-layout-container .ia-control-select:hover {
+      border-color: #94A3B8 !important;
+    }
+    html.dark #admin-layout-container .ia-control-select {
+      background-color: #1E293B !important;
+      border: 1px solid #475569 !important;
+      color: #FFFFFF !important;
+    }
+    html.dark #admin-layout-container .ia-control-select:hover {
+      border-color: #64748B !important;
+    }
+
+    /* Manage Stock Link Button */
+    html:not(.dark) #admin-layout-container .ia-manage-btn {
+      background: #F0FDF4 !important;
+      border: 1px solid #86EFAC !important;
+      color: #145001 !important;
+    }
+    html:not(.dark) #admin-layout-container .ia-manage-btn:hover {
+      background: #DCFCE7 !important;
+      border-color: #4ADE80 !important;
+      color: #0F3E00 !important;
+    }
+    html.dark #admin-layout-container .ia-manage-btn {
+      background: rgba(16, 185, 129, 0.2) !important;
+      border: 1px solid rgba(52, 211, 153, 0.5) !important;
+      color: #6EE7B7 !important;
+    }
+    html.dark #admin-layout-container .ia-manage-btn:hover {
+      background: rgba(16, 185, 129, 0.32) !important;
+      border-color: rgba(52, 211, 153, 0.7) !important;
+    }
+
+    /* 4 Summary Cards */
+    html:not(.dark) #admin-layout-container #card-inv-added {
+      background: linear-gradient(145deg, #ECFDF5 0%, #FFFFFF 100%) !important;
+      border: 1px solid #86EFAC !important;
+    }
+    html.dark #admin-layout-container #card-inv-added {
+      background: linear-gradient(145deg, rgba(6, 78, 59, 0.5) 0%, #111827 100%) !important;
+      border: 1px solid rgba(52, 211, 153, 0.4) !important;
+    }
+
+    html:not(.dark) #admin-layout-container #card-inv-deducted {
+      background: linear-gradient(145deg, #EEF2FF 0%, #FFFFFF 100%) !important;
+      border: 1px solid #A5B4FC !important;
+    }
+    html.dark #admin-layout-container #card-inv-deducted {
+      background: linear-gradient(145deg, rgba(49, 46, 129, 0.5) 0%, #111827 100%) !important;
+      border: 1px solid rgba(129, 140, 248, 0.4) !important;
+    }
+
+    html:not(.dark) #admin-layout-container #card-inv-delivered {
+      background: linear-gradient(145deg, #F0FDFA 0%, #FFFFFF 100%) !important;
+      border: 1px solid #99F6E4 !important;
+    }
+    html.dark #admin-layout-container #card-inv-delivered {
+      background: linear-gradient(145deg, rgba(19, 78, 74, 0.5) 0%, #111827 100%) !important;
+      border: 1px solid rgba(45, 212, 191, 0.4) !important;
+    }
+
+    html:not(.dark) #admin-layout-container #card-inv-total {
+      background: linear-gradient(145deg, #F8FAFC 0%, #FFFFFF 100%) !important;
+      border: 1px solid #CBD5E1 !important;
+    }
+    html.dark #admin-layout-container #card-inv-total {
+      background: linear-gradient(145deg, rgba(30, 41, 59, 0.6) 0%, #111827 100%) !important;
+      border: 1px solid rgba(148, 163, 184, 0.4) !important;
+    }
+
+    #admin-layout-container #card-inv-added,
+    #admin-layout-container #card-inv-deducted,
+    #admin-layout-container #card-inv-delivered,
+    #admin-layout-container #card-inv-total {
+      padding: 1.15rem 1.25rem !important;
+      display: flex !important;
+      flex-direction: column !important;
+      justify-content: space-between !important;
+      min-height: 128px !important;
+    }
+
+    #admin-layout-container .ia-card-header {
+      display: flex !important;
+      align-items: center !important;
+      justify-content: space-between !important;
+      gap: 0.5rem !important;
+      margin-bottom: 0.75rem !important;
+    }
+
+    html:not(.dark) #admin-layout-container .ia-card-label {
+      color: #0F172A !important;
+      font-weight: 800 !important;
+    }
+    html.dark #admin-layout-container .ia-card-label {
+      color: #FFFFFF !important;
+      font-weight: 800 !important;
+    }
+
+    html:not(.dark) #admin-layout-container .ia-card-sub {
+      color: #475569 !important;
+    }
+    html.dark #admin-layout-container .ia-card-sub {
+      color: #CBD5E1 !important;
+    }
+
+    /* Chart Styles */
+    html:not(.dark) #admin-layout-container #inv-movement-chart-inner {
+      background: #F8FAFC !important;
+      border: 1px solid #E2E8F0 !important;
+    }
+    html.dark #admin-layout-container #inv-movement-chart-inner {
+      background: #0B1120 !important;
+      border: 1px solid #1E293B !important;
+    }
+
+    html:not(.dark) #admin-layout-container #legend-inv-chart {
+      background: #F1F5F9 !important;
+      border: 1px solid #CBD5E1 !important;
+      color: #0F172A !important;
+    }
+    html.dark #admin-layout-container #legend-inv-chart {
+      background: #1E293B !important;
+      border: 1px solid #475569 !important;
+      color: #FFFFFF !important;
+    }
+
+    html:not(.dark) #admin-layout-container .ia-chart-gridline {
+      border-color: #E2E8F0 !important;
+    }
+    html.dark #admin-layout-container .ia-chart-gridline {
+      border-color: #334155 !important;
+    }
+
+    html:not(.dark) #admin-layout-container .ia-chart-axis-pill {
+      background-color: #FFFFFF !important;
+      border: 1px solid #CBD5E1 !important;
+      color: #0F172A !important;
+    }
+    html.dark #admin-layout-container .ia-chart-axis-pill {
+      background-color: #1E293B !important;
+      border: 1px solid #475569 !important;
+      color: #FFFFFF !important;
+    }
+
+    /* Custom Date Range Popover */
+    html:not(.dark) #admin-layout-container #inv-calendar-popover {
+      background: #FFFFFF !important;
+      border: 1px solid #CBD5E1 !important;
+      box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.15), 0 8px 10px -6px rgba(15, 23, 42, 0.1) !important;
+    }
+    html.dark #admin-layout-container #inv-calendar-popover {
+      background: #0F172A !important;
+      border: 1px solid #334155 !important;
+      box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.5) !important;
+    }
+
+    html:not(.dark) #admin-layout-container .ia-date-btn-default {
+      background: #FFFFFF !important;
+      border-color: #CBD5E1 !important;
+      color: #0F172A !important;
+    }
+    html.dark #admin-layout-container .ia-date-btn-default {
+      background: #1E293B !important;
+      border-color: #475569 !important;
+      color: #FFFFFF !important;
+    }
+
+    html:not(.dark) #admin-layout-container .ia-date-btn-active {
+      background: #ECFDF5 !important;
+      border-color: #10B981 !important;
+      color: #065F46 !important;
+    }
+    html.dark #admin-layout-container .ia-date-btn-active {
+      background: rgba(16, 185, 129, 0.22) !important;
+      border-color: #34D399 !important;
+      color: #6EE7B7 !important;
+    }
+
+    /* Stock Movement Trend Bars & Value Readability */
+    html:not(.dark) #admin-layout-container .ia-bar-added {
+      background-color: #22C55E !important;
+    }
+    html.dark #admin-layout-container .ia-bar-added {
+      background-color: #34D399 !important;
+    }
+
+    html:not(.dark) #admin-layout-container .ia-bar-deducted {
+      background-color: #4F46E5 !important;
+    }
+    html.dark #admin-layout-container .ia-bar-deducted {
+      background-color: #818CF8 !important;
+    }
+
+    html:not(.dark) #admin-layout-container .ia-val-added {
+      color: #15803D !important;
+    }
+    html.dark #admin-layout-container .ia-val-added {
+      color: #86EFAC !important;
+    }
+
+    html:not(.dark) #admin-layout-container .ia-val-deducted {
+      color: #4338CA !important;
+    }
+    html.dark #admin-layout-container .ia-val-deducted {
+      color: #C7D2FE !important;
+    }
+  </style>
+</head>
+<body class="bg-[#F5F5F5] min-h-screen">
+  <div id="auth-guard-loader" class="fixed inset-0 bg-[#F5F5F5] z-[99999] flex flex-col items-center justify-center font-sans">
+    <div class="w-9 h-9 border-3 border-[#1E6C02]/20 border-t-[#1E6C02] rounded-full animate-spin mb-3"></div>
+    <p class="text-xs font-semibold text-gray-700">Verifying administrative access...</p>
+  </div>
+
+  <!-- ADMIN LAYOUT WRAPPER -->
+  <div id="admin-layout-container"></div>
+
+  <script type="module" src="../src/app/shared.js"></script>
+
+  <script type="module">
+    import {
+      protectAdminPage,
+      renderAdminLayout,
+      getInventoryHistory,
+      getProducts,
+      getProductSackWeightKg,
+      getDashboardAvailableStockData,
+      showToast
+    } from '../src/app/shared.js';
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      const authResult = await protectAdminPage({ requiredRole: 'any' });
+      if (!authResult || !authResult.ok) return;
+
+      renderAdminLayout('inventory-analytics');
+
+      const targetSpace = document.getElementById('admin-main-content');
+      if (!targetSpace) return;
+
+      // Filter State Variables
+      let invTimeRange = 'all';
+      let invProductFilter = 'all';
+      let invCustomStart = '';
+      let invCustomEnd = '';
+      let draftInvStart = '';
+      let draftInvEnd = '';
+      let invPickingStep = 'start';
+      let currentCalDate = new Date();
+
+      targetSpace.innerHTML = `
+        <div class="space-y-6 pb-16 max-w-6xl mx-auto">
+          <!-- Top Navigation Row -->
+          <div class="flex items-center justify-between gap-4 flex-wrap">
+            <a href="dashboard.html" class="so-back-btn inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-extrabold shadow-2xs transition-all cursor-pointer">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-4 h-4">
+                <line x1="19" y1="12" x2="5" y2="12"></line>
+                <polyline points="12 19 5 12 12 5"></polyline>
+              </svg>
+              Back to Dashboard
+            </a>
+
+            <div class="text-right">
+              <span class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Inventory Details</span>
+            </div>
+          </div>
+
+          <!-- Page Header & Filter Controls Card -->
+          <div class="bg-white dark:bg-[#111827] border border-slate-200/80 dark:border-slate-800 rounded-2xl p-6 sm:p-7 shadow-xs space-y-5">
+            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-5 border-b border-slate-100 dark:border-slate-800">
+              <div class="flex items-start gap-3.5">
+                <div class="ia-header-icon w-12 h-12 rounded-xl flex items-center justify-center shrink-0 shadow-2xs">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6">
+                    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                  </svg>
+                </div>
+                <div class="min-w-0">
+                  <div class="flex items-center gap-2.5 flex-wrap">
+                    <h2 class="ia-text-main font-bold text-xl sm:text-2xl tracking-tight">Inventory Analytics</h2>
+                    <span class="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1 rounded-full border border-emerald-300 dark:border-emerald-700 bg-emerald-50 dark:bg-emerald-950/60 text-[#1E6C02] dark:text-emerald-400">
+                      <span id="label-inv-period">All Time</span>
+                    </span>
+                  </div>
+                  <p class="ia-text-sub text-xs sm:text-sm font-medium mt-1 leading-relaxed">Track stock added, stock set aside for orders, deliveries, and total stock changes over time.</p>
+                </div>
+              </div>
+
+              <!-- Header Controls -->
+              <div class="flex items-center flex-wrap gap-2.5 shrink-0">
+                <!-- Date Range Selector -->
+                <select id="sel-inv-range" class="ia-control-select h-10 text-xs sm:text-[13px] font-bold px-3.5 py-2 rounded-xl outline-none cursor-pointer transition-colors shadow-2xs shrink-0 whitespace-nowrap">
+                  <option value="all" selected>All Time</option>
+                  <option value="1week">1 Week</option>
+                  <option value="1month">1 Month</option>
+                  <option value="3months">3 Months</option>
+                  <option value="6months">6 Months</option>
+                  <option value="1year">1 Year</option>
+                  <option id="opt-inv-custom-range" value="custom">Custom Date Range</option>
+                </select>
+
+                <!-- Custom Date Range Popover Button -->
+                <div id="inv-custom-date-container" class="relative shrink-0">
+                  <button id="btn-inv-custom-range" type="button" class="h-10 inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs sm:text-[13px] font-bold border ia-date-btn-default transition-all shadow-2xs cursor-pointer">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" class="w-4 h-4"><rect x="3" y="4" width="18" height="18" rx="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                    <span id="inv-custom-range-label">Custom Date Range</span>
+                  </button>
+
+                  <!-- Popover Box -->
+                  <div id="inv-calendar-popover" class="hidden absolute right-0 sm:left-0 top-full mt-2 w-76 sm:w-82 p-4 rounded-2xl z-40 space-y-3 select-none">
+                    <div class="flex items-center justify-between pb-2 border-b border-slate-200 dark:border-slate-800">
+                      <div>
+                        <p class="ia-text-main text-xs sm:text-sm font-bold">Custom Date Range</p>
+                        <p id="inv-cal-step-hint" class="ia-text-sub text-[11px] font-semibold mt-0.5">Click a start date, then an end date</p>
+                      </div>
+                      <button id="btn-close-inv-cal" type="button" class="w-7 h-7 rounded-lg inline-flex items-center justify-center text-xs font-bold text-gray-500 hover:text-gray-800 dark:hover:text-white cursor-pointer">✕</button>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2">
+                      <div id="inv-cal-start-slot" class="p-2 rounded-xl border border-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 text-[#145001] dark:text-emerald-300 cursor-pointer">
+                        <span class="block text-[10px] font-extrabold uppercase">Start Date</span>
+                        <span id="inv-cal-start-display" class="block text-xs font-black truncate mt-0.5">Select date</span>
+                      </div>
+                      <div id="inv-cal-end-slot" class="p-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 cursor-pointer">
+                        <span class="block text-[10px] font-extrabold uppercase text-gray-500 dark:text-gray-400">End Date</span>
+                        <span id="inv-cal-end-display" class="block text-xs font-black truncate mt-0.5 text-gray-600 dark:text-gray-300">Select date</span>
+                      </div>
+                    </div>
+
+                    <div class="flex justify-between items-center pt-0.5">
+                      <button id="btn-inv-cal-prev" type="button" class="ia-control-select px-2.5 py-1 rounded-lg text-xs font-bold cursor-pointer">◀</button>
+                      <span id="inv-cal-month-year" class="ia-text-main text-xs sm:text-sm font-black tracking-tight"></span>
+                      <button id="btn-inv-cal-next" type="button" class="ia-control-select px-2.5 py-1 rounded-lg text-xs font-bold cursor-pointer">▶</button>
+                    </div>
+
+                    <div class="grid grid-cols-7 gap-1 text-center text-[11px] font-extrabold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                      <span>Su</span><span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span>
+                    </div>
+
+                    <div id="inv-cal-days-grid" class="grid grid-cols-7 gap-1 text-center text-xs font-bold"></div>
+
+                    <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-200 dark:border-slate-800">
+                      <button id="btn-cancel-inv-custom" type="button" class="h-8 px-3 rounded-lg text-xs font-extrabold border border-slate-300 dark:border-slate-700 text-gray-700 dark:text-gray-300 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer">Cancel</button>
+                      <button id="btn-apply-inv-custom" type="button" class="h-8 px-3.5 bg-[#1E6C02] hover:bg-[#145001] dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white text-xs font-extrabold rounded-lg cursor-pointer shadow-2xs">Apply</button>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Rice Variety Selector -->
+                <select id="sel-inv-product" class="ia-control-select h-10 text-xs sm:text-[13px] font-bold px-3.5 py-2 rounded-xl outline-none cursor-pointer transition-colors shadow-2xs shrink-0 min-w-[140px] max-w-[220px] truncate">
+                  <option value="all">All Rice Varieties</option>
+                </select>
+
+                <!-- Reset Filter -->
+                <button id="btn-reset-inv-filters" type="button" class="hidden h-10 inline-flex items-center justify-center text-xs sm:text-[13px] font-extrabold text-[#1E6C02] dark:text-emerald-400 hover:text-[#145001] px-3.5 py-2 bg-green-50 dark:bg-emerald-950/60 rounded-xl transition-colors cursor-pointer border border-green-300 dark:border-emerald-800 shadow-2xs shrink-0 whitespace-nowrap">Reset</button>
+
+                <!-- Manage Stock Link -->
+                <a href="products.html" class="ia-manage-btn h-10 inline-flex items-center gap-1.5 px-4 py-2 text-xs sm:text-[13px] font-bold rounded-xl shadow-2xs transition-all whitespace-nowrap cursor-pointer">
+                  <span>Manage Stock</span>
+                  <span>→</span>
+                </a>
+              </div>
+            </div>
+
+            <!-- 4 Key Summary Metric Cards -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-stretch">
+              <!-- Stock Added Card -->
+              <div id="card-inv-added" class="rounded-xl shadow-2xs">
+                <div class="ia-card-header">
+                  <div class="flex items-center gap-1.5 min-w-0">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" class="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0"><path d="M12 3v12m0 0l-4-4m4 4l4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"></path></svg>
+                    <span class="ia-card-label text-xs sm:text-[13px] font-extrabold uppercase tracking-wider truncate">Stock Added</span>
+                  </div>
+                  <span class="text-[11px] font-bold text-emerald-900 dark:text-emerald-200 bg-emerald-100/90 dark:bg-emerald-900/80 border border-emerald-300 dark:border-emerald-600/70 px-2.5 py-0.5 rounded-lg shrink-0">Added</span>
+                </div>
+                <div>
+                  <p id="inv-stat-added" class="text-xl sm:text-2xl font-black tabular-nums tracking-tight">0 sacks / 0 kg</p>
+                  <p class="ia-card-sub text-xs sm:text-[13px] font-semibold mt-1">New rice added to stock</p>
+                </div>
+              </div>
+
+              <!-- Stock Set Aside Card -->
+              <div id="card-inv-deducted" class="rounded-xl shadow-2xs">
+                <div class="ia-card-header">
+                  <div class="flex items-center gap-1.5 min-w-0">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" class="w-4 h-4 text-indigo-600 dark:text-indigo-400 shrink-0"><rect x="3" y="4" width="18" height="18" rx="2"></rect><path d="M7 8h10M7 12h6M7 16h4"></path></svg>
+                    <span class="ia-card-label text-xs sm:text-[13px] font-extrabold uppercase tracking-wider truncate">Stock Set Aside</span>
+                  </div>
+                  <span class="text-[11px] font-bold text-indigo-950 dark:text-white bg-indigo-100/90 dark:bg-indigo-900/80 border border-indigo-300 dark:border-indigo-500/70 px-2.5 py-0.5 rounded-lg shrink-0">Set Aside</span>
+                </div>
+                <div>
+                  <p id="inv-stat-deducted" class="text-xl sm:text-2xl font-black tabular-nums tracking-tight">0 sacks / 0 kg</p>
+                  <p class="ia-card-sub text-xs sm:text-[13px] font-semibold mt-1">Rice set aside for orders</p>
+                </div>
+              </div>
+
+              <!-- Stock Delivered Card -->
+              <div id="card-inv-delivered" class="rounded-xl shadow-2xs">
+                <div class="ia-card-header">
+                  <div class="flex items-center gap-1.5 min-w-0">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" class="w-4 h-4 text-teal-600 dark:text-teal-400 shrink-0"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
+                    <span class="ia-card-label text-xs sm:text-[13px] font-extrabold uppercase tracking-wider truncate">Stock Delivered</span>
+                  </div>
+                  <span class="text-[11px] font-bold text-teal-950 dark:text-white bg-teal-100/90 dark:bg-teal-900/80 border border-teal-300 dark:border-teal-500/70 px-2.5 py-0.5 rounded-lg shrink-0">Delivered</span>
+                </div>
+                <div>
+                  <p id="inv-stat-delivered" class="text-xl sm:text-2xl font-black tabular-nums tracking-tight">0 sacks / 0 kg</p>
+                  <p class="ia-card-sub text-xs sm:text-[13px] font-semibold mt-1">Rice delivered to customers</p>
+                </div>
+              </div>
+
+              <!-- Available Stock Card -->
+              <div id="card-inv-total" class="rounded-xl shadow-2xs">
+                <div class="ia-card-header">
+                  <div class="flex items-center gap-1.5 min-w-0">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" class="w-4 h-4 text-slate-700 dark:text-slate-300 shrink-0"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+                    <span class="ia-card-label text-xs sm:text-[13px] font-extrabold uppercase tracking-wider truncate">Available Stock</span>
+                  </div>
+                  <span class="text-[11px] font-bold text-slate-900 dark:text-slate-100 bg-slate-200/90 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 px-2.5 py-0.5 rounded-lg shrink-0">Available</span>
+                </div>
+                <div>
+                  <p id="inv-stat-total" class="text-xl sm:text-2xl font-black tabular-nums tracking-tight">0 sacks / 0 kg</p>
+                  <p class="ia-card-sub text-xs sm:text-[13px] font-semibold mt-1">Rice ready for orders</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Stock Movement Trend Detailed Chart Card -->
+          <div class="bg-white dark:bg-[#111827] border border-slate-200/80 dark:border-slate-800 rounded-2xl p-6 sm:p-7 shadow-xs space-y-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100 dark:border-slate-800">
+              <div>
+                <h3 class="ia-text-main font-bold text-lg tracking-tight">Stock Movement Trend</h3>
+                <p class="ia-text-sub text-xs sm:text-sm font-medium mt-0.5">Visual comparison of rice added vs. rice taken out over time</p>
+              </div>
+              <div id="legend-inv-chart" class="flex flex-wrap items-center gap-4 text-xs font-extrabold px-4 py-2.5 rounded-xl shadow-2xs shrink-0">
+                <div class="flex items-center gap-2">
+                  <span class="w-3.5 h-3.5 rounded-sm ia-bar-added shrink-0"></span>
+                  <span>Stock Added</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="w-3.5 h-3.5 rounded-sm ia-bar-deducted shrink-0"></span>
+                  <span>Stock Set Aside</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Chart Inner Canvas -->
+            <div id="inv-movement-chart-inner" class="p-5 sm:p-6 rounded-xl shadow-2xs min-h-72"></div>
+          </div>
+
+          <!-- Recorded Stock Movements History Table Card -->
+          <div class="bg-white dark:bg-[#111827] border border-slate-200/80 dark:border-slate-800 rounded-2xl p-6 sm:p-7 shadow-xs space-y-4">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800 flex-wrap gap-2">
+              <div>
+                <h3 class="ia-text-main font-bold text-lg tracking-tight">Stock Movement History</h3>
+                <p class="ia-text-sub text-xs sm:text-sm font-medium mt-0.5">History of stock added, restocked, and taken out for orders</p>
+              </div>
+              <span id="inv-history-count-badge" class="px-3 py-1 rounded-full text-xs font-extrabold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">0 Stock Changes</span>
+            </div>
+
+            <div class="overflow-x-auto">
+              <table class="w-full text-left border-collapse">
+                <thead>
+                  <tr class="border-b border-slate-200 dark:border-slate-700 text-[11px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                    <th class="py-3 px-3.5">Date &amp; Time</th>
+                    <th class="py-3 px-3.5">Rice Variety</th>
+                    <th class="py-3 px-3.5">Action</th>
+                    <th class="py-3 px-3.5">Sacks</th>
+                    <th class="py-3 px-3.5">Reason / Order</th>
+                    <th class="py-3 px-3.5 text-right">Logged By</th>
+                  </tr>
+                </thead>
+                <tbody id="inv-history-tbody" class="divide-y divide-slate-100 dark:divide-slate-800 text-xs">
+                  <!-- Dynamically written -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      `;
+
+      // Helper logic
+      function parseInventoryHistoryDate(entry) {
+        if (!entry) return new Date(0);
+        const rawTs = entry.timestamp || entry.createdAt;
+        if (rawTs && (typeof rawTs === 'number' || String(rawTs).includes('T') || String(rawTs).includes(':'))) {
+          const tsDate = new Date(rawTs);
+          if (!isNaN(tsDate.getTime()) && tsDate.getTime() > 0) return tsDate;
+        }
+        if (entry.date) {
+          const parts = String(entry.date).trim().split('-');
+          if (parts.length === 3) {
+            const yr = parseInt(parts[0], 10);
+            const mo = parseInt(parts[1], 10) - 1;
+            const da = parseInt(parts[2], 10);
+            let hr = 0, mi = 0;
+            if (entry.time) {
+              const timeParts = String(entry.time).trim().split(':');
+              if (timeParts.length >= 2) {
+                hr = parseInt(timeParts[0], 10) || 0;
+                mi = parseInt(timeParts[1], 10) || 0;
+              }
+            }
+            const localDate = new Date(yr, mo, da, hr, mi, 0, 0);
+            if (!isNaN(localDate.getTime())) return localDate;
+          }
+        }
+        if (entry.timestamp) {
+          const d = new Date(entry.timestamp);
+          if (!isNaN(d.getTime())) return d;
+        }
+        if (entry.createdAt) {
+          const d = new Date(entry.createdAt);
+          if (!isNaN(d.getTime())) return d;
+        }
+        return new Date(0);
+      }
+
+      function formatInventoryHistoryDateTime(entry) {
+        const d = parseInventoryHistoryDate(entry);
+        if (isNaN(d.getTime()) || d.getTime() === 0) {
+          return `${entry.date || 'N/A'} ${entry.time || ''}`.trim() || 'N/A';
+        }
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        const m = months[d.getMonth()];
+        const day = d.getDate();
+        const year = d.getFullYear();
+        let hours = d.getHours();
+        const mins = String(d.getMinutes()).padStart(2, '0');
+        const ampm = hours >= 12 ? 'PM' : 'AM';
+        hours = hours % 12;
+        hours = hours ? hours : 12;
+        return `${m} ${day}, ${year} · ${hours}:${mins} ${ampm}`;
+      }
+
+      function isEntryFromArchivedProduct(entry, productsList) {
+        if (!entry) return false;
+        const list = productsList || [];
+        const archivedProducts = list.filter(p => Boolean(p.isArchived || p.archived));
+        if (archivedProducts.length === 0) return false;
+        if (entry.productId) {
+          return archivedProducts.some(p => String(p.id) === String(entry.productId));
+        }
+        const entryName = (entry.productName || '').trim().toLowerCase();
+        if (!entryName) return false;
+        return archivedProducts.some(p => (p.name || '').trim().toLowerCase() === entryName);
+      }
+
+      function entryMatchesVariety(entry, prodIdFilter, productsList) {
+        if (!prodIdFilter || prodIdFilter === 'all') return true;
+        if (entry.productId) {
+          return String(entry.productId) === String(prodIdFilter);
+        }
+        const targetProd = (productsList || []).find(p => String(p.id) === String(prodIdFilter));
+        if (!targetProd) return false;
+        const entryName = (entry.productName || '').trim().toLowerCase();
+        const targetName = (targetProd.name || '').trim().toLowerCase();
+        if (!entryName || !targetName) return false;
+        return entryName === targetName;
+      }
+
+      function populateProductDropdown() {
+        const selProd = document.getElementById('sel-inv-product');
+        if (!selProd) return;
+        const productsList = typeof getProducts === 'function' ? getProducts() : [];
+        const activeProducts = productsList.filter(p => !p.isArchived && !p.archived);
+        let html = '<option value="all">All Rice Varieties</option>';
+        activeProducts.forEach(p => {
+          html += `<option value="${p.id}">${p.name}</option>`;
+        });
+        selProd.innerHTML = html;
+        selProd.value = invProductFilter || 'all';
+      }
+
+      function formatCompactRangeLabel(sYMD, eYMD) {
+        if (!sYMD || !eYMD) return 'Custom Date Range';
+        if (sYMD === eYMD) return sYMD;
+        return `${sYMD} – ${eYMD}`;
+      }
+
+      function updateInvCustomRangeButtonUI() {
+        const btn = document.getElementById('btn-inv-custom-range');
+        const label = document.getElementById('inv-custom-range-label');
+        const selRange = document.getElementById('sel-inv-range');
+        if (invTimeRange === 'custom' && invCustomStart && invCustomEnd) {
+          if (label) label.textContent = formatCompactRangeLabel(invCustomStart, invCustomEnd);
+          if (btn) {
+            btn.classList.remove('ia-date-btn-default');
+            btn.classList.add('ia-date-btn-active');
+          }
+          if (selRange) selRange.value = 'custom';
+        } else {
+          if (label) label.textContent = 'Custom Date Range';
+          if (btn) {
+            btn.classList.remove('ia-date-btn-active');
+            btn.classList.add('ia-date-btn-default');
+          }
+          if (selRange && selRange.value === 'custom') {
+            selRange.value = invTimeRange || 'all';
+          }
+        }
+      }
+
+      function drawInvCalendar() {
+        const year = currentCalDate.getFullYear();
+        const month = currentCalDate.getMonth();
+        const calMonthYear = document.getElementById('inv-cal-month-year');
+        const calDaysGrid = document.getElementById('inv-cal-days-grid');
+        const startSlot = document.getElementById('inv-cal-start-slot');
+        const endSlot = document.getElementById('inv-cal-end-slot');
+        const startDisplay = document.getElementById('inv-cal-start-display');
+        const endDisplay = document.getElementById('inv-cal-end-display');
+        const stepHint = document.getElementById('inv-cal-step-hint');
+        if (!calMonthYear || !calDaysGrid) return;
+
+        const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+        calMonthYear.textContent = `${months[month]} ${year}`;
+
+        if (startDisplay) startDisplay.textContent = draftInvStart || 'Select date';
+        if (endDisplay) endDisplay.textContent = draftInvEnd || 'Select date';
+
+        if (stepHint) {
+          stepHint.textContent = invPickingStep === 'start' ? 'Click a start date' : 'Click an end date';
+        }
+
+        calDaysGrid.innerHTML = '';
+        const firstDayIndex = new Date(year, month, 1).getDay();
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+        for (let i = 0; i < firstDayIndex; i++) {
+          calDaysGrid.innerHTML += `<div></div>`;
+        }
+
+        for (let d = 1; d <= daysInMonth; d++) {
+          const dStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+          const isStart = draftInvStart === dStr;
+          const isEnd = draftInvEnd === dStr;
+          const inRange = draftInvStart && draftInvEnd && dStr >= draftInvStart && dStr <= draftInvEnd;
+
+          let btnClass = 'w-8 h-8 mx-auto rounded-lg flex items-center justify-center cursor-pointer transition-colors text-xs font-bold';
+          if (isStart || isEnd) {
+            btnClass += ' bg-[#1E6C02] text-white shadow-2xs';
+          } else if (inRange) {
+            btnClass += ' bg-emerald-100 dark:bg-emerald-900/60 text-[#145001] dark:text-emerald-200';
+          } else {
+            btnClass += ' text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-800';
+          }
+
+          calDaysGrid.innerHTML += `
+            <button type="button" data-date="${dStr}" class="${btnClass}">${d}</button>
+          `;
+        }
+
+        calDaysGrid.querySelectorAll('button[data-date]').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            const chosen = e.currentTarget.getAttribute('data-date');
+            if (invPickingStep === 'start') {
+              draftInvStart = chosen;
+              draftInvEnd = '';
+              invPickingStep = 'end';
+            } else {
+              if (chosen < draftInvStart) {
+                draftInvEnd = draftInvStart;
+                draftInvStart = chosen;
+              } else {
+                draftInvEnd = chosen;
+              }
+              invPickingStep = 'start';
+            }
+            drawInvCalendar();
+          });
+        });
+      }
+
+      function openInvRangeCalendar() {
+        const pop = document.getElementById('inv-calendar-popover');
+        if (!pop) return;
+        draftInvStart = invCustomStart || '';
+        draftInvEnd = invCustomEnd || '';
+        invPickingStep = draftInvStart ? 'end' : 'start';
+        currentCalDate = new Date();
+        drawInvCalendar();
+        pop.classList.remove('hidden');
+      }
+
+      function closeInvRangeCalendar() {
+        const pop = document.getElementById('inv-calendar-popover');
+        if (pop) pop.classList.add('hidden');
+      }
+
+      // Bind calendar buttons
+      const btnInvRange = document.getElementById('btn-inv-custom-range');
+      if (btnInvRange) btnInvRange.addEventListener('click', openInvRangeCalendar);
+
+      const btnCloseCal = document.getElementById('btn-close-inv-cal');
+      if (btnCloseCal) btnCloseCal.addEventListener('click', closeInvRangeCalendar);
+
+      const btnCancelCustom = document.getElementById('btn-cancel-inv-custom');
+      if (btnCancelCustom) btnCancelCustom.addEventListener('click', closeInvRangeCalendar);
+
+      const btnCalPrev = document.getElementById('btn-inv-cal-prev');
+      if (btnCalPrev) {
+        btnCalPrev.addEventListener('click', () => {
+          currentCalDate.setMonth(currentCalDate.getMonth() - 1);
+          drawInvCalendar();
+        });
+      }
+
+      const btnCalNext = document.getElementById('btn-inv-cal-next');
+      if (btnCalNext) {
+        btnCalNext.addEventListener('click', () => {
+          currentCalDate.setMonth(currentCalDate.getMonth() + 1);
+          drawInvCalendar();
+        });
+      }
+
+      const btnApplyCustom = document.getElementById('btn-apply-inv-custom');
+      if (btnApplyCustom) {
+        btnApplyCustom.addEventListener('click', () => {
+          if (!draftInvStart) {
+            showToast('Please select a start date');
+            return;
+          }
+          invCustomStart = draftInvStart;
+          invCustomEnd = draftInvEnd || draftInvStart;
+          invTimeRange = 'custom';
+          updateInvCustomRangeButtonUI();
+          closeInvRangeCalendar();
+          renderInventoryAnalyticsPage();
+          showToast(`Filtered to ${formatCompactRangeLabel(invCustomStart, invCustomEnd)}`);
+        });
+      }
+
+      // Main calculation and render function
+      function renderInventoryAnalyticsPage() {
+        populateProductDropdown();
+        const history = typeof getInventoryHistory === 'function' ? getInventoryHistory() : [];
+        const productsList = typeof getProducts === 'function' ? getProducts() : [];
+
+        const selRangeEl = document.getElementById('sel-inv-range');
+        const selProdEl = document.getElementById('sel-inv-product');
+        const resetBtn = document.getElementById('btn-reset-inv-filters');
+
+        const currentRange = selRangeEl ? selRangeEl.value : (invTimeRange || 'all');
+        const currentProd = selProdEl ? selProdEl.value : (invProductFilter || 'all');
+
+        if (resetBtn) {
+          if (currentRange !== 'all' || currentProd !== 'all') {
+            resetBtn.classList.remove('hidden');
+          } else {
+            resetBtn.classList.add('hidden');
+          }
+        }
+
+        const now = new Date();
+        const endOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+        let rangeStart = new Date(0);
+        let rangeEnd = endOfToday;
+        let periodLabel = 'All Time';
+
+        if (currentRange === '1week') {
+          rangeStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 6, 0, 0, 0, 0);
+          periodLabel = '1 Week';
+        } else if (currentRange === '1month') {
+          rangeStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 29, 0, 0, 0, 0);
+          periodLabel = '1 Month';
+        } else if (currentRange === '3months') {
+          rangeStart = new Date(now.getFullYear(), now.getMonth() - 3, now.getDate(), 0, 0, 0, 0);
+          periodLabel = '3 Months';
+        } else if (currentRange === '6months') {
+          rangeStart = new Date(now.getFullYear(), now.getMonth() - 6, now.getDate(), 0, 0, 0, 0);
+          periodLabel = '6 Months';
+        } else if (currentRange === '1year') {
+          rangeStart = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate(), 0, 0, 0, 0);
+          periodLabel = '1 Year';
+        } else if (currentRange === 'custom' && invCustomStart && invCustomEnd) {
+          const [sY, sM, sD] = invCustomStart.split('-').map(Number);
+          const [eY, eM, eD] = invCustomEnd.split('-').map(Number);
+          rangeStart = new Date(sY, sM - 1, sD, 0, 0, 0, 0);
+          rangeEnd = new Date(eY, eM - 1, eD, 23, 59, 59, 999);
+          periodLabel = formatCompactRangeLabel(invCustomStart, invCustomEnd);
+        } else {
+          periodLabel = 'All Time';
+        }
+
+        const labelPeriodEl = document.getElementById('label-inv-period');
+        if (labelPeriodEl) labelPeriodEl.textContent = periodLabel;
+
+        const filteredEntries = history.filter(entry => {
+          if (!entry) return false;
+          if (isEntryFromArchivedProduct(entry, productsList)) return false;
+          if (currentRange !== 'all') {
+            const eDate = parseInventoryHistoryDate(entry);
+            if (eDate < rangeStart || eDate > rangeEnd) return false;
+          }
+          return entryMatchesVariety(entry, currentProd, productsList);
+        });
+
+        const isRestoredOrderStock = (entry) => {
+          if (!entry) return false;
+          const remarks = String(entry.remarks || entry.reason || '').toLowerCase();
+          const type = String(entry.type || entry.action || entry.source || '').toLowerCase();
+          return (
+            remarks.includes('returned/restored') ||
+            remarks.includes('cancelled order') ||
+            remarks.includes('restored from') ||
+            remarks.includes('returned from') ||
+            type === 'restoration' ||
+            type === 'order_cancelled_restore' ||
+            type === 'return'
+          );
+        };
+
+        let totalAdded = 0;
+        let totalAddedKg = 0;
+        let totalDeducted = 0;
+        let totalDeductedKg = 0;
+
+        filteredEntries.forEach(entry => {
+          const qty = Number(entry.quantityAdded || 0);
+          const p = productsList.find(pr => String(pr.id) === String(entry.productId)) ||
+                    productsList.find(pr => pr.name === entry.productName);
+          const sackWeight = (typeof getProductSackWeightKg === 'function' ? getProductSackWeightKg(p) : 25);
+          const kg = Math.abs(qty) * sackWeight;
+
+          if (qty > 0) {
+            if (!isRestoredOrderStock(entry)) {
+              totalAdded += qty;
+              totalAddedKg += kg;
+            }
+          } else if (qty < 0) {
+            totalDeducted += Math.abs(qty);
+            totalDeductedKg += kg;
+          }
+        });
+
+        const activeProducts = productsList.filter(p =>
+          p && p.name && !p.isArchived && !p.archived && p.status !== 'archived'
+        );
+        const targetProducts = (currentProd && currentProd !== 'all')
+          ? activeProducts.filter(p => String(p.id) === String(currentProd) || p.name === currentProd)
+          : activeProducts;
+
+        // Use the exact same existing Available Stock calculation/source from Dashboard
+        const availableStockData = typeof getDashboardAvailableStockData === 'function'
+          ? getDashboardAvailableStockData({ productsList: targetProducts })
+          : { totalAvailableSacks: 0, totalAvailableKg: 0 };
+
+        const formatStockDisplay = (sacks, kg) => {
+          const sFormatted = Number(sacks || 0).toLocaleString('en-US');
+          const kFormatted = Number(kg || 0).toLocaleString('en-US');
+          return `${sFormatted} sacks <span class="text-base sm:text-lg font-bold text-gray-400 dark:text-gray-500 mx-1.5">/</span> <span class="text-base sm:text-lg font-bold text-gray-500 dark:text-gray-400">${kFormatted} kg</span>`;
+        };
+
+        const statAddedEl = document.getElementById('inv-stat-added');
+        const statDeductedEl = document.getElementById('inv-stat-deducted');
+        const statDeliveredEl = document.getElementById('inv-stat-delivered');
+        const statTotalEl = document.getElementById('inv-stat-total');
+
+        if (statAddedEl) statAddedEl.innerHTML = formatStockDisplay(totalAdded, totalAddedKg);
+        if (statDeductedEl) statDeductedEl.innerHTML = formatStockDisplay(totalDeducted, totalDeductedKg);
+        if (statDeliveredEl) statDeliveredEl.innerHTML = formatStockDisplay(0, 0);
+        if (statTotalEl) statTotalEl.innerHTML = formatStockDisplay(availableStockData.totalAvailableSacks, availableStockData.totalAvailableKg);
+
+        // Chart Rendering
+        const chartContainer = document.getElementById('inv-movement-chart-inner');
+        if (chartContainer) {
+          if (filteredEntries.length === 0) {
+            chartContainer.innerHTML = `
+              <div class="h-full min-h-56 flex flex-col items-center justify-center text-center p-6">
+                <div class="w-12 h-12 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-[#1E6C02] dark:text-emerald-400 mb-3 shadow-2xs">
+                  <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                </div>
+                <p class="ia-text-main text-sm font-bold">No stock movements recorded in this period.</p>
+                <p class="ia-text-sub text-xs max-w-md mt-1 font-medium">When sacks of rice are added (restocks) or deducted (orders), movements will appear here automatically.</p>
+              </div>
+            `;
+          } else {
+            const buckets = [];
+            const numMonths = currentRange === '3months' ? 3 : (currentRange === '6months' ? 6 : 6);
+            for (let i = numMonths - 1; i >= 0; i--) {
+              const mDate = new Date(now.getFullYear(), now.getMonth() - i, 1);
+              const bStart = new Date(mDate.getFullYear(), mDate.getMonth(), 1, 0, 0, 0, 0);
+              const bEnd = new Date(mDate.getFullYear(), mDate.getMonth() + 1, 0, 23, 59, 59, 999);
+              const label = bStart.toLocaleDateString('en-US', { month: 'short' });
+              buckets.push({ bStart, bEnd, label, added: 0, deducted: 0 });
+            }
+
+            filteredEntries.forEach(entry => {
+              const eDate = parseInventoryHistoryDate(entry);
+              buckets.forEach(b => {
+                if (eDate >= b.bStart && eDate <= b.bEnd) {
+                  const qty = Number(entry.quantityAdded || 0);
+                  if (qty > 0 && !isRestoredOrderStock(entry)) {
+                    b.added += qty;
+                  } else if (qty < 0) {
+                    b.deducted += Math.abs(qty);
+                  }
+                }
+              });
+            });
+
+            const maxBucketVal = Math.max(...buckets.map(b => Math.max(b.added, b.deducted)), 10);
+            const maxTrackPx = 180;
+
+            chartContainer.innerHTML = `
+              <div class="w-full flex flex-col pt-3 pb-8 select-none">
+                <div class="relative w-full h-[225px] flex items-end gap-3 sm:gap-6 pl-16 sm:pl-20 pr-3 border-b-2 ia-chart-gridline">
+                  <div class="ia-chart-gridline absolute inset-x-0 bottom-[180px] border-t border-dashed flex items-center pointer-events-none">
+                    <span class="ia-chart-axis-pill text-[11px] sm:text-xs font-extrabold tabular-nums px-2 py-0.5 rounded-md shadow-2xs -translate-y-1/2">${maxBucketVal} sacks</span>
+                  </div>
+                  <div class="ia-chart-gridline absolute inset-x-0 bottom-[90px] border-t border-dashed flex items-center pointer-events-none">
+                    <span class="ia-chart-axis-pill text-[11px] sm:text-xs font-extrabold tabular-nums px-2 py-0.5 rounded-md shadow-2xs -translate-y-1/2">${Math.floor(maxBucketVal / 2)} sacks</span>
+                  </div>
+                  <div class="ia-chart-gridline absolute inset-x-0 bottom-0 flex items-center pointer-events-none">
+                    <span class="ia-chart-axis-pill text-[11px] sm:text-xs font-extrabold tabular-nums px-2 py-0.5 rounded-md shadow-2xs translate-y-1/2">0 sacks</span>
+                  </div>
+
+                  ${buckets.map(b => {
+                    const hasAdded = b.added > 0;
+                    const hasDeducted = b.deducted > 0;
+                    const heightAdded = hasAdded ? Math.max(Math.round((b.added / maxBucketVal) * maxTrackPx), 8) : 0;
+                    const heightDeducted = hasDeducted ? Math.max(Math.round((b.deducted / maxBucketVal) * maxTrackPx), 8) : 0;
+
+                    return `
+                      <div class="flex-1 flex flex-col items-center group relative justify-end cursor-pointer z-10 h-full">
+                        <div class="absolute bottom-full mb-2 bg-slate-900 dark:bg-slate-950 text-white text-xs py-2 px-3 rounded-xl opacity-0 group-hover:opacity-100 pointer-events-none transition-all z-30 whitespace-nowrap shadow-xl border border-slate-700">
+                          <div class="font-bold border-b border-slate-700 pb-1 mb-1">${b.label}</div>
+                          <div class="text-emerald-400 font-bold">Stock Added: ${b.added} sacks</div>
+                          <div class="text-indigo-400 font-bold">Stock Set Aside: ${b.deducted} sacks</div>
+                        </div>
+
+                        <div class="w-full flex items-end justify-center gap-1.5 sm:gap-2.5 max-w-[64px] h-[210px]">
+                          <div class="flex-1 flex flex-col items-center justify-end h-full">
+                            ${hasAdded ? `<span class="text-[11px] sm:text-xs font-extrabold mb-1.5 ia-val-added tabular-nums leading-none">${b.added}</span>` : ''}
+                            <div class="w-full ${hasAdded ? 'ia-bar-added' : 'bg-transparent'} rounded-t-md transition-all shadow-xs" style="height: ${heightAdded}px;"></div>
+                          </div>
+                          <div class="flex-1 flex flex-col items-center justify-end h-full">
+                            ${hasDeducted ? `<span class="text-[11px] sm:text-xs font-extrabold mb-1.5 ia-val-deducted tabular-nums leading-none">${b.deducted}</span>` : ''}
+                            <div class="w-full ${hasDeducted ? 'ia-bar-deducted' : 'bg-transparent'} rounded-t-md transition-all shadow-xs" style="height: ${heightDeducted}px;"></div>
+                          </div>
+                        </div>
+
+                        <span class="ia-text-main text-xs font-bold absolute top-full mt-2.5 truncate w-full text-center" title="${b.label}">${b.label}</span>
+                      </div>
+                    `;
+                  }).join('')}
+                </div>
+              </div>
+            `;
+          }
+        }
+
+        // Table Rendering
+        const tbody = document.getElementById('inv-history-tbody');
+        const countBadge = document.getElementById('inv-history-count-badge');
+        if (countBadge) {
+          countBadge.textContent = `${filteredEntries.length} Stock Change${filteredEntries.length !== 1 ? 's' : ''}`;
+        }
+
+        if (tbody) {
+          if (filteredEntries.length === 0) {
+            tbody.innerHTML = `
+              <tr>
+                <td colspan="6" class="py-8 text-center text-gray-500 dark:text-gray-400 font-normal text-xs">
+                  No stock movements recorded for the selected filter.
+                </td>
+              </tr>
+            `;
+          } else {
+            const sortedEntries = filteredEntries.slice().sort((a, b) => {
+              const tA = parseInventoryHistoryDate(a).getTime();
+              const tB = parseInventoryHistoryDate(b).getTime();
+              return tB - tA;
+            });
+
+            tbody.innerHTML = sortedEntries.slice(0, 30).map(entry => {
+              const qty = Number(entry.quantityAdded || 0);
+              const isAdded = qty >= 0;
+              const formattedDate = formatInventoryHistoryDateTime(entry);
+              const varietyName = entry.productName || 'Rice Variety';
+              const reason = entry.remarks || (isAdded ? 'Stock added' : 'Order stock deduction');
+              const loggedBy = entry.staffName || 'System / Admin';
+
+              return `
+                <tr class="hover:bg-gray-50/60 dark:hover:bg-slate-800/60 transition-colors">
+                  <td class="py-3 px-3.5 text-xs text-gray-800 dark:text-gray-200 whitespace-nowrap font-medium">${formattedDate}</td>
+                  <td class="py-3 px-3.5 text-xs font-semibold text-gray-900 dark:text-white">
+                    <span class="px-2 py-0.5 rounded-md bg-gray-100 dark:bg-slate-800 border border-gray-200/80 dark:border-slate-700 text-gray-800 dark:text-gray-200">${varietyName}</span>
+                  </td>
+                  <td class="py-3 px-3.5 text-xs whitespace-nowrap">
+                    ${isAdded 
+                      ? `<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-green-50 dark:bg-emerald-950/60 text-green-800 dark:text-emerald-300 border border-green-200 dark:border-emerald-800/80">+ Rice Added</span>`
+                      : `<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800/80">- Rice Taken Out</span>`
+                    }
+                  </td>
+                  <td class="py-3 px-3.5 text-xs font-bold whitespace-nowrap ${isAdded ? 'text-emerald-700 dark:text-emerald-400' : 'text-amber-700 dark:text-amber-400'}">
+                    ${isAdded ? `+${qty} Sacks` : `-${Math.abs(qty)} Sacks`}
+                  </td>
+                  <td class="py-3 px-3.5 text-xs text-gray-700 dark:text-gray-300 truncate max-w-[220px]" title="${reason}">${reason}</td>
+                  <td class="py-3 px-3.5 text-xs text-gray-600 dark:text-gray-400 text-right whitespace-nowrap">${loggedBy}</td>
+                </tr>
+              `;
+            }).join('');
+          }
+        }
+      }
+
+      // Event listeners for dropdown filters
+      const selRange = document.getElementById('sel-inv-range');
+      if (selRange) {
+        selRange.addEventListener('change', () => {
+          if (selRange.value === 'custom') {
+            openInvRangeCalendar();
+            return;
+          }
+          invCustomStart = '';
+          invCustomEnd = '';
+          invTimeRange = selRange.value;
+          updateInvCustomRangeButtonUI();
+          closeInvRangeCalendar();
+          renderInventoryAnalyticsPage();
+        });
+      }
+
+      const selProd = document.getElementById('sel-inv-product');
+      if (selProd) {
+        selProd.addEventListener('change', () => {
+          invProductFilter = selProd.value;
+          renderInventoryAnalyticsPage();
+        });
+      }
+
+      const resetBtn = document.getElementById('btn-reset-inv-filters');
+      if (resetBtn) {
+        resetBtn.addEventListener('click', () => {
+          invTimeRange = 'all';
+          invProductFilter = 'all';
+          invCustomStart = '';
+          invCustomEnd = '';
+          if (selRange) selRange.value = 'all';
+          if (selProd) selProd.value = 'all';
+          updateInvCustomRangeButtonUI();
+          closeInvRangeCalendar();
+          renderInventoryAnalyticsPage();
+          showToast('Filters reset to All Time & All Rice Varieties');
+        });
+      }
+
+      // Initial Render & dynamic sync listeners
+      renderInventoryAnalyticsPage();
+      window.addEventListener('aurora-sync-event', renderInventoryAnalyticsPage);
+      window.addEventListener('aurora-orders-updated', renderInventoryAnalyticsPage);
+      window.addEventListener('storage', renderInventoryAnalyticsPage);
+    });
+  </script>
+</body>
+</html>

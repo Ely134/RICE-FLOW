@@ -947,6 +947,9 @@
       getAuthoritativeDeliveredDate,
       getEstimatedArrivalDate, 
       getReservationQueuePosition, 
+      isReservationInWaitingForStockStage,
+      isReservationInPaymentVerificationStage,
+      getPaymentVerificationEntryTime,
       evaluateOrderCompletion,
       normalizePhilippinePhone,
       checkPhoneExists,
@@ -1108,9 +1111,31 @@
         const targetCategory = targetItem ? getProductCategory(targetItem.product?.name || '') : 'Rice';
         const estimatedRestock = getEstimatedArrivalDate(targetOrder) || 'Waiting for Restock';
 
+        let stageList = [];
+        if (typeof isReservationInPaymentVerificationStage === 'function' && isReservationInPaymentVerificationStage(targetOrder)) {
+          stageList = allOrders.filter(o => isReservationInPaymentVerificationStage(o));
+          stageList.sort((a, b) => {
+            const tA = typeof getPaymentVerificationEntryTime === 'function' ? getPaymentVerificationEntryTime(a) : new Date(a.createdAt || 0).getTime();
+            const tB = typeof getPaymentVerificationEntryTime === 'function' ? getPaymentVerificationEntryTime(b) : new Date(b.createdAt || 0).getTime();
+            if (tA !== tB) return tA - tB;
+            const cA = new Date(a.createdAt || 0).getTime();
+            const cB = new Date(b.createdAt || 0).getTime();
+            if (cA !== cB) return cA - cB;
+            return String(a.id || '').localeCompare(String(b.id || ''));
+          });
+        } else if (typeof isReservationInWaitingForStockStage === 'function') {
+          stageList = allOrders.filter(o => isReservationInWaitingForStockStage(o));
+          stageList.sort((a, b) => {
+            const tA = new Date(a.createdAt || 0).getTime();
+            const tB = new Date(b.createdAt || 0).getTime();
+            if (tA !== tB) return tA - tB;
+            return String(a.id || '').localeCompare(String(b.id || ''));
+          });
+        }
+
         return {
           position,
-          list: [],
+          list: stageList,
           category: targetCategory,
           estimatedRestock
         };

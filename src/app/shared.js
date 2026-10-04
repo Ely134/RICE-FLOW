@@ -1,6 +1,36 @@
 // RiceFlow: Shared Database & layout UI Engine
 // Coordinates localStorage databases, authentication, user queues, and dynamically renders standard components
 
+if (typeof window !== 'undefined') {
+  function isResizeObserverLoopError(msg) {
+    return typeof msg === 'string' && (
+      msg.indexOf('ResizeObserver loop') !== -1 ||
+      msg.indexOf('ResizeObserver loop completed with undelivered notifications') !== -1 ||
+      msg.indexOf('ResizeObserver loop limit exceeded') !== -1
+    );
+  }
+
+  window.addEventListener('error', function(event) {
+    const msg = event?.message || (event?.error && event.error.message) || (typeof event === 'string' ? event : '');
+    if (isResizeObserverLoopError(msg)) {
+      event.stopImmediatePropagation();
+      if (typeof event.preventDefault === 'function') event.preventDefault();
+      return true;
+    }
+  }, true);
+
+  const prevOnError = window.onerror;
+  window.onerror = function(msg, source, lineno, colno, error) {
+    if (isResizeObserverLoopError(msg) || (error && isResizeObserverLoopError(error.message))) {
+      return true;
+    }
+    if (typeof prevOnError === 'function') {
+      return prevOnError.apply(this, arguments);
+    }
+    return false;
+  };
+}
+
 import { 
   saveFirestoreDoc, 
   saveFirestoreCollection, 
@@ -5460,6 +5490,22 @@ export function saveOrders(orders, targetDocInfo = null) {
   syncUsersAndCustomers();
 }
 
+export function generateReservationId(existingOrders = null) {
+  const ordersList = existingOrders || getOrders() || [];
+  let candidateId = '';
+  let attempts = 0;
+  do {
+    const randNum = Math.floor(100000 + Math.random() * 900000);
+    candidateId = `RES-${randNum}`;
+    attempts++;
+  } while (
+    (ordersList.some(o => o && String(o.id) === candidateId) ||
+     (typeof CONFIRMED_STALE_RESERVATION_IDS !== 'undefined' && CONFIRMED_STALE_RESERVATION_IDS.has(candidateId))) &&
+    attempts < 100
+  );
+  return candidateId;
+}
+
 export function addOrder(orderData) {
   console.log('[DEBUG] addOrder called with orderData:', orderData);
   const orders = getOrders();
@@ -5485,9 +5531,12 @@ export function addOrder(orderData) {
       if (orderData.id) return orderData.id;
       const isPreOrder = !!orderData.isPreOrder;
       const hasResItem = clonedItems.some(i => i.isReservation);
-      const prefix = (isPreOrder || hasResItem) ? 'res-' : 'RF';
+      if (isPreOrder || hasResItem) {
+        return generateReservationId(orders);
+      }
       
-      let maxNum = (isPreOrder || hasResItem) ? 1000 : 200000;
+      const prefix = 'RF';
+      let maxNum = 200000;
       
       orders.forEach(o => {
         if (o.id && String(o.id).startsWith(prefix)) {
@@ -5601,15 +5650,8 @@ export function addOrder(orderData) {
       }
     });
     finalOrder.id = 'RF' + (maxNum + 1);
-  } else if (finalOrder.isPreOrder && finalOrder.id && !String(finalOrder.id).toLowerCase().startsWith('res-')) {
-    let maxNum = 1000;
-    orders.forEach(o => {
-      if (o.id && String(o.id).toLowerCase().startsWith('res-')) {
-        const numPart = parseInt(String(o.id).substring(4), 10);
-        if (!isNaN(numPart) && numPart > maxNum) maxNum = numPart;
-      }
-    });
-    finalOrder.id = 'res-' + (maxNum + 1);
+  } else if (finalOrder.isPreOrder && finalOrder.id && !String(finalOrder.id).toUpperCase().startsWith('RES-')) {
+    finalOrder.id = generateReservationId(orders);
   }
 
   const latestOrders = getOrders();
@@ -7532,91 +7574,199 @@ export function confirmContinueUnallocatedReservation(orderId) {
   return true;
 }
 
+// Check if reservation is inactive, cancelled, completed, delivered, or in processing/transit
+function isExcludedReservationForQueue(o) {
+  if (!o || o.linkedReservationId) return true;
+  const cleanStatus = String(o.status || '').toLowerCase().replace(/_/g, '-').trim();
+  return (
+    cleanStatus === 'cancelled' ||
+    cleanStatus === 'completed' ||
+    cleanStatus === 'delivered' ||
+    cleanStatus === 'processing' ||
+    cleanStatus === 'to-ship' ||
+    cleanStatus === 'to-receive' ||
+    cleanStatus === 'ready-for-processing' ||
+    cleanStatus === 'ready' ||
+    cleanStatus === 'rejected' ||
+    cleanStatus === 'expired' ||
+    (o.paymentRejected === true && (typeof isReservationWaitingForReupload !== 'function' || !isReservationWaitingForReupload(o))) ||
+    o.paymentStatus === 'rejected_expired' ||
+    o.autoCancelledDueToRejectionDeadline === true ||
+    o.autoCancelledDueToPaymentDeadline === true
+  );
+}
+
+// Stage 2: Payment Verification Queue
+export function isReservationInPaymentVerificationStage(o) {
+  if (!o || isExcludedReservationForQueue(o)) return false;
+  const cleanStatus = String(o.status || '').toLowerCase().replace(/_/g, '-').trim();
+
+  if (
+    cleanStatus === 'payment-verification' ||
+    cleanStatus === 'payment_verification' ||
+    o.paymentStatus === 'pending_verification'
+  ) {
+    return true;
+  }
+
+  const hasProof = Boolean(
+    (o.paymentProofDataUrl && o.paymentProofDataUrl.length > 20) ||
+    (o.paymentProof && String(o.paymentProof).startsWith('data:')) ||
+    (o.paymentProof && o.paymentUploadedAt)
+  );
+  if (hasProof && !o.paymentVerified) {
+    return true;
+  }
+
+  if (typeof isReservationWaitingForReupload === 'function' && isReservationWaitingForReupload(o)) {
+    return true;
+  }
+
+  const allocatedQty = Number(o.allocatedQuantity || 0);
+  const hasAllocatedStock = allocatedQty > 0 || o.stockAllocated === true || Boolean(o.stockAllocatedAt) || Boolean(o.restockAllocatedAt) || Boolean(o.actualRestockDate);
+  if (hasAllocatedStock) {
+    return true;
+  }
+
+  return false;
+}
+
+// Stage 1: Waiting for Stock Queue
+export function isReservationInWaitingForStockStage(o) {
+  if (!o || isExcludedReservationForQueue(o)) return false;
+  if (isReservationInPaymentVerificationStage(o)) return false;
+
+  const allocatedQty = Number(o.allocatedQuantity || 0);
+  const hasAllocatedStock = allocatedQty > 0 || o.stockAllocated === true || Boolean(o.stockAllocatedAt) || Boolean(o.restockAllocatedAt) || Boolean(o.actualRestockDate);
+  if (hasAllocatedStock) return false;
+
+  const cleanStatus = String(o.status || '').toLowerCase().replace(/_/g, '-').trim();
+  const oRes = Boolean(
+    o.isPreOrder === true ||
+    (o.items && Array.isArray(o.items) && o.items.some(it => it && it.isReservation === true)) ||
+    ['pre-order', 'pre_order', 'waiting', 'waiting-for-stock'].includes(cleanStatus) ||
+    String(o.id || '').toUpperCase().replace(/^#/, '').startsWith('RES')
+  );
+  return oRes;
+}
+
+export function getPaymentVerificationEntryTime(o) {
+  if (!o) return 0;
+  // 1. Explicit payment proof upload timestamp if customer uploaded proof
+  if (o.paymentUploadedAt) {
+    const t = new Date(o.paymentUploadedAt).getTime();
+    if (!isNaN(t) && t > 0) return t;
+  }
+  if (o.paymentProofUploadedAt) {
+    const t = new Date(o.paymentProofUploadedAt).getTime();
+    if (!isNaN(t) && t > 0) return t;
+  }
+  // 2. Status history timestamp for Payment Verification or Stock Allocated
+  if (Array.isArray(o.statusHistory)) {
+    const entry = [...o.statusHistory].reverse().find(h => {
+      if (!h) return false;
+      const s = String(h.status || '').toLowerCase();
+      const n = String(h.note || '').toLowerCase();
+      return s.includes('payment verification') || s.includes('payment_verification') ||
+             s.includes('stock allocated') || s.includes('allocated') ||
+             n.includes('payment verification') || n.includes('stock allocated');
+    });
+    if (entry) {
+      const t = new Date(entry.changedAt || entry.date || entry.timestamp || 0).getTime();
+      if (!isNaN(t) && t > 0) return t;
+    }
+  }
+  // 3. Explicit stock allocation timestamps
+  const allocTime = o.stockAllocatedAt || o.actualRestockDate || o.restockAllocatedAt;
+  if (allocTime) {
+    const t = new Date(allocTime).getTime();
+    if (!isNaN(t) && t > 0) return t;
+  }
+  // 4. Payment deadline (which was set 48h after allocation)
+  if (o.paymentDeadline) {
+    const dl = new Date(o.paymentDeadline).getTime();
+    if (!isNaN(dl) && dl > 0) {
+      return dl - (48 * 60 * 60 * 1000);
+    }
+  }
+  // 5. Updated timestamp
+  if (o.updatedAt) {
+    const t = new Date(o.updatedAt).getTime();
+    if (!isNaN(t) && t > 0) return t;
+  }
+  // 6. Fallback to order creation time
+  return new Date(o.createdAt || o.dateCreated || o.date || 0).getTime();
+}
+
 export function getReservationQueuePosition(targetOrder, allOrders = null, targetProductId = null) {
   if (!targetOrder) return null;
-  
-  const targetStatusClean = String(targetOrder.status || '').toLowerCase().replace(/_/g, '-').trim();
-  const targetIsRes = Boolean(
-    targetOrder.isPreOrder === true ||
-    (targetOrder.items && Array.isArray(targetOrder.items) && targetOrder.items.some(i => i && i.isReservation === true)) ||
-    ['pre-order', 'pre_order', 'waiting', 'payment_verification', 'ready_for_processing', 'ready'].includes(targetStatusClean) ||
-    String(targetOrder.id || '').toUpperCase().replace(/^#/, '').startsWith('RES')
-  );
-                
-  if (!targetIsRes) return null;
 
   const orders = allOrders || getOrders();
 
-  const targetProdId = targetProductId ? String(targetProductId) : (() => {
-    if (!targetOrder) return '';
-    if (targetOrder.items && Array.isArray(targetOrder.items) && targetOrder.items.length > 0) {
-      const resItem = targetOrder.items.find(i => i && (i.isReservation || i.product?.id || i.productId)) || targetOrder.items[0];
-      if (resItem) {
-        return String(resItem.product?.id || resItem.productId || (typeof resItem.product === 'string' || typeof resItem.product === 'number' ? resItem.product : '') || resItem.id || '');
-      }
-    }
-    return String(targetOrder.productId || targetOrder.product?.id || '');
-  })();
+  // Stage 1: Waiting for Stock Queue (positions #1, #2, #3... among active Waiting for Stock reservations)
+  if (isReservationInWaitingForStockStage(targetOrder)) {
+    let waitingList = orders.filter(o => isReservationInWaitingForStockStage(o));
 
-  const activeReservations = orders.filter(o => {
-    if (!o) return false;
-
-    // Guard against counting the parent normal order in partial-stock splits
-    if (o.linkedReservationId) return false;
-
-    const cleanStatus = String(o.status || '').toLowerCase().replace(/_/g, '-').trim();
-    const isExcluded = (
-      cleanStatus === 'cancelled' ||
-      cleanStatus === 'completed' ||
-      cleanStatus === 'delivered' ||
-      cleanStatus === 'processing' ||
-      cleanStatus === 'to-ship' ||
-      cleanStatus === 'to-receive' ||
-      cleanStatus === 'rejected' ||
-      cleanStatus === 'expired' ||
-      o.paymentRejected === true
-    );
-    if (isExcluded) return false;
-
-    const oRes = Boolean(
-      o.isPreOrder === true ||
-      (o.items && Array.isArray(o.items) && o.items.some(it => it && it.isReservation === true)) ||
-      ['pre-order', 'pre_order', 'waiting', 'payment_verification', 'ready_for_processing', 'ready'].includes(cleanStatus) ||
-      String(o.id || '').toUpperCase().replace(/^#/, '').startsWith('RES')
-    );
-    if (!oRes) return false;
-
-    if (targetProdId) {
-      const matchesProduct = (
-        (o.items && Array.isArray(o.items) && o.items.some(it => {
-          if (!it) return false;
-          const itProdId = String(it.product?.id || it.productId || (typeof it.product === 'string' || typeof it.product === 'number' ? it.product : '') || it.id || '');
-          return itProdId && itProdId === targetProdId;
-        })) ||
-        String(o.productId || o.product?.id || '') === targetProdId
-      );
-      if (!matchesProduct) return false;
+    if (targetProductId) {
+      const targetProdId = String(targetProductId);
+      waitingList = waitingList.filter(o => {
+        return (
+          (o.items && Array.isArray(o.items) && o.items.some(it => {
+            if (!it) return false;
+            const itProdId = String(it.product?.id || it.productId || (typeof it.product === 'string' || typeof it.product === 'number' ? it.product : '') || it.id || '');
+            return itProdId && itProdId === targetProdId;
+          })) ||
+          String(o.productId || o.product?.id || '') === targetProdId
+        );
+      });
     }
 
-    return true;
-  });
+    waitingList.sort((a, b) => {
+      const tA = new Date(a.createdAt || a.dateCreated || a.date || 0).getTime();
+      const tB = new Date(b.createdAt || b.dateCreated || b.date || 0).getTime();
+      if (tA !== tB) return tA - tB;
+      return String(a.id || '').localeCompare(String(b.id || ''));
+    });
 
-  activeReservations.sort((a, b) => {
-    const tA = new Date(a.createdAt || a.dateCreated || a.date || 0).getTime();
-    const tB = new Date(b.createdAt || b.dateCreated || b.date || 0).getTime();
-    return tA - tB;
-  });
-
-  const targetId = String(targetOrder.id || '').toLowerCase().replace(/^#/, '');
-  const idx = activeReservations.findIndex(o => {
-    const oId = String(o.id || '').toLowerCase().replace(/^#/, '');
-    return oId === targetId;
-  });
-
-  if (idx !== -1) {
-    return idx + 1;
+    const targetId = String(targetOrder.id || '').toLowerCase().replace(/^#/, '');
+    const idx = waitingList.findIndex(o => String(o.id || '').toLowerCase().replace(/^#/, '') === targetId);
+    return idx !== -1 ? (idx + 1) : null;
   }
-  return targetOrder.queuePosition || null;
+
+  // Stage 2: Payment Verification Queue (positions #1, #2, #3... among active Payment Verification reservations)
+  if (isReservationInPaymentVerificationStage(targetOrder)) {
+    let pvList = orders.filter(o => isReservationInPaymentVerificationStage(o));
+
+    if (targetProductId) {
+      const targetProdId = String(targetProductId);
+      pvList = pvList.filter(o => {
+        return (
+          (o.items && Array.isArray(o.items) && o.items.some(it => {
+            if (!it) return false;
+            const itProdId = String(it.product?.id || it.productId || (typeof it.product === 'string' || typeof it.product === 'number' ? it.product : '') || it.id || '');
+            return itProdId && itProdId === targetProdId;
+          })) ||
+          String(o.productId || o.product?.id || '') === targetProdId
+        );
+      });
+    }
+
+    pvList.sort((a, b) => {
+      const tA = getPaymentVerificationEntryTime(a);
+      const tB = getPaymentVerificationEntryTime(b);
+      if (tA !== tB) return tA - tB;
+      const cA = new Date(a.createdAt || a.dateCreated || a.date || 0).getTime();
+      const cB = new Date(b.createdAt || b.dateCreated || b.date || 0).getTime();
+      if (cA !== cB) return cA - cB;
+      return String(a.id || '').localeCompare(String(b.id || ''));
+    });
+
+    const targetId = String(targetOrder.id || '').toLowerCase().replace(/^#/, '');
+    const idx = pvList.findIndex(o => String(o.id || '').toLowerCase().replace(/^#/, '') === targetId);
+    return idx !== -1 ? (idx + 1) : null;
+  }
+
+  return null;
 }
 
 // ---------------------- ACTIVITY LOGGING API ----------------------
@@ -7919,6 +8069,7 @@ if (typeof window !== 'undefined') {
     getCashToAudit,
     verifyCashTurnover,
     evaluateOrderCompletion,
+    getOrderCompletionDate,
     getStaff,
     getActivityLogs,
     getLogs,
@@ -8822,12 +8973,21 @@ export function saveNotifications(notifs, targetDocInfo = null) {
 export function addNotification(userId, title, message, extra = {}) {
   // Admins and Staff should NOT receive notifications for actions they themselves perform,
   // except for automatic system deadline cancellations and stock alerts.
+  // Note: Incoming customer events (new reservations, new customer orders, customer payments, inquiries)
+  // are NOT admin-initiated actions and must ALWAYS notify Admin/Staff.
   const activeAdmin = getCurrentAdmin();
   const role = extra.role || (userId === 'admin' ? 'admin' : 'customer');
   const type = extra.type || 'info';
   const isSystemAuto = Boolean(extra.isSystemAuto || String(title || '').includes('Auto-Cancellation'));
+  const isIncomingCustomerEvent = type === 'reservation' || 
+                                  type === 'new-order' || 
+                                  type === 'payment' || 
+                                  type === 'inquiry' || 
+                                  String(title || '').toLowerCase().includes('reservation') || 
+                                  String(title || '').toLowerCase().includes('new order') || 
+                                  Boolean(extra.isCustomerAction);
 
-  if (activeAdmin && (userId === 'admin' || role === 'admin' || role === 'staff') && type !== 'stock' && !isSystemAuto) {
+  if (activeAdmin && !isIncomingCustomerEvent && (userId === 'admin' || role === 'admin' || role === 'staff') && type !== 'stock' && !isSystemAuto) {
     console.log('[NOTIFICATION SUPPRESSED] Suppressed admin/staff notification for admin-initiated action:', title);
     return;
   }
@@ -9877,6 +10037,14 @@ export function renderAdminLayout(activeTabId) {
   // Map activeTabId to a clean human-readable title
   let pageTitle = 'Dashboard';
   if (activeTabId === 'dashboard') pageTitle = 'Dashboard';
+  else if (activeTabId === 'total-orders') pageTitle = 'Total Orders';
+  else if (activeTabId === 'total-sales') pageTitle = 'Total Sales';
+  else if (activeTabId === 'sales-overview') pageTitle = 'Sales Overview';
+  else if (activeTabId === 'stock-replenishment') pageTitle = 'Stock Needs';
+  else if (activeTabId === 'available-stock') pageTitle = 'Available Stock';
+  else if (activeTabId === 'top-product') pageTitle = 'Top Rice Product';
+  else if (activeTabId === 'inventory-analytics') pageTitle = 'Inventory Analytics';
+  else if (activeTabId === 'reservation-analytics') pageTitle = 'Reservation Analytics';
   else if (activeTabId === 'customers') pageTitle = 'Customer';
   else if (activeTabId === 'products') pageTitle = 'Products';
   else if (activeTabId === 'orders') pageTitle = 'Orders';
@@ -9908,30 +10076,32 @@ export function renderAdminLayout(activeTabId) {
     logout: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>`
   };
 
-  adminLayoutContainer.className = "h-screen bg-[#F5F5F5] flex flex-col md:flex-row relative overflow-hidden";
+  adminLayoutContainer.className = "h-screen bg-[#F5F5F5] flex flex-col md:flex-row relative overflow-hidden sidebar-collapsed";
   adminLayoutContainer.innerHTML = `
     <style id="admin-collapsible-sidebar-styles">
       #admin-sidebar {
         transition: transform 300ms cubic-bezier(0.4, 0, 0.2, 1), background-color 250ms ease-in-out, border-color 250ms ease-in-out !important;
         will-change: transform;
       }
-      #admin-right-workspace {
-        transition: padding-left 300ms cubic-bezier(0.4, 0, 0.2, 1), width 300ms cubic-bezier(0.4, 0, 0.2, 1), background-color 250ms ease-in-out !important;
+      #admin-layout-container:not(.sidebar-collapsed) #admin-sidebar {
+        transform: translateX(0) !important;
       }
-      @media (min-width: 768px) {
-        #admin-layout-container:not(.sidebar-collapsed) #admin-sidebar {
-          transform: translateX(0) !important;
-        }
-        #admin-layout-container:not(.sidebar-collapsed) #admin-right-workspace {
-          padding-left: 275px !important;
-        }
-        #admin-layout-container.sidebar-collapsed #admin-sidebar {
-          transform: translateX(-100%) !important;
-          pointer-events: none;
-        }
-        #admin-layout-container.sidebar-collapsed #admin-right-workspace {
-          padding-left: 0px !important;
-        }
+      #admin-layout-container.sidebar-collapsed #admin-sidebar {
+        transform: translateX(-100%) !important;
+        pointer-events: none;
+      }
+      #admin-right-workspace {
+        padding-left: 0px !important;
+        width: 100% !important;
+      }
+      #admin-layout-container #admin-sidebar-backdrop {
+        z-index: 45;
+        background-color: rgba(15, 23, 42, 0.22) !important;
+        backdrop-filter: blur(2px);
+        -webkit-backdrop-filter: blur(2px);
+      }
+      html.dark #admin-layout-container #admin-sidebar-backdrop {
+        background-color: rgba(2, 6, 23, 0.42) !important;
       }
       #admin-main-content > div {
         max-width: 100% !important;
@@ -9949,7 +10119,7 @@ export function renderAdminLayout(activeTabId) {
       </button>
     </div>
     <!-- Sidebar Navigation -->
-    <aside id="admin-sidebar" class="fixed inset-y-0 left-0 transform -translate-x-full md:translate-x-0 md:flex w-[275px] bg-white border-r border-gray-200 flex-shrink-0 flex flex-col justify-between h-screen overflow-y-auto transition-transform duration-300 ease-in-out z-50">
+    <aside id="admin-sidebar" class="fixed inset-y-0 left-0 transform -translate-x-full md:flex w-[275px] bg-white border-r border-gray-200 flex-shrink-0 flex flex-col justify-between h-screen overflow-y-auto transition-transform duration-300 ease-in-out z-50 shadow-2xl">
       <div class="flex flex-col h-full justify-between">
         <div>
           <!-- Sidebar Branding Header -->
@@ -9958,15 +10128,15 @@ export function renderAdminLayout(activeTabId) {
               <span class="text-[#1E6C02] font-black text-2xl leading-tight">Aurora Rice Admin</span>
               <span class="text-sm text-black font-semibold mt-1 tracking-tight">Management Portal</span>
             </div>
-            <!-- Mobile Close Trigger -->
-            <button id="mobile-sidebar-close" class="md:hidden p-1.5 text-black hover:text-black cursor-pointer">
+            <!-- Sidebar Close Trigger -->
+            <button id="mobile-sidebar-close" class="p-1.5 text-black hover:text-black cursor-pointer" title="Close Sidebar Navigation" aria-label="Close sidebar navigation">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-5 h-5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
             </button>
           </div>
  
           <!-- Navigation Links List -->
           <nav class="px-4 py-2 space-y-1.5">
-            <a href="${p}admin/dashboard.html" class="flex items-center gap-3.5 px-5 py-3 rounded-xl text-base whitespace-nowrap transition-all ${activeTabId === 'dashboard' ? 'bg-[#1E6C02] text-white font-medium shadow-md' : 'text-black font-normal hover:bg-gray-50 hover:text-black'}">
+            <a href="${p}admin/dashboard.html" class="flex items-center gap-3.5 px-5 py-3 rounded-xl text-base whitespace-nowrap transition-all ${(activeTabId === 'dashboard' || activeTabId === 'total-orders' || activeTabId === 'total-sales' || activeTabId === 'top-product' || activeTabId === 'available-stock' || activeTabId === 'sales-overview' || activeTabId === 'stock-replenishment') ? 'bg-[#1E6C02] text-white font-medium shadow-md' : 'text-black font-normal hover:bg-gray-50 hover:text-black'}">
               ${NAV_ICONS.dashboard} Dashboard
             </a>
             <a href="${p}admin/orders.html" class="flex items-center gap-3.5 px-5 py-3 rounded-xl text-base whitespace-nowrap transition-all ${activeTabId === 'orders' ? 'bg-[#1E6C02] text-white font-medium shadow-md' : 'text-black font-normal hover:bg-gray-50 hover:text-black'}">
@@ -10013,15 +10183,15 @@ export function renderAdminLayout(activeTabId) {
       </div>
     </aside>
  
-    <!-- Mobile Sidebar Backdrop -->
-    <div id="admin-sidebar-backdrop" class="fixed inset-0 bg-black/40 z-45 hidden md:hidden"></div>
+    <!-- Sidebar Overlay Backdrop -->
+    <div id="admin-sidebar-backdrop" class="fixed inset-0 z-45 hidden transition-opacity duration-300"></div>
  
     <!-- Right Content Workspace -->
-    <div id="admin-right-workspace" class="flex-1 flex flex-col min-w-0 w-full h-full overflow-hidden md:pl-[275px]">
+    <div id="admin-right-workspace" class="flex-1 flex flex-col min-w-0 w-full h-full overflow-hidden">
       <!-- Admin Workspace Topbar Header -->
       <header class="h-20 bg-white border-b border-gray-200 px-6 sm:px-8 flex items-center justify-between shrink-0">
         <div class="flex items-center gap-4">
-          <button id="admin-sidebar-toggle" type="button" aria-label="Toggle sidebar navigation" aria-expanded="true" title="Toggle Sidebar Navigation" class="w-10 h-10 rounded-xl bg-white hover:bg-gray-100 text-black border border-gray-200/80 shadow-2xs flex items-center justify-center cursor-pointer transition-all duration-200 shrink-0 focus:outline-none">
+          <button id="admin-sidebar-toggle" type="button" aria-label="Toggle sidebar navigation" aria-expanded="false" title="Toggle Sidebar Navigation" class="w-10 h-10 rounded-xl bg-white hover:bg-gray-100 text-black border border-gray-200/80 shadow-2xs flex items-center justify-center cursor-pointer transition-all duration-200 shrink-0 focus:outline-none">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5">
               <line x1="3" y1="6" x2="21" y2="6"></line>
               <line x1="3" y1="12" x2="21" y2="12"></line>
@@ -10115,61 +10285,48 @@ export function renderAdminLayout(activeTabId) {
     });
   }
 
-  // Desktop & Mobile collapsible sidebar triggers
+  // Desktop & Mobile overlay sidebar triggers
   const desktopToggleBtn = document.getElementById('admin-sidebar-toggle');
   const toggleBtn = document.getElementById('mobile-sidebar-toggle');
   const closeBtn = document.getElementById('mobile-sidebar-close');
   const sidebar = document.getElementById('admin-sidebar');
   const backdrop = document.getElementById('admin-sidebar-backdrop');
 
-  function triggerLayoutReflow() {
-    window.dispatchEvent(new Event('resize'));
-    setTimeout(() => {
-      window.dispatchEvent(new Event('resize'));
-    }, 310);
+  function openAdminSidebar() {
+    adminLayoutContainer.classList.remove('sidebar-collapsed');
+    if (sidebar) sidebar.classList.remove('-translate-x-full');
+    if (backdrop) backdrop.classList.remove('hidden');
+    if (desktopToggleBtn) desktopToggleBtn.setAttribute('aria-expanded', 'true');
+  }
+
+  function closeAdminSidebar() {
+    adminLayoutContainer.classList.add('sidebar-collapsed');
+    if (sidebar) sidebar.classList.add('-translate-x-full');
+    if (backdrop) backdrop.classList.add('hidden');
+    if (desktopToggleBtn) desktopToggleBtn.setAttribute('aria-expanded', 'false');
+  }
+
+  function toggleAdminSidebar() {
+    const isCollapsed = adminLayoutContainer.classList.contains('sidebar-collapsed') || (sidebar && sidebar.classList.contains('-translate-x-full'));
+    if (isCollapsed) {
+      openAdminSidebar();
+    } else {
+      closeAdminSidebar();
+    }
   }
 
   if (desktopToggleBtn && sidebar) {
-    desktopToggleBtn.addEventListener('click', () => {
-      if (window.innerWidth >= 768) {
-        const isCollapsed = adminLayoutContainer.classList.toggle('sidebar-collapsed');
-        desktopToggleBtn.setAttribute('aria-expanded', isCollapsed ? 'false' : 'true');
-        triggerLayoutReflow();
-      } else {
-        const isHidden = sidebar.classList.contains('-translate-x-full');
-        if (isHidden) {
-          sidebar.classList.remove('-translate-x-full');
-          if (backdrop) backdrop.classList.remove('hidden');
-          desktopToggleBtn.setAttribute('aria-expanded', 'true');
-        } else {
-          sidebar.classList.add('-translate-x-full');
-          if (backdrop) backdrop.classList.add('hidden');
-          desktopToggleBtn.setAttribute('aria-expanded', 'false');
-        }
-      }
-    });
+    desktopToggleBtn.addEventListener('click', toggleAdminSidebar);
   }
 
-  if (toggleBtn && sidebar && backdrop) {
-    toggleBtn.addEventListener('click', () => {
-      sidebar.classList.remove('-translate-x-full');
-      backdrop.classList.remove('hidden');
-      if (desktopToggleBtn) desktopToggleBtn.setAttribute('aria-expanded', 'true');
-    });
+  if (toggleBtn && sidebar) {
+    toggleBtn.addEventListener('click', toggleAdminSidebar);
   }
-  if (closeBtn && sidebar && backdrop) {
-    closeBtn.addEventListener('click', () => {
-      sidebar.classList.add('-translate-x-full');
-      backdrop.classList.add('hidden');
-      if (desktopToggleBtn) desktopToggleBtn.setAttribute('aria-expanded', 'false');
-    });
+  if (closeBtn && sidebar) {
+    closeBtn.addEventListener('click', closeAdminSidebar);
   }
   if (backdrop && sidebar) {
-    backdrop.addEventListener('click', () => {
-      sidebar.classList.add('-translate-x-full');
-      backdrop.classList.add('hidden');
-      if (desktopToggleBtn) desktopToggleBtn.setAttribute('aria-expanded', 'false');
-    });
+    backdrop.addEventListener('click', closeAdminSidebar);
   }
 
   // Night Mode (Dark Mode) UI Updater
@@ -10656,11 +10813,12 @@ export function setupAdminNotifications() {
     // Filter specifically for this logged in admin/staff's role/userId, sorted newest to oldest
     // Admin receives notifications under role 'admin', and Staff receives under their specific userId or role 'staff'
     const adminNotifs = sortNotificationsDescending(allNotifs.filter(n => {
+      if (!n) return false;
       if (currentAdmin.role === 'admin') {
-        return n.role === 'admin' && (n.userId === 'admin' || String(n.userId) === String(currentAdmin.id));
+        return (n.role === 'admin' || n.role === 'staff') && (n.userId === 'admin' || n.userId === 'staff' || String(n.userId) === String(currentAdmin.id) || !n.userId);
       } else {
-        // Staff role
-        return n.role === 'staff' && String(n.userId) === String(currentAdmin.id);
+        // Staff role: Staff sees operational notifications (sent to admin/staff or to this staff user)
+        return (n.role === 'admin' || n.role === 'staff') && (n.userId === 'admin' || n.userId === 'staff' || String(n.userId) === String(currentAdmin.id) || !n.userId);
       }
     }));
 
@@ -10825,6 +10983,706 @@ export function setupAdminNotifications() {
   
   window.removeEventListener('aurora-sync-event', handleSync);
   window.addEventListener('aurora-sync-event', handleSync);
+}
+
+// ---------------------- AUTHORITATIVE DASHBOARD TOTAL ORDERS LOGIC ----------------------
+
+export function parseDashboardOrderDate(order) {
+  if (!order) return new Date(0);
+
+  function parseRawDateValue(val) {
+    if (!val) return null;
+    if (val instanceof Date) {
+      return !isNaN(val.getTime()) ? val : null;
+    }
+    if (typeof val === 'object') {
+      if (typeof val.toDate === 'function') {
+        const d = val.toDate();
+        return (d instanceof Date && !isNaN(d.getTime())) ? d : null;
+      }
+      if (typeof val.seconds === 'number') {
+        const d = new Date(val.seconds * 1000);
+        return !isNaN(d.getTime()) ? d : null;
+      }
+    }
+    if (typeof val === 'string') {
+      const trimmed = val.trim();
+      const dateOnlyMatch = /^(\d{4})-(\d{2})-(\d{2})$/.exec(trimmed);
+      if (dateOnlyMatch) {
+        const yr = parseInt(dateOnlyMatch[1], 10);
+        const mo = parseInt(dateOnlyMatch[2], 10) - 1;
+        const da = parseInt(dateOnlyMatch[3], 10);
+        const localDate = new Date(yr, mo, da, 0, 0, 0, 0);
+        if (!isNaN(localDate.getTime())) return localDate;
+      }
+    }
+    const d = new Date(val);
+    return !isNaN(d.getTime()) ? d : null;
+  }
+
+  const candidates = [
+    order.createdAt,
+    order.dateCreated,
+    order.createdDate,
+    order.date,
+    order.timestamp
+  ];
+
+  for (let i = 0; i < candidates.length; i++) {
+    const parsed = parseRawDateValue(candidates[i]);
+    if (parsed) return parsed;
+  }
+
+  if (order.statusHistory && Array.isArray(order.statusHistory) && order.statusHistory.length > 0) {
+    for (let i = 0; i < order.statusHistory.length; i++) {
+      const parsed = parseRawDateValue(order.statusHistory[i]?.changedAt);
+      if (parsed) return parsed;
+    }
+  }
+  return new Date(0);
+}
+
+export function getOrderCompletionDate(order) {
+  if (!order) return new Date(0);
+  const s = (order.status || '').toLowerCase().replace(/_/g, '-');
+  if (s !== 'completed') {
+    return new Date(0);
+  }
+
+  function parseRawDateValue(val) {
+    if (!val) return null;
+    if (val instanceof Date) {
+      return !isNaN(val.getTime()) ? val : null;
+    }
+    if (typeof val === 'object') {
+      if (typeof val.toDate === 'function') {
+        const d = val.toDate();
+        return (d instanceof Date && !isNaN(d.getTime())) ? d : null;
+      }
+      if (typeof val.seconds === 'number') {
+        const d = new Date(val.seconds * 1000);
+        return !isNaN(d.getTime()) ? d : null;
+      }
+    }
+    if (typeof val === 'string') {
+      const trimmed = val.trim();
+      const dateOnlyMatch = /^(\d{4})-(\d{2})-(\d{2})$/.exec(trimmed);
+      if (dateOnlyMatch) {
+        const yr = parseInt(dateOnlyMatch[1], 10);
+        const mo = parseInt(dateOnlyMatch[2], 10) - 1;
+        const da = parseInt(dateOnlyMatch[3], 10);
+        const localDate = new Date(yr, mo, da, 0, 0, 0, 0);
+        if (!isNaN(localDate.getTime())) return localDate;
+      }
+    }
+    const d = new Date(val);
+    return !isNaN(d.getTime()) ? d : null;
+  }
+
+  if (order.completedAt) {
+    const d = parseRawDateValue(order.completedAt);
+    if (d) return d;
+  }
+  if (order.completionDate) {
+    const d = parseRawDateValue(order.completionDate);
+    if (d) return d;
+  }
+  if (order.completedDate) {
+    const d = parseRawDateValue(order.completedDate);
+    if (d) return d;
+  }
+  if (order.statusHistory && Array.isArray(order.statusHistory)) {
+    const compHist = order.statusHistory.slice().reverse().find(h => {
+      const hs = (h.status || '').toLowerCase().replace(/_/g, '-');
+      return hs === 'completed';
+    });
+    if (compHist && compHist.changedAt) {
+      const d = parseRawDateValue(compHist.changedAt);
+      if (d) return d;
+    }
+  }
+  if (order.customerConfirmationDate) {
+    const d = parseRawDateValue(order.customerConfirmationDate);
+    if (d) return d;
+  }
+  if (order.deliveredDate) {
+    const timeStr = order.deliveredTime || '00:00';
+    const d = parseRawDateValue(`${order.deliveredDate} ${timeStr}`);
+    if (d) return d;
+    const d2 = parseRawDateValue(order.deliveredDate);
+    if (d2) return d2;
+  }
+  if (order.deliveryVerificationDate) {
+    const d = parseRawDateValue(order.deliveryVerificationDate);
+    if (d) return d;
+  }
+  if (order.updatedAt) {
+    const d = parseRawDateValue(order.updatedAt);
+    if (d) return d;
+  }
+  if (order.createdAt) {
+    const d = parseRawDateValue(order.createdAt);
+    if (d) return d;
+  }
+  if (order.dateCreated) {
+    const d = parseRawDateValue(order.dateCreated);
+    if (d) return d;
+  }
+  if (order.date) {
+    const d = parseRawDateValue(order.date);
+    if (d) return d;
+  }
+  return new Date(0);
+}
+
+export function getDashboardTotalOrdersData(options = {}) {
+  const liveOrders = Array.isArray(options.liveOrders)
+    ? options.liveOrders
+    : (typeof getAllOrders === 'function' ? getAllOrders() : []);
+  const productsList = Array.isArray(options.productsList)
+    ? options.productsList
+    : (typeof getProducts === 'function' ? getProducts() : []);
+
+  const currentRange = options.currentRange || 'all';
+  const currentProd = options.currentProd || 'all';
+  const salesCustomStart = options.salesCustomStart || '';
+  const salesCustomEnd = options.salesCustomEnd || '';
+  const hasUserAppliedFilter = Boolean(options.hasUserAppliedFilter);
+
+  let selectedSalesDate = null;
+  if (options.selectedSalesDate instanceof Date && !isNaN(options.selectedSalesDate.getTime())) {
+    selectedSalesDate = options.selectedSalesDate;
+  } else if (typeof options.selectedSalesDate === 'string' && options.selectedSalesDate.trim()) {
+    const parts = options.selectedSalesDate.trim().split('-').map(Number);
+    if (parts.length === 3 && parts[0] && parts[1] && parts[2]) {
+      const parsed = new Date(parts[0], parts[1] - 1, parts[2], 0, 0, 0, 0);
+      if (!isNaN(parsed.getTime())) selectedSalesDate = parsed;
+    }
+  }
+
+  const now = new Date();
+  const endOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+
+  let rangeStart;
+  let rangeEnd = endOfToday;
+  let rangeLabel = 'All Time';
+
+  if (selectedSalesDate) {
+    const selY = selectedSalesDate.getFullYear();
+    const selM = selectedSalesDate.getMonth();
+    const selD = selectedSalesDate.getDate();
+    rangeStart = new Date(selY, selM, selD, 0, 0, 0, 0);
+    rangeEnd = new Date(selY, selM, selD, 23, 59, 59, 999);
+    rangeLabel = selectedSalesDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  } else if (currentRange === 'custom' && salesCustomStart && salesCustomEnd) {
+    const [sY, sM, sD] = salesCustomStart.split('-').map(Number);
+    const [eY, eM, eD] = salesCustomEnd.split('-').map(Number);
+    rangeStart = new Date(sY, sM - 1, sD, 0, 0, 0, 0);
+    rangeEnd = new Date(eY, eM - 1, eD, 23, 59, 59, 999);
+    const sameYear = rangeStart.getFullYear() === rangeEnd.getFullYear();
+    const sFormatted = rangeStart.toLocaleDateString('en-US', sameYear ? { month: 'short', day: 'numeric' } : { month: 'short', day: 'numeric', year: 'numeric' });
+    const eFormatted = rangeEnd.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    rangeLabel = salesCustomStart === salesCustomEnd ? eFormatted : `${sFormatted} – ${eFormatted}`;
+  } else if (currentRange === '1week') {
+    rangeStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 6, 0, 0, 0, 0);
+    rangeLabel = '1 Week';
+  } else if (currentRange === '1month') {
+    rangeStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 29, 0, 0, 0, 0);
+    rangeLabel = '1 Month';
+  } else if (currentRange === '3months') {
+    rangeStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 89, 0, 0, 0, 0);
+    rangeLabel = '3 Months';
+  } else if (currentRange === '6months') {
+    rangeStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 179, 0, 0, 0, 0);
+    rangeLabel = '6 Months';
+  } else if (currentRange === '1year') {
+    rangeStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 364, 0, 0, 0, 0);
+    rangeLabel = '1 Year';
+  } else {
+    rangeStart = new Date(now.getFullYear(), now.getMonth() - 5, 1, 0, 0, 0, 0);
+    rangeLabel = 'All Time';
+  }
+
+  let activeVarietyLabel = 'All Grains';
+  let matchedProdName = '';
+  if (currentProd !== 'all') {
+    const matchedProdObj = productsList.find(p => String(p.id) === String(currentProd));
+    if (matchedProdObj) {
+      activeVarietyLabel = matchedProdObj.name;
+      matchedProdName = matchedProdObj.name;
+    } else {
+      activeVarietyLabel = currentProd;
+      matchedProdName = currentProd;
+    }
+  }
+
+  function itemMatchesVariety(item) {
+    if (!item || item.isReservation) return false;
+    if (currentProd === 'all') return true;
+    const pId = String(item.product?.id || item.productId || item.id || '');
+    const pName = String(item.product?.name || item.name || item.productName || '').trim().toLowerCase();
+    if (pId && pId === String(currentProd)) return true;
+    if (matchedProdName && pName && pName === matchedProdName.trim().toLowerCase()) return true;
+    return false;
+  }
+
+  const isDateOrRangeFiltered = Boolean(selectedSalesDate || currentRange !== 'all');
+  const isFilterActive = Boolean(selectedSalesDate || (hasUserAppliedFilter && (currentRange !== 'all' || currentProd !== 'all')));
+
+  let orders = [];
+  if (!isFilterActive) {
+    orders = liveOrders.filter(o =>
+      !isReservationOrder(o) && !isCancelledOrRejectedOrder(o) && !o.isReplacement
+    );
+  } else {
+    orders = liveOrders.filter(o => {
+      if (isReservationOrder(o) || isCancelledOrRejectedOrder(o) || o.isReplacement) return false;
+      if (isDateOrRangeFiltered) {
+        const d = parseDashboardOrderDate(o);
+        if (d < rangeStart || d > rangeEnd) return false;
+      }
+      if (currentProd !== 'all') {
+        return (o.items || []).some(item => itemMatchesVariety(item));
+      }
+      return true;
+    });
+  }
+
+  return {
+    orders,
+    count: orders.length,
+    isFilterActive,
+    isDateOrRangeFiltered,
+    rangeStart,
+    rangeEnd,
+    rangeLabel,
+    activeVarietyLabel,
+    currentRange,
+    currentProd
+  };
+}
+
+export function getDashboardTotalSalesData(options = {}) {
+  const liveOrders = Array.isArray(options.liveOrders)
+    ? options.liveOrders
+    : (typeof getAllOrders === 'function' ? getAllOrders() : []);
+  const productsList = Array.isArray(options.productsList)
+    ? options.productsList
+    : (typeof getProducts === 'function' ? getProducts() : []);
+
+  const currentRange = options.currentRange || 'all';
+  const currentProd = options.currentProd || 'all';
+  const salesCustomStart = options.salesCustomStart || '';
+  const salesCustomEnd = options.salesCustomEnd || '';
+  const hasUserAppliedFilter = Boolean(options.hasUserAppliedFilter);
+
+  let selectedSalesDate = null;
+  if (options.selectedSalesDate instanceof Date && !isNaN(options.selectedSalesDate.getTime())) {
+    selectedSalesDate = options.selectedSalesDate;
+  } else if (typeof options.selectedSalesDate === 'string' && options.selectedSalesDate.trim()) {
+    const parts = options.selectedSalesDate.trim().split('-').map(Number);
+    if (parts.length === 3 && parts[0] && parts[1] && parts[2]) {
+      const parsed = new Date(parts[0], parts[1] - 1, parts[2], 0, 0, 0, 0);
+      if (!isNaN(parsed.getTime())) selectedSalesDate = parsed;
+    }
+  }
+
+  const now = new Date();
+  const endOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+
+  let rangeStart;
+  let rangeEnd = endOfToday;
+  let rangeLabel = 'All Time';
+
+  if (selectedSalesDate) {
+    const selY = selectedSalesDate.getFullYear();
+    const selM = selectedSalesDate.getMonth();
+    const selD = selectedSalesDate.getDate();
+    rangeStart = new Date(selY, selM, selD, 0, 0, 0, 0);
+    rangeEnd = new Date(selY, selM, selD, 23, 59, 59, 999);
+    rangeLabel = selectedSalesDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  } else if (currentRange === 'custom' && salesCustomStart && salesCustomEnd) {
+    const [sY, sM, sD] = salesCustomStart.split('-').map(Number);
+    const [eY, eM, eD] = salesCustomEnd.split('-').map(Number);
+    rangeStart = new Date(sY, sM - 1, sD, 0, 0, 0, 0);
+    rangeEnd = new Date(eY, eM - 1, eD, 23, 59, 59, 999);
+    const sameYear = rangeStart.getFullYear() === rangeEnd.getFullYear();
+    const sFormatted = rangeStart.toLocaleDateString('en-US', sameYear ? { month: 'short', day: 'numeric' } : { month: 'short', day: 'numeric', year: 'numeric' });
+    const eFormatted = rangeEnd.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    rangeLabel = salesCustomStart === salesCustomEnd ? eFormatted : `${sFormatted} – ${eFormatted}`;
+  } else if (currentRange === '1week') {
+    rangeStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 6, 0, 0, 0, 0);
+    rangeLabel = '1 Week';
+  } else if (currentRange === '1month') {
+    rangeStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 29, 0, 0, 0, 0);
+    rangeLabel = '1 Month';
+  } else if (currentRange === '3months') {
+    rangeStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 89, 0, 0, 0, 0);
+    rangeLabel = '3 Months';
+  } else if (currentRange === '6months') {
+    rangeStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 179, 0, 0, 0, 0);
+    rangeLabel = '6 Months';
+  } else if (currentRange === '1year') {
+    rangeStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 364, 0, 0, 0, 0);
+    rangeLabel = '1 Year';
+  } else {
+    rangeStart = new Date(now.getFullYear(), now.getMonth() - 5, 1, 0, 0, 0, 0);
+    rangeLabel = 'All Time';
+  }
+
+  let activeVarietyLabel = 'All Grains';
+  let matchedProdName = '';
+  if (currentProd !== 'all') {
+    const matchedProdObj = productsList.find(p => String(p.id) === String(currentProd));
+    if (matchedProdObj) {
+      activeVarietyLabel = matchedProdObj.name;
+      matchedProdName = matchedProdObj.name;
+    } else {
+      activeVarietyLabel = currentProd;
+      matchedProdName = currentProd;
+    }
+  }
+
+  function itemMatchesVariety(item) {
+    if (!item || item.isReservation) return false;
+    if (currentProd === 'all') return true;
+    const pId = String(item.product?.id || item.productId || item.id || '');
+    const pName = String(item.product?.name || item.name || item.productName || '').trim().toLowerCase();
+    if (pId && pId === String(currentProd)) return true;
+    if (matchedProdName && pName && pName === matchedProdName.trim().toLowerCase()) return true;
+    return false;
+  }
+
+  const isDateOrRangeFiltered = Boolean(selectedSalesDate || currentRange !== 'all');
+  const isFilterActive = Boolean(selectedSalesDate || (hasUserAppliedFilter && (currentRange !== 'all' || currentProd !== 'all')));
+
+  const records = [];
+  let totalSales = 0;
+
+  if (!isFilterActive) {
+    liveOrders.forEach(o => {
+      const info = getVerifiedCustomerPaymentInfo(o);
+      if (!info || !info.isVerified) return;
+      const verifiedAmount = Number(info.amount || 0);
+      totalSales += verifiedAmount;
+      if (verifiedAmount > 0) {
+        records.push({
+          order: o,
+          verifiedAmount,
+          paymentInfo: info
+        });
+      }
+    });
+  } else {
+    liveOrders.forEach(o => {
+      const info = getVerifiedCustomerPaymentInfo(o);
+      if (!info || !info.isVerified) return;
+      if (isDateOrRangeFiltered) {
+        const d = parseDashboardOrderDate(o);
+        if (d < rangeStart || d > rangeEnd) return;
+      }
+      let verifiedAmount = 0;
+      if (currentProd === 'all') {
+        verifiedAmount = Number(info.amount || 0);
+      } else {
+        let orderVarietySum = 0;
+        (o.items || []).forEach(item => {
+          if (itemMatchesVariety(item)) {
+            const qty = Number(item.quantity || 0);
+            const price = Number(item.product?.price || item.price || 0);
+            orderVarietySum += (price * qty);
+          }
+        });
+        const tot = Number(o.total || o.totalPrice || o.totalBill || 0);
+        const ratio = tot > 0 ? Math.min(1, info.amount / tot) : 1;
+        verifiedAmount = orderVarietySum * ratio;
+      }
+      totalSales += verifiedAmount;
+      if (verifiedAmount > 0) {
+        records.push({
+          order: o,
+          verifiedAmount,
+          paymentInfo: info
+        });
+      }
+    });
+  }
+
+  return {
+    records,
+    totalSales,
+    count: records.length,
+    isFilterActive,
+    isDateOrRangeFiltered,
+    rangeStart,
+    rangeEnd,
+    rangeLabel,
+    activeVarietyLabel,
+    currentRange,
+    currentProd
+  };
+}
+
+export function getDashboardTopRiceProductData(options = {}) {
+  const liveOrders = Array.isArray(options.liveOrders)
+    ? options.liveOrders
+    : (typeof getAllOrders === 'function' ? getAllOrders() : []);
+  const productsList = Array.isArray(options.productsList)
+    ? options.productsList
+    : (typeof getProducts === 'function' ? getProducts() : []);
+
+  const currentRange = options.currentRange || 'all';
+  const currentProd = options.currentProd || 'all';
+  const salesCustomStart = options.salesCustomStart || '';
+  const salesCustomEnd = options.salesCustomEnd || '';
+  const hasUserAppliedFilter = Boolean(options.hasUserAppliedFilter);
+
+  let selectedSalesDate = null;
+  if (options.selectedSalesDate instanceof Date && !isNaN(options.selectedSalesDate.getTime())) {
+    selectedSalesDate = options.selectedSalesDate;
+  } else if (typeof options.selectedSalesDate === 'string' && options.selectedSalesDate.trim()) {
+    const parts = options.selectedSalesDate.trim().split('-').map(Number);
+    if (parts.length === 3 && parts[0] && parts[1] && parts[2]) {
+      const parsed = new Date(parts[0], parts[1] - 1, parts[2], 0, 0, 0, 0);
+      if (!isNaN(parsed.getTime())) selectedSalesDate = parsed;
+    }
+  }
+
+  const now = new Date();
+  const endOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+
+  let rangeStart;
+  let rangeEnd = endOfToday;
+  let rangeLabel = 'All Time';
+
+  if (selectedSalesDate) {
+    const selY = selectedSalesDate.getFullYear();
+    const selM = selectedSalesDate.getMonth();
+    const selD = selectedSalesDate.getDate();
+    rangeStart = new Date(selY, selM, selD, 0, 0, 0, 0);
+    rangeEnd = new Date(selY, selM, selD, 23, 59, 59, 999);
+    rangeLabel = selectedSalesDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  } else if (currentRange === 'custom' && salesCustomStart && salesCustomEnd) {
+    const [sY, sM, sD] = salesCustomStart.split('-').map(Number);
+    const [eY, eM, eD] = salesCustomEnd.split('-').map(Number);
+    rangeStart = new Date(sY, sM - 1, sD, 0, 0, 0, 0);
+    rangeEnd = new Date(eY, eM - 1, eD, 23, 59, 59, 999);
+    const sameYear = rangeStart.getFullYear() === rangeEnd.getFullYear();
+    const sFormatted = rangeStart.toLocaleDateString('en-US', sameYear ? { month: 'short', day: 'numeric' } : { month: 'short', day: 'numeric', year: 'numeric' });
+    const eFormatted = rangeEnd.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    rangeLabel = salesCustomStart === salesCustomEnd ? eFormatted : `${sFormatted} – ${eFormatted}`;
+  } else if (currentRange === '1week') {
+    rangeStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 6, 0, 0, 0, 0);
+    rangeLabel = '1 Week';
+  } else if (currentRange === '1month') {
+    rangeStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 29, 0, 0, 0, 0);
+    rangeLabel = '1 Month';
+  } else if (currentRange === '3months') {
+    rangeStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 89, 0, 0, 0, 0);
+    rangeLabel = '3 Months';
+  } else if (currentRange === '6months') {
+    rangeStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 179, 0, 0, 0, 0);
+    rangeLabel = '6 Months';
+  } else if (currentRange === '1year') {
+    rangeStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 364, 0, 0, 0, 0);
+    rangeLabel = '1 Year';
+  } else {
+    rangeStart = new Date(now.getFullYear(), now.getMonth() - 5, 1, 0, 0, 0, 0);
+    rangeLabel = 'All Time';
+  }
+
+  let activeVarietyLabel = 'All Grains';
+  let matchedProdName = '';
+  if (currentProd !== 'all') {
+    const matchedProdObj = productsList.find(p => String(p.id) === String(currentProd));
+    if (matchedProdObj) {
+      activeVarietyLabel = matchedProdObj.name;
+      matchedProdName = matchedProdObj.name;
+    } else {
+      activeVarietyLabel = currentProd;
+      matchedProdName = currentProd;
+    }
+  }
+
+  const isDateOrRangeFiltered = Boolean(selectedSalesDate || currentRange !== 'all');
+  const isFilterActive = Boolean(selectedSalesDate || (hasUserAppliedFilter && (currentRange !== 'all' || currentProd !== 'all')));
+
+  const productCounts = {};
+
+  if (!isFilterActive) {
+    liveOrders.forEach(o => {
+      const info = getVerifiedCustomerPaymentInfo(o);
+      if (info.isVerified && !info.isReservation) {
+        (o.items || []).forEach(item => {
+          const pName = item.product?.name || item.name || item.productName;
+          if (pName && !item.isReservation) {
+            productCounts[pName] = (productCounts[pName] || 0) + Number(item.quantity || 0);
+          }
+        });
+      }
+    });
+  } else {
+    if (currentProd === 'all' && isDateOrRangeFiltered) {
+      liveOrders.forEach(o => {
+        const info = getVerifiedCustomerPaymentInfo(o);
+        if (info.isVerified && !info.isReservation) {
+          const d = parseDashboardOrderDate(o);
+          if (d >= rangeStart && d <= rangeEnd) {
+            (o.items || []).forEach(item => {
+              if (!item || item.isReservation) return;
+              const pName = item.product?.name || item.name || item.productName;
+              if (pName) {
+                productCounts[pName] = (productCounts[pName] || 0) + Number(item.quantity || 0);
+              }
+            });
+          }
+        }
+      });
+    } else {
+      liveOrders.forEach(o => {
+        const info = getVerifiedCustomerPaymentInfo(o);
+        if (info.isVerified && !info.isReservation) {
+          (o.items || []).forEach(item => {
+            const pName = item.product?.name || item.name || item.productName;
+            if (pName && !item.isReservation) {
+              productCounts[pName] = (productCounts[pName] || 0) + Number(item.quantity || 0);
+            }
+          });
+        }
+      });
+    }
+  }
+
+  // Include active varieties from catalog so complete comparison is visible
+  productsList.forEach(p => {
+    if (p && p.name && productCounts[p.name] === undefined) {
+      productCounts[p.name] = 0;
+    }
+  });
+
+  const sortedPairs = Object.entries(productCounts).sort((a, b) => {
+    if (b[1] !== a[1]) return b[1] - a[1];
+    return a[0].localeCompare(b[0]);
+  });
+
+  const topProductName = (sortedPairs[0] && sortedPairs[0][1] > 0) ? sortedPairs[0][0] : 'N/A';
+  const topProductVol = (sortedPairs[0] && sortedPairs[0][1] > 0) ? sortedPairs[0][1] : 0;
+
+  let totalSacks = 0;
+  sortedPairs.forEach(([, qty]) => {
+    totalSacks += qty;
+  });
+
+  const maxSacks = (sortedPairs[0] && sortedPairs[0][1] > 0) ? sortedPairs[0][1] : 1;
+
+  const varieties = sortedPairs.map(([name, sacksSold], index) => {
+    const isTop = index === 0 && sacksSold > 0;
+    const sharePercent = totalSacks > 0 ? ((sacksSold / totalSacks) * 100) : 0;
+    const barWidthPercent = maxSacks > 0 ? Math.max(sacksSold > 0 ? 6 : 0, (sacksSold / maxSacks) * 100) : 0;
+    return {
+      rank: index + 1,
+      name,
+      sacksSold,
+      sharePercent: Number(sharePercent.toFixed(1)),
+      barWidthPercent: Math.min(100, Number(barWidthPercent.toFixed(1))),
+      isTop
+    };
+  });
+
+  return {
+    topProductName,
+    topProductVol,
+    varieties,
+    totalSacks,
+    isFilterActive,
+    isDateOrRangeFiltered,
+    rangeStart,
+    rangeEnd,
+    rangeLabel,
+    activeVarietyLabel,
+    currentRange,
+    currentProd
+  };
+}
+
+export function getProductSackWeightKg(product) {
+  if (!product) return 25;
+  if (typeof product.sackWeight === 'number' && product.sackWeight > 0) return product.sackWeight;
+  if (typeof product.weight === 'number' && product.weight > 0) return product.weight;
+  if (typeof product.unitWeight === 'number' && product.unitWeight > 0) return product.unitWeight;
+  if (typeof product.kgPerSack === 'number' && product.kgPerSack > 0) return product.kgPerSack;
+  if (typeof product.description === 'string') {
+    const match = product.description.match(/(\d+)\s*kg/i);
+    if (match && Number(match[1]) > 0) return Number(match[1]);
+  }
+  return 25;
+}
+
+export function getDashboardAvailableStockData(options = {}) {
+  const productsList = Array.isArray(options.productsList)
+    ? options.productsList
+    : (typeof getProducts === 'function' ? getProducts() : []);
+
+  // Filter active rice varieties
+  const activeProducts = productsList.filter(p =>
+    p && p.name && !p.isArchived && !p.archived && p.status !== 'archived'
+  );
+
+  let totalAvailableSacks = 0;
+  let totalAvailableKg = 0;
+
+  const varieties = activeProducts.map(p => {
+    const sacks = p.availableStock !== undefined
+      ? Math.max(0, Number(p.availableStock))
+      : (p.stock !== undefined ? Math.max(0, Number(p.stock)) : 0);
+    const sackWeightKg = getProductSackWeightKg(p);
+    const kg = sacks * sackWeightKg;
+
+    totalAvailableSacks += sacks;
+    totalAvailableKg += kg;
+
+    return {
+      id: String(p.id || ''),
+      name: p.name || 'Unnamed Variety',
+      type: p.type || 'Rice',
+      sacks,
+      sackWeightKg,
+      kg,
+      image: p.image || '',
+      price: Number(p.price || 0)
+    };
+  });
+
+  // Sort descending by available sacks, then name
+  varieties.sort((a, b) => {
+    if (b.sacks !== a.sacks) return b.sacks - a.sacks;
+    return a.name.localeCompare(b.name);
+  });
+
+  const maxSacks = Math.max(1, ...varieties.map(v => v.sacks));
+
+  const enrichedVarieties = varieties.map((v, idx) => {
+    const sharePercent = totalAvailableSacks > 0
+      ? Number(((v.sacks / totalAvailableSacks) * 100).toFixed(1))
+      : 0;
+    const barWidthPercent = maxSacks > 0
+      ? Math.min(100, Number(Math.max(v.sacks > 0 ? 5 : 0, (v.sacks / maxSacks) * 100).toFixed(1)))
+      : 0;
+
+    return {
+      ...v,
+      rank: idx + 1,
+      sharePercent,
+      barWidthPercent
+    };
+  });
+
+  return {
+    totalAvailableSacks,
+    totalAvailableKg,
+    varieties: enrichedVarieties,
+    activeCount: enrichedVarieties.length
+  };
 }
 
 // Automatically apply dark mode at load time on all pages to prevent theme flashing

@@ -588,7 +588,8 @@
       storage,
       storageRef,
       uploadBytes,
-      getDownloadURL
+      getDownloadURL,
+      saveFirestoreDoc
     } from './src/lib/firebase.js';
 
     document.addEventListener('DOMContentLoaded', async () => {
@@ -1504,12 +1505,32 @@
 
         if (savedOrder && savedOrder.queuePosition !== finalQueuePosition) {
           savedOrder.queuePosition = finalQueuePosition;
+          finalReservation.queuePosition = finalQueuePosition;
           const currentOrders = getOrders();
           const orderIdx = currentOrders.findIndex(o => o.id === savedOrder.id);
           if (orderIdx !== -1) {
             currentOrders[orderIdx].queuePosition = finalQueuePosition;
             saveOrders(currentOrders);
           }
+        }
+
+        // Authoritative Firestore persistence check: confirm reservation doc persists before showing success splash
+        let persistSuccess = false;
+        try {
+          persistSuccess = await saveFirestoreDoc('orders', finalReservation.id, finalReservation);
+        } catch (saveErr) {
+          console.error('[RESERVATION] Direct Firestore persistence failed:', saveErr);
+          persistSuccess = false;
+        }
+
+        if (!persistSuccess) {
+          orderSubmitted = false;
+          try {
+            const rollbackOrders = getOrders().filter(o => o.id !== finalReservation.id);
+            saveOrders(rollbackOrders);
+          } catch (_) {}
+          showToast('Failed to save reservation to database. Please check your connection and try again.', 'error');
+          return false;
         }
 
         // Remove from standard shopping cart if it was listed there

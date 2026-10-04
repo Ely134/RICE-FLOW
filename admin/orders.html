@@ -520,6 +520,34 @@
     </div>
   </div>
 
+  <!-- REFUND COMPLETED CONFIRMATION MODAL -->
+  <div id="refund-complete-confirm-modal" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-[80] flex items-center justify-center p-4 hidden" style="font-family: system-ui, -apple-system, sans-serif;">
+    <div class="bg-white dark:bg-slate-900 rounded-3xl max-w-md w-full shadow-2xl p-7 border border-gray-200 dark:border-slate-700 animate-in fade-in zoom-in duration-200">
+      <div class="flex items-center gap-3.5 pb-3 border-b border-gray-200 dark:border-slate-800">
+        <div class="w-11 h-11 rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-[#1E6C02] dark:text-emerald-400 flex items-center justify-center text-2xl font-bold shrink-0">
+          ✓
+        </div>
+        <div>
+          <h3 class="text-[20px] font-bold text-black dark:text-white leading-snug">Confirm Refund Completion</h3>
+          <p class="text-[13px] text-emerald-700 dark:text-emerald-400 font-bold uppercase tracking-wider mt-0.5">Refund Verification</p>
+        </div>
+      </div>
+      
+      <p id="refund-confirm-message-text" class="text-[15px] text-black dark:text-white mt-4 font-normal leading-relaxed">
+        Have you already sent the refund to the customer's GCash/bank account?
+      </p>
+
+      <div class="flex gap-3 justify-end mt-6">
+        <button id="btn-refund-confirm-cancel" class="px-5 py-3 text-[15px] font-bold text-gray-550 border border-gray-200 dark:border-slate-700 rounded-xl hover:bg-gray-55 dark:hover:bg-slate-800 transition-colors cursor-pointer">
+          Cancel
+        </button>
+        <button id="btn-refund-confirm-commit" class="px-6 py-3 text-[15px] font-bold bg-[#1E6C02] text-white hover:bg-[#145001] rounded-xl shadow-xs cursor-pointer transition-all">
+          Yes, Mark as Refunded
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- ACCEPT ORDER CONFIRMATION MODAL -->
   <div id="accept-confirm-modal" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-[80] flex items-center justify-center p-4 hidden" style="font-family: system-ui, -apple-system, sans-serif;">
     <div class="bg-white rounded-3xl max-w-md w-full shadow-2xl p-7 border border-gray-200 animate-in fade-in zoom-in duration-200">
@@ -960,7 +988,7 @@
 
   <!-- INTERACTION CONTROLLER -->
   <script type="module">
-    import { protectAdminPage, renderAdminLayout, getAllOrders, verifyPayment, updateOrderStatus, addActivityLog, showToast, saveOrders, addNotification, getCashToAudit, evaluateOrderCompletion, verifyCashTurnover, getCurrentAdmin, processOrderStockAndSplitIfNeeded, getEstimatedArrivalDate, getReservationQueuePosition, isReservationOrder } from '../src/app/shared.js';
+    import { protectAdminPage, renderAdminLayout, getAllOrders, verifyPayment, updateOrderStatus, addActivityLog, showToast, saveOrders, addNotification, getCashToAudit, evaluateOrderCompletion, verifyCashTurnover, getCurrentAdmin, processOrderStockAndSplitIfNeeded, getEstimatedArrivalDate, getReservationQueuePosition, isReservationOrder, updateOrderRefundStatus } from '../src/app/shared.js';
     import { saveFirestoreDoc } from '../src/lib/firebase.js';
 
     window.getCurrentAdmin = getCurrentAdmin;
@@ -1039,6 +1067,21 @@
       function openFinalizeOrderConfirmModal(orderId) {
         pendingFinalizeOrderId = orderId;
         const modal = document.getElementById('finalize-order-confirm-modal');
+        if (modal) modal.classList.remove('hidden');
+      }
+
+      let pendingRefundOrderId = null;
+
+      function openRefundCompleteConfirmModal(order) {
+        if (!order) return;
+        pendingRefundOrderId = order.id;
+        const modal = document.getElementById('refund-complete-confirm-modal');
+        const msgEl = document.getElementById('refund-confirm-message-text');
+        if (msgEl) {
+          const refundAmt = Number(order.refundAmount !== undefined ? order.refundAmount : (order.amountPaid || 0));
+          const formattedAmt = refundAmt.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+          msgEl.textContent = `Have you already sent the ₱${formattedAmt} refund to the customer's GCash/bank account?`;
+        }
         if (modal) modal.classList.remove('hidden');
       }
 
@@ -1214,6 +1257,55 @@
           showToast(err.message || 'Error verifying cash turnover.', 'error');
         }
       };
+
+      const refundModalEl = document.getElementById('refund-complete-confirm-modal');
+      const refundCancelBtn = document.getElementById('btn-refund-confirm-cancel');
+      const refundCommitBtn = document.getElementById('btn-refund-confirm-commit');
+
+      if (refundCancelBtn && refundModalEl) {
+        refundCancelBtn.onclick = () => {
+          refundModalEl.classList.add('hidden');
+          pendingRefundOrderId = null;
+        };
+      }
+
+      if (refundCommitBtn && refundModalEl) {
+        refundCommitBtn.onclick = async () => {
+          if (!pendingRefundOrderId) return;
+          const targetOrderId = pendingRefundOrderId;
+          refundModalEl.classList.add('hidden');
+          pendingRefundOrderId = null;
+
+          const cAdmin = getCurrentAdmin();
+          const adminName = cAdmin?.name || cAdmin?.email || 'Admin';
+
+          try {
+            const updatedOrder = updateOrderRefundStatus(targetOrderId, 'Refunded', { name: adminName });
+
+            if (typeof addActivityLog === 'function') {
+              const refundAmtStr = Number(updatedOrder?.refundAmount || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+              addActivityLog(
+                'Refund Processed',
+                `Refund of ₱${refundAmtStr} completed for Order #${targetOrderId} by ${adminName}`,
+                `Order #${targetOrderId}`
+              );
+            }
+
+            showToast('✔ Refund marked as completed successfully!', 'success');
+            renderOrdersBoard();
+
+            // Refresh open details modal with the updated order
+            const freshOrders = getAllOrders();
+            const freshOrder = freshOrders.find(o => String(o.id) === String(targetOrderId));
+            if (focusedOrderInModal && String(focusedOrderInModal.id) === String(targetOrderId) && freshOrder) {
+              openDetailsModal(freshOrder);
+            }
+          } catch (err) {
+            console.error('[REFUND] Error completing refund:', err);
+            showToast(err.message || 'Error marking refund as completed.', 'error');
+          }
+        };
+      }
 
       document.getElementById('btn-finalize-order-cancel').onclick = () => {
         document.getElementById('finalize-order-confirm-modal').classList.add('hidden');
@@ -1557,6 +1649,10 @@
           filtered = orders.filter(o => o.status === 'to-ship');
         } else if (statusFilter === 'to-receive') {
           filtered = orders.filter(o => o.status === 'to-receive');
+          filtered.sort((a, b) =>
+            new Date(a.createdAt || a.date || 0) -
+            new Date(b.createdAt || b.date || 0)
+          );
         } else if (statusFilter === 'delivered') {
           filtered = orders.filter(o => o.status === 'delivered');
           const isVerifiedCheck = (o) => Boolean(
@@ -1573,6 +1669,13 @@
           filtered = orders.filter(o => o.status === 'completed');
         } else if (statusFilter === 'cancelled') {
           filtered = orders.filter(o => o.status === 'cancelled');
+          const isRefundSubmitted = (o) => (
+            o.refundStatus === 'Refund Information Submitted' ||
+            o.refundStatus === 'Refund Details Submitted'
+          );
+          const refundSubmittedOrders = filtered.filter(o => isRefundSubmitted(o));
+          const otherCancelledOrders = filtered.filter(o => !isRefundSubmitted(o));
+          filtered = [...refundSubmittedOrders, ...otherCancelledOrders];
         }
 
         if (statusFilter === 'issue-reported') {
@@ -4870,6 +4973,34 @@
             displayReason = rawReason;
           }
 
+          const rawRefundStatus = order.refundStatus ? String(order.refundStatus).trim() : '';
+          const refundDisplayMap = {
+            'No Refund Needed': 'No Refund Needed',
+            'Refund Required': 'Refund Required',
+            'Refund Information Needed': 'Waiting for Payment Details',
+            'Refund Information Submitted': 'Refund Details Submitted',
+            'Refund Details Submitted': 'Refund Details Submitted',
+            'Refund Processing': 'Refund Processing',
+            'Refunded': 'Refunded'
+          };
+          const displayRefundStatus = refundDisplayMap[rawRefundStatus] || rawRefundStatus || 'Refund Details Submitted';
+          const hasRefundInfo = Boolean(
+            order.refundAccountName || 
+            order.refundGcashNumber || 
+            order.refundAccountNumber || 
+            rawRefundStatus === 'Refund Information Submitted' ||
+            rawRefundStatus === 'Refund Details Submitted' ||
+            (rawRefundStatus && rawRefundStatus !== 'No Refund Needed')
+          );
+          const refundAmt = Number(order.refundAmount !== undefined ? order.refundAmount : (order.amountPaid || 0));
+          const refundMethod = order.refundMethod || (order.refundBankName ? 'Bank' : 'GCash');
+          const isBank = (order.refundMethod || '').toLowerCase() === 'bank' || Boolean(order.refundBankName);
+          const accountNumberLabel = isBank ? 'Account Number' : 'GCash Number';
+          const accountNumberVal = order.refundGcashNumber || order.refundAccountNumber || 'N/A';
+          const submittedDateStr = order.refundSubmittedAt 
+            ? new Date(order.refundSubmittedAt).toLocaleString(undefined, { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' }) 
+            : 'N/A';
+
           templateHtml = `
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 text-left">
               <div class="lg:col-span-7 space-y-6">
@@ -4881,6 +5012,73 @@
                     Reason: <span class="font-bold text-red-700">${displayReason}</span>
                   </p>
                 </div>
+
+                ${hasRefundInfo ? `
+                <div class="bg-blue-50/60 border border-blue-200 p-6 rounded-2xl space-y-4">
+                  <div class="flex items-center justify-between border-b border-blue-200/80 pb-3">
+                    <h4 class="text-[21px] font-bold text-black uppercase tracking-wider flex items-center gap-1.5">
+                      <span>💳</span> Refund Details
+                    </h4>
+                    <span class="inline-flex items-center px-3 py-1 rounded-md text-[13px] font-bold border ${order.refundStatus === 'Refunded' ? 'bg-emerald-100 text-emerald-900 border-emerald-300' : 'bg-blue-100 text-blue-900 border-blue-300'}">
+                      ${displayRefundStatus}
+                    </span>
+                  </div>
+
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 text-[16px] font-normal text-black">
+                    <div>
+                      <p class="text-black font-bold text-[16px]">Refund Status</p>
+                      <p class="font-normal text-black text-[17px] mt-1.5">${displayRefundStatus}</p>
+                    </div>
+                    <div>
+                      <p class="text-black font-bold text-[16px]">Refund Amount</p>
+                      <p class="font-bold text-[#1E6C02] text-[18px] mt-1.5">₱${refundAmt.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                    </div>
+                    <div class="border-t border-blue-100 pt-3">
+                      <p class="text-black font-bold text-[16px]">Payment Method</p>
+                      <p class="font-normal text-black text-[17px] mt-1.5">${refundMethod}</p>
+                    </div>
+                    <div class="border-t border-blue-100 pt-3">
+                      <p class="text-black font-bold text-[16px]">Account Name</p>
+                      <p class="font-normal text-black text-[17px] mt-1.5">${order.refundAccountName || 'N/A'}</p>
+                    </div>
+                    <div class="border-t border-blue-100 pt-3">
+                      <p class="text-black font-bold text-[16px]">${accountNumberLabel}</p>
+                      <p class="font-normal text-black text-[17px] mt-1.5">${accountNumberVal}</p>
+                    </div>
+                    ${(order.refundBankName || isBank) ? `
+                    <div class="border-t border-blue-100 pt-3">
+                      <p class="text-black font-bold text-[16px]">Bank Name</p>
+                      <p class="font-normal text-black text-[17px] mt-1.5">${order.refundBankName || 'N/A'}</p>
+                    </div>
+                    ` : ''}
+                    <div class="sm:col-span-2 border-t border-blue-100 pt-3">
+                      <p class="text-black font-bold text-[16px]">Submitted Date & Time</p>
+                      <p class="font-normal text-black text-[17px] mt-1.5">${submittedDateStr}</p>
+                    </div>
+
+                    ${order.refundStatus === 'Refunded' ? `
+                    <div class="sm:col-span-2 border-t border-blue-200/80 pt-4 mt-1 bg-emerald-50/80 border border-emerald-200 p-4 rounded-xl">
+                      <div class="flex items-center gap-2 text-emerald-800 font-bold text-[16px]">
+                        <span class="text-emerald-600 text-lg">✓</span> Refund Completed
+                      </div>
+                      <p class="text-[14px] text-emerald-700 font-medium mt-1">
+                        Refund processed on ${order.refundProcessedAt ? new Date(order.refundProcessedAt).toLocaleString(undefined, { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'N/A'}${order.refundProcessedBy ? ` by <span class="font-bold">${order.refundProcessedBy}</span>` : ''}
+                      </p>
+                    </div>
+                    ` : `
+                    <div class="sm:col-span-2 border-t border-blue-200/80 pt-4 mt-1 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-blue-100/40 p-4 rounded-xl border border-blue-200/60">
+                      <div>
+                        <p class="text-[15px] font-bold text-blue-950">Have you already sent the refund to this account via GCash/Bank?</p>
+                        <p class="text-[13px] text-blue-800/80 mt-0.5">Click only after the actual funds have been transferred successfully.</p>
+                      </div>
+                      <button id="btn-mark-refund-completed" data-id="${order.id}" class="inline-flex items-center justify-center gap-1.5 px-5 py-2.5 bg-[#1E6C02] hover:bg-[#145001] text-white font-bold rounded-xl text-[14px] shadow-xs cursor-pointer transition-colors whitespace-nowrap shrink-0">
+                        <span>✓</span> Mark Refund as Completed
+                      </button>
+                    </div>
+                    `}
+                  </div>
+                </div>
+                ` : ''}
 
                 <div class="bg-gray-50/70 p-6 border border-gray-200 rounded-2xl">
                   <h4 class="text-[21px] font-bold text-black uppercase tracking-wider mb-4 flex items-center gap-1.5">
@@ -4973,6 +5171,14 @@
 
         const cancelBtn = document.getElementById('btn-details-close-modal');
         if (cancelBtn) cancelBtn.onclick = closeFn;
+
+        // Mark refund as completed trigger
+        const markRefundBtn = document.getElementById('btn-mark-refund-completed');
+        if (markRefundBtn) {
+          markRefundBtn.onclick = () => {
+            openRefundCompleteConfirmModal(order);
+          };
+        }
 
         // Verify cash turnover trigger inside modal
         document.querySelectorAll('.btn-trigger-verify-cash-badge').forEach(btn => {

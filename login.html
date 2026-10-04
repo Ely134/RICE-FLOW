@@ -264,7 +264,7 @@
 
   <!-- Embedded controller logic -->
   <script type="module">
-    import { loginUser, loginAdmin, sendUserPasswordReset, showToast } from './src/app/shared.js';
+    import { loginUser, loginAdmin, getCurrentAdmin, sendUserPasswordReset, showToast } from './src/app/shared.js';
 
     document.addEventListener('DOMContentLoaded', () => {
       // Show pending redirect/login reason message if any
@@ -427,7 +427,20 @@
           // 1. Try Admin / Staff Logins
           const tryAdmin = await loginAdmin(email, password);
           if (tryAdmin) {
-            showToast('Welcome back, Administrative Staff!');
+            const adminUser = typeof getCurrentAdmin === 'function' ? getCurrentAdmin() : null;
+            let welcomeMessage = 'Welcome Back, Admin';
+            if (adminUser && adminUser.role === 'staff') {
+              const staffName = (adminUser.name || '').trim();
+              welcomeMessage = staffName ? `Welcome Back, ${staffName}` : 'Welcome Back, Staff';
+            } else {
+              welcomeMessage = 'Welcome Back, Admin';
+            }
+
+            showToast(welcomeMessage);
+            try {
+              sessionStorage.setItem('admin-welcome-message', welcomeMessage);
+            } catch (_) {}
+
             setTimeout(() => {
               window.location.href = 'admin/dashboard.html';
             }, 800);

@@ -6,6 +6,26 @@
   <title>RiceFlow: A Queue-Enabled Rice Ordering and Inventory Management System</title>
   <script>
     (function() {
+      function isResizeObserverError(msg) {
+        return typeof msg === 'string' && (
+          msg.indexOf('ResizeObserver loop') !== -1 ||
+          msg.indexOf('ResizeObserver loop completed with undelivered notifications') !== -1 ||
+          msg.indexOf('ResizeObserver loop limit exceeded') !== -1
+        );
+      }
+      window.addEventListener('error', function(e) {
+        var msg = e && (e.message || (e.error && e.error.message));
+        if (isResizeObserverError(msg)) {
+          e.stopImmediatePropagation();
+          if (typeof e.preventDefault === 'function') e.preventDefault();
+          return true;
+        }
+      }, true);
+      var prevOnError = window.onerror;
+      window.onerror = function(msg) {
+        if (isResizeObserverError(msg)) return true;
+        if (prevOnError) return prevOnError.apply(this, arguments);
+      };
       try {
         var d = document.documentElement;
         var isDark = localStorage.getItem('aurora-dark-mode') === 'true';

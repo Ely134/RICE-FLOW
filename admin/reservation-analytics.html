@@ -1,0 +1,1007 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reservation Analytics | Aurora Rice Admin</title>
+  <script>
+    (function() {
+      try {
+        var d = document.documentElement;
+        var isDark = localStorage.getItem('aurora-dark-mode') === 'true';
+        d.classList.toggle('dark', isDark);
+        d.style.colorScheme = isDark ? 'dark' : 'light';
+      } catch (e) {}
+    })();
+  </script>
+  <style id="riceflow-theme-init">
+    html { background-color: #F5F5F5; color-scheme: light; }
+    html.dark { background-color: #1F2937 !important; color-scheme: dark; }
+    html.dark body,
+    html.dark #admin-layout-container,
+    html.dark #admin-main-content {
+      background-color: #1F2937;
+      color: #F9FAFB;
+    }
+    html.dark #auth-guard-loader {
+      background-color: #1F2937 !important;
+      color: #F9FAFB !important;
+    }
+    html.dark #admin-sidebar,
+    html.dark aside,
+    html.dark header,
+    html.dark .bg-white,
+    html.dark .bg-gray-50,
+    html.dark .bg-slate-50 {
+      background-color: #111827;
+      color: #F9FAFB;
+    }
+  </style>
+  <link rel="stylesheet" href="../src/styles/index.css">
+  <style id="auth-guard-style">body { visibility: hidden !important; }</style>
+  <style id="reservation-analytics-page-styles">
+    /* High contrast back button */
+    html:not(.dark) #admin-layout-container .so-back-btn {
+      background: #FFFFFF !important;
+      border: 1px solid #CBD5E1 !important;
+      color: #0F172A !important;
+    }
+    html:not(.dark) #admin-layout-container .so-back-btn:hover {
+      background: #F1F5F9 !important;
+      border-color: #94A3B8 !important;
+    }
+    html.dark #admin-layout-container .so-back-btn {
+      background: #1E293B !important;
+      border: 1px solid #475569 !important;
+      color: #FFFFFF !important;
+    }
+    html.dark #admin-layout-container .so-back-btn:hover {
+      background: #334155 !important;
+      border-color: #64748B !important;
+    }
+
+    /* High-Contrast Typography */
+    html:not(.dark) #admin-layout-container .ra-text-main {
+      color: #090D16 !important;
+    }
+    html.dark #admin-layout-container .ra-text-main {
+      color: #FFFFFF !important;
+    }
+
+    html:not(.dark) #admin-layout-container .ra-text-sub {
+      color: #1E293B !important;
+    }
+    html.dark #admin-layout-container .ra-text-sub {
+      color: #E2E8F0 !important;
+    }
+
+    /* Header & Icon */
+    html:not(.dark) #admin-layout-container .ra-header-icon {
+      background: #EFF6FF !important;
+      border: 1px solid #93C5FD !important;
+      color: #1D4ED8 !important;
+    }
+    html.dark #admin-layout-container .ra-header-icon {
+      background: rgba(30, 58, 138, 0.35) !important;
+      border: 1px solid rgba(96, 165, 250, 0.5) !important;
+      color: #93C5FD !important;
+    }
+
+    /* Controls & Selects */
+    html:not(.dark) #admin-layout-container .ra-control-select {
+      background-color: #FFFFFF !important;
+      border: 1px solid #CBD5E1 !important;
+      color: #0F172A !important;
+    }
+    html:not(.dark) #admin-layout-container .ra-control-select:hover {
+      border-color: #94A3B8 !important;
+    }
+    html.dark #admin-layout-container .ra-control-select {
+      background-color: #1E293B !important;
+      border: 1px solid #475569 !important;
+      color: #FFFFFF !important;
+    }
+    html.dark #admin-layout-container .ra-control-select:hover {
+      border-color: #64748B !important;
+    }
+
+    /* Manage Queue Link Button */
+    html:not(.dark) #admin-layout-container .ra-manage-btn {
+      background: #EFF6FF !important;
+      border: 1px solid #93C5FD !important;
+      color: #1D4ED8 !important;
+    }
+    html:not(.dark) #admin-layout-container .ra-manage-btn:hover {
+      background: #DBEAFE !important;
+      border-color: #60A5FA !important;
+      color: #1E40AF !important;
+    }
+    html.dark #admin-layout-container .ra-manage-btn {
+      background: rgba(30, 58, 138, 0.3) !important;
+      border: 1px solid rgba(96, 165, 250, 0.5) !important;
+      color: #93C5FD !important;
+    }
+    html.dark #admin-layout-container .ra-manage-btn:hover {
+      background: rgba(30, 58, 138, 0.45) !important;
+      border-color: rgba(96, 165, 250, 0.7) !important;
+    }
+
+    /* 6 KPI Cards */
+    html:not(.dark) #admin-layout-container #card-res-active {
+      background: linear-gradient(145deg, #EFF6FF 0%, #FFFFFF 100%) !important;
+      border: 1px solid #93C5FD !important;
+    }
+    html.dark #admin-layout-container #card-res-active {
+      background: linear-gradient(145deg, rgba(30, 58, 138, 0.45) 0%, #111827 100%) !important;
+      border: 1px solid rgba(96, 165, 250, 0.4) !important;
+    }
+
+    html:not(.dark) #admin-layout-container #card-res-sacks {
+      background: linear-gradient(145deg, #ECFDF5 0%, #FFFFFF 100%) !important;
+      border: 1px solid #86EFAC !important;
+    }
+    html.dark #admin-layout-container #card-res-sacks {
+      background: linear-gradient(145deg, rgba(6, 78, 59, 0.45) 0%, #111827 100%) !important;
+      border: 1px solid rgba(52, 211, 153, 0.4) !important;
+    }
+
+    html:not(.dark) #admin-layout-container #card-res-waiting {
+      background: linear-gradient(145deg, #FFFBEB 0%, #FFFFFF 100%) !important;
+      border: 1px solid #FCD34D !important;
+    }
+    html.dark #admin-layout-container #card-res-waiting {
+      background: linear-gradient(145deg, rgba(120, 53, 15, 0.45) 0%, #111827 100%) !important;
+      border: 1px solid rgba(245, 158, 11, 0.4) !important;
+    }
+
+    html:not(.dark) #admin-layout-container #card-res-ready {
+      background: linear-gradient(145deg, #F0FDF4 0%, #FFFFFF 100%) !important;
+      border: 1px solid #6EE7B7 !important;
+    }
+    html.dark #admin-layout-container #card-res-ready {
+      background: linear-gradient(145deg, rgba(6, 78, 59, 0.5) 0%, #111827 100%) !important;
+      border: 1px solid rgba(52, 211, 153, 0.45) !important;
+    }
+
+    html:not(.dark) #admin-layout-container #card-res-completed {
+      background: linear-gradient(145deg, #F0FDFA 0%, #FFFFFF 100%) !important;
+      border: 1px solid #99F6E4 !important;
+    }
+    html.dark #admin-layout-container #card-res-completed {
+      background: linear-gradient(145deg, rgba(19, 78, 74, 0.45) 0%, #111827 100%) !important;
+      border: 1px solid rgba(45, 212, 191, 0.4) !important;
+    }
+
+    html:not(.dark) #admin-layout-container #card-res-cancelled {
+      background: linear-gradient(145deg, #F8FAFC 0%, #FFFFFF 100%) !important;
+      border: 1px solid #CBD5E1 !important;
+    }
+    html.dark #admin-layout-container #card-res-cancelled {
+      background: linear-gradient(145deg, rgba(30, 41, 59, 0.5) 0%, #111827 100%) !important;
+      border: 1px solid rgba(148, 163, 184, 0.4) !important;
+    }
+
+    html:not(.dark) #admin-layout-container .ra-card-label {
+      color: #0F172A !important;
+      font-weight: 800 !important;
+    }
+    html.dark #admin-layout-container .ra-card-label {
+      color: #FFFFFF !important;
+      font-weight: 800 !important;
+    }
+
+    html:not(.dark) #admin-layout-container .ra-card-sub {
+      color: #0F172A !important;
+      font-weight: 700 !important;
+    }
+    html.dark #admin-layout-container .ra-card-sub {
+      color: #E2E8F0 !important;
+      font-weight: 700 !important;
+    }
+
+    html:not(.dark) #admin-layout-container .ra-kpi-badge {
+      background: #FFFFFF !important;
+      border: 1px solid #94A3B8 !important;
+      color: #0F172A !important;
+      font-weight: 800 !important;
+    }
+    html.dark #admin-layout-container .ra-kpi-badge {
+      background: #1E293B !important;
+      border: 1px solid #475569 !important;
+      color: #FFFFFF !important;
+      font-weight: 800 !important;
+    }
+
+    /* Subpanels & Cards */
+    html:not(.dark) #admin-layout-container .ra-subpanel {
+      background: #F8FAFC !important;
+      border: 1px solid #E2E8F0 !important;
+    }
+    html.dark #admin-layout-container .ra-subpanel {
+      background: #0B1120 !important;
+      border: 1px solid #1E293B !important;
+    }
+
+    html:not(.dark) #admin-layout-container .ra-item-card {
+      background: #FFFFFF !important;
+      border: 1px solid #E2E8F0 !important;
+    }
+    html.dark #admin-layout-container .ra-item-card {
+      background: #111827 !important;
+      border: 1px solid #1E293B !important;
+    }
+
+    html:not(.dark) #admin-layout-container .ra-donut-track {
+      stroke: #E2E8F0 !important;
+    }
+    html.dark #admin-layout-container .ra-donut-track {
+      stroke: #1E293B !important;
+    }
+
+    html:not(.dark) #admin-layout-container .ra-bar-track {
+      background: #E2E8F0 !important;
+    }
+    html.dark #admin-layout-container .ra-bar-track {
+      background: #1E293B !important;
+    }
+
+    /* Light Green Bar: Distinct & Readable in Light & Dark Mode */
+    .ra-bar-lightgreen {
+      background-color: #16A34A !important;
+    }
+    html.dark .ra-bar-lightgreen {
+      background-color: #4ADE80 !important;
+    }
+
+    /* Status Badges */
+    .ra-badge-sufficient {
+      background: #DCFCE7 !important;
+      color: #14532D !important;
+      border: 1px solid #86EFAC !important;
+    }
+    html.dark .ra-badge-sufficient {
+      background: rgba(20, 83, 45, 0.5) !important;
+      color: #86EFAC !important;
+      border-color: rgba(74, 222, 128, 0.6) !important;
+    }
+
+    .ra-badge-critical {
+      background: #FEE2E2 !important;
+      color: #991B1B !important;
+      border: 1px solid #FCA5A5 !important;
+    }
+    html.dark .ra-badge-critical {
+      background: rgba(153, 27, 27, 0.4) !important;
+      color: #FCA5A5 !important;
+      border-color: rgba(248, 113, 113, 0.5) !important;
+    }
+
+    .ra-badge-deficit {
+      background: #FEF3C7 !important;
+      color: #92400E !important;
+      border: 1px solid #FCD34D !important;
+    }
+    html.dark .ra-badge-deficit {
+      background: rgba(146, 64, 14, 0.4) !important;
+      color: #FCD34D !important;
+      border-color: rgba(251, 191, 36, 0.5) !important;
+    }
+
+    .ra-badge-none {
+      background: #E2E8F0 !important;
+      color: #0F172A !important;
+      border: 1px solid #94A3B8 !important;
+    }
+    html.dark .ra-badge-none {
+      background: #1E293B !important;
+      color: #F1F5F9 !important;
+      border-color: #475569 !important;
+    }
+  </style>
+</head>
+<body class="bg-[#F5F5F5] min-h-screen">
+  <div id="auth-guard-loader" class="fixed inset-0 bg-[#F5F5F5] z-[99999] flex flex-col items-center justify-center font-sans">
+    <div class="w-9 h-9 border-3 border-[#1E6C02]/20 border-t-[#1E6C02] rounded-full animate-spin mb-3"></div>
+    <p class="text-xs font-semibold text-gray-700">Verifying administrative access...</p>
+  </div>
+
+  <!-- ADMIN LAYOUT WRAPPER -->
+  <div id="admin-layout-container"></div>
+
+  <script type="module" src="../src/app/shared.js"></script>
+
+  <script type="module">
+    import {
+      protectAdminPage,
+      renderAdminLayout,
+      getAllOrders,
+      getProducts,
+      isReservationOrder,
+      isCancelledOrRejectedOrder,
+      isReservationWaitingForReupload,
+      showToast
+    } from '../src/app/shared.js';
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      const authResult = await protectAdminPage({ requiredRole: 'any' });
+      if (!authResult || !authResult.ok) return;
+
+      renderAdminLayout('reservation-analytics');
+
+      const targetSpace = document.getElementById('admin-main-content');
+      if (!targetSpace) return;
+
+      // Filter State Variables
+      let resTimeRange = 'all';
+      let resProductFilter = 'all';
+
+      targetSpace.innerHTML = `
+        <div class="space-y-6 pb-16 max-w-6xl mx-auto">
+          <!-- Top Navigation Row -->
+          <div class="flex items-center justify-between gap-4 flex-wrap">
+            <a href="dashboard.html" class="so-back-btn inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-extrabold shadow-2xs transition-all cursor-pointer">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-4 h-4">
+                <line x1="19" y1="12" x2="5" y2="12"></line>
+                <polyline points="12 19 5 12 12 5"></polyline>
+              </svg>
+              Back to Dashboard
+            </a>
+
+            <div class="text-right">
+              <span class="text-xs font-extrabold text-slate-700 dark:text-slate-300 uppercase tracking-wider">Reservation Details</span>
+            </div>
+          </div>
+
+          <!-- Page Header & Filter Controls Card -->
+          <div class="bg-white dark:bg-[#111827] border border-slate-200/80 dark:border-slate-800 rounded-2xl p-6 sm:p-7 shadow-xs space-y-5">
+            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-5 border-b border-slate-100 dark:border-slate-800">
+              <div class="flex items-start gap-3.5">
+                <div class="ra-header-icon w-12 h-12 rounded-xl flex items-center justify-center shrink-0 shadow-2xs">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6">
+                    <rect x="3" y="4" width="18" height="18" rx="2"></rect>
+                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                  </svg>
+                </div>
+                <div class="min-w-0">
+                  <div class="flex items-center gap-2.5 flex-wrap">
+                    <h2 class="ra-text-main font-bold text-xl sm:text-2xl tracking-tight">Reservation Analytics</h2>
+                    <span class="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1 rounded-full border border-sky-300 dark:border-sky-700 bg-sky-50 dark:bg-sky-950/60 text-[#0284C7] dark:text-sky-400">
+                      <span>Waiting Orders &amp; Demand</span>
+                    </span>
+                  </div>
+                  <p class="ra-text-sub text-xs sm:text-sm font-bold mt-1 leading-relaxed">See customer pre-orders, reserved rice needed, and stock ready for pickup or delivery.</p>
+                </div>
+              </div>
+
+              <!-- Header Controls -->
+              <div class="flex items-center flex-wrap gap-2.5 shrink-0">
+                <!-- Date Range Selector -->
+                <select id="sel-res-range" class="ra-control-select h-10 text-xs sm:text-[13px] font-bold px-3.5 py-2 rounded-xl outline-none cursor-pointer transition-colors shadow-2xs shrink-0 whitespace-nowrap">
+                  <option value="all" selected>All Time</option>
+                  <option value="1week">1 Week</option>
+                  <option value="1month">1 Month</option>
+                  <option value="3months">3 Months</option>
+                  <option value="6months">6 Months</option>
+                  <option value="1year">1 Year</option>
+                </select>
+
+                <!-- Grain Variety Selector -->
+                <select id="sel-res-product" class="ra-control-select h-10 text-xs sm:text-[13px] font-bold px-3.5 py-2 rounded-xl outline-none cursor-pointer transition-colors shadow-2xs shrink-0 min-w-[140px] max-w-[220px] truncate">
+                  <option value="all">All Rice Varieties</option>
+                </select>
+
+                <!-- Reset Filter -->
+                <button id="btn-reset-res-filters" type="button" class="hidden h-10 inline-flex items-center justify-center text-xs sm:text-[13px] font-extrabold text-[#1E6C02] dark:text-emerald-400 hover:text-[#145001] px-3.5 py-2 bg-green-50 dark:bg-emerald-950/60 rounded-xl transition-colors cursor-pointer border border-green-300 dark:border-emerald-800 shadow-2xs shrink-0 whitespace-nowrap">Reset</button>
+
+                <!-- Manage Queue Link -->
+                <a href="reservations.html" class="ra-manage-btn h-10 inline-flex items-center gap-1.5 px-4 py-2 text-xs sm:text-[13px] font-bold rounded-xl shadow-2xs transition-all whitespace-nowrap cursor-pointer">
+                  <span>Manage Queue</span>
+                  <span>→</span>
+                </a>
+              </div>
+            </div>
+
+            <!-- 6 Key Summary Metric Boxes (Clean 3-Column Grid) -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-5">
+              <!-- Row 1: Box 1 — Current Reservations -->
+              <div id="card-res-active" class="p-5 sm:p-5.5 rounded-2xl flex flex-col justify-between gap-3 min-h-[140px] shadow-2xs">
+                <div class="flex items-center justify-between gap-2.5">
+                  <span class="ra-card-label text-[13px] sm:text-sm font-extrabold uppercase tracking-wider">Current Reservations</span>
+                  <span class="ra-kpi-badge text-xs font-extrabold px-2.5 py-1 rounded-lg shadow-2xs shrink-0 whitespace-nowrap">Current</span>
+                </div>
+                <div class="mt-1">
+                  <p id="res-stat-active" class="ra-text-main text-2xl sm:text-3xl font-black tabular-nums tracking-tight">0 Orders</p>
+                  <p id="res-sub-active" class="ra-card-sub text-xs sm:text-[13px] font-bold mt-1">Currently reserved</p>
+                </div>
+              </div>
+
+              <!-- Row 1: Box 2 — Reserved Stock -->
+              <div id="card-res-sacks" class="p-5 sm:p-5.5 rounded-2xl flex flex-col justify-between gap-3 min-h-[140px] shadow-2xs">
+                <div class="flex items-center justify-between gap-2.5">
+                  <span class="ra-card-label text-[13px] sm:text-sm font-extrabold uppercase tracking-wider">Reserved Stock</span>
+                  <span class="ra-kpi-badge text-xs font-extrabold px-2.5 py-1 rounded-lg shadow-2xs shrink-0 whitespace-nowrap">Total Sacks</span>
+                </div>
+                <div class="mt-1">
+                  <p id="res-stat-sacks" class="ra-text-main text-2xl sm:text-3xl font-black tabular-nums tracking-tight">0 Sacks</p>
+                  <p id="res-sub-sacks" class="ra-card-sub text-xs sm:text-[13px] font-bold mt-1">Total sacks needed</p>
+                </div>
+              </div>
+
+              <!-- Row 1: Box 3 — Waiting for Stock -->
+              <div id="card-res-waiting" class="p-5 sm:p-5.5 rounded-2xl flex flex-col justify-between gap-3 min-h-[140px] shadow-2xs">
+                <div class="flex items-center justify-between gap-2.5">
+                  <span class="ra-card-label text-[13px] sm:text-sm font-extrabold uppercase tracking-wider">Waiting for Stock</span>
+                  <span class="ra-kpi-badge text-xs font-extrabold px-2.5 py-1 rounded-lg shadow-2xs shrink-0 whitespace-nowrap">Waiting</span>
+                </div>
+                <div class="mt-1">
+                  <p id="res-stat-waiting" class="ra-text-main text-2xl sm:text-3xl font-black tabular-nums tracking-tight">0 Orders</p>
+                  <p id="res-sub-waiting" class="ra-card-sub text-xs sm:text-[13px] font-bold mt-1">Waiting for rice stock</p>
+                </div>
+              </div>
+
+              <!-- Row 2: Box 4 — Ready Orders -->
+              <div id="card-res-ready" class="p-5 sm:p-5.5 rounded-2xl flex flex-col justify-between gap-3 min-h-[140px] shadow-2xs">
+                <div class="flex items-center justify-between gap-2.5">
+                  <span class="ra-card-label text-[13px] sm:text-sm font-extrabold uppercase tracking-wider">Ready Orders</span>
+                  <span class="ra-kpi-badge text-xs font-extrabold px-2.5 py-1 rounded-lg shadow-2xs shrink-0 whitespace-nowrap">Ready</span>
+                </div>
+                <div class="mt-1">
+                  <p id="res-stat-ready" class="ra-text-main text-2xl sm:text-3xl font-black tabular-nums tracking-tight">0 Orders</p>
+                  <p id="res-sub-ready" class="ra-card-sub text-xs sm:text-[13px] font-bold mt-1">Ready in warehouse</p>
+                </div>
+              </div>
+
+              <!-- Row 2: Box 5 — Completed -->
+              <div id="card-res-completed" class="p-5 sm:p-5.5 rounded-2xl flex flex-col justify-between gap-3 min-h-[140px] shadow-2xs">
+                <div class="flex items-center justify-between gap-2.5">
+                  <span class="ra-card-label text-[13px] sm:text-sm font-extrabold uppercase tracking-wider">Completed</span>
+                  <span class="ra-kpi-badge text-xs font-extrabold px-2.5 py-1 rounded-lg shadow-2xs shrink-0 whitespace-nowrap">Delivered</span>
+                </div>
+                <div class="mt-1">
+                  <p id="res-stat-completed" class="ra-text-main text-2xl sm:text-3xl font-black tabular-nums tracking-tight">0 Orders</p>
+                  <p id="res-sub-completed" class="ra-card-sub text-xs sm:text-[13px] font-bold mt-1">Delivered to customers</p>
+                </div>
+              </div>
+
+              <!-- Row 2: Box 6 — Cancelled -->
+              <div id="card-res-cancelled" class="p-5 sm:p-5.5 rounded-2xl flex flex-col justify-between gap-3 min-h-[140px] shadow-2xs">
+                <div class="flex items-center justify-between gap-2.5">
+                  <span class="ra-card-label text-[13px] sm:text-sm font-extrabold uppercase tracking-wider">Cancelled</span>
+                  <span class="ra-kpi-badge text-xs font-extrabold px-2.5 py-1 rounded-lg shadow-2xs shrink-0 whitespace-nowrap">Cancelled</span>
+                </div>
+                <div class="mt-1">
+                  <p id="res-stat-cancelled" class="ra-text-main text-2xl sm:text-3xl font-black tabular-nums tracking-tight">0 Orders</p>
+                  <p id="res-sub-cancelled" class="ra-card-sub text-xs sm:text-[13px] font-bold mt-1">Cancelled or expired</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Two-column Side-by-Side Analytics Row -->
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
+            <!-- Left Panel: Reservation Status -->
+            <div class="bg-white dark:bg-[#111827] border border-slate-200/80 dark:border-slate-800 rounded-2xl p-6 sm:p-7 shadow-xs flex flex-col justify-between gap-4">
+              <div class="flex items-start justify-between gap-3 pb-3 border-b border-slate-100 dark:border-slate-800">
+                <div>
+                  <h3 class="ra-text-main font-black text-lg tracking-tight">Reservation Status</h3>
+                  <p class="ra-text-sub text-xs sm:text-sm font-bold mt-0.5">Orders waiting, confirmed, or completed</p>
+                </div>
+                <a href="reservations.html" class="inline-flex items-center gap-1 text-xs font-extrabold px-3 py-1.5 rounded-xl border border-sky-300 dark:border-sky-700 bg-sky-50 dark:bg-sky-950/60 text-[#0284C7] dark:text-sky-400 hover:bg-sky-100 transition-colors shadow-2xs">View All in Queue →</a>
+              </div>
+              <div id="res-status-breakdown-container" class="flex-1 flex flex-col justify-center">
+                <!-- Dynamically rendered -->
+              </div>
+            </div>
+
+            <!-- Right Panel: Reserved Rice Needed -->
+            <div class="bg-white dark:bg-[#111827] border border-slate-200/80 dark:border-slate-800 rounded-2xl p-6 sm:p-7 shadow-xs flex flex-col gap-4">
+              <div class="flex items-start justify-between gap-3 pb-3 border-b border-slate-100 dark:border-slate-800">
+                <div>
+                  <h3 class="ra-text-main font-black text-lg tracking-tight">Reserved Rice Needed</h3>
+                  <p class="ra-text-sub text-xs sm:text-sm font-bold mt-0.5">Reserved customer sacks compared to warehouse stock</p>
+                </div>
+              </div>
+              <div id="res-variety-breakdown-container" class="flex-1 max-h-[460px] overflow-y-auto pr-0.5 space-y-2.5">
+                <!-- Dynamically rendered -->
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+
+      function populateProductDropdown() {
+        const selProd = document.getElementById('sel-res-product');
+        if (!selProd) return;
+        const productsList = typeof getProducts === 'function' ? getProducts() : [];
+        const activeProducts = productsList.filter(p => !p.isArchived && !p.archived);
+        let html = '<option value="all">All Grains</option>';
+        activeProducts.forEach(p => {
+          html += `<option value="${p.id}">${p.name}</option>`;
+        });
+        selProd.innerHTML = html;
+        selProd.value = resProductFilter || 'all';
+      }
+
+      function parseOrderDate(order) {
+        if (!order) return new Date(0);
+        const candidates = [
+          order.completedAt,
+          order.completionDate,
+          order.completedDate,
+          order.deliveredAt,
+          order.deliveredDate,
+          order.createdAt,
+          order.dateCreated,
+          order.createdDate,
+          order.date,
+          order.timestamp
+        ];
+        for (let i = 0; i < candidates.length; i++) {
+          const val = candidates[i];
+          if (!val) continue;
+          if (val instanceof Date && !isNaN(val.getTime())) return val;
+          if (typeof val === 'number') {
+            const d = new Date(val);
+            if (!isNaN(d.getTime())) return d;
+          }
+          if (typeof val === 'object') {
+            if (typeof val.toDate === 'function') {
+              const d = val.toDate();
+              if (d instanceof Date && !isNaN(d.getTime())) return d;
+            }
+            if (typeof val.seconds === 'number') {
+              const d = new Date(val.seconds * 1000);
+              if (!isNaN(d.getTime())) return d;
+            }
+          }
+          if (typeof val === 'string') {
+            const trimmed = val.trim();
+            const dateOnlyMatch = /^(\d{4})-(\d{2})-(\d{2})$/.exec(trimmed);
+            if (dateOnlyMatch) {
+              const yr = parseInt(dateOnlyMatch[1], 10);
+              const mo = parseInt(dateOnlyMatch[2], 10) - 1;
+              const da = parseInt(dateOnlyMatch[3], 10);
+              const localDate = new Date(yr, mo, da, 0, 0, 0, 0);
+              if (!isNaN(localDate.getTime())) return localDate;
+            }
+            const d = new Date(val);
+            if (!isNaN(d.getTime())) return d;
+          }
+        }
+        return new Date(0);
+      }
+
+      function renderReservationAnalyticsPage() {
+        populateProductDropdown();
+        const orders = typeof getAllOrders === 'function' ? getAllOrders() : [];
+        const productsList = typeof getProducts === 'function' ? getProducts() : [];
+        const activeProducts = productsList.filter(p => !p.isArchived && !p.archived);
+
+        const filterResRangeEl = document.getElementById('sel-res-range');
+        const filterResProdEl = document.getElementById('sel-res-product');
+        const currentRange = filterResRangeEl ? filterResRangeEl.value : (resTimeRange || 'all');
+        const currentProd = filterResProdEl ? filterResProdEl.value : (resProductFilter || 'all');
+
+        const resetBtn = document.getElementById('btn-reset-res-filters');
+        if (resetBtn) {
+          if (currentRange !== 'all' || currentProd !== 'all') {
+            resetBtn.classList.remove('hidden');
+          } else {
+            resetBtn.classList.add('hidden');
+          }
+        }
+
+        const now = new Date();
+        const endOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+        let rangeStart = new Date(0);
+
+        if (currentRange === '1week') {
+          rangeStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 6, 0, 0, 0, 0);
+        } else if (currentRange === '1month') {
+          rangeStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 29, 0, 0, 0, 0);
+        } else if (currentRange === '3months') {
+          rangeStart = new Date(now.getFullYear(), now.getMonth() - 3, now.getDate(), 0, 0, 0, 0);
+        } else if (currentRange === '6months') {
+          rangeStart = new Date(now.getFullYear(), now.getMonth() - 6, now.getDate(), 0, 0, 0, 0);
+        } else if (currentRange === '1year') {
+          rangeStart = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate(), 0, 0, 0, 0);
+        }
+
+        const allReservations = orders.filter(o => isReservationOrder(o));
+
+        const filteredReservations = allReservations.filter(order => {
+          if (currentRange !== 'all') {
+            const oDate = parseOrderDate(order);
+            if (oDate < rangeStart || oDate > endOfToday) return false;
+          }
+          if (currentProd !== 'all') {
+            const hasProd = (order.items || []).some(it => {
+              const pid = it.product?.id || it.productId || it.id;
+              return String(pid) === String(currentProd);
+            });
+            if (!hasProd) return false;
+          }
+          return true;
+        });
+
+        function getOrderSacks(order) {
+          let sacks = 0;
+          (order.items || []).forEach(it => {
+            const pid = it.product?.id || it.productId || it.id;
+            if (currentProd === 'all' || String(pid) === String(currentProd)) {
+              sacks += Number(it.quantity || 1);
+            }
+          });
+          return sacks > 0 ? sacks : Number(order.quantity || 1);
+        }
+
+        let activeCount = 0;
+        let activeSacks = 0;
+        let waitingCount = 0;
+        let waitingSacks = 0;
+        let paymentVerificationCount = 0;
+        let paymentVerificationSacks = 0;
+        let readyCount = 0;
+        let readySacks = 0;
+        let cancelledCount = 0;
+        let cancelledSacks = 0;
+        let completedCount = 0;
+        let completedSacks = 0;
+
+        filteredReservations.forEach(order => {
+          const rawStatus = String(order.status || '').toLowerCase().trim();
+          const normStatus = rawStatus.replace(/[\s_]+/g, '-');
+
+          const isTransferredToOrders = [
+            'processing', 'to-ship', 'preparing', 'to-receive',
+            'shipped', 'in-transit', 'out-for-delivery', 'in-delivery',
+            'dispatch', 'delivered', 'completed', 'fulfilled'
+          ].includes(normStatus) || order.transferredToOrders === true || (order.isPreOrder === false && !['ready-for-processing', 'ready', 'payment-verification', 'pending-verification', 'pre-order', 'waiting', 'waiting-for-stock', 'cancelled', 'rejected', 'expired'].includes(normStatus));
+
+          const sacks = getOrderSacks(order);
+
+          if (isTransferredToOrders) {
+            if (normStatus === 'completed' || normStatus === 'fulfilled') {
+              completedCount++;
+              completedSacks += sacks;
+            }
+            return;
+          }
+
+          const isCancelled = (
+            normStatus === 'cancelled' ||
+            normStatus === 'rejected' ||
+            normStatus === 'expired' ||
+            order.status === 'Cancelled' ||
+            order.paymentStatus === 'rejected_expired' ||
+            order.autoCancelledDueToRejectionDeadline === true
+          );
+
+          const isReuploadWaiting = !isCancelled && isReservationWaitingForReupload(order);
+
+          const hasSubmittedProof = Boolean(
+            (order.paymentProof && String(order.paymentProof).trim() !== '' && String(order.paymentProof) !== 'null') ||
+            (order.paymentProofUrl && String(order.paymentProofUrl).trim() !== '') ||
+            (order.paymentProofDataUrl && String(order.paymentProofDataUrl).trim() !== '') ||
+            order.paymentUploadedAt ||
+            order.referenceNumber
+          );
+
+          const isPaymentVerified = order.paymentVerified === true || 
+                                    order.paymentStatus === 'verified' || 
+                                    order.paymentStatus === 'paid' || 
+                                    order.isVerifiedPayment === true || 
+                                    order.paymentConfirmed === true;
+
+          const isReady = !isCancelled && (
+            normStatus === 'ready-for-processing' ||
+            normStatus === 'ready' ||
+            order.status === 'ready_for_processing' ||
+            order.status === 'Ready for Processing' ||
+            isPaymentVerified
+          );
+
+          const isPaymentVerification = !isCancelled && !isReady && (
+            isReuploadWaiting ||
+            normStatus === 'payment-verification' ||
+            normStatus === 'pending-verification' ||
+            order.status === 'payment_verification' ||
+            order.status === 'Payment Verification' ||
+            order.paymentStatus === 'pending_verification' ||
+            order.paymentStatus === 'payment_verification' ||
+            hasSubmittedProof
+          );
+
+          if (isCancelled) {
+            cancelledCount++;
+            cancelledSacks += sacks;
+          } else if (isReady) {
+            readyCount++;
+            readySacks += sacks;
+            activeCount++;
+            activeSacks += sacks;
+          } else if (isPaymentVerification) {
+            paymentVerificationCount++;
+            paymentVerificationSacks += sacks;
+            activeCount++;
+            activeSacks += sacks;
+          } else {
+            waitingCount++;
+            waitingSacks += sacks;
+            activeCount++;
+            activeSacks += sacks;
+          }
+        });
+
+        // 1. Metric Cards
+        const statActiveEl = document.getElementById('res-stat-active');
+        const statSacksEl = document.getElementById('res-stat-sacks');
+        const statWaitingEl = document.getElementById('res-stat-waiting');
+        const statReadyEl = document.getElementById('res-stat-ready');
+        const statCompletedEl = document.getElementById('res-stat-completed');
+        const statCancelledEl = document.getElementById('res-stat-cancelled');
+
+        if (statActiveEl) statActiveEl.textContent = `${activeCount} Order${activeCount !== 1 ? 's' : ''}`;
+        if (statSacksEl) statSacksEl.textContent = `${activeSacks} Sack${activeSacks !== 1 ? 's' : ''}`;
+        if (statWaitingEl) statWaitingEl.textContent = `${waitingCount} Order${waitingCount !== 1 ? 's' : ''}`;
+        if (statReadyEl) statReadyEl.textContent = `${readyCount} Order${readyCount !== 1 ? 's' : ''}`;
+        if (statCompletedEl) statCompletedEl.textContent = `${completedCount} Order${completedCount !== 1 ? 's' : ''}`;
+        if (statCancelledEl) statCancelledEl.textContent = `${cancelledCount} Order${cancelledCount !== 1 ? 's' : ''}`;
+
+        const subActiveEl = document.getElementById('res-sub-active');
+        const subWaitingEl = document.getElementById('res-sub-waiting');
+        const subReadyEl = document.getElementById('res-sub-ready');
+        const subCompletedEl = document.getElementById('res-sub-completed');
+        const subCancelledEl = document.getElementById('res-sub-cancelled');
+
+        if (subActiveEl) subActiveEl.textContent = `${activeSacks} sack${activeSacks !== 1 ? 's' : ''} currently reserved`;
+        if (subWaitingEl) subWaitingEl.textContent = `${waitingSacks} sack${waitingSacks !== 1 ? 's' : ''} waiting for rice stock`;
+        if (subReadyEl) subReadyEl.textContent = `${readySacks} sack${readySacks !== 1 ? 's' : ''} ready in warehouse`;
+        if (subCompletedEl) subCompletedEl.textContent = `${completedSacks} sack${completedSacks !== 1 ? 's' : ''} delivered to customers`;
+        if (subCancelledEl) subCancelledEl.textContent = `${cancelledSacks} sack${cancelledSacks !== 1 ? 's' : ''} cancelled or expired`;
+
+        // 2. Status Breakdown Donut
+        const breakdownContainer = document.getElementById('res-status-breakdown-container');
+        if (breakdownContainer) {
+          const totalBreakdownReservations = waitingCount + paymentVerificationCount + readyCount + cancelledCount;
+          const statusRows = [
+            { label: 'Waiting for Stock', count: waitingCount, sacks: waitingSacks, color: '#F59E0B' },
+            { label: 'Payment Verification', count: paymentVerificationCount, sacks: paymentVerificationSacks, color: '#8B5CF6' },
+            { label: 'Ready Orders', count: readyCount, sacks: readySacks, color: '#0EA5E9' },
+            { label: 'Cancelled', count: cancelledCount, sacks: cancelledSacks, color: '#64748B' }
+          ];
+
+          const radius = 58;
+          const circumference = 2 * Math.PI * radius;
+          let cumulativePct = 0;
+
+          const donutSegments = totalBreakdownReservations > 0
+            ? statusRows.map(row => {
+                if (row.count <= 0) return '';
+                const pct = (row.count / totalBreakdownReservations) * 100;
+                const dashLen = (pct / 100) * circumference;
+                const dashOffset = -((cumulativePct / 100) * circumference);
+                cumulativePct += pct;
+                return `<circle cx="80" cy="80" r="${radius}" fill="transparent" stroke="${row.color}" stroke-width="18" stroke-dasharray="${dashLen} ${circumference}" stroke-dashoffset="${dashOffset}" stroke-linecap="butt"></circle>`;
+              }).join('')
+            : '';
+
+          breakdownContainer.innerHTML = `
+            <div class="flex flex-col justify-between gap-5 h-full">
+              <div class="flex flex-col items-center justify-center py-2">
+                <div class="relative w-40 h-40 sm:w-44 sm:h-44 flex items-center justify-center">
+                  <svg viewBox="0 0 160 160" class="w-full h-full -rotate-90 overflow-visible">
+                    <circle cx="80" cy="80" r="${radius}" fill="transparent" stroke-width="18" class="ra-donut-track"></circle>
+                    ${donutSegments}
+                  </svg>
+                  <div class="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none px-3">
+                    <span class="ra-text-main text-3xl sm:text-4xl font-black tabular-nums leading-none">${totalBreakdownReservations}</span>
+                    <span class="ra-text-main text-[11px] sm:text-xs font-black uppercase tracking-tight mt-1.5 leading-tight text-center max-w-[94px]">Total Reservations</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="space-y-3">
+                ${statusRows.map(row => {
+                  const pct = totalBreakdownReservations > 0 ? (row.count / totalBreakdownReservations) * 100 : 0;
+                  const pctDisplay = pct % 1 === 0 ? pct.toFixed(0) : pct.toFixed(1);
+                  return `
+                    <div class="ra-item-card px-4 py-3 rounded-xl space-y-2 shadow-2xs">
+                      <div class="flex items-center justify-between gap-2 text-xs sm:text-[13px] flex-wrap">
+                        <div class="flex items-center gap-2.5 min-w-0">
+                          <span class="w-3.5 h-3.5 rounded-full shrink-0 shadow-2xs" style="background-color: ${row.color};"></span>
+                          <span class="ra-text-main font-extrabold truncate">${row.label}</span>
+                        </div>
+                        <div class="flex items-center gap-3 shrink-0 tabular-nums">
+                          <span class="ra-text-main text-xs sm:text-[13px] font-black">${row.count} Orders</span>
+                          <span class="ra-text-sub text-xs font-bold">(${row.sacks} Sacks)</span>
+                          <span class="ra-text-main text-xs sm:text-[13px] font-black w-12 text-right">${pctDisplay}%</span>
+                        </div>
+                      </div>
+                      <div class="ra-bar-track w-full rounded-full h-2 overflow-hidden">
+                        <div class="h-full rounded-full transition-all duration-300" style="width: ${pct}%; background-color: ${row.color};"></div>
+                      </div>
+                    </div>
+                  `;
+                }).join('')}
+              </div>
+            </div>
+          `;
+        }
+
+        // 3. Demand by Variety
+        const varietyContainer = document.getElementById('res-variety-breakdown-container');
+        if (varietyContainer) {
+          const varietyStats = activeProducts.map(p => {
+            const pId = String(p.id);
+            let pReservedSacks = 0;
+            let pAllocatedSacks = 0;
+            let pUnallocatedSacks = 0;
+            let pResCount = 0;
+
+            allReservations.forEach(order => {
+              const rawStatus = String(order.status || '').toLowerCase().trim();
+              const normStatus = rawStatus.replace(/[\s_]+/g, '-');
+
+              const isTransferredToOrders = [
+                'processing', 'to-ship', 'preparing', 'to-receive',
+                'shipped', 'in-transit', 'out-for-delivery', 'in-delivery',
+                'dispatch', 'delivered', 'completed', 'fulfilled'
+              ].includes(normStatus) || order.transferredToOrders === true || (order.isPreOrder === false && !['ready-for-processing', 'ready', 'payment-verification', 'pending-verification', 'pre-order', 'waiting', 'waiting-for-stock', 'cancelled', 'rejected', 'expired'].includes(normStatus));
+
+              const isCancelled = (
+                normStatus === 'cancelled' ||
+                normStatus === 'rejected' ||
+                normStatus === 'expired' ||
+                order.status === 'Cancelled' ||
+                order.paymentStatus === 'rejected_expired' ||
+                order.autoCancelledDueToRejectionDeadline === true ||
+                (isCancelledOrRejectedOrder(order) && !isReservationWaitingForReupload(order))
+              );
+
+              if (isTransferredToOrders || isCancelled) return;
+
+              (order.items || []).forEach(it => {
+                const itemId = String(it.product?.id || it.productId || it.id);
+                if (itemId === pId) {
+                  const itemQty = Math.max(0, Number(it.quantity || order.quantity || 1));
+                  let rawAllocated = 0;
+                  if (it.allocatedQuantity !== undefined && it.allocatedQuantity !== null && !isNaN(Number(it.allocatedQuantity))) {
+                    rawAllocated = Number(it.allocatedQuantity);
+                  } else if (order.allocatedQuantity !== undefined && order.allocatedQuantity !== null && !isNaN(Number(order.allocatedQuantity))) {
+                    rawAllocated = Number(order.allocatedQuantity);
+                  } else if (normStatus === 'ready-for-processing' || normStatus === 'ready' || order.status === 'ready_for_processing' || order.stockAllocated === true) {
+                    rawAllocated = itemQty;
+                  }
+
+                  const allocatedForItem = Math.min(itemQty, Math.max(0, rawAllocated));
+                  const unallocatedForItem = Math.max(0, itemQty - allocatedForItem);
+
+                  pReservedSacks += itemQty;
+                  pAllocatedSacks += allocatedForItem;
+                  pUnallocatedSacks += unallocatedForItem;
+                  pResCount++;
+                }
+              });
+            });
+
+            const currentStock = Number(p.stock !== undefined ? p.stock : (p.currentStock || 0));
+            return {
+              product: p,
+              reservedSacks: pReservedSacks,
+              allocatedSacks: pAllocatedSacks,
+              unallocatedSacks: pUnallocatedSacks,
+              reservationCount: pResCount,
+              warehouseStock: currentStock
+            };
+          });
+
+          varietyStats.sort((a, b) => b.reservedSacks - a.reservedSacks);
+
+          const displayStats = (currentProd !== 'all') 
+            ? varietyStats.filter(v => String(v.product.id) === String(currentProd))
+            : varietyStats;
+
+          if (displayStats.length === 0) {
+            varietyContainer.innerHTML = `
+              <div class="p-8 text-center ra-text-main text-xs font-bold">
+                No active grain varieties found.
+              </div>
+            `;
+          } else {
+            const maxReserved = Math.max(1, ...displayStats.map(v => v.reservedSacks));
+
+            varietyContainer.innerHTML = displayStats.map(item => {
+              const unallocatedDemand = item.unallocatedSacks !== undefined
+                ? item.unallocatedSacks
+                : Math.max(0, item.reservedSacks - (item.allocatedSacks || 0));
+              const deficit = Math.max(0, unallocatedDemand - item.warehouseStock);
+              const isHealthy = deficit === 0;
+              let badge = '';
+              let barColorClass = '';
+              let customStyle = '';
+              if (item.reservedSacks === 0) {
+                badge = `<span class="ra-badge-none text-xs font-extrabold px-2.5 py-0.5 rounded-full shrink-0">No Current Demand</span>`;
+                customStyle = 'background-color: #64748B;';
+              } else if (isHealthy) {
+                badge = `<span class="ra-badge-sufficient text-xs font-extrabold px-2.5 py-0.5 rounded-full shrink-0">✓ Stock Sufficient</span>`;
+                barColorClass = 'ra-bar-lightgreen';
+              } else if (item.warehouseStock === 0) {
+                badge = `<span class="ra-badge-critical text-xs font-extrabold px-2.5 py-0.5 rounded-full shrink-0">🚫 Restock Needed (${deficit} Sacks)</span>`;
+                customStyle = 'background-color: #EF4444;';
+              } else {
+                badge = `<span class="ra-badge-deficit text-xs font-extrabold px-2.5 py-0.5 rounded-full shrink-0">⚠️ Low Stock (${deficit} Sacks Needed)</span>`;
+                customStyle = 'background-color: #F59E0B;';
+              }
+
+              const barWidthPct = item.reservedSacks > 0
+                ? Math.min(100, Math.max(6, Math.round((item.reservedSacks / maxReserved) * 100)))
+                : 0;
+
+              return `
+                <div class="ra-item-card px-4 py-3.5 rounded-xl space-y-2.5 transition-all shadow-2xs">
+                  <div class="flex items-center justify-between gap-2 flex-wrap">
+                    <div class="flex items-center gap-2.5 min-w-0 flex-wrap">
+                      <span class="ra-text-main text-sm sm:text-base font-extrabold truncate" title="${item.product.name}">${item.product.name}</span>
+                      ${badge}
+                    </div>
+                    <div class="text-right shrink-0">
+                      <span class="ra-text-main text-sm sm:text-base font-black tabular-nums">${item.reservedSacks} Sacks</span>
+                    </div>
+                  </div>
+
+                  <div class="ra-bar-track w-full rounded-lg h-3.5 relative flex items-center overflow-hidden">
+                    <div class="h-full rounded-lg transition-all duration-500 ${barColorClass}" style="width: ${barWidthPct}%; ${item.reservedSacks > 0 ? customStyle : 'background-color: transparent;'}"></div>
+                  </div>
+
+                  <div class="flex items-center justify-between gap-2 text-xs sm:text-[13px] ra-text-sub font-bold pt-0.5 tabular-nums">
+                    <span>Warehouse Stock: <strong class="ra-text-main font-black">${item.warehouseStock} Sacks</strong></span>
+                    <span>Ready to Fulfill: <strong class="ra-text-main font-black">${item.allocatedSacks || 0} Sacks</strong></span>
+                  </div>
+                </div>
+              `;
+            }).join('');
+          }
+        }
+      }
+
+      // Filter event listeners
+      const selResRange = document.getElementById('sel-res-range');
+      if (selResRange) {
+        selResRange.addEventListener('change', () => {
+          resTimeRange = selResRange.value;
+          renderReservationAnalyticsPage();
+        });
+      }
+
+      const selResProd = document.getElementById('sel-res-product');
+      if (selResProd) {
+        selResProd.addEventListener('change', () => {
+          resProductFilter = selResProd.value;
+          renderReservationAnalyticsPage();
+        });
+      }
+
+      const resetBtn = document.getElementById('btn-reset-res-filters');
+      if (resetBtn) {
+        resetBtn.addEventListener('click', () => {
+          resTimeRange = 'all';
+          resProductFilter = 'all';
+          if (selResRange) selResRange.value = 'all';
+          if (selResProd) selResProd.value = 'all';
+          renderReservationAnalyticsPage();
+          showToast('Reservation filters reset to All Time & All Grains');
+        });
+      }
+
+      // Initial Render & dynamic sync listeners
+      renderReservationAnalyticsPage();
+      window.addEventListener('aurora-sync-event', renderReservationAnalyticsPage);
+      window.addEventListener('aurora-orders-updated', renderReservationAnalyticsPage);
+      window.addEventListener('storage', renderReservationAnalyticsPage);
+    });
+  </script>
+</body>
+</html>

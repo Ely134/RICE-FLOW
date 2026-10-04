@@ -2792,17 +2792,20 @@ html:not(.dark) #customer-notif-list .btn-mark-read:hover {
   color: #FFFFFF !important;
 }
 
-/* Inventory Health dark mode count badge overrides - removing white/light background */
-.dark #dash-low-stock-count {
-  background-color: rgba(245, 158, 11, 0.2) !important;
-  color: #FBBF24 !important;
-  border: 1px solid rgba(245, 158, 11, 0.4) !important;
-}
-
+/* Inventory Health: clean plain text counts without unwanted box, background, or border */
+#dash-healthy-stock-count,
+#dash-low-stock-count,
+#dash-out-stock-count,
+.dark #dash-healthy-stock-count,
+.dark #dash-low-stock-count,
 .dark #dash-out-stock-count {
-  background-color: rgba(239, 68, 68, 0.2) !important;
-  color: #F87171 !important;
-  border: 1px solid rgba(239, 68, 68, 0.4) !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+  padding: 0 !important;
+  border-radius: 0 !important;
 }
 
 /* ==========================================================================
@@ -2843,12 +2846,16 @@ html:not(.dark) #customer-notif-list .btn-mark-read:hover {
   border: 1px solid #D97706 !important;
 }
 
+.dark #inventory-analytics-section #card-inv-total,
+.dark #inventory-analytics-section #card-inv-delivered,
 .dark #inventory-analytics-section #card-inv-net,
 .dark #inventory-analytics-section #card-inv-records {
   background-color: rgba(30, 41, 59, 0.7) !important;
   border-color: #334155 !important;
 }
 
+.dark #inventory-analytics-section #badge-inv-total,
+.dark #inventory-analytics-section #badge-inv-delivered,
 .dark #inventory-analytics-section #badge-inv-net,
 .dark #inventory-analytics-section #badge-inv-records {
   background-color: #334155 !important;

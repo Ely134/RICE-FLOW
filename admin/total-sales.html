@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Total Sales | Aurora Rice Admin</title>
+  <script>
+    (function() {
+      try {
+        var d = document.documentElement;
+        var isDark = localStorage.getItem('aurora-dark-mode') === 'true';
+        d.classList.toggle('dark', isDark);
+        d.style.colorScheme = isDark ? 'dark' : 'light';
+      } catch (e) {}
+    })();
+  </script>
+  <style id="riceflow-theme-init">
+    html { background-color: #F5F5F5; color-scheme: light; }
+    html.dark { background-color: #1F2937 !important; color-scheme: dark; }
+    html.dark body,
+    html.dark #admin-layout-container,
+    html.dark #admin-main-content {
+      background-color: #1F2937;
+      color: #F9FAFB;
+    }
+    html.dark #auth-guard-loader {
+      background-color: #1F2937 !important;
+      color: #F9FAFB !important;
+    }
+    html.dark #admin-sidebar,
+    html.dark aside,
+    html.dark header,
+    html.dark .bg-white,
+    html.dark .bg-gray-50,
+    html.dark .bg-slate-50 {
+      background-color: #111827;
+      color: #F9FAFB;
+    }
+  </style>
+  <link rel="stylesheet" href="../src/styles/index.css">
+  <style id="auth-guard-style">body { visibility: hidden !important; }</style>
+  <style id="total-sales-page-styles">
+    /* High contrast back button */
+    html:not(.dark) #admin-layout-container .ts-back-btn {
+      background: #FFFFFF !important;
+      border: 1px solid #CBD5E1 !important;
+      color: #0F172A !important;
+    }
+    html:not(.dark) #admin-layout-container .ts-back-btn:hover {
+      background: #F1F5F9 !important;
+      border-color: #94A3B8 !important;
+    }
+    html.dark #admin-layout-container .ts-back-btn {
+      background: #1E293B !important;
+      border: 1px solid #475569 !important;
+      color: #FFFFFF !important;
+    }
+    html.dark #admin-layout-container .ts-back-btn:hover {
+      background: #334155 !important;
+      border-color: #64748B !important;
+    }
+
+    /* Emerald theme summary badge */
+    html:not(.dark) #admin-layout-container .ts-emerald-badge {
+      background: #ECFDF5 !important;
+      border: 1px solid #86EFAC !important;
+      color: #145001 !important;
+    }
+    html.dark #admin-layout-container .ts-emerald-badge {
+      background: rgba(16, 185, 129, 0.22) !important;
+      border: 1px solid rgba(52, 211, 153, 0.5) !important;
+      color: #A7F3D0 !important;
+    }
+
+    /* Ticket pill */
+    html:not(.dark) #admin-layout-container .ts-ticket-pill {
+      background: #F1F5F9 !important;
+      border: 1px solid #CBD5E1 !important;
+      color: #0F172A !important;
+    }
+    html.dark #admin-layout-container .ts-ticket-pill {
+      background: #1E293B !important;
+      border: 1px solid #475569 !important;
+      color: #FFFFFF !important;
+    }
+
+    /* Field box */
+    html:not(.dark) #admin-layout-container .ts-field-box {
+      background: #F8FAFC !important;
+      border: 1px solid #E2E8F0 !important;
+    }
+    html.dark #admin-layout-container .ts-field-box {
+      background: rgba(30, 41, 59, 0.6) !important;
+      border: 1px solid rgba(148, 163, 184, 0.25) !important;
+    }
+
+    /* Verified pill */
+    html:not(.dark) #admin-layout-container .ts-verified-pill {
+      background: #ECFDF5 !important;
+      border: 1px solid #6EE7B7 !important;
+      color: #065F46 !important;
+    }
+    html.dark #admin-layout-container .ts-verified-pill {
+      background: rgba(16, 185, 129, 0.22) !important;
+      border: 1px solid rgba(52, 211, 153, 0.5) !important;
+      color: #6EE7B7 !important;
+    }
+  </style>
+</head>
+<body class="bg-[#F5F5F5] min-h-screen">
+  <div id="auth-guard-loader" class="fixed inset-0 bg-[#F5F5F5] z-[99999] flex flex-col items-center justify-center font-sans">
+    <div class="w-9 h-9 border-3 border-[#1E6C02]/20 border-t-[#1E6C02] rounded-full animate-spin mb-3"></div>
+    <p class="text-xs font-semibold text-slate-800 dark:text-slate-100">Loading sales...</p>
+  </div>
+
+  <!-- ADMIN LAYOUT WRAPPER -->
+  <div id="admin-layout-container"></div>
+
+  <script type="module" src="../src/app/shared.js"></script>
+
+  <script type="module">
+    import {
+      protectAdminPage,
+      renderAdminLayout,
+      getDashboardTotalSalesData,
+      parseDashboardOrderDate
+    } from '../src/app/shared.js';
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      const authResult = await protectAdminPage({ requiredRole: 'any' });
+      if (!authResult || !authResult.ok) return;
+
+      renderAdminLayout('total-sales');
+
+      const targetSpace = document.getElementById('admin-main-content');
+      if (!targetSpace) return;
+
+      function getFilterOptionsFromNavigation() {
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('filtered') === '1') {
+          return {
+            currentRange: urlParams.get('range') || 'all',
+            currentProd: urlParams.get('prod') || 'all',
+            selectedSalesDate: urlParams.get('date') || '',
+            salesCustomStart: urlParams.get('start') || '',
+            salesCustomEnd: urlParams.get('end') || '',
+            hasUserAppliedFilter: true
+          };
+        }
+        try {
+          const savedRaw = sessionStorage.getItem('aurora-dashboard-total-sales-state') || sessionStorage.getItem('aurora-dashboard-total-orders-state');
+          if (savedRaw) {
+            const parsed = JSON.parse(savedRaw);
+            if (parsed && parsed.hasUserAppliedFilter) {
+              return parsed;
+            }
+          }
+        } catch (_) {}
+        return {
+          currentRange: 'all',
+          currentProd: 'all',
+          selectedSalesDate: '',
+          salesCustomStart: '',
+          salesCustomEnd: '',
+          hasUserAppliedFilter: false
+        };
+      }
+
+      function getStatusBadgeClass(status) {
+        const s = (status || '').toLowerCase().trim().replace(/[\s_]+/g, '-');
+        if (s === 'to-pay' || s === 'unpaid' || s === 'pending-payment') return 'bg-amber-100 dark:bg-amber-950/60 text-amber-900 dark:text-amber-300 border border-amber-200 dark:border-amber-800/60';
+        if (s === 'ready-for-processing' || s === 'ready') return 'bg-sky-100 dark:bg-sky-950/60 text-sky-900 dark:text-sky-300 border border-sky-200 dark:border-sky-800/60';
+        if (s === 'payment-verification' || s === 'pending-verification') return 'bg-purple-100 dark:bg-purple-950/60 text-purple-900 dark:text-purple-300 border border-purple-200 dark:border-purple-800/60';
+        if (s === 'waiting-for-stock' || s === 'pre-order' || s === 'waiting' || s === 'reserved') return 'bg-blue-100 dark:bg-blue-950/60 text-blue-900 dark:text-blue-300 border border-blue-200 dark:border-blue-800/60';
+        if (s === 'processing') return 'bg-blue-100 dark:bg-blue-950/60 text-blue-900 dark:text-blue-300 border border-blue-200 dark:border-blue-800/60';
+        if (s === 'to-ship' || s === 'preparing') return 'bg-purple-100 dark:bg-purple-950/60 text-purple-900 dark:text-purple-300 border border-purple-200 dark:border-purple-800/60';
+        if (s === 'to-receive' || s === 'shipped' || s === 'in-transit') return 'bg-sky-100 dark:bg-sky-950/60 text-sky-900 dark:text-sky-300 border border-sky-200 dark:border-sky-800/60';
+        if (s === 'delivered') return 'bg-teal-100 dark:bg-teal-950/60 text-teal-900 dark:text-teal-300 border border-teal-200 dark:border-teal-800/60';
+        if (s === 'issue-reported' || s === 'issue') return 'bg-red-100 dark:bg-red-950/60 text-red-900 dark:text-red-300 border border-red-200 dark:border-red-800/60';
+        if (s === 'completed' || s === 'fulfilled') return 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-900 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60';
+        if (s === 'cancelled' || s === 'rejected' || s === 'expired') return 'bg-gray-200 dark:bg-gray-800 text-gray-800 dark:text-gray-300 border border-gray-300 dark:border-gray-700';
+        return 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-300 border border-gray-200 dark:border-gray-700';
+      }
+
+      function getStatusLabel(status) {
+        const s = (status || '').toLowerCase().trim().replace(/[\s_]+/g, '-');
+        if (s === 'to-pay') return 'To Pay';
+        if (s === 'ready-for-processing' || s === 'ready') return 'Ready for Processing';
+        if (s === 'payment-verification' || s === 'pending-verification') return 'Payment Verification';
+        if (s === 'pre-order' || s === 'waiting' || s === 'waiting-for-stock') return 'Waiting for Stock';
+        if (s === 'processing') return 'Processing';
+        if (s === 'to-ship') return 'To Ship';
+        if (s === 'to-receive') return 'To Receive';
+        if (s === 'delivered') return 'Delivered';
+        if (s === 'completed') return 'Completed';
+        if (s === 'cancelled') return 'Cancelled';
+        if (s === 'issue-reported') return 'Issue Reported';
+        return status || 'Pending';
+      }
+
+      function getVerificationStatusLabel(order, verifiedAmount, paymentInfo) {
+        const tot = Number(order.total || order.totalPrice || order.totalBill || 0);
+        const statusClean = String(order.status || '').toLowerCase().replace(/_/g, '-');
+        const isTurnoverVerified = order.financialVerification === true ||
+          order.financialStatus === 'Verified' ||
+          order.cashAuditStatus === 'Audited';
+
+        if (paymentInfo && paymentInfo.isReservation) {
+          return (tot > 0 && verifiedAmount >= tot)
+            ? 'Reservation · Full Payment Verified'
+            : 'Reservation · Verified Payment';
+        }
+        if (isTurnoverVerified) {
+          return 'Cash Turnover Verified';
+        }
+        if (statusClean === 'completed' || statusClean === 'fulfilled' || (tot > 0 && verifiedAmount >= tot)) {
+          return 'Full Payment Verified';
+        }
+        if (tot > 0 && verifiedAmount < tot) {
+          return 'Down Payment Verified';
+        }
+        return 'Payment Verified';
+      }
+
+      function formatReadableOrderDate(order) {
+        const d = parseDashboardOrderDate(order);
+        if (!d || isNaN(d.getTime()) || d.getTime() <= 0) {
+          return order.date || order.createdDate || 'N/A';
+        }
+        return d.toLocaleDateString('en-US', {
+          month: 'short',
+          day: 'numeric',
+          year: 'numeric'
+        });
+      }
+
+      function renderTotalSalesPage() {
+        const filterOptions = getFilterOptionsFromNavigation();
+        const totalSalesData = getDashboardTotalSalesData(filterOptions);
+        const sortedRecords = (totalSalesData.records || []).slice().sort((a, b) => {
+          return parseDashboardOrderDate(b.order).getTime() - parseDashboardOrderDate(a.order).getTime();
+        });
+
+        const formattedTotalSales = `₱${totalSalesData.totalSales.toLocaleString('en-US', {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2
+        })}`;
+
+        const filterSubnote = totalSalesData.isFilterActive
+          ? `<span class="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 text-[#145001] dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60 mt-2">Filtered by: ${totalSalesData.rangeLabel}${totalSalesData.currentProd !== 'all' ? ` · ${totalSalesData.activeVarietyLabel}` : ''}</span>`
+          : '';
+
+        const recordsListHtml = sortedRecords.length === 0
+          ? `
+            <div class="bg-white dark:bg-[#111827] border border-slate-200/80 dark:border-slate-800 rounded-2xl p-8 text-center shadow-xs">
+              <p class="text-base font-extrabold text-slate-900 dark:text-white">No Verified Sales Found</p>
+              <p class="text-xs font-bold text-slate-700 dark:text-slate-200 mt-1">There are currently no verified sales records to display.</p>
+            </div>
+          `
+          : sortedRecords.map(entry => {
+              const order = entry.order || {};
+              const verifiedAmount = Number(entry.verifiedAmount || 0);
+              const formattedSaleAmount = `₱${verifiedAmount.toLocaleString('en-US', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+              })}`;
+
+              const rawId = String(order.id || order.orderNumber || '').trim();
+              const ticketNumber = rawId.startsWith('#') ? rawId : `#${rawId}`;
+              const customerName = order.fullName || order.customerName || order.userName || 'Customer';
+
+              const allOrderItems = (order.items || []).filter(Boolean);
+              const nonResItems = allOrderItems.filter(i => !i.isReservation);
+              let displayItems = nonResItems.length > 0 ? nonResItems : allOrderItems;
+
+              if (totalSalesData.isFilterActive && totalSalesData.currentProd !== 'all') {
+                const targetProdId = String(totalSalesData.currentProd);
+                const targetProdName = String(totalSalesData.activeVarietyLabel || '').trim().toLowerCase();
+                const filteredVarietyItems = displayItems.filter(item => {
+                  const pId = String(item.product?.id || item.productId || item.id || '');
+                  const pName = String(item.product?.name || item.name || item.productName || '').trim().toLowerCase();
+                  return (pId && pId === targetProdId) || (targetProdName && pName === targetProdName);
+                });
+                if (filteredVarietyItems.length > 0) {
+                  displayItems = filteredVarietyItems;
+                }
+              }
+
+              const riceProductsText = displayItems.length > 0
+                ? displayItems.map(i => i.product?.name || i.name || i.productName || 'Rice Product').join(', ')
+                : (order.productName || 'Rice Product');
+
+              const totalQuantitySacks = displayItems.length > 0
+                ? displayItems.reduce((sum, i) => sum + Number(i.quantity || 1), 0)
+                : Number(order.quantity || 1);
+
+              const quantityBreakdown = displayItems.length > 1
+                ? `${totalQuantitySacks} Sack${totalQuantitySacks !== 1 ? 's' : ''} (${displayItems.map(i => `${i.product?.name || i.name || i.productName || 'Rice'} × ${i.quantity || 1}`).join(', ')})`
+                : `${totalQuantitySacks} Sack${totalQuantitySacks !== 1 ? 's' : ''}`;
+
+              const orderDateStr = formatReadableOrderDate(order);
+              const statusLabel = getStatusLabel(order.status);
+              const statusBadgeClass = getStatusBadgeClass(order.status);
+              const verificationLabel = getVerificationStatusLabel(order, verifiedAmount, entry.paymentInfo);
+
+              return `
+                <div class="bg-white dark:bg-[#111827] border border-slate-200/80 dark:border-slate-800 rounded-2xl p-4 sm:p-5 shadow-xs hover:shadow-sm transition-all">
+                  <!-- Top Row: Ticket Number, Date, Verification & Status Badges, Verified Amount -->
+                  <div class="flex flex-wrap items-center justify-between gap-3 pb-3.5 border-b border-slate-100 dark:border-slate-800">
+                    <div class="flex flex-wrap items-center gap-2.5">
+                      <span class="ts-ticket-pill px-3 py-1 rounded-xl font-mono font-black text-xs sm:text-sm tracking-tight inline-flex items-center gap-1.5 shadow-2xs">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                        ${ticketNumber}
+                      </span>
+                      <span class="inline-flex items-center gap-1.5 text-xs font-bold text-slate-700 dark:text-slate-200">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-3.5 h-3.5 text-slate-500 dark:text-slate-400"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                        ${orderDateStr}
+                      </span>
+                      <span class="ts-verified-pill px-2.5 py-0.5 rounded-lg text-[11px] font-black tracking-tight inline-flex items-center gap-1 shadow-2xs">
+                        <svg viewBox="0 0 20 20" fill="currentColor" class="w-3 h-3 text-emerald-600 dark:text-emerald-400"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
+                        ${verificationLabel}
+                      </span>
+                      <span class="px-2.5 py-0.5 rounded-full text-xs font-extrabold tracking-wide uppercase shadow-2xs ${statusBadgeClass}">
+                        ${statusLabel}
+                      </span>
+                    </div>
+
+                    <!-- Verified Sale Amount -->
+                    <div class="flex items-baseline gap-1.5 shrink-0">
+                      <span class="text-[11px] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-200">Verified Sale:</span>
+                      <span class="text-lg sm:text-xl font-black text-[#1E6C02] dark:text-emerald-400 tabular-nums tracking-tight">
+                        ${formattedSaleAmount}
+                      </span>
+                    </div>
+                  </div>
+
+                  <!-- Record Details Grid -->
+                  <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-3.5">
+                    <div class="ts-field-box rounded-xl p-3 sm:p-3.5">
+                      <div class="flex items-center gap-1.5 text-[11px] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-200">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                        Customer
+                      </div>
+                      <p class="text-sm sm:text-base font-extrabold text-slate-950 dark:text-white mt-1 truncate" title="${customerName}">
+                        ${customerName}
+                      </p>
+                    </div>
+                    <div class="ts-field-box rounded-xl p-3 sm:p-3.5">
+                      <div class="flex items-center gap-1.5 text-[11px] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-200">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-3.5 h-3.5 text-amber-500 dark:text-amber-400"><path d="M12 2L2 7l10 5 10-5-10-5z"></path><path d="M2 17l10 5 10-5"></path><path d="M2 12l10 5 10-5"></path></svg>
+                        Rice Type
+                      </div>
+                      <p class="text-sm sm:text-base font-extrabold text-slate-950 dark:text-white mt-1 truncate" title="${riceProductsText}">
+                        ${riceProductsText}
+                      </p>
+                    </div>
+                    <div class="ts-field-box rounded-xl p-3 sm:p-3.5">
+                      <div class="flex items-center gap-1.5 text-[11px] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-200">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path></svg>
+                        Quantity
+                      </div>
+                      <p class="text-sm sm:text-base font-black text-[#1E6C02] dark:text-emerald-400 mt-1 truncate" title="${quantityBreakdown}">
+                        ${quantityBreakdown}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              `;
+            }).join('');
+
+        targetSpace.innerHTML = `
+          <div class="space-y-6 pb-12 max-w-5xl mx-auto">
+            <!-- Top Navigation Row -->
+            <div class="flex items-center justify-between gap-4 flex-wrap">
+              <a href="dashboard.html" class="ts-back-btn inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-extrabold shadow-2xs transition-all cursor-pointer">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-4 h-4">
+                  <line x1="19" y1="12" x2="5" y2="12"></line>
+                  <polyline points="12 19 5 12 12 5"></polyline>
+                </svg>
+                Back to Dashboard
+              </a>
+
+              <div class="text-right">
+                <span class="text-xs font-bold text-slate-700 dark:text-slate-200 uppercase tracking-wider">Sales Details</span>
+              </div>
+            </div>
+
+            <!-- Page Title Header Card -->
+            <div class="bg-white dark:bg-[#111827] border border-slate-200/80 dark:border-slate-800 rounded-2xl p-6 sm:p-7 shadow-xs">
+              <div class="flex items-start gap-4">
+                <div class="w-14 h-14 rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-[#1E6C02] dark:text-emerald-400 flex items-center justify-center shrink-0 border border-emerald-100 dark:border-emerald-800/60 shadow-2xs">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-7 h-7">
+                    <path d="M7 20V4h5.5a4.5 4.5 0 0 1 0 9H7"></path>
+                    <path d="M5 8h10"></path>
+                    <path d="M5 11h10"></path>
+                  </svg>
+                </div>
+                <div class="min-w-0 flex-1">
+                  <div class="flex items-center gap-2.5 flex-wrap">
+                    <h1 class="text-xl sm:text-2xl font-black text-slate-950 dark:text-white tracking-tight">Total Sales</h1>
+                    <span class="ts-emerald-badge text-xs font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+                      Verified Sales
+                    </span>
+                  </div>
+                  <p class="text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200 mt-1">
+                    Here is the list of orders with verified payments that make up Total Sales.
+                  </p>
+                  ${filterSubnote}
+                </div>
+              </div>
+            </div>
+
+            <!-- Visual Highlight: Total Sales Hero Card -->
+            <div class="bg-gradient-to-br from-emerald-50/80 via-white to-teal-50/40 dark:from-emerald-950/30 dark:via-[#111827] dark:to-teal-950/20 border-2 border-emerald-200 dark:border-emerald-800/70 rounded-2xl p-6 sm:p-8 shadow-sm">
+              <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+                <div class="min-w-0 flex-1">
+                  <div class="flex items-center gap-2 flex-wrap mb-2">
+                    <span class="ts-emerald-badge text-xs font-black px-3 py-1 rounded-full uppercase tracking-wider inline-flex items-center gap-1.5 shadow-2xs">
+                      <span>💰</span> TOTAL SALES
+                    </span>
+                    <span class="text-xs font-bold text-emerald-900 dark:text-emerald-200">
+                      Verified Sales
+                    </span>
+                  </div>
+                  <h2 id="total-sales-detail-top-amount" class="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-950 dark:text-white tracking-tight leading-tight tabular-nums">
+                    ${formattedTotalSales}
+                  </h2>
+                  <p class="text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200 mt-2">
+                    Money received and confirmed from customer payments.
+                  </p>
+                </div>
+
+                <div class="bg-white dark:bg-[#1E293B] border border-emerald-100 dark:border-emerald-900/60 rounded-2xl px-6 py-5 shadow-xs text-center shrink-0 min-w-[200px]">
+                  <p class="text-xs font-black uppercase tracking-wider text-[#145001] dark:text-emerald-400">Verified Sales</p>
+                  <p id="total-sales-detail-count" class="text-3xl sm:text-4xl font-black text-slate-950 dark:text-white mt-1 tracking-tight">
+                    ${sortedRecords.length}
+                  </p>
+                  <p class="text-xs font-bold text-slate-700 dark:text-slate-200 mt-0.5">confirmed sales</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Verified Sales Records Section -->
+            <div class="space-y-4">
+              <div class="flex items-center justify-between gap-3 flex-wrap px-1">
+                <div>
+                  <h3 class="text-lg sm:text-xl font-bold text-slate-950 dark:text-white tracking-tight">Verified Sales Records</h3>
+                  <p class="text-xs font-semibold text-slate-700 dark:text-slate-200 mt-0.5">
+                    Order number, date, payment status, rice type, quantity, and verified sale amount
+                  </p>
+                </div>
+                <div class="text-right">
+                  <span class="text-xs font-bold text-slate-700 dark:text-slate-200">
+                    Total Sales: <strong class="text-[#1E6C02] dark:text-emerald-400">${formattedTotalSales}</strong>
+                  </span>
+                </div>
+              </div>
+
+              <!-- Individual Verified Sales Cards List -->
+              <div id="total-sales-cards-list" class="space-y-3.5">
+                ${recordsListHtml}
+              </div>
+            </div>
+
+            <!-- Bottom Total Verified Sales Summary & Return Section -->
+            <div class="bg-white dark:bg-[#111827] border border-slate-200/80 dark:border-slate-800 rounded-2xl p-6 shadow-xs flex items-center justify-between gap-4 flex-wrap">
+              <div>
+                <p class="text-xs font-black text-slate-700 dark:text-slate-200 uppercase tracking-wider">TOTAL SALES</p>
+                <p id="total-sales-detail-bottom-amount" class="text-2xl sm:text-3xl font-black text-[#1E6C02] dark:text-emerald-400 mt-0.5 tabular-nums">
+                  ${formattedTotalSales}
+                </p>
+                <p class="text-xs font-medium text-slate-700 dark:text-slate-200 mt-1">
+                  All confirmed payments matching Total Sales on the Dashboard.
+                </p>
+              </div>
+              <a href="dashboard.html" class="ts-back-btn inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-extrabold shadow-2xs transition-all cursor-pointer">
+                ← Return to Dashboard
+              </a>
+            </div>
+
+          </div>
+        `;
+      }
+
+      renderTotalSalesPage();
+
+      window.addEventListener('aurora-sync-event', renderTotalSalesPage);
+      window.addEventListener('aurora-orders-updated', renderTotalSalesPage);
+      window.addEventListener('storage', renderTotalSalesPage);
+    });
+  </script>
+</body>
+</html>
