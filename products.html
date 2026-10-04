@@ -337,9 +337,12 @@ try {
 
       // Listen for data sync events (e.g. Firebase cloud sync or admin changes)
       window.addEventListener('aurora-sync-event', (e) => {
-        if (!e.detail || !e.detail.key || e.detail.key === 'aurora-products') {
+        if (!e.detail || !e.detail.key || e.detail.key === 'aurora-products' || e.detail.key === 'aurora-orders') {
           renderCatalog();
         }
+      });
+      window.addEventListener('aurora-orders-updated', () => {
+        renderCatalog();
       });
 
       // Hook searching queries dynamically if top navbar inputs are triggered

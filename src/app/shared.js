@@ -7622,12 +7622,6 @@ export function isReservationInPaymentVerificationStage(o) {
     return true;
   }
 
-  const allocatedQty = Number(o.allocatedQuantity || 0);
-  const hasAllocatedStock = allocatedQty > 0 || o.stockAllocated === true || Boolean(o.stockAllocatedAt) || Boolean(o.restockAllocatedAt) || Boolean(o.actualRestockDate);
-  if (hasAllocatedStock) {
-    return true;
-  }
-
   return false;
 }
 
@@ -7635,10 +7629,6 @@ export function isReservationInPaymentVerificationStage(o) {
 export function isReservationInWaitingForStockStage(o) {
   if (!o || isExcludedReservationForQueue(o)) return false;
   if (isReservationInPaymentVerificationStage(o)) return false;
-
-  const allocatedQty = Number(o.allocatedQuantity || 0);
-  const hasAllocatedStock = allocatedQty > 0 || o.stockAllocated === true || Boolean(o.stockAllocatedAt) || Boolean(o.restockAllocatedAt) || Boolean(o.actualRestockDate);
-  if (hasAllocatedStock) return false;
 
   const cleanStatus = String(o.status || '').toLowerCase().replace(/_/g, '-').trim();
   const oRes = Boolean(

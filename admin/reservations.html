@@ -39,13 +39,40 @@
   </style>
   <link rel="stylesheet" href="../src/styles/index.css">
   <style>
-    .top-scrollbar-container {
-      overflow-x: auto !important;
-      overflow-y: visible !important;
-      transform: rotateX(180deg);
+    /* Scoped custom styling for the Reservation Queue Table horizontal scrollbars */
+    .reservation-custom-scrollbar {
+      scrollbar-width: thin;
+      scrollbar-color: #1E6C02 #E2E8F0;
+      -webkit-overflow-scrolling: touch;
     }
-    .top-scrollbar-container > table {
-      transform: rotateX(180deg);
+    html.dark .reservation-custom-scrollbar {
+      scrollbar-color: #10B981 #1E293B;
+    }
+    .reservation-custom-scrollbar::-webkit-scrollbar {
+      height: 8px;
+    }
+    .reservation-custom-scrollbar::-webkit-scrollbar-track {
+      background: #E2E8F0;
+      border-radius: 9999px;
+    }
+    html.dark .reservation-custom-scrollbar::-webkit-scrollbar-track {
+      background: #1E293B;
+      border-radius: 9999px;
+    }
+    .reservation-custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #1E6C02;
+      border-radius: 9999px;
+      border: 1px solid #CBD5E1;
+    }
+    .reservation-custom-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: #145001;
+    }
+    html.dark .reservation-custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #059669;
+      border: 1px solid #334155;
+    }
+    html.dark .reservation-custom-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: #10B981;
     }
 
     /* Polished Primary-Action "Review Payment" Button */
@@ -1005,20 +1032,64 @@
             </div>
           </div>
 
-          <!-- RESERVATION QUEUE TABLE -->
-          <div class="bg-white dark:bg-[#111827] rounded-2xl border border-gray-200/90 dark:border-slate-800 shadow-xs overflow-hidden">
-            <div class="overflow-x-auto">
-              <table class="w-full text-left border-collapse min-w-[1040px]">
+          <!-- RESERVATION QUEUE TABLE CARD -->
+          <div id="reservation-table-card" class="bg-white dark:bg-[#111827] rounded-2xl border border-gray-200/90 dark:border-slate-800 shadow-xs relative">
+            <!-- TOP HORIZONTAL SCROLLBAR CONTROLLER (Accessible at top & sticky while scrolling) -->
+            <div id="reservation-top-scroll-wrapper" class="sticky top-0 z-20 bg-white/95 dark:bg-[#111827]/95 backdrop-blur-xs border-b border-gray-200/90 dark:border-slate-800 px-5 py-2.5 rounded-t-2xl transition-all">
+              <div class="flex items-center justify-between gap-3 text-xs mb-1.5 select-none">
+                <div class="flex items-center gap-2 font-bold text-gray-700 dark:text-gray-300">
+                  <span class="inline-flex items-center justify-center w-5 h-5 rounded-md bg-emerald-50 dark:bg-emerald-950/60 text-[#1E6C02] dark:text-emerald-400 text-xs shadow-2xs">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path>
+                    </svg>
+                  </span>
+                  <span class="font-extrabold text-gray-900 dark:text-white">Horizontal Scroll</span>
+                  <span id="reservation-scroll-indicator" class="text-[11px] font-medium text-gray-500 dark:text-gray-400 hidden sm:inline-block">
+                    (drag bar or use buttons to navigate all columns)
+                  </span>
+                </div>
+                <div class="flex items-center gap-1.5 shrink-0">
+                  <button 
+                    type="button" 
+                    id="btn-scroll-table-left" 
+                    class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-gray-300 dark:border-slate-700 bg-gray-50 dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-700 text-gray-800 dark:text-gray-200 text-xs font-bold transition-all cursor-pointer shadow-2xs focus:outline-none"
+                    title="Scroll table to the left"
+                    aria-label="Scroll left"
+                  >
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"></path></svg>
+                    <span class="hidden sm:inline">Left</span>
+                  </button>
+                  <button 
+                    type="button" 
+                    id="btn-scroll-table-right" 
+                    class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-gray-300 dark:border-slate-700 bg-gray-50 dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-700 text-gray-800 dark:text-gray-200 text-xs font-bold transition-all cursor-pointer shadow-2xs focus:outline-none"
+                    title="Scroll table to the right"
+                    aria-label="Scroll right"
+                  >
+                    <span class="hidden sm:inline">Right</span>
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"></path></svg>
+                  </button>
+                </div>
+              </div>
+              <!-- Top Native Scrollbar Track (synced with the table) -->
+              <div id="reservation-top-scrollbar" class="overflow-x-auto reservation-custom-scrollbar h-2.5 sm:h-3 cursor-ew-resize">
+                <div id="reservation-top-scrollbar-dummy" class="h-1 pointer-events-none"></div>
+              </div>
+            </div>
+
+            <!-- TABLE CONTAINER -->
+            <div id="reservation-table-container" class="overflow-x-auto reservation-custom-scrollbar rounded-b-2xl">
+              <table id="reservation-queue-table" class="w-full text-left border-collapse min-w-[1260px]">
                 <thead>
-                  <tr class="bg-gray-50/90 dark:bg-slate-800/80 border-b border-gray-200/90 dark:border-slate-800 text-xs sm:text-[13px] font-black text-gray-800 dark:text-gray-200 uppercase tracking-wider sticky top-0 z-10">
-                    <th class="py-4 px-4 text-center w-[95px]">Queue #</th>
-                    <th class="py-4 px-4 min-w-[200px]">Customer</th>
-                    <th class="py-4 px-4 min-w-[210px]">Rice Variety</th>
-                    <th class="py-4 px-4 text-center w-[125px]">Quantity</th>
-                    <th class="py-4 px-4 min-w-[170px]">Reserved Date</th>
-                    <th class="py-4 px-4 min-w-[220px]">Status</th>
-                    <th class="py-4 px-4 text-center w-[155px]">Action</th>
-                    <th class="py-4 px-4 text-center w-[155px]">Primary Action</th>
+                  <tr class="bg-gray-50/90 dark:bg-slate-800/80 border-b border-gray-200/90 dark:border-slate-800 text-xs sm:text-[13px] font-black text-gray-800 dark:text-gray-200 uppercase tracking-wider">
+                    <th class="py-4.5 px-5 text-center w-[110px] whitespace-nowrap">Queue #</th>
+                    <th class="py-4.5 px-6 min-w-[230px]">Customer</th>
+                    <th class="py-4.5 px-6 min-w-[240px]">Rice Variety</th>
+                    <th class="py-4.5 px-5 text-center w-[135px] whitespace-nowrap">Quantity</th>
+                    <th class="py-4.5 px-6 min-w-[190px] whitespace-nowrap">Reserved Date</th>
+                    <th class="py-4.5 px-6 min-w-[250px]">Status</th>
+                    <th class="py-4.5 px-5 text-center w-[165px] whitespace-nowrap">Action</th>
+                    <th class="py-4.5 px-5 text-center w-[165px] whitespace-nowrap">Primary Action</th>
                   </tr>
                 </thead>
                 <tbody id="queue-table-body" class="divide-y divide-gray-100 dark:divide-slate-800/80">
@@ -1360,26 +1431,26 @@
           if (pos && isWaiting) {
             if (isNext) {
               queuePosHtml = `
-                <div class="inline-flex flex-col items-center gap-1">
-                  <span class="inline-flex items-center justify-center px-3 py-1 rounded-xl bg-emerald-100 dark:bg-emerald-950/70 border border-emerald-300 dark:border-emerald-700 text-[#1E6C02] dark:text-emerald-300 font-black text-sm sm:text-base shadow-2xs">
+                <div class="inline-flex flex-col items-center gap-1.5">
+                  <span class="inline-flex items-center justify-center px-3.5 py-1.5 rounded-xl bg-emerald-100 dark:bg-emerald-950/70 border border-emerald-300 dark:border-emerald-700 text-[#1E6C02] dark:text-emerald-300 font-black text-sm sm:text-base shadow-2xs">
                     #${pos}
                   </span>
-                  <span class="px-2 py-0.5 rounded-md bg-[#1E6C02] dark:bg-emerald-500 text-white text-[10px] font-black uppercase tracking-wider leading-none shadow-2xs">
+                  <span class="px-2.5 py-0.5 rounded-md bg-[#1E6C02] dark:bg-emerald-500 text-white text-[10px] font-black uppercase tracking-wider leading-none shadow-2xs">
                     Next
                   </span>
                 </div>
               `;
             } else {
               queuePosHtml = `
-                <span class="inline-flex items-center justify-center px-3 py-1 rounded-xl bg-gray-100 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 font-black text-gray-950 dark:text-white text-sm sm:text-base shadow-2xs">
+                <span class="inline-flex items-center justify-center px-3.5 py-1.5 rounded-xl bg-gray-100 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 font-black text-gray-950 dark:text-white text-sm sm:text-base shadow-2xs">
                   #${pos}
                 </span>
               `;
             }
           } else if (pos && isPaymentVerification) {
             queuePosHtml = `
-              <div class="inline-flex flex-col items-center gap-1">
-                <span class="inline-flex items-center justify-center px-3 py-1 rounded-xl bg-blue-50 dark:bg-blue-950/70 border border-blue-300 dark:border-blue-700 text-blue-800 dark:text-blue-200 font-black text-sm sm:text-base shadow-2xs">
+              <div class="inline-flex flex-col items-center gap-1.5">
+                <span class="inline-flex items-center justify-center px-3.5 py-1.5 rounded-xl bg-blue-50 dark:bg-blue-950/70 border border-blue-300 dark:border-blue-700 text-blue-800 dark:text-blue-200 font-black text-sm sm:text-base shadow-2xs">
                   #${pos}
                 </span>
                 <span class="text-[10px] font-extrabold text-blue-700 dark:text-blue-300 uppercase tracking-wider leading-none">
@@ -1389,13 +1460,13 @@
             `;
           } else if (pos && isReuploadWaiting) {
             queuePosHtml = `
-              <span class="inline-flex items-center justify-center px-3 py-1 rounded-xl bg-amber-50 dark:bg-amber-950/70 border border-amber-300 dark:border-amber-700 text-amber-800 dark:text-amber-200 font-black text-sm sm:text-base shadow-2xs">
+              <span class="inline-flex items-center justify-center px-3.5 py-1.5 rounded-xl bg-amber-50 dark:bg-amber-950/70 border border-amber-300 dark:border-amber-700 text-amber-800 dark:text-amber-200 font-black text-sm sm:text-base shadow-2xs">
                 #${pos}
               </span>
             `;
           } else if (pos && isReady) {
             queuePosHtml = `
-              <span class="inline-flex items-center justify-center px-3 py-1 rounded-xl bg-purple-50 dark:bg-purple-950/70 border border-purple-300 dark:border-purple-700 text-purple-800 dark:text-purple-200 font-black text-sm sm:text-base shadow-2xs">
+              <span class="inline-flex items-center justify-center px-3.5 py-1.5 rounded-xl bg-purple-50 dark:bg-purple-950/70 border border-purple-300 dark:border-purple-700 text-purple-800 dark:text-purple-200 font-black text-sm sm:text-base shadow-2xs">
                 #${pos}
               </span>
             `;
@@ -1416,7 +1487,7 @@
 
             if (rawRefundStatus === 'Refund Information Needed') {
               statusBadge = `
-                <div class="flex flex-col items-start gap-1 text-left leading-tight">
+                <div class="flex flex-col items-start gap-1.5 text-left leading-tight">
                   <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-red-50 dark:bg-red-950/60 border border-red-300 dark:border-red-800 text-red-800 dark:text-red-200 font-bold text-xs sm:text-[13px] shrink-0 whitespace-nowrap">
                     Cancelled
                   </span>
@@ -1430,7 +1501,7 @@
               `;
             } else if (rawRefundStatus === 'Refund Information Submitted') {
               statusBadge = `
-                <div class="flex flex-col items-start gap-1 text-left leading-tight">
+                <div class="flex flex-col items-start gap-1.5 text-left leading-tight">
                   <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-red-50 dark:bg-red-950/60 border border-red-300 dark:border-red-800 text-red-800 dark:text-red-200 font-bold text-xs sm:text-[13px] shrink-0 whitespace-nowrap">
                     Cancelled
                   </span>
@@ -1444,7 +1515,7 @@
               `;
             } else if (rawRefundStatus === 'No Refund Needed') {
               statusBadge = `
-                <div class="flex flex-col items-start gap-1 text-left leading-tight">
+                <div class="flex flex-col items-start gap-1.5 text-left leading-tight">
                   <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-red-50 dark:bg-red-950/60 border border-red-300 dark:border-red-800 text-red-800 dark:text-red-200 font-bold text-xs sm:text-[13px] shrink-0 whitespace-nowrap">
                     Cancelled
                   </span>
@@ -1455,7 +1526,7 @@
               statusBadge = `<span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-gray-100 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 text-gray-800 dark:text-gray-200 text-xs sm:text-[13px] font-bold shrink-0 whitespace-nowrap">Cancelled</span>`;
             }
             dateAndAvailabilityHtml = `
-              <div class="space-y-0.5 text-left leading-tight">
+              <div class="space-y-1 text-left leading-tight">
                 <p class="font-black text-gray-950 dark:text-white text-sm sm:text-[14px] leading-tight">${dateStr}</p>
                 <p class="text-xs sm:text-[13px] text-gray-700 dark:text-gray-300 font-semibold leading-tight">${timeStr}</p>
               </div>
@@ -1468,16 +1539,16 @@
             const mLeft = Math.max(0, Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)));
 
             statusBadge = `
-              <div class="flex flex-col items-start gap-1 text-left leading-tight">
+              <div class="flex flex-col items-start gap-1.5 text-left leading-tight">
                 <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full ${isExp ? 'bg-red-50 dark:bg-red-950/60 border border-red-300 dark:border-red-800 text-red-800 dark:text-red-200' : 'bg-amber-50 dark:bg-amber-950/60 border border-amber-300 dark:border-amber-700 text-amber-900 dark:text-amber-200'} font-bold text-xs sm:text-[13px] shrink-0 whitespace-nowrap leading-tight">
                   ${isExp ? '⚠️ Window Expired' : '⏱️ Proof Rejected'}
                 </span>
-                <p class="text-xs sm:text-[13px] text-red-700 dark:text-red-300 font-bold truncate max-w-[210px] leading-tight" title="${order.paymentRejectionReason || 'Proof declined'}">${order.paymentRejectionReason || 'Proof declined'}</p>
+                <p class="text-xs sm:text-[13px] text-red-700 dark:text-red-300 font-bold truncate max-w-[230px] leading-tight" title="${order.paymentRejectionReason || 'Proof declined'}">${order.paymentRejectionReason || 'Proof declined'}</p>
                 <p class="text-xs text-gray-700 dark:text-gray-300 font-semibold leading-tight">${isExp ? '48h window expired' : `${hLeft}h ${mLeft}m to re-upload`}</p>
               </div>
             `;
             dateAndAvailabilityHtml = `
-              <div class="space-y-0.5 text-left leading-tight">
+              <div class="space-y-1 text-left leading-tight">
                 <p class="font-black text-gray-950 dark:text-white text-sm sm:text-[14px] leading-tight">${dateStr}</p>
                 <p class="text-xs sm:text-[13px] text-gray-700 dark:text-gray-300 font-semibold leading-tight">${timeStr}</p>
               </div>
@@ -1489,7 +1560,7 @@
             const isPartiallyAllocated = allocatedQty > 0 && allocatedQty < qty;
 
             statusBadge = `
-              <div class="flex flex-col items-start gap-1 text-left leading-tight">
+              <div class="flex flex-col items-start gap-1.5 text-left leading-tight">
                 <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 dark:bg-blue-950/60 border border-blue-300 dark:border-blue-700 text-blue-800 dark:text-blue-200 font-bold text-xs sm:text-[13px] shrink-0 whitespace-nowrap leading-tight">
                   🔵 Payment Review
                 </span>
@@ -1514,7 +1585,7 @@
               </div>
             `;
             dateAndAvailabilityHtml = `
-              <div class="space-y-0.5 text-left leading-tight">
+              <div class="space-y-1 text-left leading-tight">
                 <p class="font-black text-gray-950 dark:text-white text-sm sm:text-[14px] leading-tight">${dateStr}</p>
                 <p class="text-xs sm:text-[13px] text-gray-700 dark:text-gray-300 font-semibold leading-tight">${timeStr}</p>
               </div>
@@ -1526,7 +1597,7 @@
             const isPartiallyAllocated = allocatedQty > 0 && allocatedQty < qty;
 
             statusBadge = `
-              <div class="flex flex-col items-start gap-1 text-left leading-tight">
+              <div class="flex flex-col items-start gap-1.5 text-left leading-tight">
                 ${isFullyAllocated ? `
                   <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-700 text-emerald-900 dark:text-emerald-200 font-bold text-xs sm:text-[13px] shrink-0 whitespace-nowrap leading-tight">
                     🟢 Stock Allocated
@@ -1550,7 +1621,7 @@
               </div>
             `;
             dateAndAvailabilityHtml = `
-              <div class="space-y-0.5 text-left leading-tight">
+              <div class="space-y-1 text-left leading-tight">
                 <p class="font-black text-gray-950 dark:text-white text-sm sm:text-[14px] leading-tight">${dateStr}</p>
                 <p class="text-xs sm:text-[13px] text-gray-700 dark:text-gray-300 font-semibold leading-tight">${timeStr}</p>
                 <p class="text-xs sm:text-[13px] text-gray-900 dark:text-gray-100 font-bold pt-1 leading-tight">
@@ -1561,7 +1632,7 @@
           } else if (isReady) {
             const allocatedQty = Number(order.allocatedQuantity || qty);
             statusBadge = `
-              <div class="flex flex-col items-start gap-1 text-left leading-tight">
+              <div class="flex flex-col items-start gap-1.5 text-left leading-tight">
                 <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-700 text-emerald-900 dark:text-emerald-200 text-xs sm:text-[13px] font-bold shrink-0 whitespace-nowrap leading-tight">
                   🟢 Ready
                 </span>
@@ -1570,7 +1641,7 @@
               </div>
             `;
             dateAndAvailabilityHtml = `
-              <div class="space-y-0.5 text-left leading-tight">
+              <div class="space-y-1 text-left leading-tight">
                 <p class="font-black text-gray-950 dark:text-white text-sm sm:text-[14px] leading-tight">${dateStr}</p>
                 <p class="text-xs sm:text-[13px] text-gray-700 dark:text-gray-300 font-semibold leading-tight">${timeStr}</p>
               </div>
@@ -1578,7 +1649,7 @@
           } else {
             statusBadge = `<span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-gray-100 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 text-gray-800 dark:text-gray-200 text-xs sm:text-[13px] font-bold shrink-0 whitespace-nowrap">Cancelled</span>`;
             dateAndAvailabilityHtml = `
-              <div class="space-y-0.5 text-left leading-tight">
+              <div class="space-y-1 text-left leading-tight">
                 <p class="font-black text-gray-950 dark:text-white text-sm sm:text-[14px] leading-tight">${dateStr}</p>
                 <p class="text-xs sm:text-[13px] text-gray-700 dark:text-gray-300 font-semibold leading-tight">${timeStr}</p>
               </div>
@@ -1592,7 +1663,7 @@
             secondaryActionHtml = `
               <button 
                 data-id="${order.id}"
-                class="btn-view-details w-[140px] h-9.5 inline-flex items-center justify-center px-3 border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-slate-700 text-xs sm:text-[13px] font-bold rounded-xl transition-all duration-150 cursor-pointer whitespace-nowrap text-center shadow-2xs"
+                class="btn-view-details w-[145px] h-10 inline-flex items-center justify-center px-3.5 border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-slate-700 text-xs sm:text-[13px] font-bold rounded-xl transition-all duration-150 cursor-pointer whitespace-nowrap text-center shadow-2xs"
               >
                 Manage Reservation
               </button>
@@ -1600,7 +1671,7 @@
             primaryActionHtml = `
               <button 
                 data-id="${order.id}"
-                class="btn-process-order w-[140px] h-9.5 inline-flex items-center justify-center bg-[#1E6C02] hover:bg-[#145001] dark:bg-emerald-600 dark:hover:bg-emerald-700 text-white font-bold rounded-xl px-3 transition-all duration-150 cursor-pointer shadow-xs text-xs sm:text-[13px] whitespace-nowrap text-center"
+                class="btn-process-order w-[145px] h-10 inline-flex items-center justify-center bg-[#1E6C02] hover:bg-[#145001] dark:bg-emerald-600 dark:hover:bg-emerald-700 text-white font-bold rounded-xl px-3.5 transition-all duration-150 cursor-pointer shadow-xs text-xs sm:text-[13px] whitespace-nowrap text-center"
               >
                 Process Order
               </button>
@@ -1610,7 +1681,7 @@
             primaryActionHtml = `
               <button 
                 data-id="${order.id}"
-                class="btn-view-details w-[140px] h-9.5 inline-flex items-center justify-center bg-amber-600 hover:bg-amber-700 dark:bg-amber-500 dark:hover:bg-amber-600 text-white font-bold rounded-xl px-3 transition-all duration-150 cursor-pointer shadow-xs text-xs sm:text-[13px] whitespace-nowrap text-center"
+                class="btn-view-details w-[145px] h-10 inline-flex items-center justify-center bg-amber-600 hover:bg-amber-700 dark:bg-amber-500 dark:hover:bg-amber-600 text-white font-bold rounded-xl px-3.5 transition-all duration-150 cursor-pointer shadow-xs text-xs sm:text-[13px] whitespace-nowrap text-center"
               >
                 Review Status
               </button>
@@ -1620,7 +1691,7 @@
             primaryActionHtml = `
               <button 
                 data-id="${order.id}"
-                class="btn-view-details btn-review-payment w-[140px] h-9.5 inline-flex items-center justify-center bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white font-bold rounded-xl px-3 transition-all duration-150 cursor-pointer shadow-xs text-xs sm:text-[13px] whitespace-nowrap text-center"
+                class="btn-view-details btn-review-payment w-[145px] h-10 inline-flex items-center justify-center bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white font-bold rounded-xl px-3.5 transition-all duration-150 cursor-pointer shadow-xs text-xs sm:text-[13px] whitespace-nowrap text-center"
               >
                 Review Payment
               </button>
@@ -1630,7 +1701,7 @@
             primaryActionHtml = `
               <button 
                 data-id="${order.id}"
-                class="btn-view-details w-[140px] h-9.5 inline-flex items-center justify-center bg-[#1E6C02] hover:bg-[#145001] dark:bg-emerald-600 dark:hover:bg-emerald-700 text-white font-bold rounded-xl px-3 transition-all duration-150 cursor-pointer shadow-xs text-xs sm:text-[13px] whitespace-nowrap text-center"
+                class="btn-view-details w-[145px] h-10 inline-flex items-center justify-center bg-[#1E6C02] hover:bg-[#145001] dark:bg-emerald-600 dark:hover:bg-emerald-700 text-white font-bold rounded-xl px-3.5 transition-all duration-150 cursor-pointer shadow-xs text-xs sm:text-[13px] whitespace-nowrap text-center"
               >
                 Manage Reservation
               </button>
@@ -1640,7 +1711,7 @@
             primaryActionHtml = `
               <button 
                 data-id="${order.id}"
-                class="btn-view-details w-[140px] h-9.5 inline-flex items-center justify-center border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-slate-700 font-bold rounded-xl px-3 transition-all duration-150 cursor-pointer shadow-2xs text-xs sm:text-[13px] whitespace-nowrap text-center"
+                class="btn-view-details w-[145px] h-10 inline-flex items-center justify-center border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-slate-700 font-bold rounded-xl px-3.5 transition-all duration-150 cursor-pointer shadow-2xs text-xs sm:text-[13px] whitespace-nowrap text-center"
               >
                 Manage Reservation
               </button>
@@ -1650,17 +1721,17 @@
           return `
             <tr id="reservation-row-${order.id}" class="${rowBgClass}">
               <!-- Queue Position -->
-              <td class="py-4 px-4 text-center align-middle whitespace-nowrap">${queuePosHtml}</td>
+              <td class="py-5 px-5 text-center align-middle whitespace-nowrap">${queuePosHtml}</td>
               
               <!-- Customer details -->
-              <td class="py-4 px-4 align-middle">
-                <div class="flex items-center gap-3">
+              <td class="py-5 px-6 align-middle">
+                <div class="flex items-center gap-3.5">
                   ${avatarHtml}
-                  <div class="min-w-0">
+                  <div class="min-w-0 space-y-1">
                     <p class="font-black text-gray-950 dark:text-white text-sm sm:text-[15px] leading-snug truncate" title="${customerName}">
                       ${customerName}
                     </p>
-                    <p class="text-xs sm:text-[13px] text-gray-700 dark:text-gray-300 font-semibold mt-0.5 truncate leading-tight">
+                    <p class="text-xs sm:text-[13px] text-gray-700 dark:text-gray-300 font-semibold truncate leading-tight">
                       ${order.phone || 'No Phone'}
                     </p>
                   </div>
@@ -1668,14 +1739,14 @@
               </td>
 
               <!-- Product variety & Image -->
-              <td class="py-4 px-4 align-middle">
-                <div class="flex items-center gap-3 min-w-0">
-                  <img src="${productImg}" alt="${productName}" class="w-10 h-10 sm:w-11 sm:h-11 rounded-xl object-cover border border-gray-200/80 dark:border-slate-700 shrink-0 shadow-2xs" />
-                  <div class="min-w-0">
+              <td class="py-5 px-6 align-middle">
+                <div class="flex items-center gap-3.5 min-w-0">
+                  <img src="${productImg}" alt="${productName}" class="w-11 h-11 rounded-xl object-cover border border-gray-200/80 dark:border-slate-700 shrink-0 shadow-2xs" />
+                  <div class="min-w-0 space-y-1">
                     <p class="font-black text-gray-950 dark:text-white text-sm sm:text-[15px] truncate leading-snug" title="${productName}">
                       ${productName}
                     </p>
-                    <p class="text-xs font-bold text-gray-700 dark:text-gray-300 truncate leading-tight mt-0.5">
+                    <p class="text-xs font-bold text-gray-700 dark:text-gray-300 truncate leading-tight">
                       #${order.id || ''}
                     </p>
                   </div>
@@ -1683,23 +1754,23 @@
               </td>
 
               <!-- Quantity -->
-              <td class="py-4 px-4 text-center align-middle whitespace-nowrap">
-                <span class="inline-flex items-center justify-center px-3.5 py-1.5 rounded-xl bg-gray-100/90 dark:bg-slate-800/90 border border-gray-300 dark:border-slate-700 text-gray-950 dark:text-white font-black text-sm sm:text-[15px]">
-                  ${qty} <span class="text-xs sm:text-[13px] font-bold text-gray-700 dark:text-gray-300 ml-1">Sack${qty > 1 ? 's' : ''}</span>
+              <td class="py-5 px-5 text-center align-middle whitespace-nowrap">
+                <span class="inline-flex items-center justify-center px-4 py-2 rounded-xl bg-gray-100/90 dark:bg-slate-800/90 border border-gray-300 dark:border-slate-700 text-gray-950 dark:text-white font-black text-sm sm:text-[15px]">
+                  ${qty} <span class="text-xs sm:text-[13px] font-bold text-gray-700 dark:text-gray-300 ml-1.5">Sack${qty > 1 ? 's' : ''}</span>
                 </span>
               </td>
 
               <!-- Reservation Date -->
-              <td class="py-4 px-4 align-middle whitespace-nowrap">${dateAndAvailabilityHtml}</td>
+              <td class="py-5 px-6 align-middle whitespace-nowrap">${dateAndAvailabilityHtml}</td>
 
               <!-- Status -->
-              <td class="py-4 px-4 align-middle">${statusBadge}</td>
+              <td class="py-5 px-6 align-middle">${statusBadge}</td>
 
               <!-- Secondary Action -->
-              <td class="py-4 px-4 text-center align-middle whitespace-nowrap">${secondaryActionHtml}</td>
+              <td class="py-5 px-5 text-center align-middle whitespace-nowrap">${secondaryActionHtml}</td>
 
               <!-- Primary Action -->
-              <td class="py-4 px-4 text-center align-middle whitespace-nowrap">${primaryActionHtml}</td>
+              <td class="py-5 px-5 text-center align-middle whitespace-nowrap">${primaryActionHtml}</td>
             </tr>
           `;
         }).join('');
@@ -1719,6 +1790,79 @@
             processOrderAction(id);
           });
         });
+
+        // Synchronize top and bottom scrollbars
+        syncReservationScrollbars();
+      }
+
+      // Synchronize horizontal scrolling between top controller and reservation table
+      function syncReservationScrollbars() {
+        const topScroll = document.getElementById('reservation-top-scrollbar');
+        const dummy = document.getElementById('reservation-top-scrollbar-dummy');
+        const tableContainer = document.getElementById('reservation-table-container');
+        const table = document.getElementById('reservation-queue-table');
+        const indicator = document.getElementById('reservation-scroll-indicator');
+
+        if (!topScroll || !dummy || !tableContainer || !table) return;
+
+        const tableWidth = table.scrollWidth;
+        const containerWidth = tableContainer.clientWidth;
+
+        dummy.style.width = tableWidth + 'px';
+
+        const isScrollable = tableWidth > containerWidth + 2;
+        if (indicator) {
+          indicator.textContent = isScrollable 
+            ? '(drag bar or use buttons to navigate all columns)' 
+            : '(all columns visible)';
+        }
+
+        if (!topScroll.dataset.listenerAttached) {
+          topScroll.dataset.listenerAttached = 'true';
+
+          let isSyncingTop = false;
+          let isSyncingBottom = false;
+
+          topScroll.addEventListener('scroll', () => {
+            if (isSyncingBottom) return;
+            isSyncingTop = true;
+            tableContainer.scrollLeft = topScroll.scrollLeft;
+            requestAnimationFrame(() => { isSyncingTop = false; });
+          }, { passive: true });
+
+          tableContainer.addEventListener('scroll', () => {
+            if (isSyncingTop) return;
+            isSyncingBottom = true;
+            topScroll.scrollLeft = tableContainer.scrollLeft;
+            requestAnimationFrame(() => { isSyncingBottom = false; });
+          }, { passive: true });
+
+          const btnLeft = document.getElementById('btn-scroll-table-left');
+          const btnRight = document.getElementById('btn-scroll-table-right');
+
+          if (btnLeft) {
+            btnLeft.addEventListener('click', (e) => {
+              e.preventDefault();
+              tableContainer.scrollBy({ left: -260, behavior: 'smooth' });
+            });
+          }
+
+          if (btnRight) {
+            btnRight.addEventListener('click', (e) => {
+              e.preventDefault();
+              tableContainer.scrollBy({ left: 260, behavior: 'smooth' });
+            });
+          }
+
+          window.addEventListener('resize', () => {
+            if (table && dummy && tableContainer) {
+              dummy.style.width = table.scrollWidth + 'px';
+              topScroll.scrollLeft = tableContainer.scrollLeft;
+            }
+          }, { passive: true });
+        } else {
+          topScroll.scrollLeft = tableContainer.scrollLeft;
+        }
       }
 
       // Main Event Bindings

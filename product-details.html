@@ -251,7 +251,7 @@
       const urlParams = new URLSearchParams(window.location.search);
       const prodId = urlParams.get('id');
 
-      const product = getProductById(prodId);
+      let product = getProductById(prodId);
       if (!product || product.isArchived || product.archived) {
         showToast('Grain variety details not found', 'error');
         setTimeout(() => {
@@ -265,23 +265,27 @@
 
       // 1. Populate Image Element Left
       const imgBox = document.getElementById('product-img-box');
-      imgBox.innerHTML = `
-        <img 
-          src="${product.image}" 
-          alt="${product.name}" 
-          class="w-full h-full object-cover transition-transform duration-700 hover:scale-105"
-          referrerPolicy="no-referrer"
-        />
-        ${product.stock === 0 ? `
-          <div class="absolute top-6 left-6 bg-[#EF4444] text-white px-5 py-2 rounded-full font-black text-[10px] uppercase tracking-wider shadow-md z-10 animate-pulse">
-            Out Of Stock
-          </div>
-        ` : product.stock <= 20 ? `
-          <div class="absolute top-6 left-6 bg-[#FF5B00] text-white px-5 py-2.5 rounded-full font-black text-[10px] uppercase tracking-wider shadow-md z-10">
-            LOW STOCK
-          </div>
-        ` : ''}
-      `;
+      function renderImageBox() {
+        if (!imgBox || !product) return;
+        imgBox.innerHTML = `
+          <img 
+            src="${product.image}" 
+            alt="${product.name}" 
+            class="w-full h-full object-cover transition-transform duration-700 hover:scale-105"
+            referrerPolicy="no-referrer"
+          />
+          ${product.stock === 0 ? `
+            <div class="absolute top-6 left-6 bg-[#EF4444] text-white px-5 py-2 rounded-full font-black text-[10px] uppercase tracking-wider shadow-md z-10 animate-pulse">
+              Out Of Stock
+            </div>
+          ` : product.stock <= 20 ? `
+            <div class="absolute top-6 left-6 bg-[#FF5B00] text-white px-5 py-2.5 rounded-full font-black text-[10px] uppercase tracking-wider shadow-md z-10">
+              LOW STOCK
+            </div>
+          ` : ''}
+        `;
+      }
+      renderImageBox();
 
       // 2. Populate Metainfo Right Column
       const metaPanel = document.getElementById('product-meta-panel');
@@ -493,6 +497,25 @@
 
       // Render details initial invocation
       renderMetaPanel();
+
+      function refreshProductData() {
+        const fresh = getProductById(prodId);
+        if (fresh && !fresh.isArchived && !fresh.archived) {
+          product = fresh;
+          renderImageBox();
+          renderMetaPanel();
+        }
+      }
+
+      // Listen for data sync events (e.g. Firebase cloud sync or order status changes)
+      window.addEventListener('aurora-sync-event', (e) => {
+        if (!e.detail || !e.detail.key || e.detail.key === 'aurora-products' || e.detail.key === 'aurora-orders') {
+          refreshProductData();
+        }
+      });
+      window.addEventListener('aurora-orders-updated', () => {
+        refreshProductData();
+      });
 
       // Modal Button binders
       // 1. Add to Cart confirmations

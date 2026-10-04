@@ -2308,12 +2308,21 @@
           !order.paymentRejected
         );
 
+        // Verification & payment proof state evaluation
+        const isPaymentVerified = Boolean(
+          order.paymentVerified || 
+          order.paymentStatus === 'verified' || 
+          ['to-ship', 'to-receive', 'delivered', 'completed'].includes(oStatus)
+        );
+
+        const isPaymentProofSubmitted = Boolean(
+          !isPaymentVerified && hasUploadedProof
+        );
+
         // Has the customer completed payment or submitted proof?
         const hasPaidOrSubmitted = Boolean(
-          order.paymentVerified || 
-          hasUploadedProof || 
-          (order.amountPaid !== undefined && order.amountPaid !== null && Number(order.amountPaid) > 0) ||
-          ['to-ship', 'to-receive', 'delivered', 'completed'].includes(oStatus)
+          isPaymentVerified || 
+          hasUploadedProof
         );
 
         // Explicit check: is it 30% Down Payment or Full Payment?
@@ -2788,7 +2797,8 @@
                     <span class="font-black text-gray-900 dark:text-gray-100 text-lg">₱${totalAmount.toLocaleString()}.00</span>
                   </div>
 
-                  ${isPaidInFull ? `
+                  ${isPaymentVerified ? (
+                    (isPaidInFull || actualAmountPaid >= totalAmount || isExplicitFullPayment || ['delivered', 'completed'].includes(oStatus)) ? `
                     <div class="p-4 bg-emerald-50/90 dark:bg-emerald-950/50 rounded-2xl border border-emerald-200 dark:border-emerald-800/80 text-emerald-950 dark:text-emerald-100 flex justify-between items-center">
                       <div>
                         <span class="text-xs font-black uppercase tracking-wider block text-emerald-800 dark:text-emerald-300">Paid in Full</span>
@@ -2801,7 +2811,7 @@
                       <span class="text-gray-900 dark:text-gray-100 font-bold text-sm">Remaining Balance:</span>
                       <span class="text-emerald-700 dark:text-emerald-400 font-extrabold text-base">₱0.00</span>
                     </div>
-                  ` : (isPaidDownPayment ? `
+                  ` : `
                     <div class="p-4 bg-emerald-50/90 dark:bg-emerald-950/50 rounded-2xl border border-emerald-200 dark:border-emerald-800/80 text-emerald-950 dark:text-emerald-100 flex justify-between items-center">
                       <div>
                         <span class="text-xs font-black uppercase tracking-wider block text-emerald-800 dark:text-emerald-300">Down Payment Paid</span>
@@ -2813,6 +2823,19 @@
                     <div class="flex justify-between items-center p-3.5 bg-gray-50 dark:bg-slate-800/80 rounded-2xl border border-gray-200 dark:border-slate-700">
                       <span class="text-gray-900 dark:text-gray-100 font-bold text-sm">Remaining Balance:</span>
                       <span class="text-gray-900 dark:text-gray-100 font-extrabold text-base">₱${remainingBalance.toLocaleString()}.00</span>
+                    </div>
+                  `) : (isPaymentProofSubmitted ? `
+                    <div class="p-4 bg-amber-50/90 dark:bg-amber-950/50 rounded-2xl border border-amber-200 dark:border-amber-800/80 text-amber-950 dark:text-amber-100 flex justify-between items-center">
+                      <div>
+                        <span class="text-xs font-black uppercase tracking-wider block text-amber-800 dark:text-amber-300">${isDepositType ? 'Down Payment Submitted' : 'Payment Submitted'}</span>
+                        <span class="text-xs font-bold text-amber-700 dark:text-amber-400">(Pending Verification)</span>
+                      </div>
+                      <span class="text-2xl font-black text-amber-800 dark:text-amber-300">₱${actualAmountPaid.toLocaleString()}.00</span>
+                    </div>
+
+                    <div class="flex justify-between items-center p-3.5 bg-gray-50 dark:bg-slate-800/80 rounded-2xl border border-gray-200 dark:border-slate-700">
+                      <span class="text-gray-900 dark:text-gray-100 font-bold text-sm">Remaining Balance:</span>
+                      <span class="text-gray-900 dark:text-gray-100 font-extrabold text-base">₱${(isExplicitFullPayment || actualAmountPaid >= totalAmount ? 0 : remainingBalance).toLocaleString()}.00</span>
                     </div>
                   ` : `
                     <div class="p-4 bg-emerald-50/90 dark:bg-emerald-950/50 rounded-2xl border border-emerald-200 dark:border-emerald-800/80 text-emerald-950 dark:text-emerald-100 flex justify-between items-center">
