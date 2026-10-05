@@ -51,6 +51,7 @@ export default defineConfig({
         adminSettings: path.resolve(__dirname, 'admin/settings.html'),
         adminReservations: path.resolve(__dirname, 'admin/reservations.html'),
         adminCashTurnover: path.resolve(__dirname, 'admin/cash-turnover.html'),
+        adminSalesOverview: path.resolve(__dirname, 'admin/sales-overview.html'),
         terms: path.resolve(__dirname, 'terms.html'),
         privacy: path.resolve(__dirname, 'privacy.html'),
         paymentGuide: path.resolve(__dirname, 'payment-guide.html'),

@@ -40,6 +40,41 @@
       background-color: #111827;
       color: #FFFFFF;
     }
+
+    /* Review filter tab buttons hover styling (Day Mode & Dark Mode) */
+    .review-tab-btn {
+      transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+    }
+
+    /* Inactive tab button hover in Day Mode: polished visible gray pill, never pure white */
+    html:not(.dark) .review-tab-btn:not([class*="bg-[#1E6C02]"]):hover {
+      background-color: #E5E7EB !important;
+      color: #111827 !important;
+      border-color: #D1D5DB !important;
+    }
+
+    /* Active tab button hover in Day Mode: stays dark forest green, never turns white */
+    html:not(.dark) .review-tab-btn[class*="bg-[#1E6C02]"]:hover,
+    html:not(.dark) .review-tab-btn.bg-\[\#1E6C02\]:hover {
+      background-color: #145001 !important;
+      color: #FFFFFF !important;
+      border-color: #145001 !important;
+    }
+
+    /* Inactive tab button hover in Dark Mode */
+    html.dark .review-tab-btn:not([class*="bg-[#1E6C02]"]):hover {
+      background-color: #1F2937 !important;
+      color: #FFFFFF !important;
+      border-color: #374151 !important;
+    }
+
+    /* Active tab button hover in Dark Mode */
+    html.dark .review-tab-btn[class*="bg-[#1E6C02]"]:hover,
+    html.dark .review-tab-btn.bg-\[\#1E6C02\]:hover {
+      background-color: #145001 !important;
+      color: #FFFFFF !important;
+      border-color: #145001 !important;
+    }
   </style>
   <link rel="stylesheet" href="src/styles/index.css">
 </head>
@@ -166,13 +201,13 @@
             </button>
             <button 
               data-filter="product"
-              class="review-tab-btn px-3.5 py-1.5 rounded-lg bg-gray-50 hover:bg-gray-100 text-[#111827] dark:text-white border border-gray-200 transition-all cursor-pointer"
+              class="review-tab-btn px-3.5 py-1.5 rounded-lg bg-gray-50 text-[#111827] dark:text-white border border-gray-200 transition-all cursor-pointer"
             >
               Product Reviews (<span id="tab-count-product">0</span>)
             </button>
             <button 
               data-filter="experience"
-              class="review-tab-btn px-3.5 py-1.5 rounded-lg bg-gray-50 hover:bg-gray-100 text-[#111827] dark:text-white border border-gray-200 transition-all cursor-pointer"
+              class="review-tab-btn px-3.5 py-1.5 rounded-lg bg-gray-50 text-[#111827] dark:text-white border border-gray-200 transition-all cursor-pointer"
             >
               Ordering Experience (<span id="tab-count-experience">0</span>)
             </button>
