@@ -56,6 +56,8 @@ export default defineConfig({
         privacy: path.resolve(__dirname, 'privacy.html'),
         paymentGuide: path.resolve(__dirname, 'payment-guide.html'),
         resetPassword: path.resolve(__dirname, 'reset-password.html'),
+        notificationDetails: path.resolve(__dirname, 'notification-details.html'),
+        notifications: path.resolve(__dirname, 'notification-details.html'),
       }
     }
   },

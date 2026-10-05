@@ -124,7 +124,8 @@
     import {
       protectAdminPage,
       renderAdminLayout,
-      getDashboardTopRiceProductData
+      getDashboardTopRiceProductData,
+      getProducts
     } from '../src/app/shared.js';
 
     document.addEventListener('DOMContentLoaded', async () => {
@@ -171,15 +172,25 @@
 
       function renderTopProductPage() {
         const filterOptions = getFilterOptionsFromNavigation();
-        const topProductData = getDashboardTopRiceProductData(filterOptions);
+        const catalogProducts = typeof getProducts === 'function' ? getProducts() : [];
+        const topProductData = getDashboardTopRiceProductData({
+          ...filterOptions,
+          productsList: catalogProducts
+        });
 
         const filterSubnote = topProductData.isFilterActive
           ? `<span class="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1 rounded-lg bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800/60 mt-2">Filtered by: ${topProductData.rangeLabel}${topProductData.currentProd !== 'all' ? ` · ${topProductData.activeVarietyLabel}` : ''}</span>`
           : '';
 
-        const varieties = topProductData.varieties || [];
+        const isArchived = (name) => {
+          if (!name) return false;
+          const target = catalogProducts.find(p => p && String(p.name || '').trim().toLowerCase() === String(name).trim().toLowerCase());
+          return Boolean(target && (target.isArchived === true || target.archived === true || target.status === 'archived' || String(target.status || '').toLowerCase() === 'archived'));
+        };
+
+        const varieties = (topProductData.varieties || []).filter(v => !isArchived(v.name));
         const topItem = varieties.find(v => v.isTop) || varieties[0] || null;
-        const hasSales = Boolean(topProductData.totalSacks > 0 && topProductData.topProductVol > 0);
+        const hasSales = Boolean(topProductData.totalSacks > 0 && topProductData.topProductVol > 0 && !isArchived(topProductData.topProductName));
 
         // Highlight card content
         const heroProductName = hasSales ? topProductData.topProductName : (topItem ? topItem.name : 'No Sales Yet');

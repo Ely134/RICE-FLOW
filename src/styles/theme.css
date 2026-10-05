@@ -586,17 +586,37 @@ html:not(.dark) #admin-layout-container table.text-gray-700 td:not(:has(button))
 }
 
 /* 8. Secondary outline/neutral buttons in Day Mode */
-html:not(.dark) #admin-layout-container button.border:not([class*="text-emerald"]):not([class*="text-green"]):not([class*="text-blue"]):not([class*="text-red"]):not([class*="text-[#1E6C02]"]),
-html:not(.dark) #admin-layout-container .filter-tab-btn:not(.bg-\[\#1E6C02\]),
-html:not(.dark) #admin-layout-container .btn-filter-tab:not(.bg-\[\#1E6C02\]):not([class*="bg-amber"]):not([class*="bg-blue"]):not([class*="bg-emerald"]),
-html:not(.dark) [id*="modal"] button.border:not([class*="text-emerald"]):not([class*="text-green"]):not([class*="text-blue"]):not([class*="text-red"]):not([class*="text-[#1E6C02]"]),
-html:not(.dark) [id*="dialog"] button.border:not([class*="text-emerald"]):not([class*="text-green"]):not([class*="text-blue"]):not([class*="text-red"]):not([class*="text-[#1E6C02]"]) {
+html:not(.dark) #admin-layout-container button.border:not([class*="text-white"]):not([class*="bg-[#1E6C02]"]):not([class*="bg-emerald"]):not([class*="bg-green"]):not([class*="text-emerald"]):not([class*="text-green"]):not([class*="text-blue"]):not([class*="text-red"]):not([class*="text-[#1E6C02]"]),
+html:not(.dark) #admin-layout-container .filter-tab-btn:not(.bg-\[\#1E6C02\]):not([class*="bg-[#1E6C02]"]),
+html:not(.dark) #admin-layout-container .btn-filter-tab:not(.bg-\[\#1E6C02\]):not([class*="bg-[#1E6C02]"]):not([class*="bg-amber"]):not([class*="bg-blue"]):not([class*="bg-emerald"]),
+html:not(.dark) [id*="modal"] button.border:not([class*="text-white"]):not([class*="bg-[#1E6C02]"]):not([class*="bg-emerald"]):not([class*="bg-green"]):not([class*="text-emerald"]):not([class*="text-green"]):not([class*="text-blue"]):not([class*="text-red"]):not([class*="text-[#1E6C02]"]),
+html:not(.dark) [id*="dialog"] button.border:not([class*="text-white"]):not([class*="bg-[#1E6C02]"]):not([class*="bg-emerald"]):not([class*="bg-green"]):not([class*="text-emerald"]):not([class*="text-green"]):not([class*="text-blue"]):not([class*="text-red"]):not([class*="text-[#1E6C02]"]) {
   color: #000000 !important;
   border-color: #9CA3AF !important;
 }
-html:not(.dark) #admin-layout-container .filter-tab-btn:not(.bg-\[\#1E6C02\]) *,
-html:not(.dark) #admin-layout-container .btn-filter-tab:not(.bg-\[\#1E6C02\]) * {
+html:not(.dark) #admin-layout-container .filter-tab-btn:not(.bg-\[\#1E6C02\]):not([class*="bg-[#1E6C02]"]) *,
+html:not(.dark) #admin-layout-container .btn-filter-tab:not(.bg-\[\#1E6C02\]):not([class*="bg-[#1E6C02]"]) * {
   color: #000000 !important;
+}
+
+/* Ensure selected/active green timeline and action buttons in Day Mode always have solid pure white text, numbers, and icons */
+html:not(.dark) #admin-layout-container button[class*="bg-[#1E6C02]"]:not(.btn-mark-read),
+html:not(.dark) #admin-layout-container button[class*="bg-[#1E6C02]"]:not(.btn-mark-read) *,
+html:not(.dark) #admin-layout-container .btn-date-filter[class*="bg-[#1E6C02]"],
+html:not(.dark) #admin-layout-container .btn-date-filter[class*="bg-[#1E6C02]"] *,
+html:not(.dark) #admin-layout-container #btn-custom-range[class*="bg-[#1E6C02]"],
+html:not(.dark) #admin-layout-container #btn-custom-range[class*="bg-[#1E6C02]"] *,
+html:not(.dark) [id*="modal"] button[class*="bg-[#1E6C02]"]:not(.btn-mark-read),
+html:not(.dark) [id*="modal"] button[class*="bg-[#1E6C02]"]:not(.btn-mark-read) *,
+html:not(.dark) [id*="modal"] .calendar-day-btn[class*="bg-[#1E6C02]"],
+html:not(.dark) [id*="modal"] .calendar-day-btn[class*="bg-[#1E6C02]"] * {
+  color: #FFFFFF !important;
+}
+html:not(.dark) #admin-layout-container button[class*="bg-[#1E6C02]"]:not(.btn-mark-read) svg,
+html:not(.dark) #admin-layout-container #btn-custom-range[class*="bg-[#1E6C02]"] svg,
+html:not(.dark) [id*="modal"] button[class*="bg-[#1E6C02]"]:not(.btn-mark-read) svg {
+  color: #FFFFFF !important;
+  stroke: #FFFFFF !important;
 }
 
 /* 9. Customer action buttons (View Customer Details, Archive Customer) */
@@ -2351,16 +2371,32 @@ html:not(.dark) .admin-notif-filter-btn:not(.notif-filter-active):hover {
 
 /* Mark as Read button styling in Day Mode and Dark Mode */
 html:not(.dark) #admin-notif-list .btn-mark-read,
-html:not(.dark) #customer-notif-list .btn-mark-read {
+html:not(.dark) #customer-notif-list .btn-mark-read,
+html:not(.dark) .btn-mark-read {
   background-color: #FFFFFF !important;
   color: #1E6C02 !important;
-  border-color: #86EFAC !important;
+  border: 1.5px solid #1E6C02 !important;
+  border-color: #1E6C02 !important;
+  font-weight: 800 !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+html:not(.dark) #admin-notif-list .btn-mark-read *,
+html:not(.dark) #customer-notif-list .btn-mark-read *,
+html:not(.dark) .btn-mark-read * {
+  color: #1E6C02 !important;
 }
 html:not(.dark) #admin-notif-list .btn-mark-read:hover,
-html:not(.dark) #customer-notif-list .btn-mark-read:hover {
+html:not(.dark) #customer-notif-list .btn-mark-read:hover,
+html:not(.dark) .btn-mark-read:hover {
   background-color: #1E6C02 !important;
   color: #FFFFFF !important;
   border-color: #1E6C02 !important;
+}
+html:not(.dark) #admin-notif-list .btn-mark-read:hover *,
+html:not(.dark) #customer-notif-list .btn-mark-read:hover *,
+html:not(.dark) .btn-mark-read:hover * {
+  color: #FFFFFF !important;
 }
 
 .dark #admin-notif-list .btn-mark-read,
@@ -2374,6 +2410,26 @@ html:not(.dark) #customer-notif-list .btn-mark-read:hover {
   background-color: #059669 !important;
   color: #FFFFFF !important;
   border-color: #10B981 !important;
+}
+
+/* "Mark all as read" button in Admin & Customer Notifications panel (Day Mode & Dark Mode) */
+html:not(.dark) #admin-notif-mark-all,
+html:not(.dark) #customer-notif-mark-all {
+  color: #1E6C02 !important;
+  background-color: transparent !important;
+}
+html:not(.dark) #admin-notif-mark-all:hover,
+html:not(.dark) #customer-notif-mark-all:hover {
+  color: #145001 !important;
+}
+.dark #admin-notif-mark-all,
+.dark #customer-notif-mark-all {
+  color: #34D399 !important;
+  background-color: transparent !important;
+}
+.dark #admin-notif-mark-all:hover,
+.dark #customer-notif-mark-all:hover {
+  color: #6EE7B7 !important;
 }
 
 /* 9. My Purchases Category Tabs */

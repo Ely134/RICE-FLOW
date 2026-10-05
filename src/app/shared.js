@@ -9416,6 +9416,10 @@ export function renderLayout() {
 
   // 1. DYNAMIC HEADER
   if (headerContainer) {
+    const existingDropdown = document.getElementById('customer-notif-dropdown');
+    if (existingDropdown && !existingDropdown.classList.contains('hidden')) {
+      window.__customerNotifDropdownOpen = true;
+    }
     const isProfilePage = window.location.pathname.includes('profile.html');
     const isProductsPage = window.location.pathname.includes('products.html');
     const isContactPage = window.location.pathname.includes('contact.html');
@@ -9440,7 +9444,7 @@ export function renderLayout() {
         </nav>
 
         <!-- Search Bar and Action Controls -->
-        <div class="flex items-center gap-4">
+        <div class="flex items-center gap-2 sm:gap-3 lg:gap-4">
           <!-- Desktop Search -->
           <div class="relative hidden sm:block w-64">
             <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#111827] dark:text-white pointer-events-none">${ICONS.search}</span>
@@ -9485,8 +9489,8 @@ export function renderLayout() {
                 <span id="customer-notif-badge" class="absolute -top-1.5 -right-1.5 bg-red-500 text-white font-black text-[9px] min-w-5 h-5 px-1 rounded-full flex items-center justify-center border-2 border-white dark:border-slate-900 hidden">0</span>
               </button>
               
-              <!-- Dropdown Panel (hidden by default) -->
-              <div id="customer-notif-dropdown" class="fixed sm:absolute left-3 right-3 sm:left-auto sm:right-0 top-20 sm:top-full mt-2 sm:mt-3.5 w-auto sm:w-96 max-w-[calc(100vw-1.5rem)] sm:max-w-none bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl shadow-2xl z-50 hidden flex flex-col overflow-hidden max-h-[calc(100vh-100px)] sm:max-h-[520px]">
+              <!-- Dropdown Panel (hidden by default unless open) -->
+              <div id="customer-notif-dropdown" class="fixed sm:absolute left-3 right-3 sm:left-auto sm:right-0 top-20 sm:top-full mt-2 sm:mt-3.5 w-auto sm:w-96 max-w-[calc(100vw-1.5rem)] sm:max-w-none bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl shadow-2xl z-50 ${window.__customerNotifDropdownOpen ? '' : 'hidden'} flex flex-col overflow-hidden max-h-[calc(100vh-100px)] sm:max-h-[520px]">
                 <div class="p-3.5 border-b border-gray-200 dark:border-slate-800 flex items-center justify-between bg-gray-50/90 dark:bg-slate-800/80 shrink-0">
                   <div class="flex items-center gap-2">
                     <span class="font-extrabold text-sm text-[#111827] dark:text-white">Notifications</span>
@@ -9512,6 +9516,11 @@ export function renderLayout() {
 
                 <div id="customer-notif-list" class="overflow-y-auto flex-1 divide-y divide-gray-100 dark:divide-slate-800 max-h-[360px]">
                   <!-- Dynamic Notifications -->
+                </div>
+                <div class="p-2.5 bg-gray-50/90 dark:bg-slate-800/80 border-t border-gray-200 dark:border-slate-800 text-center shrink-0">
+                  <a href="${p}notification-details.html" class="text-xs font-bold text-[#1E6C02] dark:text-emerald-400 hover:underline inline-flex items-center gap-1 cursor-pointer">
+                    <span>View all notifications</span> &rarr;
+                  </a>
                 </div>
               </div>
             </div>
@@ -9543,7 +9552,7 @@ export function renderLayout() {
 
       <!-- Mobile navigation panel drawer -->
       <div id="mobile-drawer" class="fixed inset-0 bg-black/40 backdrop-blur-xs z-50 transition-opacity hidden">
-        <div class="fixed top-0 bottom-0 right-0 w-80 bg-white dark:bg-slate-900 shadow-2xl flex flex-col justify-between p-6">
+        <div class="fixed top-0 bottom-0 right-0 w-72 sm:w-80 max-w-[85vw] bg-white dark:bg-slate-900 shadow-2xl flex flex-col justify-between p-6">
           <div>
             <div class="flex items-center justify-between mb-8 pb-4 border-b border-gray-100 dark:border-slate-800">
               <span class="text-xl font-bold text-[#111827] dark:text-white">Menu</span>
@@ -9582,7 +9591,16 @@ export function renderLayout() {
               <a href="${p}products.html" class="hover:text-[#1E6C02]">Rice Products</a>
               <a href="${p}reviews.html" class="hover:text-[#1E6C02]">Reviews</a>
               <a href="${p}contact.html" class="hover:text-[#1E6C02]">Contact Us</a>
-              ${user ? `<a href="${p}profile.html" class="hover:text-[#1E6C02] flex items-center justify-between">My Account <span class="bg-[#1E6C02] text-white text-[10px] uppercase font-bold py-1 px-2.5 rounded-full">Dashboard</span></a>` : ''}
+              ${user ? `
+                <a href="${p}notification-details.html" class="hover:text-[#1E6C02] flex items-center justify-between">
+                  <span>Notifications</span>
+                  <span id="mobile-drawer-notif-badge" class="bg-red-500 text-white text-[10px] font-black py-0.5 px-2 rounded-full hidden">0</span>
+                </a>
+                <a href="${p}profile.html" class="hover:text-[#1E6C02] flex items-center justify-between">
+                  <span>My Account</span>
+                  <span class="bg-[#1E6C02] text-white text-[10px] uppercase font-bold py-1 px-2.5 rounded-full">Dashboard</span>
+                </a>
+              ` : ''}
             </nav>
           </div>
 
@@ -10432,27 +10450,8 @@ function handleNotificationClick(notifId, currentUserId = null, currentRole = nu
       window.location.href = `${getPagePath('admin/orders.html')}?fromNotif=1&targetType=order&targetId=${encodeURIComponent(targetId)}&orderId=${encodeURIComponent(targetId)}&tab=${encodeURIComponent(tab)}`;
     }
   } else {
-    // Customer
-    const scrollPayParam = (n.scrollPayment || (n.title && (n.title.includes('Failed') || n.title.includes('Rejected') || n.title.includes('Correction') || n.title.includes('Needs Correction')))) ? '&scrollPayment=1' : '';
-    const destTab = n.destinationTab || n.tab || (scrollPayParam ? (targetType === 'reservation' ? 'reservations' : 'to-pay') : '');
-    const tabQuery = destTab ? `&tab=${encodeURIComponent(destTab)}` : '';
-
-    // If customer is already on profile.html, use immediate in-page opener
-    if (typeof window !== 'undefined' && window.location.pathname.includes('profile.html') && typeof window.openCustomerOrderFromNotif === 'function') {
-      const url = new URL(window.location.href);
-      url.searchParams.set('orderId', targetId);
-      if (destTab) url.searchParams.set('tab', destTab);
-      if (scrollPayParam) url.searchParams.set('scrollPayment', '1');
-      window.history.pushState({ orderId: targetId }, '', url);
-      window.openCustomerOrderFromNotif(targetId, destTab, Boolean(scrollPayParam));
-      return;
-    }
-
-    if (targetType === 'reservation') {
-      window.location.href = `${getPagePath('profile.html')}?fromNotif=1&targetType=reservation&targetId=${encodeURIComponent(targetId)}&reservationId=${encodeURIComponent(targetId)}&recordType=reservation${tabQuery}${scrollPayParam}`;
-    } else {
-      window.location.href = `${getPagePath('profile.html')}?fromNotif=1&targetType=order&targetId=${encodeURIComponent(targetId)}&orderId=${encodeURIComponent(targetId)}&recordType=order${tabQuery}${scrollPayParam}`;
-    }
+    // Customer: IMMEDIATELY redirect to notification-details.html
+    window.location.href = `${getPagePath('notification-details.html')}?id=${encodeURIComponent(n.id)}`;
   }
 }
 
@@ -10468,25 +10467,27 @@ export function setupNotifications() {
 
   if (!notifBtn || !dropdown || !badge || !listContainer) return;
 
+  if (window.__customerNotifDropdownOpen) {
+    dropdown.classList.remove('hidden');
+  }
+
   let activeFilter = 'all'; // 'all' | 'unread' | 'read'
 
-  // Toggle Dropdown Panel
+  // Toggle Dropdown Panel: ONLY clicking the notification bell toggles open / close
   const handleDropdownToggle = (e) => {
     e.stopPropagation();
-    dropdown.classList.toggle('hidden');
-    if (!dropdown.classList.contains('hidden')) {
+    const isCurrentlyOpen = !dropdown.classList.contains('hidden');
+    if (isCurrentlyOpen) {
+      dropdown.classList.add('hidden');
+      window.__customerNotifDropdownOpen = false;
+    } else {
+      dropdown.classList.remove('hidden');
+      window.__customerNotifDropdownOpen = true;
       renderNotifList();
     }
   };
   
   notifBtn.onclick = handleDropdownToggle;
-
-  // Close when clicking outside
-  document.addEventListener('click', (e) => {
-    if (!dropdown.contains(e.target) && !notifBtn.contains(e.target)) {
-      dropdown.classList.add('hidden');
-    }
-  });
 
   // Filter button click handling
   const filterBtns = dropdown.querySelectorAll('.customer-notif-filter-btn');
@@ -10516,6 +10517,16 @@ export function setupNotifications() {
       badge.classList.remove('hidden');
     } else {
       badge.classList.add('hidden');
+    }
+
+    const drawerBadge = document.getElementById('mobile-drawer-notif-badge');
+    if (drawerBadge) {
+      if (unreadCount > 0) {
+        drawerBadge.textContent = unreadCount > 99 ? '99+' : unreadCount;
+        drawerBadge.classList.remove('hidden');
+      } else {
+        drawerBadge.classList.add('hidden');
+      }
     }
 
     // Update filter count numbers
@@ -10586,31 +10597,6 @@ export function setupNotifications() {
     listContainer.innerHTML = displayedNotifs.map(n => {
       const style = NOTIF_STYLES[n.type] || NOTIF_STYLES.info;
       const isUnread = !n.read;
-      const targetResId = n.reservationId || n.orderId || n.targetId || '';
-      const isUnallocChoiceNotif = Boolean(
-        n.requiresUnallocatedChoice ||
-        (n.title && String(n.title).includes('Not Included in Latest Stock Allocation'))
-      );
-      const matchedResOrder = (isUnallocChoiceNotif && targetResId)
-        ? currentOrdersList.find(o => String(o.id).trim().toLowerCase() === String(targetResId).trim().toLowerCase())
-        : null;
-      const matchedResStatus = matchedResOrder ? String(matchedResOrder.status || '').toLowerCase().replace(/_/g, '-') : '';
-      const showUnallocChoices = Boolean(
-        isUnallocChoiceNotif &&
-        targetResId &&
-        (!matchedResOrder || (
-          matchedResStatus !== 'cancelled' &&
-          matchedResStatus !== 'completed' &&
-          matchedResStatus !== 'rejected' &&
-          matchedResStatus !== 'processing' &&
-          matchedResStatus !== 'to-ship' &&
-          matchedResStatus !== 'to-receive' &&
-          matchedResStatus !== 'delivered' &&
-          matchedResStatus !== 'ready-for-processing' &&
-          matchedResOrder.unallocatedRestockNoticePending !== false &&
-          !matchedResOrder.notifiedForPayment
-        ))
-      );
 
       return `
         <div class="customer-notif-item ${isUnread ? 'notif-item-unread' : 'notif-item-read'} p-3.5 transition-all flex gap-3 items-start relative group cursor-pointer" data-id="${n.id}">
@@ -10627,105 +10613,37 @@ export function setupNotifications() {
                   </span>
                 ` : `
                   <span class="inline-flex items-center gap-0.5 text-[10px] font-bold text-slate-600 dark:text-slate-300 shrink-0">
-                    <svg class="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 inline" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>Read
+                    <svg class="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 inline" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 011.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>Read
                   </span>
                 `}
               </div>
               <span class="text-[10px] font-semibold text-slate-700 dark:text-slate-300 whitespace-nowrap shrink-0 mt-0.5">${n.createdTime || ''}</span>
             </div>
-            <p class="${isUnread ? 'text-slate-900 dark:text-slate-100 font-semibold' : 'text-slate-800 dark:text-slate-200 font-medium'} text-xs leading-relaxed break-words">${n.message}</p>
-            ${showUnallocChoices ? `
-              <div class="flex items-center gap-2 mt-2.5 flex-wrap">
-                <button
-                  type="button"
-                  class="btn-notif-continue-res px-2.5 py-1 text-[10px] font-black text-white bg-[#1E6C02] hover:bg-[#145001] rounded-lg transition-all cursor-pointer shadow-2xs"
-                  data-notif-id="${n.id}"
-                  data-res-id="${targetResId}"
-                >Continue Reservation</button>
-                <button
-                  type="button"
-                  class="btn-notif-cancel-res px-2.5 py-1 text-[10px] font-black text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/60 border border-rose-300 dark:border-rose-700 hover:bg-rose-600 hover:text-white dark:hover:bg-rose-600 dark:hover:text-white rounded-lg transition-all cursor-pointer shadow-2xs"
-                  data-notif-id="${n.id}"
-                  data-res-id="${targetResId}"
-                >Cancel Reservation</button>
-              </div>
-            ` : (isUnallocChoiceNotif && matchedResOrder && matchedResOrder.unallocatedRestockChoiceMade === 'continue' && matchedResStatus !== 'cancelled' ? `
-              <div class="mt-2 inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 text-[10px] font-bold text-emerald-800 dark:text-emerald-300">
-                ✔ Continuing in waiting queue
-              </div>
-            ` : '')}
+            <p class="${isUnread ? 'text-slate-900 dark:text-slate-100 font-semibold' : 'text-slate-800 dark:text-slate-200 font-medium'} text-xs leading-relaxed break-words line-clamp-2">${n.message}</p>
             <div class="flex items-center justify-between mt-2 pt-1 border-t border-black/5 dark:border-white/5">
               <div class="text-[10px] font-medium text-slate-700 dark:text-slate-300">${n.createdDate || ''}</div>
-              ${isUnread ? `
-                <button type="button" class="btn-mark-read px-2 py-0.5 text-[10px] font-black text-[#1E6C02] dark:text-emerald-400 bg-white dark:bg-slate-800 border-2 border-emerald-300 dark:border-emerald-700 rounded-lg hover:bg-[#1E6C02] hover:text-white hover:border-[#1E6C02] dark:hover:bg-emerald-600 dark:hover:text-white dark:hover:border-emerald-500 transition-all cursor-pointer shadow-xs" title="Mark as read" data-id="${n.id}">Mark as read</button>
-              ` : ''}
             </div>
           </div>
         </div>
       `;
     }).join('');
 
-    // Attach click listeners for Continue Reservation / Cancel Reservation inside notification items
-    listContainer.querySelectorAll('.btn-notif-continue-res').forEach(el => {
+    // Attach click listener for customer notification items:
+    // When the customer clicks/taps ANY notification item:
+    // 1. Mark as read
+    // 2. IMMEDIATELY redirect to notification-details.html?id=ID
+    listContainer.querySelectorAll('.customer-notif-item').forEach(el => {
       el.addEventListener('click', (e) => {
+        e.preventDefault();
         e.stopPropagation();
-        const notifId = el.getAttribute('data-notif-id');
-        const resId = el.getAttribute('data-res-id');
-        if (notifId) {
-          markNotificationAsRead(notifId, user.id, 'customer');
-        }
-        if (resId) {
-          confirmContinueUnallocatedReservation(resId);
-          showToast('✔ Your reservation remains active in the waiting queue for the next restock.', 'success');
-        }
-        renderNotifList();
-      });
-    });
-
-    listContainer.querySelectorAll('.btn-notif-cancel-res').forEach(el => {
-      el.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const notifId = el.getAttribute('data-notif-id');
-        const resId = el.getAttribute('data-res-id');
-        if (notifId) {
-          markNotificationAsRead(notifId, user.id, 'customer');
-        }
-        renderNotifList();
-        if (!resId) return;
-        dropdown.classList.add('hidden');
-        if (typeof window !== 'undefined' && window.location.pathname.includes('profile.html') && typeof window.promptCustomerCancelOrder === 'function') {
-          if (typeof window.openCustomerOrderFromNotif === 'function') {
-            window.openCustomerOrderFromNotif(resId, 'reservations', false);
-          }
-          window.promptCustomerCancelOrder(resId);
-        } else {
+        const id = el.getAttribute('data-id');
+        if (id) {
+          dropdown.classList.add('hidden');
+          window.__customerNotifDropdownOpen = false;
+          markNotificationAsRead(id, user.id, 'customer');
           const inAdmin = window.location.pathname.includes('/admin/');
-          const profilePath = inAdmin ? '../profile.html' : 'profile.html';
-          window.location.href = `${profilePath}?fromNotif=1&targetType=reservation&targetId=${encodeURIComponent(resId)}&reservationId=${encodeURIComponent(resId)}&tab=reservations&promptCancel=1`;
-        }
-      });
-    });
-
-    // Attach click listener for marking single as read
-    listContainer.querySelectorAll('.btn-mark-read').forEach(el => {
-      el.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const id = el.getAttribute('data-id');
-        if (id) {
-          markNotificationAsRead(id, user.id, 'customer');
-          renderNotifList();
-        }
-      });
-    });
-
-    listContainer.querySelectorAll('[data-id]:not(.btn-mark-read)').forEach(el => {
-      el.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const id = el.getAttribute('data-id');
-        if (id) {
-          markNotificationAsRead(id, user.id, 'customer');
-          renderNotifList();
-          handleNotificationClick(id, user.id, 'customer');
+          const targetPage = inAdmin ? '../notification-details.html' : 'notification-details.html';
+          window.location.href = `${targetPage}?id=${encodeURIComponent(id)}`;
         }
       });
     });
@@ -10915,7 +10833,7 @@ export function setupAdminNotifications() {
             <div class="flex items-center justify-between mt-2 pt-1 border-t border-black/5 dark:border-white/5">
               <div class="text-[10px] font-medium text-slate-700 dark:text-slate-300">${n.createdDate || ''}</div>
               ${isUnread ? `
-                <button type="button" class="btn-mark-read px-2 py-0.5 text-[10px] font-black text-[#1E6C02] dark:text-emerald-400 bg-white dark:bg-slate-800 border-2 border-emerald-300 dark:border-emerald-700 rounded-lg hover:bg-[#1E6C02] hover:text-white hover:border-[#1E6C02] dark:hover:bg-emerald-600 dark:hover:text-white dark:hover:border-emerald-500 transition-all cursor-pointer shadow-xs" title="Mark as read" data-id="${n.id}">Mark as read</button>
+                <button type="button" class="btn-mark-read px-2 py-0.5 text-[10px] font-black text-[#1E6C02] dark:text-emerald-400 bg-white dark:bg-slate-800 border-2 border-[#1E6C02] dark:border-emerald-700 rounded-lg hover:bg-[#1E6C02] hover:text-white hover:border-[#1E6C02] dark:hover:bg-emerald-600 dark:hover:text-white dark:hover:border-emerald-500 transition-all cursor-pointer shadow-xs" title="Mark as read" data-id="${n.id}">Mark as read</button>
               ` : ''}
             </div>
           </div>
@@ -11497,6 +11415,36 @@ export function getDashboardTopRiceProductData(options = {}) {
   const isDateOrRangeFiltered = Boolean(selectedSalesDate || currentRange !== 'all');
   const isFilterActive = Boolean(selectedSalesDate || (hasUserAppliedFilter && (currentRange !== 'all' || currentProd !== 'all')));
 
+  // Identify archived products dynamically using existing product archive/status properties
+  const isArchivedProduct = (p) => Boolean(
+    p && (
+      p.isArchived === true ||
+      p.archived === true ||
+      p.status === 'archived' ||
+      String(p.status || '').toLowerCase() === 'archived'
+    )
+  );
+
+  const archivedProductNames = new Set();
+  const archivedProductIds = new Set();
+
+  productsList.forEach(p => {
+    if (!p) return;
+    if (isArchivedProduct(p)) {
+      if (p.name) archivedProductNames.add(String(p.name).trim().toLowerCase());
+      if (p.id) archivedProductIds.add(String(p.id).trim());
+    }
+  });
+
+  function isItemArchived(item, rawName) {
+    if (item && isArchivedProduct(item.product)) return true;
+    const pId = String(item?.product?.id || item?.productId || item?.id || '').trim();
+    if (pId && archivedProductIds.has(pId)) return true;
+    const nameToCheck = String(rawName || item?.product?.name || item?.name || item?.productName || '').trim().toLowerCase();
+    if (nameToCheck && archivedProductNames.has(nameToCheck)) return true;
+    return false;
+  }
+
   const productCounts = {};
 
   if (!isFilterActive) {
@@ -11505,7 +11453,7 @@ export function getDashboardTopRiceProductData(options = {}) {
       if (info.isVerified && !info.isReservation) {
         (o.items || []).forEach(item => {
           const pName = item.product?.name || item.name || item.productName;
-          if (pName && !item.isReservation) {
+          if (pName && !item.isReservation && !isItemArchived(item, pName)) {
             productCounts[pName] = (productCounts[pName] || 0) + Number(item.quantity || 0);
           }
         });
@@ -11521,7 +11469,7 @@ export function getDashboardTopRiceProductData(options = {}) {
             (o.items || []).forEach(item => {
               if (!item || item.isReservation) return;
               const pName = item.product?.name || item.name || item.productName;
-              if (pName) {
+              if (pName && !isItemArchived(item, pName)) {
                 productCounts[pName] = (productCounts[pName] || 0) + Number(item.quantity || 0);
               }
             });
@@ -11534,7 +11482,7 @@ export function getDashboardTopRiceProductData(options = {}) {
         if (info.isVerified && !info.isReservation) {
           (o.items || []).forEach(item => {
             const pName = item.product?.name || item.name || item.productName;
-            if (pName && !item.isReservation) {
+            if (pName && !item.isReservation && !isItemArchived(item, pName)) {
               productCounts[pName] = (productCounts[pName] || 0) + Number(item.quantity || 0);
             }
           });
@@ -11543,10 +11491,17 @@ export function getDashboardTopRiceProductData(options = {}) {
     }
   }
 
-  // Include active varieties from catalog so complete comparison is visible
+  // Include only active varieties from catalog so complete comparison is visible without archived products
   productsList.forEach(p => {
-    if (p && p.name && productCounts[p.name] === undefined) {
+    if (p && p.name && !isArchivedProduct(p) && productCounts[p.name] === undefined) {
       productCounts[p.name] = 0;
+    }
+  });
+
+  // Final safety check: guarantee no archived product is included in productCounts
+  Object.keys(productCounts).forEach(name => {
+    if (archivedProductNames.has(String(name).trim().toLowerCase())) {
+      delete productCounts[name];
     }
   });
 

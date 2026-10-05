@@ -54,41 +54,41 @@
   </main>
 
   <!-- RESERVATION NOTICE BLOCKER MODAL DIALOG -->
-  <div id="cart-agreement-dialog" class="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden">
-    <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl p-6 border border-gray-100 animate-in fade-in zoom-in duration-200">
-      <div class="flex items-center gap-3 pb-4 border-b">
-        <div class="bg-orange-100 p-2.5 rounded-xl text-orange-600">
+  <div id="cart-agreement-dialog" class="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center p-3 sm:p-4 hidden">
+    <div class="bg-white dark:bg-slate-900 rounded-2xl max-w-md w-full shadow-2xl p-4 sm:p-6 border border-gray-100 dark:border-slate-800 animate-in fade-in zoom-in duration-200 max-h-[90dvh] overflow-y-auto text-left">
+      <div class="flex items-center gap-3 pb-4 border-b border-gray-100 dark:border-slate-800">
+        <div class="bg-orange-100 dark:bg-orange-950/80 border border-orange-200 dark:border-orange-800 p-2.5 rounded-xl text-orange-600 dark:text-orange-300 shrink-0">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-6 h-6"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
         </div>
         <h3 class="text-xl font-extrabold text-[#111827] dark:text-white tracking-tight">Reservation Notice</h3>
       </div>
-      <div class="py-5 space-y-4">
+      <div class="py-4 space-y-3.5">
         <p class="text-xs font-semibold text-[#111827] dark:text-white">
           Some items in your current selection are backordered (pre-order).
         </p>
-        <div class="bg-[#FFF8F0] border border-[#FFE4C4] rounded-xl p-4 text-xs font-semibold leading-relaxed text-[#8B4513]">
+        <div class="bg-[#FFF8F0] dark:bg-amber-950/40 border border-[#FFE4C4] dark:border-amber-800/70 rounded-xl p-3.5 sm:p-4 text-xs font-semibold leading-relaxed text-[#8B4513] dark:text-amber-200">
           <p class="font-bold mb-1">Estimated Restock Fulfillments:</p>
-          <p class="text-[#A0522D]">Our warehouse logistics team reviews GCash screenshot uploads continuously. Once verified, pre-order queues receive priority fulfillment.</p>
+          <p class="text-[#A0522D] dark:text-amber-300">Our warehouse logistics team reviews GCash screenshot uploads continuously. Once verified, pre-order queues receive priority fulfillment.</p>
         </div>
-        <div class="bg-[#EBF5FF] border border-[#CCE5FF] rounded-xl p-4 text-xs font-semibold flex gap-3 text-[#004085] leading-relaxed">
-          <span>📌</span>
+        <div class="bg-[#EBF5FF] dark:bg-blue-950/50 border border-[#CCE5FF] dark:border-blue-800 rounded-xl p-3.5 sm:p-4 text-xs font-semibold flex gap-3 text-[#004085] dark:text-blue-200 leading-relaxed">
+          <span class="shrink-0">📌</span>
           <p>Real-time updates on queue index positioning will activate on your profile page after checkout submission.</p>
         </div>
 
         <!-- Agreement Terms -->
-        <div class="bg-gray-100 rounded-xl p-4 flex items-start gap-3">
+        <div class="bg-gray-100 dark:bg-slate-800 rounded-xl p-3.5 sm:p-4 flex items-start gap-3">
           <input 
             type="checkbox" 
             id="cart-agreement-check" 
-            class="mt-1 h-4 w-4 text-[#1E6C02] rounded border-gray-300 focus:ring-[#1E6C02]"
+            class="mt-1 h-4 w-4 text-[#1E6C02] rounded border-gray-300 focus:ring-[#1E6C02] shrink-0 cursor-pointer"
           />
           <label htmlFor="cart-agreement-check" class="text-xs text-[#111827] dark:text-white font-semibold select-none cursor-pointer leading-relaxed">
             I understand that these items will be scheduled for fulfillment as warehouse stocks replenish.
           </label>
         </div>
       </div>
-      <div class="flex gap-3 pt-4 border-t">
-        <button id="cart-close-dialog-btn" class="flex-1 py-3 text-[#111827] dark:text-white hover:bg-gray-50 border rounded-xl font-bold transition-all cursor-pointer">Cancel</button>
+      <div class="flex gap-3 pt-3 border-t border-gray-100 dark:border-slate-800">
+        <button id="cart-close-dialog-btn" class="flex-1 py-3 text-[#111827] dark:text-white hover:bg-gray-50 dark:hover:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl font-bold transition-all cursor-pointer">Cancel</button>
         <button id="cart-proceed-btn" disabled class="flex-1 py-3 bg-gray-200 text-[#111827] dark:bg-slate-800 dark:text-white rounded-xl font-bold cursor-not-allowed transition-all" style="cursor: not-allowed;">Proceed Checkout</button>
       </div>
     </div>

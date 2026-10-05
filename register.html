@@ -729,6 +729,19 @@
                   </div>
                 </div>
               `;
+
+              // Ensure the registration success confirmation and "Go to Login" button are immediately visible in the viewport
+              if (document.activeElement && typeof document.activeElement.blur === 'function') {
+                document.activeElement.blur();
+              }
+              const scrollToSuccess = () => {
+                window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+                document.documentElement.scrollTop = 0;
+                document.body.scrollTop = 0;
+              };
+              scrollToSuccess();
+              requestAnimationFrame(scrollToSuccess);
+              setTimeout(scrollToSuccess, 100);
             }
           } catch (err) {
             showToast(err.message || 'Validation failed.', 'error');

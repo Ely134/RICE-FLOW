@@ -67,6 +67,41 @@
     .top-scrollbar-container > table {
       transform: rotateX(180deg);
     }
+
+    /* Date Range Timeline / Selected Active Green Buttons - Solid White in Day Mode */
+    .btn-date-filter.bg-\[\#1E6C02\],
+    .btn-date-filter.bg-\[\#1E6C02\] *,
+    .btn-date-filter[class*="bg-[#1E6C02]"],
+    .btn-date-filter[class*="bg-[#1E6C02]"] *,
+    #btn-custom-range.bg-\[\#1E6C02\],
+    #btn-custom-range.bg-\[\#1E6C02\] *,
+    #btn-custom-range[class*="bg-[#1E6C02]"],
+    #btn-custom-range[class*="bg-[#1E6C02]"] *,
+    .calendar-day-btn.bg-\[\#1E6C02\],
+    .calendar-day-btn.bg-\[\#1E6C02\] *,
+    .calendar-day-btn[class*="bg-[#1E6C02]"],
+    .calendar-day-btn[class*="bg-[#1E6C02]"] *,
+    button[class*="bg-[#1E6C02]"]:not(.btn-mark-read),
+    button[class*="bg-[#1E6C02]"]:not(.btn-mark-read) *,
+    html:not(.dark) .btn-date-filter[class*="bg-[#1E6C02]"],
+    html:not(.dark) .btn-date-filter[class*="bg-[#1E6C02]"] *,
+    html:not(.dark) #btn-custom-range[class*="bg-[#1E6C02]"],
+    html:not(.dark) #btn-custom-range[class*="bg-[#1E6C02]"] *,
+    html:not(.dark) .calendar-day-btn[class*="bg-[#1E6C02]"],
+    html:not(.dark) .calendar-day-btn[class*="bg-[#1E6C02]"] * {
+      color: #FFFFFF !important;
+    }
+    #btn-custom-range[class*="bg-[#1E6C02]"] svg,
+    #btn-custom-range.bg-\[\#1E6C02\] svg,
+    .btn-date-filter[class*="bg-[#1E6C02]"] svg,
+    .btn-date-filter.bg-\[\#1E6C02\] svg,
+    button[class*="bg-[#1E6C02]"]:not(.btn-mark-read) svg,
+    html:not(.dark) #btn-custom-range[class*="bg-[#1E6C02]"] svg,
+    html:not(.dark) button[class*="bg-[#1E6C02]"]:not(.btn-mark-read) svg {
+      color: #FFFFFF !important;
+      stroke: #FFFFFF !important;
+      fill: none;
+    }
   </style>
   <style id="auth-guard-style">body { visibility: hidden !important; }</style>
 </head>
@@ -371,34 +406,34 @@
                 <div class="flex flex-wrap items-center justify-center xl:justify-start gap-2">
                   <button 
                     data-range="all" 
-                    class="btn-date-filter px-4 py-2.5 rounded-xl text-sm font-extrabold border transition-all duration-200 cursor-pointer ${dateFilter === 'all' ? 'bg-[#1E6C02] border-[#1E6C02] text-white shadow-md shadow-green-900/10' : 'bg-slate-50/50 hover:bg-slate-100 border-slate-200 text-black'}"
+                    class="btn-date-filter px-4 py-2.5 rounded-xl text-sm font-extrabold border transition-all duration-200 cursor-pointer ${dateFilter === 'all' ? 'bg-[#1E6C02] border-[#1E6C02] text-white !text-white shadow-md shadow-green-900/10' : 'bg-slate-50/50 hover:bg-slate-100 border-slate-200 text-black'}"
                   >
                     All Time
                   </button>
                   <button 
                     data-range="today" 
-                    class="btn-date-filter px-4 py-2.5 rounded-xl text-sm font-extrabold border transition-all duration-200 cursor-pointer ${dateFilter === 'today' ? 'bg-[#1E6C02] border-[#1E6C02] text-white shadow-md shadow-green-900/10' : 'bg-slate-50/50 hover:bg-slate-100 border-slate-200 text-black'}"
+                    class="btn-date-filter px-4 py-2.5 rounded-xl text-sm font-extrabold border transition-all duration-200 cursor-pointer ${dateFilter === 'today' ? 'bg-[#1E6C02] border-[#1E6C02] text-white !text-white shadow-md shadow-green-900/10' : 'bg-slate-50/50 hover:bg-slate-100 border-slate-200 text-black'}"
                   >
                     Today
                   </button>
                   <button 
                     data-range="week" 
-                    class="btn-date-filter px-4 py-2.5 rounded-xl text-sm font-extrabold border transition-all duration-200 cursor-pointer ${dateFilter === 'week' ? 'bg-[#1E6C02] border-[#1E6C02] text-white shadow-md shadow-green-900/10' : 'bg-slate-50/50 hover:bg-slate-100 border-slate-200 text-black'}"
+                    class="btn-date-filter px-4 py-2.5 rounded-xl text-sm font-extrabold border transition-all duration-200 cursor-pointer ${dateFilter === 'week' ? 'bg-[#1E6C02] border-[#1E6C02] text-white !text-white shadow-md shadow-green-900/10' : 'bg-slate-50/50 hover:bg-slate-100 border-slate-200 text-black'}"
                   >
                     This Week
                   </button>
                   <button 
                     data-range="month" 
-                    class="btn-date-filter px-4 py-2.5 rounded-xl text-sm font-extrabold border transition-all duration-200 cursor-pointer ${dateFilter === 'month' ? 'bg-[#1E6C02] border-[#1E6C02] text-white shadow-md shadow-green-900/10' : 'bg-slate-50/50 hover:bg-slate-100 border-slate-200 text-black'}"
+                    class="btn-date-filter px-4 py-2.5 rounded-xl text-sm font-extrabold border transition-all duration-200 cursor-pointer ${dateFilter === 'month' ? 'bg-[#1E6C02] border-[#1E6C02] text-white !text-white shadow-md shadow-green-900/10' : 'bg-slate-50/50 hover:bg-slate-100 border-slate-200 text-black'}"
                   >
                     This Month
                   </button>
                   <button 
                     id="btn-custom-range"
-                    class="px-4 py-2.5 rounded-xl text-sm font-extrabold border transition-all duration-200 cursor-pointer flex items-center gap-2 ${dateFilter === 'custom' ? 'bg-[#1E6C02] border-[#1E6C02] text-white shadow-md shadow-green-900/10' : 'bg-slate-50/50 hover:bg-slate-100 border-slate-200 text-black'}"
+                    class="px-4 py-2.5 rounded-xl text-sm font-extrabold border transition-all duration-200 cursor-pointer flex items-center gap-2 ${dateFilter === 'custom' ? 'bg-[#1E6C02] border-[#1E6C02] text-white !text-white shadow-md shadow-green-900/10' : 'bg-slate-50/50 hover:bg-slate-100 border-slate-200 text-black'}"
                   >
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-4 h-4"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-                    Custom Range
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-4 h-4 ${dateFilter === 'custom' ? 'text-white !text-white stroke-white !stroke-white' : ''}"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                    <span>Custom Range</span>
                   </button>
                 </div>
                 ${dateFilter === 'custom' && customStartDate ? `
@@ -583,7 +618,7 @@
         pages.forEach(p => {
           if (p === '...') {
             pageNumbersHtml += `
-              <span class="w-10 h-10 flex items-center justify-center text-sm font-bold text-slate-400 select-none">
+              <span class="w-10 h-10 flex items-center justify-center text-base font-black text-black select-none">
                 ...
               </span>
             `;
@@ -592,7 +627,7 @@
             pageNumbersHtml += `
               <button 
                 data-page="${p}" 
-                class="page-num-btn w-10 h-10 flex items-center justify-center rounded-xl text-sm font-extrabold transition-all border cursor-pointer ${isActive ? 'bg-[#1E6C02] text-white border-[#1E6C02] shadow-sm shadow-green-900/10' : 'bg-white text-slate-600 hover:bg-slate-50 border-slate-200'}"
+                class="page-num-btn min-w-[42px] h-10 px-3 flex items-center justify-center rounded-xl text-base font-black transition-all border-2 cursor-pointer ${isActive ? 'bg-[#1E6C02] text-white border-[#1E6C02] shadow-sm shadow-green-900/10' : 'bg-white text-black hover:bg-slate-100 border-slate-300'}"
               >
                 ${p}
               </button>
@@ -622,7 +657,7 @@
                   id="reports-search-input" 
                   value="${searchQuery}"
                   placeholder="Search Order ID, Customer, or Product..." 
-                  class="w-full pl-11 pr-4 py-3 bg-slate-50 border-2 border-slate-200 hover:border-slate-300 focus:border-[#1E6C02] focus:bg-white rounded-2xl text-[15px] font-bold text-black outline-none transition-all placeholder:text-slate-400 placeholder:font-semibold shadow-xs"
+                  class="w-full pl-11 pr-4 py-3 bg-slate-50 border-2 border-slate-200 hover:border-slate-300 focus:border-[#1E6C02] focus:bg-white rounded-2xl text-base font-bold text-black outline-none transition-all placeholder:text-slate-500 placeholder:font-medium shadow-xs"
                 />
               </div>
             </div>
@@ -631,7 +666,7 @@
             <div class="top-scrollbar-container rounded-2xl border border-slate-200/70 shadow-sm">
               <table class="w-full text-left border-collapse min-w-[900px]">
                 <thead>
-                  <tr class="bg-slate-50/80 border-b border-slate-200/80 text-black font-bold text-sm sm:text-base uppercase tracking-wider">
+                  <tr class="bg-slate-100 border-b-2 border-slate-200 text-black font-black text-sm uppercase tracking-wider">
                     <th class="py-4 px-6">Order ID</th>
                     <th class="py-4 px-6">Customer</th>
                     <th class="py-4 px-6">Product Ordered</th>
@@ -640,7 +675,7 @@
                     <th class="py-4 px-6 rounded-r-2xl">Date Ordered</th>
                   </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-100/70 text-sm text-black">
+                <tbody class="divide-y divide-slate-200 text-black">
                   ${paginatedOrders.map((o) => {
                     // Formatted Date
                     const formattedDateStr = formatLongDate(parseOrderDate(o));
@@ -650,20 +685,20 @@
                       const name = item.product ? item.product.name : 'Rice Product';
                       const imageUrl = item.product ? item.product.image || '' : '';
                       const imgElement = imageUrl ? 
-                        `<img src="${imageUrl}" alt="${name}" class="w-8 h-8 rounded-lg object-cover border border-slate-200/60 shadow-xs shrink-0" onerror="this.onerror=null; this.outerHTML='<span class=&quot;text-base&quot;>🌾</span>'">` : 
+                        `<img src="${imageUrl}" alt="${name}" class="w-9 h-9 rounded-lg object-cover border border-slate-200 shadow-xs shrink-0" onerror="this.onerror=null; this.outerHTML='<span class=&quot;text-base&quot;>🌾</span>'">` : 
                         `<span class="text-base">🌾</span>`;
                       
                       return `
-                        <div class="flex items-center gap-2.5 py-1 text-black font-normal text-sm">
-                          <div class="w-8 h-8 rounded-lg bg-amber-50 border border-slate-100 flex items-center justify-center shrink-0 overflow-hidden shadow-xs">
+                        <div class="flex items-center gap-3 py-1.5 text-black font-bold text-base">
+                          <div class="w-9 h-9 rounded-lg bg-amber-50 border border-slate-200 flex items-center justify-center shrink-0 overflow-hidden shadow-xs">
                             ${imgElement}
                           </div>
                           <span>${name}</span>
                         </div>
                       `;
                     }).join('') : `
-                      <div class="flex items-center gap-2.5 py-1 text-black font-normal text-sm">
-                        <div class="w-8 h-8 rounded-lg bg-amber-50 border border-slate-100 flex items-center justify-center shrink-0 shadow-xs">
+                      <div class="flex items-center gap-3 py-1.5 text-black font-bold text-base">
+                        <div class="w-9 h-9 rounded-lg bg-amber-50 border border-slate-200 flex items-center justify-center shrink-0 shadow-xs">
                           <span class="text-base">🌾</span>
                         </div>
                         <span>Rice Order</span>
@@ -673,49 +708,49 @@
                     // Quantities column
                     const quantitiesStackHtml = o.items ? o.items.map(item => {
                       return `
-                        <div class="py-1 text-center text-black font-normal text-sm">
+                        <div class="py-1.5 text-center text-black font-black text-base">
                           ${item.quantity}
                         </div>
                       `;
                     }).join('') : `
-                      <div class="py-1 text-center text-black font-normal text-sm">
+                      <div class="py-1.5 text-center text-black font-black text-base">
                         1
                       </div>
                     `;
 
                     return `
-                      <tr class="hover:bg-slate-50/80 transition-colors duration-150 odd:bg-white even:bg-slate-50/30 border-b border-slate-100 last:border-0">
-                        <!-- Order ID: black, bold, slightly larger -->
-                        <td class="py-4 px-6 font-bold text-black text-sm sm:text-base font-mono">
+                      <tr class="hover:bg-slate-50 transition-colors duration-150 odd:bg-white even:bg-slate-50/50 border-b border-slate-200 last:border-0">
+                        <!-- Order ID: black, bold, larger -->
+                        <td class="py-4 px-6 font-black text-black text-base font-mono whitespace-nowrap">
                           #${o.id || ''}
                         </td>
                         
-                        <!-- Customer: black, bold, slightly larger -->
-                        <td class="py-4 px-6 font-bold text-black text-sm sm:text-base">
+                        <!-- Customer: black, bold, larger -->
+                        <td class="py-4 px-6 font-bold text-black text-base">
                           ${o.fullName || 'Customer'}
                         </td>
                         
-                        <!-- Product Ordered: black, regular -->
-                        <td class="py-4 px-6 font-normal text-black text-sm">
+                        <!-- Product Ordered: black, medium/bold -->
+                        <td class="py-4 px-6 font-medium text-black text-base">
                           <div class="flex flex-col">
                             ${itemsStackHtml}
                           </div>
                         </td>
                         
-                        <!-- Quantity: black, regular -->
-                        <td class="py-4 px-6 text-center font-normal text-black text-sm">
+                        <!-- Quantity: black, bold, larger -->
+                        <td class="py-4 px-6 text-center font-black text-black text-base">
                           <div class="flex flex-col">
                             ${quantitiesStackHtml}
                           </div>
                         </td>
                         
-                        <!-- Amount: black, regular -->
-                        <td class="py-4 px-6 text-right font-normal text-black text-sm">
+                        <!-- Amount: black, bold, larger -->
+                        <td class="py-4 px-6 text-right font-black text-black text-base whitespace-nowrap">
                           ${formatPeso(Number(o.total || o.totalPrice || o.amount || 0))}
                         </td>
                         
-                        <!-- Date Ordered: black, regular -->
-                        <td class="py-4 px-6 font-normal text-black text-sm">
+                        <!-- Date Ordered: black, bold, larger -->
+                        <td class="py-4 px-6 font-semibold text-black text-base whitespace-nowrap">
                           ${formattedDateStr}
                         </td>
                       </tr>
@@ -728,7 +763,7 @@
                         <div class="flex flex-col items-center justify-center space-y-3">
                           <span class="text-4xl">🌾</span>
                           <p class="text-black text-base font-black">No transaction records match your search or filter.</p>
-                          <p class="text-xs font-semibold text-black">Try adjusting your timeline range or filter query.</p>
+                          <p class="text-sm font-bold text-black">Try adjusting your timeline range or filter query.</p>
                         </div>
                       </td>
                     </tr>
@@ -739,14 +774,14 @@
 
             <!-- Beautiful Pagination Bar -->
             ${totalRecords > 0 ? `
-              <div class="flex flex-col sm:flex-row items-center justify-between border-t border-slate-100 pt-6 gap-4">
-                <div class="text-sm font-bold text-black">
+              <div class="flex flex-col sm:flex-row items-center justify-between border-t border-slate-200 pt-6 gap-4">
+                <div class="text-base font-bold text-black">
                   Showing <span class="font-black text-black">${startIdx + 1}</span> to <span class="font-black text-black">${endIdx}</span> of <span class="font-black text-black">${totalRecords}</span> entries
                 </div>
                 <div class="flex items-center gap-1.5">
                   <button 
                     id="prev-page-btn"
-                    class="px-4 py-2 text-xs font-extrabold text-black bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                    class="px-5 py-2.5 text-sm font-black text-black bg-white hover:bg-slate-100 border-2 border-slate-300 rounded-xl transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
                     ${currentPage === 1 ? 'disabled' : ''}
                   >
                     &lt; Previous
@@ -754,7 +789,7 @@
                   ${pageNumbersHtml}
                   <button 
                     id="next-page-btn"
-                    class="px-4 py-2 text-xs font-extrabold text-black bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                    class="px-5 py-2.5 text-sm font-black text-black bg-white hover:bg-slate-100 border-2 border-slate-300 rounded-xl transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
                     ${currentPage === totalPages ? 'disabled' : ''}
                   >
                     Next &gt;
@@ -784,45 +819,45 @@
             <div class="top-scrollbar-container custom-scrollbar rounded-2xl border border-slate-150 shadow-sm">
               <table class="w-full text-left border-collapse min-w-[800px]">
                 <thead>
-                  <tr class="bg-slate-50 border-b border-slate-200 text-black font-bold text-sm sm:text-base uppercase tracking-wider">
+                  <tr class="bg-slate-100 border-b-2 border-slate-200 text-black font-black text-sm uppercase tracking-wider">
                     <th class="py-4 px-6 rounded-l-2xl">No.</th>
                     <th class="py-4 px-6">Product</th>
                     <th class="py-4 px-6">Quantity Ordered</th>
                     <th class="py-4 px-6 text-right rounded-r-2xl">Total Sales</th>
                   </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-100 font-semibold text-sm text-black">
+                <tbody class="divide-y divide-slate-200 text-black">
                   ${salesList.map((item, idx) => {
                     const imgElement = item.image ? 
-                      `<img src="${item.image}" alt="${item.name}" class="w-8 h-8 rounded-lg object-cover border border-slate-200 shadow-xs shrink-0" onerror="this.onerror=null; this.outerHTML='<span class=&quot;text-base&quot;>🌾</span>'">` : 
+                      `<img src="${item.image}" alt="${item.name}" class="w-9 h-9 rounded-lg object-cover border border-slate-200 shadow-xs shrink-0" onerror="this.onerror=null; this.outerHTML='<span class=&quot;text-base&quot;>🌾</span>'">` : 
                       `<span class="text-base">🌾</span>`;
 
                     const qtyLabel = formatQuantity(item.quantity, item.weight);
 
                     return `
-                      <tr class="hover:bg-slate-50/80 transition-all odd:bg-white even:bg-slate-50/30 border-b border-slate-100 last:border-0">
-                        <!-- No.: black, bold, slightly larger -->
-                        <td class="py-4 px-6 font-bold text-black text-sm sm:text-base">
+                      <tr class="hover:bg-slate-50 transition-all odd:bg-white even:bg-slate-50/50 border-b border-slate-200 last:border-0">
+                        <!-- No.: black, bold, larger -->
+                        <td class="py-4 px-6 font-black text-black text-base whitespace-nowrap">
                           ${idx + 1}
                         </td>
                         
-                        <!-- Product: black, bold, slightly larger -->
+                        <!-- Product: black, bold, larger -->
                         <td class="py-4 px-6">
                           <div class="flex items-center gap-3">
-                            <div class="w-8 h-8 rounded-lg bg-amber-50 border border-slate-100 flex items-center justify-center shrink-0 overflow-hidden shadow-xs">
+                            <div class="w-9 h-9 rounded-lg bg-amber-50 border border-slate-200 flex items-center justify-center shrink-0 overflow-hidden shadow-xs">
                               ${imgElement}
                             </div>
-                            <span class="font-bold text-black text-sm sm:text-base">${item.name}</span>
+                            <span class="font-bold text-black text-base">${item.name}</span>
                           </div>
                         </td>
                         
-                        <!-- Quantity Ordered: black, regular -->
-                        <td class="py-4 px-6 font-normal text-black text-sm">
+                        <!-- Quantity Ordered: black, bold, larger -->
+                        <td class="py-4 px-6 font-black text-black text-base whitespace-nowrap">
                           ${qtyLabel}
                         </td>
                         
-                        <!-- Total Sales: black, regular -->
-                        <td class="py-4 px-6 text-right font-normal text-black text-sm">
+                        <!-- Total Sales: black, bold, larger -->
+                        <td class="py-4 px-6 text-right font-black text-black text-base whitespace-nowrap">
                           ${formatPeso(item.revenue)}
                         </td>
                       </tr>
@@ -1022,11 +1057,8 @@
           const checkDate = new Date(calendarYear, calendarMonth, day);
           const dateStr = checkDate.toDateString();
           
-          let dayClasses = 'hover:bg-[#1E6C02]/10 hover:text-[#1E6C02] cursor-pointer text-slate-800 font-extrabold';
-          
-          if (dateStr === todayDateStr) {
-            dayClasses += ' ring-2 ring-[#1E6C02] ring-offset-1 rounded-full';
-          }
+          let isSelected = false;
+          let isBetween = false;
 
           if (customStartDate && customEndDate) {
             const startReset = new Date(customStartDate);
@@ -1036,13 +1068,26 @@
 
             if (checkDate >= startReset && checkDate <= endReset) {
               if (checkDate.toDateString() === startReset.toDateString() || checkDate.toDateString() === endReset.toDateString()) {
-                dayClasses += ' bg-[#1E6C02] text-white rounded-full';
+                isSelected = true;
               } else {
-                dayClasses += ' bg-emerald-50 text-[#1E6C02] rounded-lg';
+                isBetween = true;
               }
             }
           } else if (customStartDate && checkDate.toDateString() === customStartDate.toDateString()) {
-            dayClasses += ' bg-[#1E6C02] text-white rounded-full';
+            isSelected = true;
+          }
+
+          let dayClasses = 'cursor-pointer font-black text-sm transition-all duration-150 rounded-lg focus:outline-none';
+          if (isSelected) {
+            dayClasses += ' bg-[#1E6C02] text-white !text-white rounded-full shadow-xs';
+          } else if (isBetween) {
+            dayClasses += ' bg-emerald-100/80 text-[#1E6C02] rounded-lg';
+          } else {
+            dayClasses += ' text-black hover:bg-[#1E6C02]/10 hover:text-[#1E6C02]';
+          }
+
+          if (dateStr === todayDateStr && !isSelected) {
+            dayClasses += ' ring-2 ring-[#1E6C02] ring-offset-1 rounded-full';
           }
 
           daysHtml += `

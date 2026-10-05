@@ -1041,16 +1041,16 @@
         }
 
         const candidates = [
-          order.completedAt,
-          order.completionDate,
-          order.completedDate,
-          order.deliveredAt,
-          order.deliveredDate,
           order.createdAt,
           order.dateCreated,
           order.createdDate,
           order.date,
-          order.timestamp
+          order.timestamp,
+          order.completedAt,
+          order.completionDate,
+          order.completedDate,
+          order.deliveredAt,
+          order.deliveredDate
         ];
 
         for (let i = 0; i < candidates.length; i++) {
