@@ -25,26 +25,29 @@ export function getGuardPathPrefix() {
  */
 export async function waitForAuthState(timeoutMs = 8000) {
   if (!auth) return null;
+  if (auth.currentUser) return auth.currentUser;
 
-  const authPromise = (async () => {
-    try {
-      if (typeof auth.authStateReady === 'function') {
-        await auth.authStateReady();
-        return auth.currentUser;
+  const authPromise = new Promise((resolve) => {
+    let settled = false;
+
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (!settled) {
+        settled = true;
+        try { unsubscribe(); } catch (_) {}
+        resolve(user || null);
       }
-    } catch (_) {}
-
-    return new Promise((resolve) => {
-      let resolved = false;
-      const unsubscribe = onAuthStateChanged(auth, (user) => {
-        if (!resolved) {
-          resolved = true;
-          unsubscribe();
-          resolve(user);
-        }
-      });
     });
-  })();
+
+    if (typeof auth.authStateReady === 'function') {
+      auth.authStateReady().then(() => {
+        if (!settled && auth.currentUser) {
+          settled = true;
+          try { unsubscribe(); } catch (_) {}
+          resolve(auth.currentUser);
+        }
+      }).catch(() => {});
+    }
+  });
 
   const timeoutPromise = new Promise((resolve) => {
     setTimeout(() => {
@@ -386,75 +389,116 @@ export async function protectAdminPage({ requiredRole = 'any' } = {}) {
  */
 export async function checkCustomerAuth() {
   const fbUser = await waitForAuthState();
-  if (!fbUser) {
-    return { ok: false, reason: 'unauthenticated' };
-  }
 
-  const cleanEmail = (fbUser.email || '').toLowerCase().trim();
+  if (fbUser) {
+    const cleanEmail = (fbUser.email || '').toLowerCase().trim();
 
-  // 1. Authoritative archive check in Firestore
-  const archCheck = await checkCustomerArchivedInFirestore(cleanEmail, fbUser.uid);
-  if (archCheck && archCheck.isArchived === true) {
-    return { ok: false, reason: 'archived' };
-  }
+    // 1. Authoritative archive check in Firestore
+    const archCheck = await checkCustomerArchivedInFirestore(cleanEmail, fbUser.uid);
+    if (archCheck && archCheck.isArchived === true) {
+      return { ok: false, reason: 'archived' };
+    }
 
-  // 2. Check if this is an Admin/Staff account
-  const adminStatus = await fetchAuthoritativeAdminRecord(fbUser.uid, fbUser.email);
-  if (adminStatus.exists && adminStatus.isArchived === true) {
-    return { ok: false, reason: 'archived' };
-  }
+    // 2. Check if this is an Admin/Staff account
+    const adminStatus = await fetchAuthoritativeAdminRecord(fbUser.uid, fbUser.email);
+    if (adminStatus.exists && adminStatus.isArchived === true) {
+      return { ok: false, reason: 'archived' };
+    }
 
-  // 3. Fetch authoritative customer profile from Firestore
-  let profile = await fetchCustomerProfileFromFirestore(cleanEmail, fbUser.uid);
-  if (profile && profile.isArchived === true) {
-    return { ok: false, reason: 'archived' };
-  }
+    // 3. Fetch authoritative customer profile from Firestore
+    let profile = await fetchCustomerProfileFromFirestore(cleanEmail, fbUser.uid);
+    if (profile && profile.isArchived === true) {
+      return { ok: false, reason: 'archived' };
+    }
 
-  if (!profile) {
-    // If user is an active administrative user, grant seamless customer access
-    if (adminStatus.exists && adminStatus.data) {
-      profile = {
-        id: `user-${fbUser.uid}`,
-        firebaseUid: fbUser.uid,
-        email: cleanEmail,
-        fullName: adminStatus.data.name || adminStatus.data.fullName || fbUser.displayName || 'Administrator',
-        phone: adminStatus.data.phone || '',
-        address: '',
-        role: 'customer',
-        adminRole: adminStatus.role,
-        isArchived: false,
-        createdAt: adminStatus.data.createdAt || new Date().toISOString()
-      };
-    } else {
-      // Fallback: check local storage customer directory for existing customer record
-      const localUsers = JSON.parse(localStorage.getItem('aurora-users') || '[]');
-      const localCusts = JSON.parse(localStorage.getItem('aurora-customers') || '[]');
-      const found = localUsers.find(u => u && (String(u.email || '').toLowerCase().trim() === cleanEmail || u.firebaseUid === fbUser.uid)) ||
-                    localCusts.find(c => c && (String(c.email || '').toLowerCase().trim() === cleanEmail || c.uid === fbUser.uid));
-
-      if (found) {
-        if (found.isArchived === true) {
-          return { ok: false, reason: 'archived' };
-        }
-        profile = found;
-      } else {
-        // Create new customer profile for authenticated customer
+    if (!profile) {
+      // If user is an active administrative user, grant seamless customer access
+      if (adminStatus.exists && adminStatus.data) {
         profile = {
           id: `user-${fbUser.uid}`,
           firebaseUid: fbUser.uid,
           email: cleanEmail,
-          fullName: fbUser.displayName || cleanEmail.split('@')[0] || 'Customer',
-          phone: fbUser.phoneNumber || '',
+          fullName: adminStatus.data.name || adminStatus.data.fullName || fbUser.displayName || 'Administrator',
+          phone: adminStatus.data.phone || '',
           address: '',
           role: 'customer',
+          adminRole: adminStatus.role,
           isArchived: false,
-          createdAt: new Date().toISOString()
+          createdAt: adminStatus.data.createdAt || new Date().toISOString()
         };
+      } else {
+        // Fallback: check local storage customer directory for existing customer record
+        const localUsers = JSON.parse(localStorage.getItem('aurora-users') || '[]');
+        const localCusts = JSON.parse(localStorage.getItem('aurora-customers') || '[]');
+        const found = localUsers.find(u => u && (String(u.email || '').toLowerCase().trim() === cleanEmail || u.firebaseUid === fbUser.uid)) ||
+                      localCusts.find(c => c && (String(c.email || '').toLowerCase().trim() === cleanEmail || c.uid === fbUser.uid));
+
+        if (found) {
+          if (found.isArchived === true) {
+            return { ok: false, reason: 'archived' };
+          }
+          profile = found;
+        } else {
+          // Create new customer profile for authenticated customer
+          profile = {
+            id: `user-${fbUser.uid}`,
+            firebaseUid: fbUser.uid,
+            email: cleanEmail,
+            fullName: fbUser.displayName || cleanEmail.split('@')[0] || 'Customer',
+            phone: fbUser.phoneNumber || '',
+            address: '',
+            role: 'customer',
+            isArchived: false,
+            createdAt: new Date().toISOString()
+          };
+        }
       }
+    }
+
+    return { ok: true, user: profile };
+  }
+
+  // If Firebase Auth state resolved to null:
+  // Inspect established local customer session
+  let localUser = null;
+  try {
+    const isLoggedIn = typeof localStorage !== 'undefined' && localStorage.getItem('aurora-logged-in') === 'true';
+    const raw = typeof localStorage !== 'undefined' ? localStorage.getItem('aurora-user') : null;
+    if (isLoggedIn && raw) {
+      localUser = JSON.parse(raw);
+    }
+  } catch (_) {}
+
+  // If there is NO local customer session either, the visitor is genuinely unauthenticated
+  if (!localUser || (!localUser.email && !localUser.id)) {
+    return { ok: false, reason: 'unauthenticated' };
+  }
+
+  if (localUser.isArchived === true) {
+    return { ok: false, reason: 'archived' };
+  }
+
+  // Authoritatively verify against Firestore that this local account is not archived remotely
+  const localEmailClean = String(localUser.email || '').toLowerCase().trim();
+  const localUidClean = String(localUser.firebaseUid || localUser.uid || '').trim();
+
+  if (localEmailClean || localUidClean) {
+    const archCheck = await checkCustomerArchivedInFirestore(localEmailClean, localUidClean);
+    if (archCheck && archCheck.isArchived === true) {
+      return { ok: false, reason: 'archived' };
+    }
+
+    const remoteProfile = await fetchCustomerProfileFromFirestore(localEmailClean, localUidClean);
+    if (remoteProfile && remoteProfile.isArchived === true) {
+      return { ok: false, reason: 'archived' };
+    }
+
+    if (remoteProfile) {
+      localUser = { ...localUser, ...remoteProfile };
     }
   }
 
-  return { ok: true, user: profile };
+  return { ok: true, user: localUser };
 }
 
 /**
@@ -564,8 +608,8 @@ export async function protectCustomerPage() {
   // Authoritatively verified: synchronize session in localStorage for compatible access
   const activeUser = {
     ...result.user,
-    firebaseUid: auth.currentUser.uid,
-    email: (result.user.email || auth.currentUser.email || '').toLowerCase().trim()
+    firebaseUid: auth?.currentUser?.uid || result.user?.firebaseUid || null,
+    email: (result.user?.email || auth?.currentUser?.email || '').toLowerCase().trim()
   };
   localStorage.setItem('aurora-user', JSON.stringify(activeUser));
   localStorage.setItem('aurora-logged-in', 'true');

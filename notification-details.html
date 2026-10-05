@@ -40,6 +40,34 @@
       background-color: #111827;
       color: #FFFFFF;
     }
+    /* Clean vertical scrollbar for notification details panel */
+    #notif-detail-pane {
+      scrollbar-width: thin;
+      scrollbar-color: rgba(30, 108, 2, 0.3) transparent;
+      overscroll-behavior-y: contain;
+    }
+    html.dark #notif-detail-pane {
+      scrollbar-color: rgba(52, 211, 153, 0.35) transparent;
+    }
+    #notif-detail-pane::-webkit-scrollbar {
+      width: 6px;
+    }
+    #notif-detail-pane::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    #notif-detail-pane::-webkit-scrollbar-thumb {
+      background-color: rgba(30, 108, 2, 0.3);
+      border-radius: 9999px;
+    }
+    html.dark #notif-detail-pane::-webkit-scrollbar-thumb {
+      background-color: rgba(52, 211, 153, 0.35);
+    }
+    #notif-detail-pane::-webkit-scrollbar-thumb:hover {
+      background-color: rgba(30, 108, 2, 0.5);
+    }
+    html.dark #notif-detail-pane::-webkit-scrollbar-thumb:hover {
+      background-color: rgba(52, 211, 153, 0.55);
+    }
   </style>
   <link rel="stylesheet" href="src/styles/index.css">
 </head>
@@ -143,7 +171,7 @@
         </div>
 
         <!-- Right Column: Full Notification Details Card -->
-        <div id="notif-detail-pane" class="md:col-span-7 bg-white dark:bg-slate-800 rounded-3xl border border-[#D8E8D5] dark:border-slate-700 p-5 sm:p-7 shadow-sm sticky top-24 hidden md:block">
+        <div id="notif-detail-pane" class="md:col-span-7 bg-white dark:bg-slate-800 rounded-3xl border border-[#D8E8D5] dark:border-slate-700 p-5 sm:p-7 shadow-sm sticky top-24 hidden md:block max-h-[calc(100vh-7.5rem)] overflow-y-auto">
           
           <!-- Mobile Back Button -->
           <div class="md:hidden pb-3 mb-4 border-b border-[#D8E8D5] dark:border-slate-700 flex items-center justify-between">
@@ -423,6 +451,7 @@
       };
 
       const renderNotificationDetails = (notifId) => {
+        if (detailPane) detailPane.scrollTop = 0;
         const notifs = getCustomerNotifications();
         const n = notifs.find(item => String(item.id) === String(notifId));
         if (!n) {

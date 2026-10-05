@@ -1002,6 +1002,15 @@
       return itemsSubtotal + shippingFee;
     }
 
+    // Authoritative required down payment calculation matching Order Summary
+    function getOrderRequiredPaymentAmount(order) {
+      if (!order) return 0;
+      const totalAmount = getOrderDisplayTotal(order);
+      const isExplicitFullPayment = (order.paymentType === 'full' || order.paymentOption === 'Full Payment' || order.paymentOption === 'full');
+      const isDepositType = !isExplicitFullPayment;
+      return isDepositType ? Math.round(totalAmount * 0.3) : totalAmount;
+    }
+
     document.addEventListener('DOMContentLoaded', async () => {
       // 1. Authoritative customer access control check
       const authResult = await protectCustomerPage();
@@ -2352,7 +2361,7 @@
         const remainingBalance = isPaidInFull ? 0 : Math.max(0, totalAmount - actualAmountPaid);
 
         // Computation follows selected payment option strictly for unpaid state
-        const requiredPaymentAmount = isDepositType ? Math.round(totalAmount * 0.3) : totalAmount;
+        const requiredPaymentAmount = getOrderRequiredPaymentAmount(order);
         const balanceAfterApproval = isDepositType ? Math.max(0, totalAmount - requiredPaymentAmount) : 0;
 
         // Payment status configurations
@@ -2500,6 +2509,7 @@
             const resPayInfo = getActiveReservationPaymentDeadlineInfo(order);
             const reupInfo = getActivePaymentReuploadDeadlineInfo(order);
             if (resPayInfo) {
+              resPayInfo.requiredAmount = requiredPaymentAmount;
               const isExp = resPayInfo.expired;
               const isUrgent = resPayInfo.urgencyLevel === 'critical' || resPayInfo.urgencyLevel === 'urgent';
               return `
@@ -3019,6 +3029,7 @@
                     })() : (() => {
                       const resPayInfo = getActiveReservationPaymentDeadlineInfo(order);
                       if (resPayInfo) {
+                        resPayInfo.requiredAmount = requiredPaymentAmount;
                         const isExp = resPayInfo.expired;
                         return `
                           <div class="rounded-2xl border ${isExp ? 'bg-rose-50/90 dark:bg-rose-950/40 border-rose-200 dark:border-rose-900' : 'bg-orange-50/90 dark:bg-orange-950/40 border-orange-200 dark:border-orange-800'} p-5 space-y-3 text-left">
@@ -3556,7 +3567,10 @@
         const activeDeadlines = [];
         (userOrders || []).forEach(ord => {
           const resPay = getActiveReservationPaymentDeadlineInfo(ord);
-          if (resPay && !resPay.expired) activeDeadlines.push(resPay);
+          if (resPay && !resPay.expired) {
+            resPay.requiredAmount = getOrderRequiredPaymentAmount(ord);
+            activeDeadlines.push(resPay);
+          }
           const reup = getActivePaymentReuploadDeadlineInfo(ord);
           if (reup && !reup.expired) activeDeadlines.push(reup);
         });
@@ -3968,6 +3982,9 @@
               let resBadgeClass = 'bg-blue-50 text-blue-800 border-blue-200';
 
               const resPayDeadline = getActiveReservationPaymentDeadlineInfo(order);
+              if (resPayDeadline) {
+                resPayDeadline.requiredAmount = getOrderRequiredPaymentAmount(order);
+              }
               const reuploadDeadline = getActivePaymentReuploadDeadlineInfo(order);
 
               if (order.paymentRejected) {

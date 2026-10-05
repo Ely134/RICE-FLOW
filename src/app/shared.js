@@ -2164,17 +2164,22 @@ export async function loginUser(emailOrUsername, password) {
 
   // 1. Authoritative Firebase Authentication
   if (auth) {
-    try {
-      const userCred = await signInWithEmailAndPassword(auth, cleanEmail, password);
-      if (userCred && userCred.user) {
-        fbUid = userCred.user.uid;
-      }
-    } catch (fbErr) {
-      const code = fbErr?.code || '';
-      console.log('[FIREBASE AUTH] Customer sign-in notice:', code || fbErr?.message);
-      // If Firebase actively rejected the credentials, do not permit local fallback
-      if (code === 'auth/wrong-password' || code === 'auth/invalid-credential' || code === 'auth/invalid-login-credentials') {
-        fbAuthRejected = true;
+    // If user was already authenticated via Firebase Auth during this login attempt, reuse the existing session
+    if (auth.currentUser && auth.currentUser.email && String(auth.currentUser.email).toLowerCase() === cleanEmail) {
+      fbUid = auth.currentUser.uid;
+    } else {
+      try {
+        const userCred = await signInWithEmailAndPassword(auth, cleanEmail, password);
+        if (userCred && userCred.user) {
+          fbUid = userCred.user.uid;
+        }
+      } catch (fbErr) {
+        const code = fbErr?.code || '';
+        console.log('[FIREBASE AUTH] Customer sign-in notice:', code || fbErr?.message);
+        // If Firebase actively rejected the credentials, do not permit local fallback
+        if (code === 'auth/wrong-password' || code === 'auth/invalid-credential' || code === 'auth/invalid-login-credentials') {
+          fbAuthRejected = true;
+        }
       }
     }
   }
@@ -2383,6 +2388,9 @@ export async function loginUser(emailOrUsername, password) {
   }
 
   // Record failed attempt
+  if (auth && auth.currentUser) {
+    try { await signOut(auth); } catch (_) {}
+  }
   recordFailedAttempt(cleanEmail);
   return false;
 }
@@ -2710,13 +2718,18 @@ export async function loginAdmin(email, password) {
   }
 
   // 3. Strict Role & Active Status Enforcement
-  if (!adminRecord || (adminRecord.role !== 'admin' && adminRecord.role !== 'staff') || adminRecord.isArchived === true) {
-    // If the authenticated Firebase user has no matching authorized adminUsers record, sign them out and deny access
+  if (adminRecord && adminRecord.isArchived === true) {
+    // If the administrator/staff account is explicitly archived, terminate auth and block access
     try {
       await signOut(auth);
     } catch (_) {}
-    console.warn('[RBAC] User authenticated via Firebase Auth but is not authorized in Firestore adminUsers.');
     recordFailedAttempt(cleanEmail);
+    return false;
+  }
+
+  if (!adminRecord || (adminRecord.role !== 'admin' && adminRecord.role !== 'staff')) {
+    // Authenticated user exists in Firebase Auth but is not an admin/staff member (e.g. a customer).
+    // Do NOT sign out or record failed attempt, as login.html will immediately evaluate customer login.
     return false;
   }
 
