@@ -138,12 +138,12 @@
 
         // Initialize selection with all items on first load
         if (isFirstLoad) {
-          selectedItemIds = cart.map(i => i.product.id);
+          selectedItemIds = cart.map(i => String(i.product?.id || i.productId || '').trim()).filter(Boolean);
           isFirstLoad = false;
         }
 
         // Calculations
-        const selectedItems = cart.filter(item => selectedItemIds.includes(item.product.id));
+        const selectedItems = cart.filter(item => selectedItemIds.includes(String(item.product?.id || item.productId || '').trim()));
         const subtotal = selectedItems.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
         const deliveryFee = selectedItemIds.length > 0 ? 80 : 0;
         const total = subtotal + deliveryFee;
@@ -187,11 +187,12 @@
 
               <!-- Item cards mapper -->
               ${cart.map(item => {
-                const isSelected = selectedItemIds.includes(item.product.id);
+                const itemId = String(item.product?.id || item.productId || '').trim();
+                const isSelected = selectedItemIds.includes(itemId);
                 return `
                   <div class="bg-white rounded-2xl p-5 border-2 transition-all duration-300 flex flex-col sm:flex-row gap-4 items-stretch sm:items-center ${isSelected ? 'border-[#1E6C02]/80 shadow-md' : 'border-transparent shadow-sm'}">
                     <button 
-                      data-id="${item.product.id}"
+                      data-id="${itemId}"
                       class="card-select-btn flex-shrink-0 py-2"
                     >
                       ${isSelected ? `
@@ -301,7 +302,7 @@
           if (selectedItemIds.length === cart.length) {
             selectedItemIds = [];
           } else {
-            selectedItemIds = cart.map(i => i.product.id);
+            selectedItemIds = cart.map(i => String(i.product?.id || i.productId || '').trim()).filter(Boolean);
           }
           renderCart();
         });
@@ -309,7 +310,7 @@
         // 2. Select card trigger
         document.querySelectorAll('.card-select-btn').forEach(btn => {
           btn.addEventListener('click', () => {
-            const id = btn.getAttribute('data-id');
+            const id = String(btn.getAttribute('data-id') || '').trim();
             if (selectedItemIds.includes(id)) {
               selectedItemIds = selectedItemIds.filter(i => i !== id);
             } else {

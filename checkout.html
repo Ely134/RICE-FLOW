@@ -611,6 +611,7 @@
       showToast, 
       getProductById, 
       getProducts, 
+      saveProducts,
       getReservationQueuePosition,
       normalizePhilippinePhone,
       checkPhoneExists,
@@ -618,6 +619,10 @@
       getEstimatedArrivalDate
     } from './src/app/shared.js';
     import { 
+      db,
+      doc,
+      getDoc,
+      getDocFromServer,
       auth,
       storage,
       storageRef,
@@ -673,10 +678,11 @@
           }];
         }
       } else if (queryOnly) {
-        checkoutItems = cart.filter(item => item.product.id === queryOnly);
+        const targetOnlyId = String(queryOnly).trim();
+        checkoutItems = cart.filter(item => String(item.product?.id || item.productId || '').trim() === targetOnlyId);
       } else if (querySelection) {
-        const ids = querySelection.split(',');
-        checkoutItems = cart.filter(item => ids.includes(item.product.id));
+        const ids = querySelection.split(',').map(s => String(s).trim()).filter(Boolean);
+        checkoutItems = cart.filter(item => ids.includes(String(item.product?.id || item.productId || '').trim()));
       } else {
         // Fallback checks out entire cart
         checkoutItems = cart;
@@ -744,8 +750,8 @@
           return { availQty: 0, reservedQty: Number(item.quantity || 0), availStock: 0, product: item.product };
         }
         const allProds = getProducts();
-        const pid = item.product?.id || item.productId;
-        const p = allProds.find(pr => String(pr.id) === String(pid)) || item.product;
+        const pid = String(item.product?.id || item.productId || '').trim();
+        const p = allProds.find(pr => String(pr.id).trim() === pid) || item.product;
         
         const availStock = Number(
           p
@@ -1115,8 +1121,8 @@
           const itemsWithShortage = [];
 
           for (const item of checkoutItems) {
-            const pid = item.product?.id || item.productId;
-            const p = allProds.find(pr => String(pr.id) === String(pid)) || item.product;
+            const pid = String(item.product?.id || item.productId || '').trim();
+            const p = allProds.find(pr => String(pr.id).trim() === pid) || item.product;
             if (p) {
               const availStock = Number(p.availableStock !== undefined ? p.availableStock : (p.stock !== undefined ? p.stock : 0));
               const requestedQty = Number(item.quantity || 0);
@@ -1342,20 +1348,33 @@
       }
 
       // Choice 1 / Primary Action:
-      // When partial: Buy Available Quantity & Reserve Remainder (skipReservation: false)
-      // When zero: Reserve Full Quantity (skipReservation: false)
-      // When normal: Confirm Order (skipReservation: false)
+      // When partial: Buy Available Quantity & Reserve Remainder (customerChoice: 'buy_and_reserve')
+      // When zero: Reserve Full Quantity (customerChoice: 'reserve_full')
+      // When normal: Confirm Order
       btnSubmitConfirm.addEventListener('click', () => {
         confirmOrderModal.classList.add('hidden');
-        submitOrderToDB({ skipReservation: false });
+        let customerChoice = undefined;
+        let agreedAvailQty = undefined;
+        if (pendingStockNotice) {
+          if (pendingStockNotice.type === 'partial') {
+            customerChoice = 'buy_and_reserve';
+            agreedAvailQty = pendingStockNotice.totalAvail;
+          } else if (pendingStockNotice.type === 'zero') {
+            customerChoice = 'reserve_full';
+            agreedAvailQty = 0;
+          }
+        }
         pendingStockNotice = null;
+        submitOrderToDB({ skipReservation: false, customerChoice, agreedAvailQty });
       });
 
-      // Choice 2: Buy Available Quantity Only (skipReservation: true)
+      // Choice 2: Buy Available Quantity Only (customerChoice: 'buy_available_only', skipReservation: true)
       if (btnAvailOnlyConfirm) {
         btnAvailOnlyConfirm.addEventListener('click', () => {
           confirmOrderModal.classList.add('hidden');
+          let agreedAvailQty = undefined;
           if (pendingStockNotice && pendingStockNotice.itemsWithShortage) {
+            agreedAvailQty = pendingStockNotice.totalAvail;
             // Apply available quantities to checkoutItems and recalculate
             pendingStockNotice.itemsWithShortage.forEach(s => {
               s.item.quantity = s.avail;
@@ -1363,8 +1382,8 @@
             renderCheckoutItemsAndTotals();
             showToast('Proceeding with available quantity only.', 'info');
           }
-          submitOrderToDB({ skipReservation: true });
           pendingStockNotice = null;
+          submitOrderToDB({ skipReservation: true, customerChoice: 'buy_available_only', agreedAvailQty });
         });
       }
 
@@ -2016,7 +2035,9 @@
             deliveryNotes,
             notes: rawNotes,
             isPreOrder: false,
-            skipReservation: options.skipReservation || false
+            skipReservation: options.skipReservation || false,
+            customerChoice: options.customerChoice || undefined,
+            agreedAvailQty: options.agreedAvailQty !== undefined ? options.agreedAvailQty : undefined
           });
         } catch (atomicOrderErr) {
           console.error('[CHECKOUT] Atomic stock/order commitment failed:', atomicOrderErr);
@@ -2087,7 +2108,7 @@
         const createdRes = res ? (res.createdReservation || ((res.isPreOrder || res.items?.some(i => i.isReservation)) ? res : null)) : null;
 
         // Slice checked out elements from storage cart
-        const outIds = checkoutItems.map(i => i.product.id);
+        const outIds = checkoutItems.map(i => String(i.product?.id || i.productId || '').trim()).filter(Boolean);
         clearCartItems(outIds);
         sessionStorage.removeItem('riceflow-checkout-context');
 
@@ -2097,7 +2118,7 @@
 
         if (createdRes) {
           const resQty = createdRes.items ? createdRes.items.reduce((acc, it) => acc + (it.quantity || 0), 0) : 0;
-          const actualPos = getReservationQueuePosition(createdRes) || createdRes.queuePosition || 1;
+          const actualPos = createdRes.queuePosition || getReservationQueuePosition(createdRes) || 1;
           const isSplit = res && res.createdReservation;
           splash.innerHTML = `
             <div class="h-20 w-20 bg-[#E2F9E5] text-[#1E6C02] rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner dark:bg-emerald-950/60 dark:text-emerald-400">

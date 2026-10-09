@@ -71,7 +71,11 @@ import {
   runTransaction,
   doc,
   getDoc,
-  getDocFromServer
+  getDocFromServer,
+  getDocs,
+  collection,
+  query,
+  where
 } from '../lib/firebase.js';
 
 export { 
@@ -1284,9 +1288,17 @@ export function isOrderStockDeducted(order) {
     return true;
   }
 
+  // Normal orders placed into the database: in RiceFlow, regular orders deduct warehouse inventory upon placement
+  if (!order.isPreOrder && Array.isArray(order.items) && !order.items.some(it => it && it.isReservation)) {
+    const statusClean = String(order.status || '').toLowerCase().replace(/_/g, '-');
+    if (['to-pay', 'pending', 'processing', 'to-ship', 'to-receive', 'delivered', 'completed', 'paid'].includes(statusClean)) {
+      return true;
+    }
+  }
+
   // Active or fulfilled normal orders whose warehouse stock was already decremented upon acceptance/fulfillment
   const statusClean = String(order.status || '').toLowerCase().replace(/_/g, '-');
-  if (['processing', 'to-ship', 'to-receive', 'delivered', 'completed'].includes(statusClean) && !order.isPreOrder) {
+  if (['processing', 'to-ship', 'to-receive', 'delivered', 'completed'].includes(statusClean)) {
     return true;
   }
 
@@ -1364,7 +1376,13 @@ export function getProducts() {
 
         if (pId) {
           const totalQty = Number(it.quantity || 0);
-          const allocatedQty = Math.min(totalQty, Math.max(0, Number(o.allocatedQuantity || 0)));
+          const cleanStatus = String(o.status || '').toLowerCase().replace(/_/g, '-').trim();
+          const isActuallyAllocated = Boolean(
+            (o.stockAllocated === true || ['stock-allocated', 'ready-for-processing', 'ready'].includes(cleanStatus) ||
+             (o.paymentDeadline && new Date(o.paymentDeadline).getTime() > Date.now())) &&
+            Number(o.allocatedQuantity || 0) > 0
+          );
+          const allocatedQty = isActuallyAllocated ? Math.min(totalQty, Math.max(0, Number(o.allocatedQuantity || 0))) : 0;
           const waitingQty = Math.max(0, totalQty - allocatedQty);
 
           if (waitingQty > 0) {
@@ -2062,19 +2080,25 @@ export async function updateInquiryStatus(inquiryId, newStatus) {
 
 export function getCart() {
   const user = getCurrentUser();
-  const key = user ? `aurora-cart-${user.id}` : 'aurora-cart';
+  const userId = user ? String(user.id || user.email || user.firebaseUid || '').trim() : '';
+  const key = userId ? `aurora-cart-${userId}` : 'aurora-cart';
   return JSON.parse(localStorage.getItem(key) || '[]');
 }
 
 export function saveCart(cart) {
   const user = getCurrentUser();
-  const key = user ? `aurora-cart-${user.id}` : 'aurora-cart';
+  const userId = user ? String(user.id || user.email || user.firebaseUid || '').trim() : '';
+  const key = userId ? `aurora-cart-${userId}` : 'aurora-cart';
   localStorage.setItem(key, JSON.stringify(cart));
 }
 
 export function addToCart(product, quantity, isReservation = false) {
   const cart = getCart();
-  const existing = cart.find(item => item.product.id === product.id);
+  const targetId = String(product?.id || product?.productId || '').trim();
+  const existing = cart.find(item => {
+    const pId = String(item.product?.id || item.productId || '').trim();
+    return pId && pId === targetId;
+  });
   if (existing) {
     existing.quantity += quantity;
     existing.isReservation = isReservation || existing.isReservation;
@@ -2085,17 +2109,23 @@ export function addToCart(product, quantity, isReservation = false) {
 }
 
 export function removeFromCart(productId) {
-  const cart = getCart().filter(item => item.product.id !== productId);
+  const targetId = String(productId || '').trim();
+  const cart = getCart().filter(item => {
+    const pId = String(item.product?.id || item.productId || '').trim();
+    return pId !== targetId;
+  });
   saveCart(cart);
 }
 
 export function updateCartQty(productId, quantity) {
+  const targetId = String(productId || '').trim();
   if (quantity <= 0) {
-    removeFromCart(productId);
+    removeFromCart(targetId);
     return;
   }
   const cart = getCart().map(item => {
-    if (item.product.id === productId) {
+    const pId = String(item.product?.id || item.productId || '').trim();
+    if (pId === targetId) {
       item.quantity = quantity;
     }
     return item;
@@ -2108,7 +2138,11 @@ export function clearCart() {
 }
 
 export function clearCartItems(productIds) {
-  const cart = getCart().filter(item => !productIds.includes(item.product.id));
+  const idsToRemove = (Array.isArray(productIds) ? productIds : [productIds]).map(id => String(id || '').trim());
+  const cart = getCart().filter(item => {
+    const pId = String(item.product?.id || item.productId || '').trim();
+    return !idsToRemove.includes(pId);
+  });
   saveCart(cart);
 }
 
@@ -5583,12 +5617,30 @@ export async function addOrderAtomic(orderData) {
   ));
 
   // Determine current active allocated reservations to preserve allocated reservation commitments
-  const cachedOrders = getOrders();
+  // and load authoritative live orders from Firestore for accurate FCFS queue positions
+  let liveOrders = [];
+  try {
+    const ordersSnap = await getDocs(collection(db, 'orders'));
+    liveOrders = ordersSnap.docs.map(d => ({ ...d.data(), id: d.id }));
+  } catch (err) {
+    console.warn('[ATOMIC-ORDER] Could not fetch live orders from Firestore, using cached orders:', err);
+    liveOrders = getOrders();
+  }
+
   const allocatedMap = {};
-  cachedOrders.forEach(o => {
-    if (!o || o.status === 'cancelled' || o.status === 'Cancelled' || o.status === 'completed' || o.status === 'delivered') return;
+  liveOrders.forEach(o => {
+    if (!o || o.status === 'cancelled' || o.status === 'Cancelled' || o.status === 'completed' || o.status === 'delivered' || o.status === 'rejected') return;
+    if (isOrderStockDeducted(o)) return;
+    const cleanStatus = String(o.status || '').toLowerCase().replace(/_/g, '-').trim();
+    if (['processing', 'to-ship', 'to-receive', 'delivered', 'completed'].includes(cleanStatus)) return;
     const isRes = o.isPreOrder || (o.items && o.items.some(it => it.isReservation));
     if (isRes && Array.isArray(o.items)) {
+      const isActuallyAllocated = Boolean(
+        (o.stockAllocated === true || ['stock-allocated', 'ready-for-processing', 'ready'].includes(cleanStatus) ||
+         (o.paymentDeadline && new Date(o.paymentDeadline).getTime() > Date.now())) &&
+        Number(o.allocatedQuantity || 0) > 0
+      );
+      if (!isActuallyAllocated) return;
       o.items.forEach(it => {
         const pId = String(it.product?.id || it.productId || it.id || '').trim();
         if (pId) {
@@ -5618,7 +5670,7 @@ export async function addOrderAtomic(orderData) {
     }
 
     // Determine candidate Order ID and verify uniqueness in Firestore
-    let candidateOrderId = orderData.id || generateOrderId(cachedOrders);
+    let candidateOrderId = orderData.id || generateOrderId(liveOrders);
     let orderDocRef = doc(db, 'orders', candidateOrderId);
     let orderDocSnap = await transaction.get(orderDocRef);
     let orderAttempts = 0;
@@ -5631,12 +5683,13 @@ export async function addOrderAtomic(orderData) {
     }
 
     // Candidate Reservation ID in case partial split or reservation conversion is needed
-    let candidateResId = generateReservationId(cachedOrders);
+    let candidateResId = generateReservationId(liveOrders);
     let resDocRef = doc(db, 'orders', candidateResId);
     let resDocSnap = await transaction.get(resDocRef);
     let resAttempts = 0;
     while (resDocSnap.exists() && resAttempts < 15) {
-      candidateResId = generateReservationId(cachedOrders);
+      const numPart = parseInt(candidateResId.replace(/^RES/, ''), 10) || 500000;
+      candidateResId = 'RES' + (numPart + 1);
       resDocRef = doc(db, 'orders', candidateResId);
       resDocSnap = await transaction.get(resDocRef);
       resAttempts++;
@@ -5660,8 +5713,8 @@ export async function addOrderAtomic(orderData) {
         continue;
       }
 
-      // Read authoritative physical warehouse stock from Firestore
-      const physicalStock = Math.max(0, Number(pData.currentStock !== undefined ? pData.currentStock : (pData.stock !== undefined ? pData.stock : 0)));
+      // Read authoritative physical warehouse stock from Firestore (canonical schema field is stock)
+      const physicalStock = Math.max(0, Number(pData.stock !== undefined ? pData.stock : (pData.currentStock !== undefined ? pData.currentStock : 0)));
       const committedAllocated = allocatedMap[pId] || 0;
       const availStock = Math.max(0, physicalStock - committedAllocated);
       const requestedQty = Number(item.quantity || 0);
@@ -5691,14 +5744,19 @@ export async function addOrderAtomic(orderData) {
           qty: requestedQty,
           remarks: `Order placed: #${candidateOrderId}`
         });
-        updatedItems.push({ ...item, quantity: requestedQty, isReservation: false });
+        updatedItems.push({
+          ...item,
+          quantity: requestedQty,
+          originalRequestedQty: requestedQty,
+          isReservation: false
+        });
       } else {
         // requestedQty > availStock
-        if (orderData.skipReservation) {
-          // Customer chose to skip reservation: claim only available physical stock
+        if (orderData.customerChoice === 'buy_available_only') {
+          // Customer explicitly chose to purchase available quantity only without reserving remainder
           if (availStock > 0) {
             anyPhysicalStockDeducted = true;
-            const approvedQty = availStock;
+            const approvedQty = orderData.agreedAvailQty !== undefined ? Math.min(availStock, Number(orderData.agreedAvailQty)) : availStock;
             const newPhysical = physicalStock - approvedQty;
             productUpdates[pId] = {
               stock: newPhysical,
@@ -5713,17 +5771,21 @@ export async function addOrderAtomic(orderData) {
               qty: approvedQty,
               remarks: `Order placed (available stock only): #${candidateOrderId}`
             });
-            updatedItems.push({ ...item, quantity: approvedQty, isReservation: false });
+            updatedItems.push({
+              ...item,
+              quantity: approvedQty,
+              originalRequestedQty: requestedQty,
+              isReservation: false
+            });
           } else {
             throw new Error(`The item "${pData.name || 'Rice'}" was just claimed by another order and is currently out of stock.`);
           }
-        } else {
-          // Default: Partial split or reservation
+        } else if (orderData.customerChoice === 'buy_and_reserve') {
+          // Customer explicitly consented to buy available quantity and reserve remainder
           if (availStock > 0) {
-            // PARTIAL SPLIT
             anyPhysicalStockDeducted = true;
-            const approvedQty = availStock;
-            const remainingQty = requestedQty - availStock;
+            const approvedQty = orderData.agreedAvailQty !== undefined ? Math.min(availStock, Number(orderData.agreedAvailQty)) : availStock;
+            const remainingQty = requestedQty - approvedQty;
             const newPhysical = physicalStock - approvedQty;
             productUpdates[pId] = {
               stock: newPhysical,
@@ -5738,7 +5800,12 @@ export async function addOrderAtomic(orderData) {
               qty: approvedQty,
               remarks: `Order placed (partial split): #${candidateOrderId}`
             });
-            updatedItems.push({ ...item, quantity: approvedQty, isReservation: false });
+            updatedItems.push({
+              ...item,
+              quantity: approvedQty,
+              originalRequestedQty: requestedQty,
+              isReservation: false
+            });
 
             // Prepare linked reservation
             const itemPrice = Number(item.product?.price || item.price || pData.price || 0);
@@ -5760,6 +5827,8 @@ export async function addOrderAtomic(orderData) {
               deliveryOption: orderData.deliveryOption || 'delivery',
               address: orderData.address || '',
               pickupNotes: orderData.pickupNotes || '',
+              deliveryNotes: orderData.deliveryNotes || '',
+              notes: orderData.notes || orderData.pickupNotes || orderData.deliveryNotes || '',
               paymentMethod: 'none',
               paymentType: 'none',
               paymentProof: '',
@@ -5768,6 +5837,7 @@ export async function addOrderAtomic(orderData) {
               items: [{
                 ...item,
                 quantity: remainingQty,
+                originalRequestedQty: requestedQty,
                 isReservation: true
               }],
               total: resTotal,
@@ -5791,10 +5861,26 @@ export async function addOrderAtomic(orderData) {
             if (initialSplitEst && initialSplitEst !== 'Waiting for Restock' && initialSplitEst !== 'Not yet scheduled') {
               createdReservation.estimatedFulfillmentDate = initialSplitEst;
             }
+
+            // Assign accurate FCFS queue position based on live active reservations for this product
+            const computedResPos = getReservationQueuePosition(createdReservation, liveOrders, pId);
+            createdReservation.queuePosition = computedResPos || 1;
+            liveOrders.push(createdReservation);
           } else {
-            // Entire item is out of stock -> convert order into reservation
-            updatedItems.push({ ...item, quantity: requestedQty, isReservation: true });
+            throw new Error(`The item "${pData.name || 'Rice'}" was just claimed by another order and is currently out of stock.`);
           }
+        } else if (orderData.customerChoice === 'reserve_full') {
+          // Customer explicitly agreed to reserve full quantity
+          updatedItems.push({
+            ...item,
+            quantity: requestedQty,
+            originalRequestedQty: requestedQty,
+            isReservation: true
+          });
+        } else {
+          // Customer submitted expecting full fulfillment, but stock is insufficient
+          // RiceFlow requires explicit customer consent before creating partial order or reservation
+          throw new Error(`Stock shortage detected: "${pData.name || 'Rice'}" only has ${availStock} sacks available (requested ${requestedQty}). Please review and confirm your options.`);
         }
       }
     }
@@ -5804,11 +5890,11 @@ export async function addOrderAtomic(orderData) {
     const finalOrderId = isConvertedReservation ? candidateResId : candidateOrderId;
 
     // Recalculate totals
-    const deliveryFee = orderData.deliveryOption === 'delivery' ? 80 : 0;
     const finalSubtotal = updatedItems.reduce((acc, it) => {
       const pPrice = Number(it.product?.price || it.price || 0);
       return acc + (it.isReservation ? 0 : pPrice * Number(it.quantity || 0));
     }, 0);
+    const deliveryFee = (isConvertedReservation || finalSubtotal === 0) ? 0 : (orderData.deliveryOption === 'delivery' ? 80 : 0);
 
     let finalTotal = finalSubtotal + (isConvertedReservation ? 0 : deliveryFee);
     let finalAmountPaid = orderData.paymentMethod === 'gcash' ? finalTotal : Math.floor(finalTotal * 0.3);
@@ -5842,10 +5928,11 @@ export async function addOrderAtomic(orderData) {
       consumedFromStock: anyPhysicalStockDeducted ? stockDeductions.reduce((acc, d) => acc + d.qty, 0) : 0,
       consumedAt: anyPhysicalStockDeducted ? now.toISOString() : null,
       total: finalTotal,
-      amountPaid: isConvertedReservation ? 0 : (orderData.amountPaid !== undefined ? orderData.amountPaid : finalAmountPaid),
-      remainingAmount: isConvertedReservation ? finalTotal : (orderData.remainingAmount !== undefined ? orderData.remainingAmount : finalRemaining),
+      amountPaid: isConvertedReservation ? 0 : finalAmountPaid,
+      remainingAmount: isConvertedReservation ? finalTotal : finalRemaining,
       paymentMethod: isConvertedReservation ? 'none' : (orderData.paymentMethod || 'gcash'),
       paymentType: isConvertedReservation ? 'none' : (orderData.paymentType || 'full'),
+      queuePosition: isConvertedReservation ? (getReservationQueuePosition({ id: finalOrderId, isPreOrder: true, status: 'pre-order', createdAt: now.toISOString(), items: updatedItems }, liveOrders, updatedItems[0]?.product?.id || updatedItems[0]?.productId) || 1) : undefined,
       statusHistory: orderData.statusHistory ? JSON.parse(JSON.stringify(orderData.statusHistory)) : [
         {
           id: Date.now().toString() + '-init',
@@ -6077,11 +6164,14 @@ export function addOrder(orderData) {
     queuePosition: (() => {
       if (orderData.queuePosition !== undefined && typeof orderData.queuePosition === 'number') return orderData.queuePosition;
       if (orderData.isPreOrder || clonedItems.some(i => i.isReservation)) {
-        const activeRes = orders.filter(o => 
-          (o.isPreOrder || (o.items && o.items.some(it => it.isReservation))) &&
-          o.status !== 'cancelled' && o.status !== 'completed' && o.status !== 'delivered'
-        );
-        return activeRes.length + 1;
+        const firstPId = clonedItems[0]?.product?.id || clonedItems[0]?.productId;
+        return getReservationQueuePosition({
+          ...orderData,
+          items: clonedItems,
+          isPreOrder: true,
+          status: 'pre-order',
+          createdAt: now.toISOString()
+        }, orders, firstPId) || 1;
       }
       return undefined;
     })(),
@@ -7018,7 +7108,7 @@ export function updateOrderRefundStatus(orderId, nextRefundStatus, adminInfo = {
 
 export function processOrderStockAndSplitIfNeeded(order) {
   if (!order) return order;
-  if (order.stockDeducted) {
+  if (order.stockDeducted || isOrderStockDeducted(order)) {
     return { finalOrder: order, createdReservation: null };
   }
 
@@ -7135,7 +7225,7 @@ allOrdersForAllocation.forEach(existingOrder => {
 
 const availStock = Math.max(
   0,
-  currentPhysical - reservedOther - allocatedOther
+  currentPhysical - allocatedOther
 );
       const requestedQty = Number(item.quantity || 0);
 
@@ -7192,12 +7282,13 @@ const availStock = Math.max(
           // Compute dynamic queue position for createdReservation
           const allOrders = getOrders();
           const pId = String(p.id);
-          const existingResForProd = allOrders.filter(o => 
-            (o.isPreOrder || (o.items && o.items.some(it => it.isReservation))) &&
-            o.status !== 'cancelled' && o.status !== 'completed' &&
-            o.items && o.items.some(it => String(it.product?.id || it.productId) === pId)
-          );
-          const dynQueuePos = existingResForProd.length + 1;
+          const dynQueuePos = getReservationQueuePosition({
+            id: 'RES-preview',
+            isPreOrder: true,
+            status: 'pre-order',
+            createdAt: new Date().toISOString(),
+            items: [{ ...item, quantity: remainingQty, isReservation: true }]
+          }, allOrders, pId) || 1;
 
           // Create linked reservation order
           createdReservation = {
@@ -7290,12 +7381,7 @@ const availStock = Math.max(
 
           const allOrders = getOrders();
           const pId = String(p.id);
-          const existingResForProd = allOrders.filter(o => 
-            (o.isPreOrder || (o.items && o.items.some(it => it.isReservation))) &&
-            o.status !== 'cancelled' && o.status !== 'completed' &&
-            o.items && o.items.some(it => String(it.product?.id || it.productId) === pId)
-          );
-          order.queuePosition = existingResForProd.length + 1;
+          order.queuePosition = getReservationQueuePosition(order, allOrders, pId) || 1;
 
           addNotification(
             order.userId || order.customerId || '',
@@ -8044,7 +8130,8 @@ if (isApproved && isPaymentSatisfied && isFullyAllocated) {
   orders.forEach(o => {
     const isRes = o.isPreOrder || o.status === 'pre-order' || o.status === 'pre_order' || o.status === 'waiting' || o.status === 'ready_for_processing' || o.status === 'ready' || o.status === 'payment_verification' || (o.items && o.items.some(it => it.isReservation));
     if (isRes) {
-      const computedPos = getReservationQueuePosition(o, orders);
+      const pId = o.items?.[0]?.product?.id || o.items?.[0]?.productId || o.productId;
+      const computedPos = getReservationQueuePosition(o, orders, pId);
       if (computedPos !== null && o.queuePosition !== computedPos) {
         o.queuePosition = computedPos;
         changed = true;
@@ -8216,22 +8303,35 @@ export function getReservationQueuePosition(targetOrder, allOrders = null, targe
 
   const orders = allOrders || getOrders();
 
+  const resolvedProductId = String(
+    targetProductId ||
+    (targetOrder.items && targetOrder.items.length > 0
+      ? (targetOrder.items[0].product?.id ?? targetOrder.items[0].productId ?? targetOrder.items[0].id ?? '')
+      : (targetOrder.productId || targetOrder.product?.id || targetOrder.product || ''))
+  ).trim();
+
   // Stage 1: Waiting for Stock Queue (positions #1, #2, #3... among active Waiting for Stock reservations)
   if (isReservationInWaitingForStockStage(targetOrder)) {
     let waitingList = orders.filter(o => isReservationInWaitingForStockStage(o));
 
-    if (targetProductId) {
-      const targetProdId = String(targetProductId);
+    if (resolvedProductId) {
       waitingList = waitingList.filter(o => {
-        return (
-          (o.items && Array.isArray(o.items) && o.items.some(it => {
-            if (!it) return false;
-            const itProdId = String(it.product?.id || it.productId || (typeof it.product === 'string' || typeof it.product === 'number' ? it.product : '') || it.id || '');
-            return itProdId && itProdId === targetProdId;
-          })) ||
-          String(o.productId || o.product?.id || '') === targetProdId
-        );
+        if (!o) return false;
+        const hasItem = Array.isArray(o.items) && o.items.some(it => {
+          if (!it) return false;
+          const itPid = String(it.product?.id ?? it.productId ?? (typeof it.product === 'string' || typeof it.product === 'number' ? it.product : '') ?? it.id ?? '').trim();
+          return itPid && itPid === resolvedProductId;
+        });
+        if (hasItem) return true;
+        const oPid = String(o.productId ?? o.product?.id ?? (typeof o.product === 'string' || typeof o.product === 'number' ? o.product : '') ?? '').trim();
+        return oPid && oPid === resolvedProductId;
       });
+    }
+
+    const targetId = String(targetOrder.id || '').toLowerCase().replace(/^#/, '');
+    const existsInList = waitingList.some(o => String(o.id || '').toLowerCase().replace(/^#/, '') === targetId);
+    if (!existsInList) {
+      waitingList = [...waitingList, targetOrder];
     }
 
     waitingList.sort((a, b) => {
@@ -8241,27 +8341,32 @@ export function getReservationQueuePosition(targetOrder, allOrders = null, targe
       return String(a.id || '').localeCompare(String(b.id || ''));
     });
 
-    const targetId = String(targetOrder.id || '').toLowerCase().replace(/^#/, '');
     const idx = waitingList.findIndex(o => String(o.id || '').toLowerCase().replace(/^#/, '') === targetId);
-    return idx !== -1 ? (idx + 1) : null;
+    return idx !== -1 ? (idx + 1) : 1;
   }
 
   // Stage 2: Payment Verification Queue (positions #1, #2, #3... among active Payment Verification reservations)
   if (isReservationInPaymentVerificationStage(targetOrder)) {
     let pvList = orders.filter(o => isReservationInPaymentVerificationStage(o));
 
-    if (targetProductId) {
-      const targetProdId = String(targetProductId);
+    if (resolvedProductId) {
       pvList = pvList.filter(o => {
-        return (
-          (o.items && Array.isArray(o.items) && o.items.some(it => {
-            if (!it) return false;
-            const itProdId = String(it.product?.id || it.productId || (typeof it.product === 'string' || typeof it.product === 'number' ? it.product : '') || it.id || '');
-            return itProdId && itProdId === targetProdId;
-          })) ||
-          String(o.productId || o.product?.id || '') === targetProdId
-        );
+        if (!o) return false;
+        const hasItem = Array.isArray(o.items) && o.items.some(it => {
+          if (!it) return false;
+          const itPid = String(it.product?.id ?? it.productId ?? (typeof it.product === 'string' || typeof it.product === 'number' ? it.product : '') ?? it.id ?? '').trim();
+          return itPid && itPid === resolvedProductId;
+        });
+        if (hasItem) return true;
+        const oPid = String(o.productId ?? o.product?.id ?? (typeof o.product === 'string' || typeof o.product === 'number' ? o.product : '') ?? '').trim();
+        return oPid && oPid === resolvedProductId;
       });
+    }
+
+    const targetId = String(targetOrder.id || '').toLowerCase().replace(/^#/, '');
+    const existsInList = pvList.some(o => String(o.id || '').toLowerCase().replace(/^#/, '') === targetId);
+    if (!existsInList) {
+      pvList = [...pvList, targetOrder];
     }
 
     pvList.sort((a, b) => {
@@ -8274,9 +8379,8 @@ export function getReservationQueuePosition(targetOrder, allOrders = null, targe
       return String(a.id || '').localeCompare(String(b.id || ''));
     });
 
-    const targetId = String(targetOrder.id || '').toLowerCase().replace(/^#/, '');
     const idx = pvList.findIndex(o => String(o.id || '').toLowerCase().replace(/^#/, '') === targetId);
-    return idx !== -1 ? (idx + 1) : null;
+    return idx !== -1 ? (idx + 1) : 1;
   }
 
   return null;

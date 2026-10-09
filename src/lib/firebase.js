@@ -167,7 +167,11 @@ export {
   runTransaction,
   doc,
   getDoc,
-  getDocFromServer
+  getDocFromServer,
+  getDocs,
+  collection,
+  query,
+  where
 };
 
 // Helper to save a document to Firestore

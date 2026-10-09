@@ -1415,8 +1415,8 @@
           const admin = window.RiceFlow ? window.RiceFlow.getCurrentAdmin() : getCurrentAdmin();
           const changerName = admin ? admin.name : 'System Admin';
 
-          // Split order if requested quantity exceeds current available stock
-          processOrderStockAndSplitIfNeeded(order);
+          // Orders finalized through RiceFlow checkout retain the customer's confirmed quantities
+          // Never silently reclassify or split order quantities during admin payment verification
 
           const isRes = isReservationOrder(order);
           if (!isRes) {
@@ -1431,7 +1431,8 @@
           order.verifiedDate = now.toLocaleDateString();
           order.verifiedTime = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
           if (isRes) {
-            order.queuePosition = getReservationQueuePosition(order, ordersList) || order.queuePosition || 1;
+            const pId = order.items?.[0]?.product?.id || order.items?.[0]?.productId || order.productId;
+            order.queuePosition = getReservationQueuePosition(order, ordersList, pId) || order.queuePosition || 1;
           }
 
           const historyItem = {
