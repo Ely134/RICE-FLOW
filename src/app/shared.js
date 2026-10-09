@@ -5827,6 +5827,13 @@ export async function addOrderAtomic(orderData) {
       userId,
       customerId,
       customerEmail,
+      fullName: orderData.fullName || '',
+      phone: orderData.phone || '',
+      deliveryOption: orderData.deliveryOption || 'delivery',
+      address: orderData.address || '',
+      pickupNotes: orderData.pickupNotes || '',
+      deliveryNotes: orderData.deliveryNotes || '',
+      notes: orderData.notes || orderData.pickupNotes || orderData.deliveryNotes || '',
       createdAt: orderData.createdAt ? new Date(orderData.createdAt).toISOString() : now.toISOString(),
       updatedAt: now.toISOString(),
       status: isConvertedReservation ? 'pre-order' : startStatus,
@@ -5870,14 +5877,16 @@ export async function addOrderAtomic(orderData) {
       });
     }
 
-    // 2. Commit Main Order in Firestore
+    // 2. Commit Main Order in Firestore (sanitized to remove any unsupported undefined values)
     const finalOrderRef = doc(db, 'orders', finalOrder.id);
-    transaction.set(finalOrderRef, finalOrder);
+    const cleanFinalOrder = JSON.parse(JSON.stringify(finalOrder));
+    transaction.set(finalOrderRef, cleanFinalOrder);
 
-    // 3. Commit Created Reservation if partial split occurred
+    // 3. Commit Created Reservation if partial split occurred (sanitized)
     if (createdReservation) {
       const splitResRef = doc(db, 'orders', createdReservation.id);
-      transaction.set(splitResRef, createdReservation);
+      const cleanReservation = JSON.parse(JSON.stringify(createdReservation));
+      transaction.set(splitResRef, cleanReservation);
     }
 
     // 4. Commit Inventory History logs atomically

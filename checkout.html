@@ -1966,10 +1966,12 @@
         }
 
         // Construct final payloads
-        const fullName = document.getElementById('inp-fullName').value;
-        const phone = document.getElementById('inp-phone').value;
-        const address = deliveryOption === 'delivery' ? addressInput.value : undefined;
-        const pickupNotes = deliveryOption === 'pickup' ? document.getElementById('inp-notes').value : undefined;
+        const fullName = (document.getElementById('inp-fullName')?.value || '').trim();
+        const phone = (document.getElementById('inp-phone')?.value || '').trim();
+        const address = deliveryOption === 'delivery' ? (addressInput?.value || '').trim() : '';
+        const rawNotes = (document.getElementById('inp-notes')?.value || '').trim();
+        const pickupNotes = deliveryOption === 'pickup' ? rawNotes : '';
+        const deliveryNotes = deliveryOption === 'delivery' ? rawNotes : '';
 
         // Calculate subtotal ONLY for available stock
         const subtotal = checkoutItems.reduce((acc, item) => {
@@ -2008,9 +2010,11 @@
             paymentVerified: false,
             fullName,
             phone,
-            deliveryOption,
+            deliveryOption: deliveryOption || 'delivery',
             address,
             pickupNotes,
+            deliveryNotes,
+            notes: rawNotes,
             isPreOrder: false,
             skipReservation: options.skipReservation || false
           });
