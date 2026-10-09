@@ -37,6 +37,8 @@ export default defineConfig({
         profile: path.resolve(__dirname, 'profile.html'),
         adminDashboard: path.resolve(__dirname, 'admin/dashboard.html'),
         adminStockReplenishment: path.resolve(__dirname, 'admin/stock-replenishment.html'),
+        adminInventoryAnalytics: path.resolve(__dirname, 'admin/inventory-analytics.html'),
+        adminReservationAnalytics: path.resolve(__dirname, 'admin/reservation-analytics.html'),
         adminTotalOrders: path.resolve(__dirname, 'admin/total-orders.html'),
         adminTotalSales: path.resolve(__dirname, 'admin/total-sales.html'),
         adminAvailableStock: path.resolve(__dirname, 'admin/available-stock.html'),

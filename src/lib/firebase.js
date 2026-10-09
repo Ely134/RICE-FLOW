@@ -25,7 +25,8 @@ import {
   onSnapshot, 
   deleteDoc,
   query,
-  where
+  where,
+  runTransaction
 } from 'firebase/firestore';
 import { 
   getStorage, 
@@ -162,7 +163,11 @@ export {
   uploadBytesResumable, 
   getDownloadURL, 
   deleteObject, 
-  listAll 
+  listAll,
+  runTransaction,
+  doc,
+  getDoc,
+  getDocFromServer
 };
 
 // Helper to save a document to Firestore

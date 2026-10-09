@@ -1827,20 +1827,31 @@
             url.searchParams.delete('orderId');
             url.searchParams.delete('reservationId');
             url.searchParams.delete('recordId');
+            url.searchParams.delete('id');
+            url.searchParams.delete('targetId');
             window.history.replaceState({}, '', url);
           } catch (e) {}
           return;
         }
 
+        const isRecReservation = Boolean(order.isPreOrder) || (order.items && order.items.some(i => i && i.isReservation)) || String(order.id || '').toUpperCase().replace(/^#/, '').startsWith('RES');
         try {
           const url = new URL(window.location);
-          url.searchParams.set('orderId', order.id);
-          url.searchParams.delete('reservationId');
-          url.searchParams.delete('recordId');
-          if (pushToHistory) {
-            window.history.pushState({ orderId: order.id }, '', url);
+          if (isRecReservation) {
+            url.searchParams.set('reservationId', order.id);
+            url.searchParams.delete('orderId');
           } else {
-            window.history.replaceState({ orderId: order.id }, '', url);
+            url.searchParams.set('orderId', order.id);
+            url.searchParams.delete('reservationId');
+          }
+          url.searchParams.delete('recordId');
+          url.searchParams.delete('id');
+          url.searchParams.delete('targetId');
+          const historyPayload = isRecReservation ? { reservationId: order.id } : { orderId: order.id };
+          if (pushToHistory) {
+            window.history.pushState(historyPayload, '', url);
+          } else {
+            window.history.replaceState(historyPayload, '', url);
           }
           sessionStorage.setItem('riceflow_customer_active_order_id', order.id);
           localStorage.setItem('riceflow_customer_active_order_id', order.id);
@@ -1857,7 +1868,7 @@
         const subtotal = Math.max(0, totalAmount - shippingFee);
 
         const oStatus = normalizeStatus(order.status);
-        const isReservationOrder = order.isPreOrder || (order.items && order.items.some(i => i.isReservation));
+        const isReservationOrder = isRecReservation;
 
         // Precompute delivery feedback HTML to prevent deeply nested template literal parse errors in Vite
         let deliveryFeedbackHtml = '';
@@ -3274,6 +3285,8 @@
             url.searchParams.delete('orderId');
             url.searchParams.delete('reservationId');
             url.searchParams.delete('recordId');
+            url.searchParams.delete('id');
+            url.searchParams.delete('targetId');
             window.history.pushState({}, '', url);
             sessionStorage.removeItem('riceflow_customer_active_order_id');
             localStorage.removeItem('riceflow_customer_active_order_id');
@@ -5421,14 +5434,26 @@
         window.__hasInitialOrdersHydrated = true;
         renderSummaryCards();
         renderMyOrdersList();
+        const detailsContainer = document.getElementById('order-details-container');
+        if (detailsContainer && detailsContainer.classList.contains('hidden')) {
+          processUrlDeepLink();
+        }
       }).catch(() => {
         window.__hasInitialOrdersHydrated = true;
         renderMyOrdersList();
+        const detailsContainer = document.getElementById('order-details-container');
+        if (detailsContainer && detailsContainer.classList.contains('hidden')) {
+          processUrlDeepLink();
+        }
       });
       setTimeout(() => {
         if (!window.__hasInitialOrdersHydrated) {
           window.__hasInitialOrdersHydrated = true;
           renderMyOrdersList();
+          const detailsContainer = document.getElementById('order-details-container');
+          if (detailsContainer && detailsContainer.classList.contains('hidden')) {
+            processUrlDeepLink();
+          }
         }
       }, 2500);
 
@@ -5448,81 +5473,118 @@
 
       applyActiveTab(resolvedInitialTab, false);
 
-      // Deep Linking & refresh state handler for tabs and orders
-      try {
-        const urlParams = new URLSearchParams(window.location.search);
-        // Only read orderId from URL search params on load. Do NOT restore a stale order from localStorage/sessionStorage when none is in URL!
-        const orderIdParam = urlParams.get('orderId') || urlParams.get('reservationId') || urlParams.get('recordId');
-        if (orderIdParam) {
-          const allOrders = getOrders();
-          const targetClean = String(orderIdParam).trim().toLowerCase();
-          const order = allOrders.find(o => String(o.id).trim().toLowerCase() === targetClean);
-          if (order && isMyOrder(order)) {
-            // Determine and switch active tab if necessary, then show details
-            const tabParam = urlParams.get('tab');
-            const normStat = normalizeStatus(order.status);
-            const validTabs = ['to-pay', 'to-ship', 'to-receive', 'delivered', 'completed', 'cancelled', 'reservations'];
-            if (tabParam && validTabs.includes(tabParam)) {
-              applyActiveTab(tabParam, false);
-            } else if (order.isPreOrder) {
-              applyActiveTab('reservations', false);
-            } else if (validTabs.includes(normStat)) {
-              applyActiveTab(normStat, false);
-            } else {
-              applyActiveTab('all', false);
-            }
+      // Deep Linking & refresh state handler for tabs, orders, and reservations
+      function processUrlDeepLink() {
+        try {
+          const urlParams = new URLSearchParams(window.location.search);
+          // Only read record ID from URL search params on load. Accept id and targetId as fallbacks alongside orderId, reservationId, and recordId.
+          const resIdParam = urlParams.get('reservationId');
+          const ordIdParam = urlParams.get('orderId');
+          const fallbackParam = urlParams.get('recordId') || urlParams.get('targetId') || urlParams.get('id');
+          const deepLinkId = resIdParam || ordIdParam || fallbackParam;
 
-            openOrderDetails(order.id, false);
-            
-            // Highlight/scroll to the specific section or details card
-            setTimeout(() => {
-              const urlParams = new URLSearchParams(window.location.search);
-              const scrollPayment = urlParams.get('scrollPayment') === '1';
-              const promptCancel = urlParams.get('promptCancel') === '1';
-              const paymentSec = document.getElementById('payment-upload-section');
-              
-              if (promptCancel) {
-                promptCustomerCancelOrder(order.id);
-              }
+          if (deepLinkId) {
+            const allOrders = getOrders();
+            const targetClean = String(deepLinkId).trim().toLowerCase();
+            const order = allOrders.find(o => String(o.id).trim().toLowerCase() === targetClean);
 
-              if (scrollPayment && paymentSec) {
-                paymentSec.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                paymentSec.classList.add('ring-4', 'ring-orange-400', 'transition-all', 'duration-500');
-                setTimeout(() => {
-                  paymentSec.classList.remove('ring-4', 'ring-orange-400');
-                }, 4000);
+            if (order && isMyOrder(order)) {
+              // Ensure destination logic correctly identifies whether the requested record is an order or reservation
+              const isReservation = Boolean(resIdParam) ||
+                urlParams.get('targetType') === 'reservation' ||
+                isReservationOrder(order) ||
+                Boolean(order.isPreOrder) ||
+                (order.items && order.items.some(i => i && i.isReservation)) ||
+                String(order.id || '').toUpperCase().replace(/^#/, '').startsWith('RES');
+
+              const tabParam = urlParams.get('tab');
+              const normStat = normalizeStatus(order.status);
+              const validTabs = ['all', 'to-pay', 'to-ship', 'to-receive', 'delivered', 'completed', 'cancelled', 'reservations'];
+
+              if (isReservation) {
+                if (tabParam && validTabs.includes(tabParam) && tabParam !== 'all') {
+                  applyActiveTab(tabParam, false);
+                } else {
+                  applyActiveTab('reservations', false);
+                }
               } else {
-                const detailsEl = document.getElementById('order-details-container');
-                if (detailsEl) {
-                  detailsEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                  detailsEl.classList.add('ring-4', 'ring-green-400', 'transition-all', 'duration-500');
-                  setTimeout(() => {
-                    detailsEl.classList.remove('ring-4', 'ring-green-400');
-                  }, 4000);
+                if (tabParam && validTabs.includes(tabParam)) {
+                  applyActiveTab(tabParam, false);
+                } else if (validTabs.includes(normStat) && normStat !== 'reservations') {
+                  applyActiveTab(normStat, false);
+                } else {
+                  applyActiveTab('all', false);
                 }
               }
-            }, 600);
+
+              openOrderDetails(order.id, false);
+
+              // Highlight/scroll to the specific section or details card
+              setTimeout(() => {
+                const urlParams = new URLSearchParams(window.location.search);
+                const scrollPayment = urlParams.get('scrollPayment') === '1';
+                const promptCancel = urlParams.get('promptCancel') === '1';
+                const paymentSec = document.getElementById('payment-upload-section');
+
+                if (promptCancel) {
+                  promptCustomerCancelOrder(order.id);
+                }
+
+                if (scrollPayment && paymentSec) {
+                  paymentSec.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                  paymentSec.classList.add('ring-4', 'ring-orange-400', 'transition-all', 'duration-500');
+                  setTimeout(() => {
+                    paymentSec.classList.remove('ring-4', 'ring-orange-400');
+                  }, 4000);
+                } else {
+                  const detailsEl = document.getElementById('order-details-container');
+                  if (detailsEl) {
+                    detailsEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    detailsEl.classList.add('ring-4', 'ring-green-400', 'transition-all', 'duration-500');
+                    setTimeout(() => {
+                      detailsEl.classList.remove('ring-4', 'ring-green-400');
+                    }, 4000);
+                  }
+                }
+              }, 600);
+            } else if (order && !isMyOrder(order)) {
+              // Existing authorization and ownership checks: unauthorized user must NOT view other customer's order
+              sessionStorage.removeItem('riceflow_customer_active_order_id');
+              localStorage.removeItem('riceflow_customer_active_order_id');
+              const cleanUrl = new URL(window.location);
+              cleanUrl.searchParams.delete('orderId');
+              cleanUrl.searchParams.delete('reservationId');
+              cleanUrl.searchParams.delete('recordId');
+              cleanUrl.searchParams.delete('id');
+              cleanUrl.searchParams.delete('targetId');
+              window.history.replaceState({}, '', cleanUrl);
+              showToast('You are not authorized to view this order.', 'error');
+            } else {
+              // If requested record not found or not yet synced
+              if (window.__hasInitialOrdersHydrated) {
+                sessionStorage.removeItem('riceflow_customer_active_order_id');
+                localStorage.removeItem('riceflow_customer_active_order_id');
+                const cleanUrl = new URL(window.location);
+                cleanUrl.searchParams.delete('orderId');
+                cleanUrl.searchParams.delete('reservationId');
+                cleanUrl.searchParams.delete('recordId');
+                cleanUrl.searchParams.delete('id');
+                cleanUrl.searchParams.delete('targetId');
+                window.history.replaceState({}, '', cleanUrl);
+              }
+            }
           } else {
-            // If requested order not found or not owned by customer, clean up and stay on selected tab
+            // If no order in URL, clean up any stale active order IDs from storage
             sessionStorage.removeItem('riceflow_customer_active_order_id');
             localStorage.removeItem('riceflow_customer_active_order_id');
-            const cleanUrl = new URL(window.location);
-            cleanUrl.searchParams.delete('orderId');
-            cleanUrl.searchParams.delete('reservationId');
-            cleanUrl.searchParams.delete('recordId');
-            window.history.replaceState({}, '', cleanUrl);
-            if (order && !isMyOrder(order)) {
-              showToast('You are not authorized to view this order.', 'error');
-            }
           }
-        } else {
-          // If no order in URL, clean up any stale active order IDs from storage
-          sessionStorage.removeItem('riceflow_customer_active_order_id');
-          localStorage.removeItem('riceflow_customer_active_order_id');
+        } catch (err) {
+          console.warn('[DEEP LINKING] Failed to handle link:', err);
         }
-      } catch (err) {
-        console.warn('[DEEP LINKING] Failed to handle link:', err);
       }
+
+      // Execute deep link check on initial page load
+      processUrlDeepLink();
 
       window.openCustomerOrderFromNotif = function(orderId, tab, scrollPayment) {
         if (!orderId) return;
@@ -5556,7 +5618,7 @@
       window.addEventListener('popstate', () => {
         try {
           const urlParams = new URLSearchParams(window.location.search);
-          const urlOrderId = urlParams.get('orderId') || urlParams.get('reservationId') || urlParams.get('recordId');
+          const urlOrderId = urlParams.get('orderId') || urlParams.get('reservationId') || urlParams.get('recordId') || urlParams.get('id') || urlParams.get('targetId');
           if (urlOrderId) {
             const allOrders = getOrders();
             const targetClean = String(urlOrderId).trim().toLowerCase();
@@ -5593,6 +5655,12 @@
             }
           } else {
             renderMyOrdersList();
+            try {
+              const urlParams = new URLSearchParams(window.location.search);
+              if (urlParams.get('orderId') || urlParams.get('reservationId') || urlParams.get('recordId') || urlParams.get('id') || urlParams.get('targetId')) {
+                processUrlDeepLink();
+              }
+            } catch (_) {}
           }
         }
       };

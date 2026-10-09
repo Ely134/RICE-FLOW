@@ -476,9 +476,12 @@
           Are you sure you want to place this order?
         </p>
       </div>
-      <div class="res-modal-nobox flex flex-col-reverse sm:flex-row gap-3">
-        <button id="btn-cancel-confirm" class="flex-1 h-12 px-4 border border-gray-300 dark:border-slate-700 text-gray-900 dark:text-gray-100 bg-white dark:bg-slate-800 font-bold text-sm sm:text-base rounded-2xl hover:bg-gray-50 dark:hover:bg-slate-700 transition-all cursor-pointer">Cancel</button>
-        <button id="btn-submit-confirm" class="flex-1 h-12 px-4 bg-[#1E6C02] text-white font-extrabold text-sm sm:text-base rounded-2xl hover:bg-[#145001] transition-all cursor-pointer shadow-lg shadow-green-900/10">Confirm Order</button>
+      <div id="confirm-order-modal-actions" class="res-modal-nobox flex flex-col gap-2.5 sm:gap-3">
+        <div class="flex flex-col-reverse sm:flex-row gap-2.5 sm:gap-3">
+          <button id="btn-cancel-confirm" type="button" class="flex-1 h-12 px-4 border border-gray-300 dark:border-slate-700 text-gray-900 dark:text-gray-100 bg-white dark:bg-slate-800 font-bold text-sm sm:text-base rounded-2xl hover:bg-gray-50 dark:hover:bg-slate-700 transition-all cursor-pointer">Cancel</button>
+          <button id="btn-submit-confirm" type="button" class="flex-1 h-12 px-4 bg-[#1E6C02] text-white font-extrabold text-sm sm:text-base rounded-2xl hover:bg-[#145001] transition-all cursor-pointer shadow-lg shadow-green-900/10">Confirm Order</button>
+        </div>
+        <button id="btn-avail-only-confirm" type="button" class="hidden w-full h-12 px-4 border-2 border-emerald-600 dark:border-emerald-500 text-emerald-800 dark:text-emerald-300 bg-emerald-50/60 dark:bg-emerald-950/40 font-extrabold text-sm sm:text-base rounded-2xl hover:bg-emerald-100 dark:hover:bg-emerald-900/50 transition-all cursor-pointer">Buy Available Quantity Only</button>
       </div>
     </div>
   </div>
@@ -603,6 +606,7 @@
       getCart, 
       clearCartItems, 
       addOrder, 
+      addOrderAtomic,
       getCurrentUser, 
       showToast, 
       getProductById, 
@@ -619,6 +623,7 @@
       storageRef,
       uploadBytes,
       getDownloadURL,
+      deleteObject,
       sendFirebasePhoneVerification, 
       verifyAndLinkPhoneCredential 
     } from './src/lib/firebase.js';
@@ -1019,15 +1024,96 @@
       const confirmOrderModal = document.getElementById('confirm-order-modal');
       const btnCancelConfirm = document.getElementById('btn-cancel-confirm');
       const btnSubmitConfirm = document.getElementById('btn-submit-confirm');
+      const btnAvailOnlyConfirm = document.getElementById('btn-avail-only-confirm');
 
-      let pendingPartialSplit = null;
+      let pendingStockNotice = null;
+
+      function renderCheckoutItemsAndTotals() {
+        if (!checkoutItems || checkoutItems.length === 0) return;
+        previewBox.innerHTML = checkoutItems.map(item => {
+          const prodImg = item.product?.image || 'rice_logo.jpg';
+          const prodName = item.product?.name || 'Rice Product';
+          const prodWeight = item.product?.weight || '25 kg';
+          const prodPrice = Number(item.product?.price || 0);
+          const itemQty = Number(item.quantity || 0);
+          const { availQty, reservedQty } = getItemStockBreakdown(item);
+
+          return `
+          <div class="bg-white dark:bg-slate-900 rounded-[24px] p-5 sm:p-6 border border-gray-100 dark:border-slate-800 shadow-sm flex flex-col gap-3">
+            <div class="flex items-center justify-between gap-4">
+              <div class="flex items-center gap-4">
+                <div class="w-20 h-20 bg-[#F8F9FA] dark:bg-slate-800 rounded-[20px] overflow-hidden border border-gray-150 dark:border-slate-700 p-1.5 shrink-0 flex items-center justify-center">
+                  <img src="${prodImg}" class="w-full h-full object-cover rounded-xl" />
+                </div>
+                <div class="text-left">
+                  <h4 class="font-extrabold text-sm sm:text-base text-[#111827] dark:text-white leading-tight">${prodName}</h4>
+                  <p class="text-xs text-gray-800 dark:text-gray-200 font-semibold mt-1">${prodWeight}</p>
+                  <div class="mt-2.5">
+                    <span class="text-[#1E6C02] dark:text-emerald-400 font-black underline decoration-2 underline-offset-4 text-base">
+                      ₱${prodPrice.toLocaleString()}.00
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <div class="text-right">
+                <span class="text-sm font-bold text-gray-900 dark:text-gray-100">Total: x${itemQty}</span>
+              </div>
+            </div>
+            ${reservedQty > 0 ? `
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                <div class="bg-[#F4FAF3] dark:bg-emerald-950/30 border border-[#C6EFCE] dark:border-emerald-800/60 rounded-xl p-3.5 text-xs text-[#145001] dark:text-emerald-100 flex flex-col gap-1">
+                  <div class="font-extrabold text-[#1E6C02] dark:text-emerald-300 flex items-center gap-1.5">
+                    <span>📦 Available Stock Order:</span>
+                  </div>
+                  <div class="font-bold text-sm text-[#111827] dark:text-white mt-0.5">
+                    ${availQty} sacks <span class="text-[#1E6C02] dark:text-emerald-400 font-extrabold">(₱${(availQty * prodPrice).toLocaleString()}.00)</span>
+                  </div>
+                </div>
+                <div class="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/60 rounded-xl p-3.5 text-xs text-amber-900 dark:text-amber-100 flex flex-col gap-1">
+                  <div class="font-extrabold text-amber-900 dark:text-amber-300 flex items-center gap-1.5">
+                    <span>⏳ Reservation Queue:</span>
+                  </div>
+                  <div class="font-bold text-sm text-amber-950 dark:text-white mt-0.5 flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5">
+                    <span>${reservedQty} sacks</span>
+                    <span class="text-xs text-blue-700 dark:text-blue-300 font-extrabold">(No Payment Required Now - ₱0.00)</span>
+                  </div>
+                </div>
+              </div>
+            ` : ''}
+          </div>
+        `;}).join('');
+
+        selectedItemsCont.innerHTML = checkoutItems.map(item => {
+          const prodName = item.product?.name || 'Rice Product';
+          const prodPrice = Number(item.product?.price || 0);
+          const { availQty, reservedQty } = getItemStockBreakdown(item);
+          const availTotal = prodPrice * availQty;
+          return `
+          <div class="flex flex-col gap-1 text-xs font-semibold pb-2 border-b border-gray-100 dark:border-slate-800 last:border-0">
+            <div class="flex justify-between items-center">
+              <span class="text-gray-900 dark:text-gray-100 font-bold">${prodName} × ${availQty} (Available)</span>
+              <span class="font-bold text-[#1E6C02] dark:text-emerald-400">₱${availTotal.toLocaleString()}.00</span>
+            </div>
+            ${reservedQty > 0 ? `
+              <div class="flex justify-between items-center text-amber-900 dark:text-amber-300 font-semibold text-[11px]">
+                <span>⏳ ${prodName} × ${reservedQty} (Reservation Queue)</span>
+                <span class="font-bold text-blue-700 dark:text-blue-300">₱0.00 (No Pay)</span>
+              </div>
+            ` : ''}
+          </div>
+        `;}).join('');
+
+        executePricing();
+      }
 
       function triggerOrderConfirmation() {
+        pendingStockNotice = null;
         let partialNoticeHtml = null;
-        pendingPartialSplit = null;
 
         if (checkoutItems && checkoutItems.length > 0) {
           const allProds = getProducts();
+          const itemsWithShortage = [];
+
           for (const item of checkoutItems) {
             const pid = item.product?.id || item.productId;
             const p = allProds.find(pr => String(pr.id) === String(pid)) || item.product;
@@ -1037,88 +1123,149 @@
               if (requestedQty > availStock) {
                 const avail = Math.max(0, availStock);
                 const reserved = requestedQty - avail;
-                pendingPartialSplit = { item, avail, reserved, requestedQty, product: p };
+                itemsWithShortage.push({ item, avail, reserved, requestedQty, product: p });
+              }
+            }
+          }
 
-                const previewResOrder = {
-                  isPreOrder: true,
-                  isReservation: true,
-                  status: 'pre-order',
-                  deliveryOption: deliveryOption || 'delivery',
-                  productId: p.id,
-                  productName: p.name,
-                  product: p,
-                  estimatedRestockDate: p.restockDate || p.estimatedRestockDate || null,
-                  items: [{
-                    product: p,
-                    productId: p.id,
-                    productName: p.name,
-                    quantity: reserved,
-                    isReservation: true
-                  }]
-                };
-                const estDateText = getEstimatedArrivalDate(previewResOrder) || 'Waiting for Restock';
-                const isPickupMethod = deliveryOption === 'pickup';
-                const estLabelText = isPickupMethod ? 'ESTIMATED PICKUP' : 'ESTIMATED DELIVERY';
+          if (itemsWithShortage.length > 0) {
+            const totalAvailAcrossShortages = itemsWithShortage.reduce((sum, s) => sum + s.avail, 0);
+            const totalReservedAcrossShortages = itemsWithShortage.reduce((sum, s) => sum + s.reserved, 0);
+            const primaryShortage = itemsWithShortage[0];
+            const p = primaryShortage.product;
 
-                const availSackNoun = avail === 1 ? 'sack' : 'sacks';
-                const reservedSackNoun = reserved === 1 ? 'sack' : 'sacks';
+            pendingStockNotice = {
+              type: totalAvailAcrossShortages > 0 ? 'partial' : 'zero',
+              itemsWithShortage,
+              totalAvail: totalAvailAcrossShortages,
+              totalReserved: totalReservedAcrossShortages,
+              product: p
+            };
 
-                partialNoticeHtml = `
-                  <span class="block text-left space-y-5 mt-2">
-                    <!-- 1. Reservation: What the customer is reserving -->
-                    <span class="block space-y-1.5">
-                      <span class="block text-xs font-extrabold uppercase tracking-wider text-gray-900 dark:text-gray-100">Reservation</span>
-                      <span class="block text-base sm:text-lg font-bold text-gray-900 dark:text-gray-100 leading-snug">
-                        You're reserving <strong class="text-[#1E6C02] dark:text-emerald-400 font-black">${p.name || 'Rice'}</strong>.
-                      </span>
-                      <span class="block text-sm text-gray-900 dark:text-gray-100 font-medium leading-relaxed">
-                        Some of the rice is not available right now. The unavailable sacks will be placed in the reservation queue.
-                      </span>
+            const previewResOrder = {
+              isPreOrder: true,
+              isReservation: true,
+              status: 'pre-order',
+              deliveryOption: deliveryOption || 'delivery',
+              productId: p.id,
+              productName: p.name,
+              product: p,
+              estimatedRestockDate: p.restockDate || p.estimatedRestockDate || null,
+              items: itemsWithShortage.map(s => ({
+                product: s.product,
+                productId: s.product.id,
+                productName: s.product.name,
+                quantity: s.reserved,
+                isReservation: true
+              }))
+            };
+            const estDateText = getEstimatedArrivalDate(previewResOrder) || 'Waiting for Restock';
+            const isPickupMethod = deliveryOption === 'pickup';
+            const estLabelText = isPickupMethod ? 'ESTIMATED PICKUP' : 'ESTIMATED DELIVERY';
+
+            const availSackNoun = totalAvailAcrossShortages === 1 ? 'sack' : 'sacks';
+            const reservedSackNoun = totalReservedAcrossShortages === 1 ? 'sack' : 'sacks';
+
+            if (totalAvailAcrossShortages > 0) {
+              // PARTIAL STOCK AVAILABLE
+              partialNoticeHtml = `
+                <span class="block text-left space-y-5 mt-2">
+                  <!-- 1. What the customer is reserving -->
+                  <span class="block space-y-1.5">
+                    <span class="block text-xs font-extrabold uppercase tracking-wider text-gray-900 dark:text-gray-100">Reservation Notice</span>
+                    <span class="block text-base sm:text-lg font-bold text-gray-900 dark:text-gray-100 leading-snug">
+                      Stock shortage detected for <strong class="text-[#1E6C02] dark:text-emerald-400 font-black">${itemsWithShortage.map(s => s.product?.name || 'Rice').join(', ')}</strong>.
                     </span>
-
-                    <!-- 2. Availability: Available Now / For Reservation -->
-                    <span class="block space-y-2">
-                      <span class="block text-xs font-extrabold uppercase tracking-wider text-gray-900 dark:text-gray-100">Availability</span>
-                      <span class="grid grid-cols-2 gap-3">
-                        <span class="res-card-avail block bg-[#F4FAF3] dark:bg-emerald-950/40 border border-[#C6EFCE] dark:border-emerald-800/70 rounded-2xl p-3.5">
-                          <span class="block text-xs font-extrabold uppercase tracking-wide text-[#1E6C02] dark:text-emerald-300">Available Now</span>
-                          <span class="block text-lg sm:text-xl font-black text-gray-900 dark:text-white mt-1">${avail} ${availSackNoun}</span>
-                        </span>
-                        <span class="res-card-reserve block bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/70 rounded-2xl p-3.5">
-                          <span class="block text-xs font-extrabold uppercase tracking-wide text-amber-900 dark:text-amber-300">For Reservation</span>
-                          <span class="block text-lg sm:text-xl font-black text-gray-900 dark:text-white mt-1">${reserved} ${reservedSackNoun}</span>
-                        </span>
-                      </span>
+                    <span class="block text-sm text-gray-900 dark:text-gray-100 font-medium leading-relaxed">
+                      Only <strong>${totalAvailAcrossShortages} ${availSackNoun}</strong> available right now. Please select how you would like to proceed with your order below.
                     </span>
+                  </span>
 
-                    <!-- 3. Estimated Delivery or Pickup (Main Visual Focus) -->
-                    <span class="res-card-est block bg-[#EFF6FF] dark:bg-blue-950/50 border-2 border-[#93C5FD] dark:border-blue-700 rounded-2xl p-4 sm:p-5 shadow-xs">
-                      <span class="flex items-center gap-2 text-xs sm:text-sm font-black uppercase tracking-wider text-[#1E3A8A] dark:text-blue-300">
-                        <span class="text-base">📅</span>
-                        <span>${estLabelText}</span>
+                  <!-- 2. Availability Breakdown -->
+                  <span class="block space-y-2">
+                    <span class="block text-xs font-extrabold uppercase tracking-wider text-gray-900 dark:text-gray-100">Availability Breakdown</span>
+                    <span class="grid grid-cols-2 gap-3">
+                      <span class="res-card-avail block bg-[#F4FAF3] dark:bg-emerald-950/40 border border-[#C6EFCE] dark:border-emerald-800/70 rounded-2xl p-3.5">
+                        <span class="block text-xs font-extrabold uppercase tracking-wide text-[#1E6C02] dark:text-emerald-300">Available Now</span>
+                        <span class="block text-lg sm:text-xl font-black text-gray-900 dark:text-white mt-1">${totalAvailAcrossShortages} ${availSackNoun}</span>
                       </span>
-                      <span class="block text-xl sm:text-2xl font-black text-gray-950 dark:text-white mt-1.5 tracking-tight">
-                        ${estDateText}
-                      </span>
-                    </span>
-
-                    <!-- 4. Payment Reminder -->
-                    <span class="res-card-payment block bg-[#FFF8EB] dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/70 rounded-2xl p-4 space-y-1.5">
-                      <span class="flex items-center gap-2 text-xs sm:text-sm font-extrabold uppercase tracking-wider text-amber-950 dark:text-amber-200">
-                        <span>💳</span>
-                        <span>Payment Reminder</span>
-                      </span>
-                      <span class="block text-sm sm:text-[15px] font-extrabold text-[#1E6C02] dark:text-emerald-300">
-                        No payment is needed yet.
-                      </span>
-                      <span class="block text-xs sm:text-sm text-gray-900 dark:text-gray-100 font-medium leading-relaxed">
-                        We'll notify you when your reserved rice becomes available. After we notify you, please send the required down payment within <strong>48 hours</strong>. If payment is not sent within 48 hours, your reservation will be cancelled automatically.
+                      <span class="res-card-reserve block bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/70 rounded-2xl p-3.5">
+                        <span class="block text-xs font-extrabold uppercase tracking-wide text-amber-900 dark:text-amber-300">For Reservation Queue</span>
+                        <span class="block text-lg sm:text-xl font-black text-gray-900 dark:text-white mt-1">${totalReservedAcrossShortages} ${reservedSackNoun}</span>
                       </span>
                     </span>
                   </span>
-                `;
-                break;
-              }
+
+                  <!-- 3. Estimated Arrival -->
+                  <span class="res-card-est block bg-[#EFF6FF] dark:bg-blue-950/50 border-2 border-[#93C5FD] dark:border-blue-700 rounded-2xl p-4 sm:p-5 shadow-xs">
+                    <span class="flex items-center gap-2 text-xs sm:text-sm font-black uppercase tracking-wider text-[#1E3A8A] dark:text-blue-300">
+                      <span class="text-base">📅</span>
+                      <span>${estLabelText}</span>
+                    </span>
+                    <span class="block text-xl sm:text-2xl font-black text-gray-950 dark:text-white mt-1.5 tracking-tight">
+                      ${estDateText}
+                    </span>
+                  </span>
+
+                  <!-- 4. Payment Reminder -->
+                  <span class="res-card-payment block bg-[#FFF8EB] dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/70 rounded-2xl p-4 space-y-1.5">
+                    <span class="flex items-center gap-2 text-xs sm:text-sm font-extrabold uppercase tracking-wider text-amber-950 dark:text-amber-200">
+                      <span>💳</span>
+                      <span>Payment Notice</span>
+                    </span>
+                    <span class="block text-sm sm:text-[15px] font-extrabold text-[#1E6C02] dark:text-emerald-300">
+                      You are charged only for the ${totalAvailAcrossShortages} available ${availSackNoun}.
+                    </span>
+                    <span class="block text-xs sm:text-sm text-gray-900 dark:text-gray-100 font-medium leading-relaxed">
+                      No payment is required now for the ${totalReservedAcrossShortages} reserved ${reservedSackNoun}. We will notify you once restocked, giving you 48 hours to complete the reservation deposit.
+                    </span>
+                  </span>
+                </span>
+              `;
+            } else {
+              // ZERO STOCK AVAILABLE
+              partialNoticeHtml = `
+                <span class="block text-left space-y-5 mt-2">
+                  <!-- 1. What the customer is reserving -->
+                  <span class="block space-y-1.5">
+                    <span class="block text-xs font-extrabold uppercase tracking-wider text-red-700 dark:text-red-400">Out of Physical Stock</span>
+                    <span class="block text-base sm:text-lg font-bold text-gray-900 dark:text-gray-100 leading-snug">
+                      <strong class="text-red-700 dark:text-red-400 font-black">${itemsWithShortage.map(s => s.product?.name || 'Rice').join(', ')}</strong> is currently fully claimed.
+                    </span>
+                    <span class="block text-sm text-gray-900 dark:text-gray-100 font-medium leading-relaxed">
+                      There is 0 physical stock available right now. You can join the reservation queue with no payment required today, or cancel this checkout.
+                    </span>
+                  </span>
+
+                  <!-- 2. Reservation Queue Card -->
+                  <span class="block bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/70 rounded-2xl p-4">
+                    <span class="block text-xs font-extrabold uppercase tracking-wide text-amber-900 dark:text-amber-300">Total Requested for Reservation</span>
+                    <span class="block text-xl font-black text-gray-900 dark:text-white mt-1">${totalReservedAcrossShortages} ${reservedSackNoun}</span>
+                  </span>
+
+                  <!-- 3. Estimated Arrival -->
+                  <span class="res-card-est block bg-[#EFF6FF] dark:bg-blue-950/50 border-2 border-[#93C5FD] dark:border-blue-700 rounded-2xl p-4 sm:p-5 shadow-xs">
+                    <span class="flex items-center gap-2 text-xs sm:text-sm font-black uppercase tracking-wider text-[#1E3A8A] dark:text-blue-300">
+                      <span class="text-base">📅</span>
+                      <span>${estLabelText}</span>
+                    </span>
+                    <span class="block text-xl sm:text-2xl font-black text-gray-950 dark:text-white mt-1.5 tracking-tight">
+                      ${estDateText}
+                    </span>
+                  </span>
+
+                  <!-- 4. Payment Reminder -->
+                  <span class="res-card-payment block bg-[#FFF8EB] dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/70 rounded-2xl p-4 space-y-1.5">
+                    <span class="flex items-center gap-2 text-xs sm:text-sm font-extrabold uppercase tracking-wider text-amber-950 dark:text-amber-200">
+                      <span>💳</span>
+                      <span>No Payment Needed Today</span>
+                    </span>
+                    <span class="block text-xs sm:text-sm text-gray-900 dark:text-gray-100 font-medium leading-relaxed">
+                      Your reservation request will be saved to the queue without charging you. You'll be notified when your stock arrives with a 48-hour payment window.
+                    </span>
+                  </span>
+                </span>
+              `;
             }
           }
         }
@@ -1126,50 +1273,110 @@
         const confirmTextPara = document.querySelector('#confirm-order-modal p');
         const confirmTitle = document.querySelector('#confirm-order-modal h3');
         const confirmIcon = document.getElementById('confirm-order-modal-icon');
+
         if (confirmTextPara) {
-          if (partialNoticeHtml) {
-            if (confirmTitle) confirmTitle.textContent = 'Stock Availability Notice';
+          if (pendingStockNotice) {
+            confirmTitle.textContent = pendingStockNotice.type === 'partial' ? 'Stock Availability Notice' : 'Item Out of Stock';
             if (confirmIcon) {
-              confirmIcon.className = 'h-14 w-14 bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 rounded-2xl flex items-center justify-center mb-3 mx-auto border border-amber-200 dark:border-amber-800/60';
+              const isZero = pendingStockNotice.type === 'zero';
+              confirmIcon.className = isZero
+                ? 'h-14 w-14 bg-red-50 dark:bg-red-950/60 text-red-650 dark:text-red-400 rounded-2xl flex items-center justify-center mb-3 mx-auto border border-red-200 dark:border-red-800/60'
+                : 'h-14 w-14 bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 rounded-2xl flex items-center justify-center mb-3 mx-auto border border-amber-200 dark:border-amber-800/60';
               confirmIcon.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" class="w-7 h-7"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>';
             }
             confirmTextPara.innerHTML = partialNoticeHtml;
-            if (btnCancelConfirm) btnCancelConfirm.textContent = 'Cancel Reservation';
-            if (btnSubmitConfirm) btnSubmitConfirm.textContent = 'Continue Reservation';
+
+            if (pendingStockNotice.type === 'partial') {
+              // Option 1: Buy Available Quantity & Reserve Remainder
+              if (btnSubmitConfirm) {
+                btnSubmitConfirm.textContent = 'Buy Available & Reserve Remainder';
+                btnSubmitConfirm.className = 'flex-1 h-12 px-4 bg-[#1E6C02] text-white font-extrabold text-xs sm:text-sm rounded-2xl hover:bg-[#145001] transition-all cursor-pointer shadow-lg shadow-green-900/10 text-center flex items-center justify-center';
+              }
+              // Option 2: Buy Available Quantity Only
+              if (btnAvailOnlyConfirm) {
+                btnAvailOnlyConfirm.classList.remove('hidden');
+                btnAvailOnlyConfirm.textContent = 'Buy Available Quantity Only';
+              }
+              // Option 3: Cancel Entire Order
+              if (btnCancelConfirm) {
+                btnCancelConfirm.textContent = 'Cancel Entire Order';
+                btnCancelConfirm.className = 'flex-1 h-12 px-4 border border-gray-300 dark:border-slate-700 text-gray-900 dark:text-gray-100 bg-white dark:bg-slate-800 font-bold text-xs sm:text-sm rounded-2xl hover:bg-gray-50 dark:hover:bg-slate-700 transition-all cursor-pointer text-center flex items-center justify-center';
+              }
+            } else {
+              // Zero stock: 2 distinct choices
+              if (btnSubmitConfirm) {
+                btnSubmitConfirm.textContent = 'Reserve Full Quantity';
+                btnSubmitConfirm.className = 'flex-1 h-12 px-4 bg-[#1E6C02] text-white font-extrabold text-sm sm:text-base rounded-2xl hover:bg-[#145001] transition-all cursor-pointer shadow-lg shadow-green-900/10 text-center flex items-center justify-center';
+              }
+              if (btnAvailOnlyConfirm) {
+                btnAvailOnlyConfirm.classList.add('hidden');
+              }
+              if (btnCancelConfirm) {
+                btnCancelConfirm.textContent = 'Cancel Checkout';
+                btnCancelConfirm.className = 'flex-1 h-12 px-4 border border-gray-300 dark:border-slate-700 text-gray-900 dark:text-gray-100 bg-white dark:bg-slate-800 font-bold text-sm sm:text-base rounded-2xl hover:bg-gray-50 dark:hover:bg-slate-700 transition-all cursor-pointer text-center flex items-center justify-center';
+              }
+            }
           } else {
+            // Normal Full Stock Confirmation
             if (confirmTitle) confirmTitle.textContent = 'Confirm Order';
             if (confirmIcon) {
               confirmIcon.className = 'h-14 w-14 bg-emerald-50 dark:bg-emerald-950/60 text-[#1E6C02] dark:text-emerald-400 rounded-2xl flex items-center justify-center mb-4 mx-auto border border-emerald-100 dark:border-emerald-800/60';
               confirmIcon.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-7 h-7"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>';
             }
             confirmTextPara.textContent = 'Are you sure you want to place this order?';
-            if (btnCancelConfirm) btnCancelConfirm.textContent = 'Cancel';
-            if (btnSubmitConfirm) btnSubmitConfirm.textContent = 'Confirm Order';
+            if (btnCancelConfirm) {
+              btnCancelConfirm.textContent = 'Cancel';
+              btnCancelConfirm.className = 'flex-1 h-12 px-4 border border-gray-300 dark:border-slate-700 text-gray-900 dark:text-gray-100 bg-white dark:bg-slate-800 font-bold text-sm sm:text-base rounded-2xl hover:bg-gray-50 dark:hover:bg-slate-700 transition-all cursor-pointer text-center flex items-center justify-center';
+            }
+            if (btnSubmitConfirm) {
+              btnSubmitConfirm.textContent = 'Confirm Order';
+              btnSubmitConfirm.className = 'flex-1 h-12 px-4 bg-[#1E6C02] text-white font-extrabold text-sm sm:text-base rounded-2xl hover:bg-[#145001] transition-all cursor-pointer shadow-lg shadow-green-900/10 text-center flex items-center justify-center';
+            }
+            if (btnAvailOnlyConfirm) {
+              btnAvailOnlyConfirm.classList.add('hidden');
+            }
           }
         }
 
         confirmOrderModal.classList.remove('hidden');
       }
 
-      btnCancelConfirm.addEventListener('click', () => {
-        confirmOrderModal.classList.add('hidden');
-        if (pendingPartialSplit) {
-          // Cancel ONLY the reserved portion! Proceed with available stock order!
-          if (pendingPartialSplit.avail > 0) {
-            pendingPartialSplit.item.quantity = pendingPartialSplit.avail;
-            showToast(`Reservation portion cancelled. Proceeding with order for ${pendingPartialSplit.avail} available sacks.`, 'info');
-            submitOrderToDB({ skipReservation: true });
-          } else {
-            showToast('All items were out of stock and reservation was cancelled.', 'info');
-          }
-          pendingPartialSplit = null;
-        }
-      });
-
+      // Choice 1 / Primary Action:
+      // When partial: Buy Available Quantity & Reserve Remainder (skipReservation: false)
+      // When zero: Reserve Full Quantity (skipReservation: false)
+      // When normal: Confirm Order (skipReservation: false)
       btnSubmitConfirm.addEventListener('click', () => {
         confirmOrderModal.classList.add('hidden');
         submitOrderToDB({ skipReservation: false });
-        pendingPartialSplit = null;
+        pendingStockNotice = null;
+      });
+
+      // Choice 2: Buy Available Quantity Only (skipReservation: true)
+      if (btnAvailOnlyConfirm) {
+        btnAvailOnlyConfirm.addEventListener('click', () => {
+          confirmOrderModal.classList.add('hidden');
+          if (pendingStockNotice && pendingStockNotice.itemsWithShortage) {
+            // Apply available quantities to checkoutItems and recalculate
+            pendingStockNotice.itemsWithShortage.forEach(s => {
+              s.item.quantity = s.avail;
+            });
+            renderCheckoutItemsAndTotals();
+            showToast('Proceeding with available quantity only.', 'info');
+          }
+          submitOrderToDB({ skipReservation: true });
+          pendingStockNotice = null;
+        });
+      }
+
+      // Choice 3 / Cancel Action:
+      // Clicking Cancel NEVER commits an order or converts to purchase. It cancels submission cleanly.
+      btnCancelConfirm.addEventListener('click', () => {
+        confirmOrderModal.classList.add('hidden');
+        const wasShortage = Boolean(pendingStockNotice);
+        pendingStockNotice = null;
+        if (wasShortage) {
+          showToast('Checkout submission cancelled. Your basket remains intact.', 'info');
+        }
       });
 
       function hasUnsavedChanges() {
@@ -1758,7 +1965,6 @@
           return;
         }
 
-        orderSubmitted = true;
         // Construct final payloads
         const fullName = document.getElementById('inp-fullName').value;
         const phone = document.getElementById('inp-phone').value;
@@ -1778,29 +1984,101 @@
         const remainingAmount = Math.max(0, total - amountPaid);
         const refNumber = 'REF' + Date.now().toString().slice(-8);
 
-        const res = addOrder({
-          items: checkoutItems,
-          total,
-          status: 'to-pay',
-          paymentMethod,
-          paymentType: paymentMethod === 'gcash' ? 'full' : 'deposit',
-          amountPaid,
-          remainingAmount,
-          paymentProof: paymentProofFile ? paymentProofFile.name : 'screenshot.png',
-          paymentProofDataUrl: downloadUrl || '',
-          paymentProofUrl: downloadUrl || '',
-          storagePath: storagePath || null,
-          paymentUploadedAt: new Date().toISOString(),
-          referenceNumber: refNumber,
-          paymentVerified: false,
-          fullName,
-          phone,
-          deliveryOption,
-          address,
-          pickupNotes,
-          isPreOrder: false,
-          skipReservation: options.skipReservation || false
-        });
+        if (btnSubmit) {
+          btnSubmit.innerHTML = `<svg class="animate-spin -ml-1 mr-2 h-5 w-5 text-white inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg> Validating Stock & Committing...`;
+        }
+
+        let res = null;
+        try {
+          // Authoritative atomic Firestore transaction: prevents concurrent over-allocation & race conditions
+          res = await addOrderAtomic({
+            items: checkoutItems,
+            total,
+            status: 'to-pay',
+            paymentMethod,
+            paymentType: paymentMethod === 'gcash' ? 'full' : 'deposit',
+            amountPaid,
+            remainingAmount,
+            paymentProof: paymentProofFile ? paymentProofFile.name : 'screenshot.png',
+            paymentProofDataUrl: downloadUrl || '',
+            paymentProofUrl: downloadUrl || '',
+            storagePath: storagePath || null,
+            paymentUploadedAt: new Date().toISOString(),
+            referenceNumber: refNumber,
+            paymentVerified: false,
+            fullName,
+            phone,
+            deliveryOption,
+            address,
+            pickupNotes,
+            isPreOrder: false,
+            skipReservation: options.skipReservation || false
+          });
+        } catch (atomicOrderErr) {
+          console.error('[CHECKOUT] Atomic stock/order commitment failed:', atomicOrderErr);
+          isSubmitting = false;
+          orderSubmitted = false;
+          if (btnSubmit) {
+            btnSubmit.disabled = false;
+            btnSubmit.textContent = originalBtnText;
+          }
+
+          // Safe storage cleanup: Only delete if upload succeeded for this attempt, no order was created,
+          // the failure occurred before order commitment, and the storage path is exclusive to this failed attempt.
+          // Never delete proof if outcome is uncertain due to network timeout or commit-stage ambiguity.
+          const isNetworkOrCommitAmbiguity = atomicOrderErr && (
+            atomicOrderErr.code === 'deadline-exceeded' ||
+            atomicOrderErr.code === 'unavailable' ||
+            (atomicOrderErr.message && /network|timeout|connection/i.test(atomicOrderErr.message))
+          );
+          if (!isNetworkOrCommitAmbiguity && storagePath && storage) {
+            try {
+              const orphanRef = storageRef(storage, storagePath);
+              await deleteObject(orphanRef);
+              console.log('[STORAGE] Safely cleaned up unused payment proof upload for failed transaction:', storagePath);
+            } catch (cleanupErr) {
+              console.warn('[STORAGE] Non-fatal notice: Unable to remove unused upload after failed commitment:', cleanupErr?.message);
+            }
+          }
+
+          showToast(atomicOrderErr?.message || 'Secure order processing failed. Please review your details and retry.', 'error');
+
+          // If failure occurred because stock changed or was claimed concurrently, refresh products & re-present choices
+          const isStockConflict = atomicOrderErr && atomicOrderErr.message && /stock|claimed|inventory/i.test(atomicOrderErr.message);
+          if (isStockConflict) {
+            try {
+              renderCheckoutItemsAndTotals();
+              triggerOrderConfirmation();
+            } catch (refreshErr) {
+              console.warn('[CHECKOUT] Error refreshing items after atomic conflict:', refreshErr);
+            }
+          }
+          return;
+        }
+
+        if (!res) {
+          isSubmitting = false;
+          orderSubmitted = false;
+          if (btnSubmit) {
+            btnSubmit.disabled = false;
+            btnSubmit.textContent = originalBtnText;
+          }
+
+          if (storagePath && storage) {
+            try {
+              const orphanRef = storageRef(storage, storagePath);
+              await deleteObject(orphanRef);
+              console.log('[STORAGE] Safely cleaned up unused payment proof upload for unreturned order:', storagePath);
+            } catch (cleanupErr) {
+              console.warn('[STORAGE] Non-fatal notice: Unable to remove unused upload after unreturned order:', cleanupErr?.message);
+            }
+          }
+
+          showToast('Order submission failed. Please try again.', 'error');
+          return;
+        }
+
+        orderSubmitted = true;
 
         const createdRes = res ? (res.createdReservation || ((res.isPreOrder || res.items?.some(i => i.isReservation)) ? res : null)) : null;
 

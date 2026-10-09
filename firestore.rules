@@ -20,7 +20,8 @@ service cloud.firestore {
     // Public catalog & settings
     match /products/{id} {
       allow read: if true;
-      allow write: if isStaffOrAdmin();
+      allow create, delete: if isStaffOrAdmin();
+      allow update: if isStaffOrAdmin() || isSignedIn();
     }
 
     match /storeSettings/{id} {
@@ -30,7 +31,8 @@ service cloud.firestore {
 
     match /inventoryHistory/{id} {
       allow read: if true;
-      allow write: if isStaffOrAdmin();
+      allow create: if isStaffOrAdmin() || isSignedIn();
+      allow update, delete: if isStaffOrAdmin();
     }
 
     // Reviews - Publicly viewable; created by verified buyers; managed by admin

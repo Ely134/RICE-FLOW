@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Notification Details | RiceFlow</title>
+  <title>Notifications | RiceFlow</title>
   <script>
     (function() {
       try {
@@ -15,8 +15,8 @@
     })();
   </script>
   <style id="riceflow-theme-init">
-    html { background-color: #F8FAF7; color-scheme: light; }
-    #navbar-container { min-height: 5rem; background-color: #FFFFFF; border-bottom: 1px solid #E5ECE3; }
+    html { background-color: #F8FAFC; color-scheme: light; }
+    #navbar-container { min-height: 5rem; background-color: #FFFFFF; border-bottom: 1px solid #F3F4F6; }
     html.dark { background-color: #0F172A !important; color-scheme: dark; }
     html.dark body,
     html.dark main,
@@ -34,652 +34,439 @@
     html.dark #navbar-container {
       border-bottom-color: rgba(255, 255, 255, 0.15);
     }
-    html.dark .bg-white,
-    html.dark .bg-gray-50,
-    html.dark .bg-slate-50 {
-      background-color: #111827;
-      color: #FFFFFF;
-    }
-    /* Clean vertical scrollbar for notification details panel */
-    #notif-detail-pane {
-      scrollbar-width: thin;
-      scrollbar-color: rgba(30, 108, 2, 0.3) transparent;
-      overscroll-behavior-y: contain;
-    }
-    html.dark #notif-detail-pane {
-      scrollbar-color: rgba(52, 211, 153, 0.35) transparent;
-    }
-    #notif-detail-pane::-webkit-scrollbar {
-      width: 6px;
-    }
-    #notif-detail-pane::-webkit-scrollbar-track {
-      background: transparent;
-    }
-    #notif-detail-pane::-webkit-scrollbar-thumb {
-      background-color: rgba(30, 108, 2, 0.3);
-      border-radius: 9999px;
-    }
-    html.dark #notif-detail-pane::-webkit-scrollbar-thumb {
-      background-color: rgba(52, 211, 153, 0.35);
-    }
-    #notif-detail-pane::-webkit-scrollbar-thumb:hover {
-      background-color: rgba(30, 108, 2, 0.5);
-    }
-    html.dark #notif-detail-pane::-webkit-scrollbar-thumb:hover {
-      background-color: rgba(52, 211, 153, 0.55);
+    .notif-filter-active {
+      background-color: #1E6C02 !important;
+      color: #FFFFFF !important;
+      border-color: #1E6C02 !important;
     }
   </style>
   <link rel="stylesheet" href="src/styles/index.css">
 </head>
-<body class="bg-[#F8FAF7] dark:bg-slate-900 text-[#0B1528] dark:text-white min-h-screen flex flex-col antialiased selection:bg-[#1E6C02] selection:text-white transition-colors duration-200">
+<body class="bg-[#F8FAFC] dark:bg-[#0F172A] min-h-screen flex flex-col justify-between text-[#111827] dark:text-gray-100 font-sans">
 
-  <!-- Universal Dynamic Header Navbar -->
+  <!-- Dynamic Header Bar -->
   <div id="navbar-container"></div>
 
-  <!-- Main Notification Container -->
-  <main class="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10">
-    
-    <!-- Breadcrumb (White / Navy / Green Palette) -->
-    <nav class="flex items-center gap-2 text-xs font-bold text-[#0B1528] dark:text-white mb-4">
-      <a href="index.html" class="hover:text-[#1E6C02] dark:hover:text-emerald-400 transition-colors">Home</a>
-      <span>/</span>
-      <a href="profile.html" class="hover:text-[#1E6C02] dark:hover:text-emerald-400 transition-colors">Account</a>
-      <span>/</span>
-      <span class="text-[#0B1528] dark:text-white font-black">Notification Details</span>
-    </nav>
-
-    <!-- Top Header -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-[#D8E8D5] dark:border-slate-800">
+  <!-- Main Notifications Content -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
       <div>
-        <div class="flex items-center gap-3">
-          <div class="w-11 h-11 rounded-2xl bg-[#EAF5E9] dark:bg-emerald-950/60 border border-[#BCE3BD] dark:border-emerald-800/60 text-[#1E6C02] dark:text-emerald-400 flex items-center justify-center text-xl shrink-0 shadow-2xs">
-            🔔
-          </div>
-          <div>
-            <h1 class="text-2xl sm:text-3xl font-black text-[#0B1528] dark:text-white tracking-tight">Notification Details</h1>
-            <p class="text-xs sm:text-sm font-bold text-[#0B1528] dark:text-white mt-0.5">Complete notification information, order status, and customer actions.</p>
-          </div>
+        <div class="flex items-center gap-2 mb-2">
+          <a href="profile.html" class="text-sm sm:text-base font-bold text-gray-700 dark:text-gray-300 hover:text-[#1E6C02] dark:hover:text-emerald-400 flex items-center gap-1.5 transition-colors">
+            <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg>
+            Back to Account
+          </a>
         </div>
+        <h1 class="text-3xl sm:text-4xl font-extrabold text-[#111827] dark:text-white tracking-tight">Notifications</h1>
+        <p class="text-sm sm:text-base text-gray-700 dark:text-gray-300 font-medium mt-1">Stay updated with your orders, reservations, and account activities.</p>
       </div>
 
-      <div class="flex items-center gap-2.5 sm:self-center">
-        <button 
-          id="btn-page-mark-all"
-          class="px-4 py-2.5 text-xs font-black text-[#1E6C02] dark:text-emerald-400 bg-white dark:bg-slate-800 hover:bg-[#EAF5E9] dark:hover:bg-slate-700/80 border border-[#BCE3BD] dark:border-emerald-800 rounded-xl transition-all cursor-pointer shadow-xs flex items-center gap-1.5"
-        >
-          <svg class="w-4 h-4 text-[#1E6C02] dark:text-emerald-400" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 011.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>
-          Mark all as read
+      <div class="flex items-center gap-3">
+        <button id="btn-mark-all-read" class="px-5 py-2.5 text-sm sm:text-base font-bold bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-xl hover:bg-gray-50 dark:hover:bg-slate-800 text-[#111827] dark:text-white transition-all cursor-pointer shadow-xs flex items-center gap-2">
+          <svg class="w-4 h-4 text-[#1E6C02] dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+          Mark All as Read
         </button>
       </div>
     </div>
 
-    <!-- Logged out prompt -->
-    <div id="notif-logged-out-state" class="hidden my-12 bg-white dark:bg-slate-800/90 rounded-3xl p-8 sm:p-12 text-center border border-[#D8E8D5] dark:border-slate-700 shadow-sm max-w-md mx-auto">
-      <div class="w-16 h-16 bg-[#EAF5E9] dark:bg-slate-700 text-[#1E6C02] dark:text-emerald-400 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl border border-[#BCE3BD] dark:border-slate-600">
-        🔒
-      </div>
-      <h3 class="text-lg font-black text-[#0B1528] dark:text-white mb-2">Login Required</h3>
-      <p class="text-sm font-semibold text-[#0B1528] dark:text-white mb-6">Please log in to your customer account to view your notifications.</p>
-      <a href="login.html" class="inline-flex items-center justify-center px-6 py-3 bg-[#1E6C02] hover:bg-[#145001] text-white font-black text-sm rounded-xl transition-all shadow-md shadow-green-900/10">
-        Log In to My Account
-      </a>
+    <!-- Filter Tabs -->
+    <div class="flex items-center gap-3 mb-8 border-b border-gray-200 dark:border-slate-800 pb-4 overflow-x-auto">
+      <button data-filter="all" class="notif-tab-btn notif-filter-active px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl text-sm sm:text-base font-bold border border-[#1E6C02] transition-all cursor-pointer flex items-center gap-2 shrink-0 bg-[#1E6C02] text-white shadow-xs">
+        <span>All</span> <span id="badge-count-all" class="tab-badge text-xs sm:text-sm px-2 sm:px-2.5 py-0.5 rounded-full font-extrabold bg-white/25 text-white">0</span>
+      </button>
+      <button data-filter="unread" class="notif-tab-btn bg-white dark:bg-slate-900 text-[#111827] dark:text-white border border-gray-300 dark:border-slate-700 hover:border-[#1E6C02] dark:hover:border-emerald-500 px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl text-sm sm:text-base font-bold transition-all cursor-pointer flex items-center gap-2 shrink-0 shadow-xs">
+        <span>Unread</span> <span id="badge-count-unread" class="tab-badge text-xs sm:text-sm px-2 sm:px-2.5 py-0.5 rounded-full font-extrabold bg-gray-100 dark:bg-slate-800 text-[#111827] dark:text-gray-200">0</span>
+      </button>
+      <button data-filter="read" class="notif-tab-btn bg-white dark:bg-slate-900 text-[#111827] dark:text-white border border-gray-300 dark:border-slate-700 hover:border-[#1E6C02] dark:hover:border-emerald-500 px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl text-sm sm:text-base font-bold transition-all cursor-pointer flex items-center gap-2 shrink-0 shadow-xs">
+        <span>Read</span> <span id="badge-count-read" class="tab-badge text-xs sm:text-sm px-2 sm:px-2.5 py-0.5 rounded-full font-extrabold bg-gray-100 dark:bg-slate-800 text-[#111827] dark:text-gray-200">0</span>
+      </button>
     </div>
 
-    <!-- Main Content View -->
-    <div id="notif-main-view" class="mt-6">
-      
-      <!-- Filter controls row (Day mode: White + Navy + Green) -->
-      <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 mb-6">
-        
-        <!-- Tab status buttons: All / Unread / Read -->
-        <div class="flex items-center bg-[#EAF5E9] dark:bg-slate-800 p-1.5 rounded-2xl gap-1.5 overflow-x-auto border border-[#C6EFCE] dark:border-slate-700">
-          <button type="button" data-filter="all" class="notif-status-filter-btn flex-1 sm:flex-none py-2 px-4 rounded-xl text-xs font-black transition-all text-center flex items-center justify-center gap-1.5 cursor-pointer bg-white dark:bg-slate-700 text-[#0B1528] dark:text-white shadow-xs">
-            <span>All</span>
-            <span id="page-count-all" class="text-[10px] px-1.5 py-0.5 rounded-full font-black bg-[#EAF5E9] dark:bg-slate-800 text-[#1E6C02] dark:text-emerald-300 border border-[#BCE3BD] dark:border-slate-600">0</span>
-          </button>
-          <button type="button" data-filter="unread" class="notif-status-filter-btn flex-1 sm:flex-none py-2 px-4 rounded-xl text-xs font-black text-[#0B1528] dark:text-white hover:text-[#1E6C02] dark:hover:text-emerald-300 transition-all text-center flex items-center justify-center gap-1.5 cursor-pointer">
-            <span>Unread</span>
-            <span id="page-count-unread" class="text-[10px] px-1.5 py-0.5 rounded-full font-black bg-white/80 dark:bg-slate-900/60 text-[#1E6C02] dark:text-emerald-400 border border-[#C6EFCE]/60 dark:border-slate-700">0</span>
-          </button>
-          <button type="button" data-filter="read" class="notif-status-filter-btn flex-1 sm:flex-none py-2 px-4 rounded-xl text-xs font-black text-[#0B1528] dark:text-white hover:text-[#1E6C02] dark:hover:text-emerald-300 transition-all text-center flex items-center justify-center gap-1.5 cursor-pointer">
-            <span>Read</span>
-            <span id="page-count-read" class="text-[10px] px-1.5 py-0.5 rounded-full font-black bg-white/80 dark:bg-slate-900/60 text-[#1E6C02] dark:text-emerald-400 border border-[#C6EFCE]/60 dark:border-slate-700">0</span>
-          </button>
-        </div>
-
-        <!-- Category filter dropdown / select -->
-        <div class="flex items-center gap-2">
-          <span class="text-xs font-black text-[#0B1528] dark:text-white whitespace-nowrap">Category:</span>
-          <select id="notif-category-select" class="px-3.5 py-2 bg-white dark:bg-slate-800 border border-[#BCE3BD] dark:border-slate-700 rounded-xl text-xs font-black text-[#0B1528] dark:text-white outline-none focus:ring-2 focus:ring-[#1E6C02]/25 cursor-pointer shadow-xs">
-            <option value="all">All Categories</option>
-            <option value="order">Orders & Purchases</option>
-            <option value="reservation">Pre-Order Reservations</option>
-            <option value="stock">Restock Alerts</option>
-            <option value="payment">Payment Updates</option>
-          </select>
+    <!-- Layout Container: List & Detail View -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 items-start">
+      <!-- List Column -->
+      <div id="notif-list-col" class="lg:col-span-5 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl shadow-xs overflow-hidden">
+        <div id="notif-items-container" class="divide-y divide-gray-200 dark:divide-slate-800 max-h-[700px] overflow-y-auto">
+          <!-- Dynamically populated -->
         </div>
       </div>
 
-      <!-- Responsive Layout: 2-column on desktop, smooth mobile navigation -->
-      <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
-        
-        <!-- Left Column: Notification List (Hidden on mobile when detail is expanded) -->
-        <div id="notif-list-pane" class="md:col-span-5 space-y-3">
-          <div id="notif-items-container" class="space-y-2.5">
-            <!-- Rendered dynamically -->
-          </div>
-        </div>
-
-        <!-- Right Column: Full Notification Details Card -->
-        <div id="notif-detail-pane" class="md:col-span-7 bg-white dark:bg-slate-800 rounded-3xl border border-[#D8E8D5] dark:border-slate-700 p-5 sm:p-7 shadow-sm sticky top-24 hidden md:block max-h-[calc(100vh-7.5rem)] overflow-y-auto">
-          
-          <!-- Mobile Back Button -->
-          <div class="md:hidden pb-3 mb-4 border-b border-[#D8E8D5] dark:border-slate-700 flex items-center justify-between">
-            <button id="btn-back-to-notif-list" class="inline-flex items-center gap-1.5 text-xs font-black text-[#1E6C02] dark:text-emerald-400 hover:underline cursor-pointer">
-              <svg class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd" /></svg>
-              Back to all notifications
-            </button>
-          </div>
-
-          <div id="notif-detail-content">
-            <!-- Rendered dynamically when notification selected -->
-            <div class="py-16 text-center text-[#0B1528] dark:text-white">
-              <div class="text-4xl mb-3">📬</div>
-              <p class="font-black text-[#0B1528] dark:text-white text-sm">Select a notification to view details</p>
-              <p class="text-xs text-[#0B1528] dark:text-white mt-1.5 max-w-xs mx-auto font-semibold">Choose any notification from the list to view its complete information, status updates, and action buttons.</p>
+      <!-- Detail Card Column -->
+      <div id="notif-detail-col" class="lg:col-span-7 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl p-6 sm:p-8 shadow-xs lg:sticky lg:top-24">
+        <div id="notif-detail-content">
+          <div class="text-center py-16 px-4 text-gray-700 dark:text-gray-300">
+            <div class="w-16 h-16 rounded-2xl bg-gray-100 dark:bg-slate-800 text-gray-400 dark:text-slate-500 flex items-center justify-center mx-auto mb-4 text-3xl">
+              🔔
             </div>
+            <h3 class="font-extrabold text-lg sm:text-xl text-[#111827] dark:text-white mb-2">Select a Notification</h3>
+            <p class="text-sm sm:text-base text-gray-600 dark:text-gray-300 max-w-sm mx-auto leading-relaxed">
+              Click any notification from the list to view its complete details and related order or reservation information.
+            </p>
           </div>
         </div>
-
       </div>
-
     </div>
-
   </main>
 
-  <!-- Universal Dynamic Footer -->
+  <!-- Dynamic Footer Bar -->
   <div id="footer-container"></div>
 
-  <!-- Shared module -->
-  <script type="module" src="src/app/shared.js"></script>
-
+  <!-- Shared Core Logic & App Scripts -->
   <script type="module">
     import {
       getCurrentUser,
       getNotifications,
-      sortNotificationsDescending,
       markNotificationAsRead,
       markAllNotificationsAsRead,
-      getOrders,
-      confirmContinueUnallocatedReservation,
-      showToast,
-      NOTIF_STYLES
+      sortNotificationsDescending,
+      NOTIF_STYLES,
+      renderLayout,
+      showToast
     } from './src/app/shared.js';
 
     document.addEventListener('DOMContentLoaded', () => {
-      const user = getCurrentUser();
-      const loggedOutState = document.getElementById('notif-logged-out-state');
-      const mainView = document.getElementById('notif-main-view');
+      // Ensure layout renders properly
+      try {
+        renderLayout();
+      } catch (_) {}
 
+      const user = getCurrentUser();
       if (!user) {
-        if (loggedOutState) loggedOutState.classList.remove('hidden');
-        if (mainView) mainView.classList.add('hidden');
+        window.location.href = 'login.html';
         return;
       }
 
-      let activeStatusFilter = 'all'; // 'all' | 'unread' | 'read'
-      let activeCategoryFilter = 'all';
-      let selectedNotifId = null;
+      let activeFilter = 'all';
+      let selectedNotifId = new URLSearchParams(window.location.search).get('id') || null;
 
-      const listPane = document.getElementById('notif-list-pane');
-      const detailPane = document.getElementById('notif-detail-pane');
-      const itemsContainer = document.getElementById('notif-items-container');
-      const detailContent = document.getElementById('notif-detail-content');
-      const markAllBtn = document.getElementById('btn-page-mark-all');
-      const filterBtns = document.querySelectorAll('.notif-status-filter-btn');
-      const categorySelect = document.getElementById('notif-category-select');
-      const btnBackToList = document.getElementById('btn-back-to-notif-list');
+      const container = document.getElementById('notif-items-container');
+      const detailContainer = document.getElementById('notif-detail-content');
+      const badgeAll = document.getElementById('badge-count-all');
+      const badgeUnread = document.getElementById('badge-count-unread');
+      const badgeRead = document.getElementById('badge-count-read');
+      const btnMarkAll = document.getElementById('btn-mark-all-read');
 
-      // Helper to ensure style classes never contain gray
-      const getSafeStyle = (type) => {
-        const raw = NOTIF_STYLES[type] || NOTIF_STYLES.info || { icon: '🔔', bg: 'bg-[#EAF5E9] border-[#BCE3BD]', text: 'text-[#1E6C02]' };
-        let bgClass = raw.bg || 'bg-[#EAF5E9] border-[#BCE3BD]';
-        let textClass = raw.text || 'text-[#1E6C02]';
-        if (bgClass.includes('gray')) {
-          bgClass = 'bg-[#EAF5E9] border-[#BCE3BD] dark:bg-emerald-950/60 dark:border-emerald-800';
-        }
-        if (textClass.includes('gray')) {
-          textClass = 'text-[#1E6C02] dark:text-emerald-300';
-        }
-        return {
-          icon: raw.icon || '🔔',
-          bg: bgClass,
-          text: textClass
-        };
-      };
-
-      // Check URL query parameters for pre-selected notification ID
-      const urlParams = new URLSearchParams(window.location.search);
-      const urlNotifId = urlParams.get('id') || urlParams.get('notifId');
-      if (urlNotifId) {
-        selectedNotifId = urlNotifId;
-      }
-
-      // Filter tabs event
-      filterBtns.forEach(btn => {
+      const filterButtons = document.querySelectorAll('.notif-tab-btn');
+      filterButtons.forEach(btn => {
         btn.addEventListener('click', () => {
-          const f = btn.getAttribute('data-filter');
-          if (f && f !== activeStatusFilter) {
-            activeStatusFilter = f;
-            updateFilterTabsUI();
-            renderNotifications();
-          }
+          activeFilter = btn.getAttribute('data-filter') || 'all';
+          render();
         });
       });
 
-      // Category select event
-      if (categorySelect) {
-        categorySelect.addEventListener('change', (e) => {
-          activeCategoryFilter = e.target.value;
-          renderNotifications();
-        });
-      }
-
-      // Mobile back button to list view
-      if (btnBackToList) {
-        btnBackToList.addEventListener('click', () => {
-          if (window.innerWidth < 768) {
-            listPane.classList.remove('hidden');
-            detailPane.classList.add('hidden');
-          }
-        });
-      }
-
-      // Mark all as read
-      if (markAllBtn) {
-        markAllBtn.addEventListener('click', () => {
+      if (btnMarkAll) {
+        btnMarkAll.addEventListener('click', () => {
           markAllNotificationsAsRead('customer', user.id);
-          showToast('✔ All notifications marked as read', 'success');
-          renderNotifications();
-          if (selectedNotifId) {
-            renderNotificationDetails(selectedNotifId);
-          }
+          showToast('All notifications marked as read');
+          render();
         });
       }
 
-      const updateFilterTabsUI = () => {
-        filterBtns.forEach(btn => {
-          const f = btn.getAttribute('data-filter');
-          const isCurrent = f === activeStatusFilter;
-          const countPill = btn.querySelector('span:last-child');
-          if (isCurrent) {
-            btn.className = 'notif-status-filter-btn flex-1 sm:flex-none py-2 px-4 rounded-xl text-xs font-black transition-all text-center flex items-center justify-center gap-1.5 cursor-pointer bg-white dark:bg-slate-700 text-[#0B1528] dark:text-white shadow-xs';
-            if (countPill) {
-              countPill.className = 'text-[10px] px-1.5 py-0.5 rounded-full font-black bg-[#EAF5E9] dark:bg-slate-800 text-[#1E6C02] dark:text-emerald-300 border border-[#BCE3BD] dark:border-slate-600';
-            }
-          } else {
-            btn.className = 'notif-status-filter-btn flex-1 sm:flex-none py-2 px-4 rounded-xl text-xs font-black text-[#0B1528] dark:text-white hover:text-[#1E6C02] dark:hover:text-emerald-300 transition-all text-center flex items-center justify-center gap-1.5 cursor-pointer';
-            if (countPill) {
-              countPill.className = 'text-[10px] px-1.5 py-0.5 rounded-full font-black bg-white/80 dark:bg-slate-900/60 text-[#1E6C02] dark:text-emerald-400 border border-[#C6EFCE]/60 dark:border-slate-700';
-            }
-          }
-        });
-      };
+      function getNotifs() {
+        const all = getNotifications() || [];
+        return sortNotificationsDescending(
+          all.filter(n => n.role === 'customer' && String(n.userId) === String(user.id))
+        );
+      }
 
-      const getCustomerNotifications = () => {
-        const all = getNotifications();
-        return sortNotificationsDescending(all.filter(n => n.role === 'customer' && String(n.userId) === String(user.id)));
-      };
-
-      const renderNotifications = () => {
-        const userNotifs = getCustomerNotifications();
-        const total = userNotifs.length;
-        const unread = userNotifs.filter(n => !n.read).length;
-        const read = userNotifs.filter(n => n.read).length;
-
-        // Counters
-        const countAll = document.getElementById('page-count-all');
-        const countUnread = document.getElementById('page-count-unread');
-        const countRead = document.getElementById('page-count-read');
-        if (countAll) countAll.textContent = total;
-        if (countUnread) countUnread.textContent = unread;
-        if (countRead) countRead.textContent = read;
-
-        // Filter list
-        let filtered = userNotifs;
-        if (activeStatusFilter === 'unread') {
-          filtered = filtered.filter(n => !n.read);
-        } else if (activeStatusFilter === 'read') {
-          filtered = filtered.filter(n => n.read);
-        }
-
-        if (activeCategoryFilter !== 'all') {
-          filtered = filtered.filter(n => {
-            const t = (n.type || '').toLowerCase();
-            const title = (n.title || '').toLowerCase();
-            if (activeCategoryFilter === 'reservation') {
-              return t === 'reservation' || title.includes('reservation') || title.includes('pre-order') || n.reservationId;
-            } else if (activeCategoryFilter === 'order') {
-              return t === 'order' || t === 'new-order' || title.includes('order') || (!title.includes('reservation') && n.orderId);
-            } else if (activeCategoryFilter === 'stock') {
-              return t === 'stock' || title.includes('restock') || title.includes('stock');
-            } else if (activeCategoryFilter === 'payment') {
-              return t === 'payment' || title.includes('payment') || title.includes('downpayment') || title.includes('gcash');
-            }
-            return true;
-          });
-        }
-
-        if (filtered.length === 0) {
-          itemsContainer.innerHTML = `
-            <div class="bg-white dark:bg-slate-800 rounded-3xl p-8 text-center border border-[#D8E8D5] dark:border-slate-700 shadow-sm">
-              <div class="text-3xl mb-2">🔔</div>
-              <p class="font-black text-[#0B1528] dark:text-white text-sm">No notifications found</p>
-              <p class="text-xs font-semibold text-[#0B1528] dark:text-white mt-1">There are no updates in this category.</p>
+      function renderDetail(notif) {
+        if (!notif) {
+          detailContainer.innerHTML = `
+            <div class="text-center py-16 px-4 text-gray-700 dark:text-gray-300">
+              <div class="w-16 h-16 rounded-2xl bg-gray-100 dark:bg-slate-800 text-gray-400 dark:text-slate-500 flex items-center justify-center mx-auto mb-4 text-3xl">
+                🔔
+              </div>
+              <h3 class="font-extrabold text-lg sm:text-xl text-[#111827] dark:text-white mb-2">Select a Notification</h3>
+              <p class="text-sm sm:text-base text-gray-600 dark:text-gray-300 max-w-sm mx-auto leading-relaxed">
+                Click any notification from the list to view its complete details and related order or reservation information.
+              </p>
             </div>
           `;
           return;
         }
 
-        // Render card items (NO GRAY FONT COLORS AT ALL)
-        itemsContainer.innerHTML = filtered.map(n => {
-          const isSelected = String(n.id) === String(selectedNotifId);
-          const style = getSafeStyle(n.type);
+        const isUnread = !notif.read;
+        const style = (NOTIF_STYLES && NOTIF_STYLES[notif.type]) ? NOTIF_STYLES[notif.type] : {
+          icon: '🔔',
+          bg: 'bg-green-50 dark:bg-green-950/60 border-green-200 dark:border-green-800',
+          text: 'text-green-800 dark:text-green-300'
+        };
+
+        // Resolve reference ID (orderId or reservationId)
+        const isReservation = notif.type === 'reservation' ||
+          notif.targetType === 'reservation' ||
+          Boolean(notif.reservationId) ||
+          (notif.title && notif.title.toLowerCase().includes('reservation')) ||
+          (notif.orderId && String(notif.orderId).toUpperCase().replace(/^#/, '').startsWith('RES')) ||
+          (notif.targetId && String(notif.targetId).toUpperCase().replace(/^#/, '').startsWith('RES'));
+
+        let relatedTarget = (isReservation ? notif.reservationId : notif.orderId) || notif.orderId || notif.reservationId || notif.targetId;
+        if (!relatedTarget && notif.message) {
+          const matchRes = notif.message.match(/Reservation\s*#?([A-Za-z0-9_-]+)/i);
+          const matchOrder = notif.message.match(/Order\s*#?([A-Za-z0-9_-]+)/i);
+          if (isReservation && matchRes) relatedTarget = matchRes[1];
+          else if (!isReservation && matchOrder) relatedTarget = matchOrder[1];
+          else if (matchRes) relatedTarget = matchRes[1];
+          else if (matchOrder) relatedTarget = matchOrder[1];
+        }
+
+        let actionButtonHtml = '';
+        if (relatedTarget) {
+          const targetTab = isReservation ? 'reservations' : 'all';
+          const paramName = isReservation ? 'reservationId' : 'orderId';
+          actionButtonHtml = `
+            <div class="mt-8 pt-6 border-t border-gray-200 dark:border-slate-800 flex flex-wrap items-center gap-3">
+              <a href="profile.html?tab=${targetTab}&${paramName}=${encodeURIComponent(relatedTarget)}" class="px-6 h-12 bg-[#1E6C02] hover:bg-[#145001] text-white font-extrabold text-sm sm:text-base rounded-xl transition-all shadow-md inline-flex items-center gap-2 cursor-pointer">
+                <span>View ${isReservation ? 'Reservation' : 'Order'} #${relatedTarget}</span>
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+              </a>
+              <a href="profile.html" class="px-5 h-12 border border-gray-300 dark:border-slate-700 text-[#111827] dark:text-white font-bold text-sm sm:text-base rounded-xl hover:bg-gray-50 dark:hover:bg-slate-800 transition-all inline-flex items-center cursor-pointer">
+                Go to Account
+              </a>
+            </div>
+          `;
+        } else {
+          actionButtonHtml = `
+            <div class="mt-8 pt-6 border-t border-gray-200 dark:border-slate-800 flex flex-wrap items-center gap-3">
+              <a href="profile.html" class="px-6 h-12 bg-[#1E6C02] hover:bg-[#145001] text-white font-extrabold text-sm sm:text-base rounded-xl transition-all shadow-md inline-flex items-center gap-2 cursor-pointer">
+                <span>Go to My Account</span>
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+              </a>
+              <a href="products.html" class="px-5 h-12 border border-gray-300 dark:border-slate-700 text-[#111827] dark:text-white font-bold text-sm sm:text-base rounded-xl hover:bg-gray-50 dark:hover:bg-slate-800 transition-all inline-flex items-center cursor-pointer">
+                Rice Catalog
+              </a>
+            </div>
+          `;
+        }
+
+        detailContainer.innerHTML = `
+          <div>
+            <!-- Header bar with category badge, status pill, and timestamp -->
+            <div class="flex flex-wrap items-center justify-between gap-3 mb-5 pb-4 border-b border-gray-200 dark:border-slate-800">
+              <div class="flex items-center gap-2.5 flex-wrap">
+                <div class="w-8 h-8 rounded-lg ${style.bg} border ${style.text} flex items-center justify-center text-sm shrink-0">
+                  ${style.icon}
+                </div>
+                <span class="px-3 py-1 text-xs sm:text-sm font-extrabold uppercase tracking-wider rounded-full ${
+                  isUnread
+                    ? 'bg-amber-100 dark:bg-amber-950/80 text-amber-900 dark:text-amber-200 border border-amber-300 dark:border-amber-700'
+                    : 'bg-emerald-100 dark:bg-emerald-950/80 text-emerald-900 dark:text-emerald-200 border border-emerald-300 dark:border-emerald-700'
+                }">
+                  ${isUnread ? '● Unread' : '✓ Read'}
+                </span>
+                ${notif.type ? `
+                  <span class="px-3 py-1 text-xs sm:text-sm font-bold capitalize rounded-full bg-gray-100 dark:bg-slate-800 text-[#111827] dark:text-gray-200 border border-gray-200 dark:border-slate-700">
+                    ${notif.type}
+                  </span>
+                ` : ''}
+              </div>
+              <div class="text-sm sm:text-base text-gray-600 dark:text-slate-300 font-semibold flex items-center gap-1.5">
+                <svg class="w-4 h-4 text-gray-500 dark:text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke-width="2"></circle><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6l4 2"></path></svg>
+                <span>${notif.createdDate || ''} ${notif.createdTime ? `at ${notif.createdTime}` : ''}</span>
+              </div>
+            </div>
+
+            <!-- Title -->
+            <h2 class="text-2xl sm:text-3xl font-extrabold text-[#111827] dark:text-white mb-5 tracking-tight leading-snug">
+              ${notif.title}
+            </h2>
+
+            <!-- Message Box -->
+            <div class="bg-gray-50/70 dark:bg-slate-800/50 rounded-2xl p-5 sm:p-7 border border-gray-200 dark:border-slate-700/80 text-base sm:text-lg text-[#111827] dark:text-slate-100 font-normal leading-relaxed whitespace-pre-wrap">
+${notif.message}
+            </div>
+
+            <!-- Reference Metadata (if available) -->
+            ${relatedTarget ? `
+              <div class="mt-4 p-4 rounded-xl bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 flex items-center justify-between gap-4">
+                <div class="flex items-center gap-2">
+                  <span class="text-sm font-bold text-gray-600 dark:text-gray-400">Reference:</span>
+                  <span class="text-sm sm:text-base font-extrabold text-[#111827] dark:text-white">${isReservation ? 'Reservation' : 'Order'} #${relatedTarget}</span>
+                </div>
+                <span class="text-xs sm:text-sm font-bold text-[#1E6C02] dark:text-emerald-400 uppercase tracking-wide">Direct Link Available</span>
+              </div>
+            ` : ''}
+
+            <!-- Action Buttons -->
+            ${actionButtonHtml}
+          </div>
+        `;
+      }
+
+      function renderListItems(items, currentSelectedId) {
+        container.innerHTML = items.map(n => {
+          const isSelected = n.id === currentSelectedId;
           const isUnread = !n.read;
+          const style = (NOTIF_STYLES && NOTIF_STYLES[n.type]) ? NOTIF_STYLES[n.type] : {
+            icon: '🔔',
+            bg: 'bg-green-50 dark:bg-green-950/60 border-green-200 dark:border-green-800',
+            text: 'text-green-800 dark:text-green-300'
+          };
 
           return `
-            <div 
-              data-id="${n.id}"
-              class="notif-row-card bg-white dark:bg-slate-800 rounded-2xl p-4 border transition-all cursor-pointer flex gap-3.5 items-start relative ${
-                isSelected 
-                  ? 'border-[#1E6C02] dark:border-emerald-500 shadow-md ring-2 ring-[#1E6C02]/25' 
-                  : (isUnread ? 'border-[#82C37E] dark:border-emerald-800/80 shadow-xs hover:border-[#1E6C02]' : 'border-[#D8E8D5] dark:border-slate-700 hover:border-[#1E6C02]')
-              }"
-            >
-              <div class="w-9 h-9 rounded-2xl ${style.bg} border-2 ${style.text} flex items-center justify-center shrink-0 text-base mt-0.5 shadow-2xs">
-                ${style.icon}
-              </div>
-              <div class="flex-1 min-w-0">
-                <div class="flex items-start justify-between gap-2 mb-1">
-                  <h4 class="${isUnread ? 'font-black text-[#0B1528] dark:text-white' : 'font-extrabold text-[#0B1528] dark:text-white'} text-xs leading-snug break-words">
-                    ${n.title}
-                  </h4>
-                  ${isUnread ? `
-                    <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-black bg-[#1E6C02] text-white shrink-0">
-                      NEW
-                    </span>
-                  ` : ''}
+            <div data-id="${n.id}" class="notif-item p-4 sm:p-5 transition-all cursor-pointer ${
+              isSelected
+                ? 'bg-emerald-50 dark:bg-emerald-950/40 border-l-4 border-l-[#1E6C02]'
+                : 'bg-white dark:bg-slate-900 hover:bg-gray-50 dark:hover:bg-slate-800/60'
+            }">
+              <div class="flex items-start gap-3">
+                <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl ${style.bg} border ${style.text} flex items-center justify-center shrink-0 text-base shadow-xs mt-0.5">
+                  ${style.icon}
                 </div>
-                <p class="text-xs text-[#0B1528] dark:text-white font-semibold line-clamp-2 leading-relaxed">
-                  ${n.message}
-                </p>
-                <div class="flex items-center justify-between mt-2.5 pt-1.5 border-t border-[#EAF5E9] dark:border-slate-700/60 text-[10px] font-bold text-[#0B1528] dark:text-emerald-300">
-                  <span>${n.createdDate || ''} ${n.createdTime ? '• ' + n.createdTime : ''}</span>
-                  <span class="text-[#1E6C02] dark:text-emerald-400 font-black hover:underline">View Details &rarr;</span>
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-start justify-between gap-2 mb-1.5">
+                    <div class="flex items-center gap-2 min-w-0 flex-wrap">
+                      <h4 class="text-base sm:text-lg ${isUnread ? 'font-black text-[#111827] dark:text-white' : 'font-bold text-[#111827] dark:text-gray-100'} break-words leading-snug">
+                        ${n.title}
+                      </h4>
+                      ${isUnread ? `
+                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-black bg-[#1E6C02] text-white shrink-0 shadow-xs">
+                          <span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>NEW
+                        </span>
+                      ` : ''}
+                    </div>
+                    <span class="text-xs sm:text-sm font-semibold text-gray-600 dark:text-slate-300 whitespace-nowrap shrink-0 mt-0.5">
+                      ${n.createdTime || ''}
+                    </span>
+                  </div>
+                  <p class="text-sm sm:text-base text-gray-700 dark:text-gray-200 line-clamp-2 leading-relaxed mb-2 font-normal">
+                    ${n.message}
+                  </p>
+                  <div class="flex items-center justify-between text-xs sm:text-sm text-gray-600 dark:text-slate-300 font-medium pt-1 border-t border-gray-100 dark:border-slate-800">
+                    <span>${n.createdDate || ''}</span>
+                    ${n.type ? `<span class="capitalize font-bold text-[#1E6C02] dark:text-emerald-400">${n.type}</span>` : ''}
+                  </div>
                 </div>
               </div>
             </div>
           `;
         }).join('');
 
-        // Row clicks
-        itemsContainer.querySelectorAll('.notif-row-card').forEach(card => {
-          card.addEventListener('click', () => {
-            const id = card.getAttribute('data-id');
-            if (id) {
-              selectedNotifId = id;
-              markNotificationAsRead(id, user.id, 'customer');
-              renderNotifications();
-              renderNotificationDetails(id);
+        container.querySelectorAll('.notif-item').forEach(item => {
+          item.addEventListener('click', () => {
+            const id = item.getAttribute('data-id');
+            if (!id) return;
+            selectedNotifId = id;
 
-              // Update URL without page reload
-              try {
-                const url = new URL(window.location.href);
-                url.searchParams.set('id', id);
-                window.history.replaceState({ id }, '', url);
-              } catch (_) {}
+            const notifs = getNotifs();
+            const clickedNotif = notifs.find(n => n.id === id);
+            if (clickedNotif) {
+              if (!clickedNotif.read) {
+                markNotificationAsRead(clickedNotif.id, user.id, 'customer');
+                clickedNotif.read = true;
+              }
+              renderDetail(clickedNotif);
 
-              // On mobile: reveal the detail pane and scroll smoothly
-              if (window.innerWidth < 768) {
-                listPane.classList.add('hidden');
-                detailPane.classList.remove('hidden');
-                detailPane.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              // Update item selection and read state visually in current list
+              renderListItems(items, selectedNotifId);
+
+              // Update filter badge counters in place
+              const unreadCount = notifs.filter(n => !n.read).length;
+              const readCount = notifs.filter(n => n.read).length;
+              if (badgeAll) badgeAll.textContent = notifs.length;
+              if (badgeUnread) badgeUnread.textContent = unreadCount;
+              if (badgeRead) badgeRead.textContent = readCount;
+
+              // On mobile, scroll detail column into view smoothly
+              if (window.innerWidth < 1024) {
+                document.getElementById('notif-detail-col')?.scrollIntoView({ behavior: 'smooth' });
               }
             }
           });
         });
-      };
+      }
 
-      const renderNotificationDetails = (notifId) => {
-        if (detailPane) detailPane.scrollTop = 0;
-        const notifs = getCustomerNotifications();
-        const n = notifs.find(item => String(item.id) === String(notifId));
-        if (!n) {
-          detailContent.innerHTML = `
-            <div class="py-16 text-center text-[#0B1528] dark:text-white">
-              <div class="text-4xl mb-3">🔍</div>
-              <p class="font-black text-[#0B1528] dark:text-white text-sm">Notification not found</p>
+      function render() {
+        const notifs = getNotifs();
+        const unreadCount = notifs.filter(n => !n.read).length;
+        const readCount = notifs.filter(n => n.read).length;
+
+        // Update badge counters
+        if (badgeAll) badgeAll.textContent = notifs.length;
+        if (badgeUnread) badgeUnread.textContent = unreadCount;
+        if (badgeRead) badgeRead.textContent = readCount;
+
+        // Update filter button active states
+        filterButtons.forEach(btn => {
+          const f = btn.getAttribute('data-filter');
+          const badge = btn.querySelector('.tab-badge');
+          const isActive = f === activeFilter;
+          if (isActive) {
+            btn.className = 'notif-tab-btn notif-filter-active px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl font-bold border border-[#1E6C02] transition-all cursor-pointer flex items-center gap-2 shrink-0 bg-[#1E6C02] text-white shadow-xs text-sm sm:text-base';
+            if (badge) {
+              badge.className = 'tab-badge text-xs sm:text-sm px-2 sm:px-2.5 py-0.5 rounded-full font-extrabold bg-white/25 text-white';
+            }
+          } else {
+            btn.className = 'notif-tab-btn bg-white dark:bg-slate-900 text-[#111827] dark:text-white border border-gray-300 dark:border-slate-700 hover:border-[#1E6C02] dark:hover:border-emerald-500 px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl font-bold transition-all cursor-pointer flex items-center gap-2 shrink-0 shadow-xs text-sm sm:text-base';
+            if (badge) {
+              badge.className = 'tab-badge text-xs sm:text-sm px-2 sm:px-2.5 py-0.5 rounded-full font-extrabold bg-gray-100 dark:bg-slate-800 text-[#111827] dark:text-gray-200';
+            }
+          }
+        });
+
+        // Determine displayed items
+        let filtered = notifs;
+        if (activeFilter === 'unread') {
+          filtered = notifs.filter(n => !n.read);
+        } else if (activeFilter === 'read') {
+          filtered = notifs.filter(n => n.read);
+        }
+
+        // Handle empty states
+        if (filtered.length === 0) {
+          let emptyTitle = 'No notifications';
+          let emptyDesc = 'You have no notifications matching this filter.';
+          if (notifs.length === 0) {
+            emptyTitle = 'No notifications yet';
+            emptyDesc = 'You will receive updates here about your orders, reservations, and account activities.';
+          } else if (activeFilter === 'unread') {
+            emptyTitle = 'All caught up!';
+            emptyDesc = 'You have no unread notifications right now.';
+          } else if (activeFilter === 'read') {
+            emptyTitle = 'No read notifications';
+            emptyDesc = 'Notifications will appear here after you view them.';
+          }
+
+          container.innerHTML = `
+            <div class="p-8 sm:p-12 text-center text-gray-700 dark:text-gray-300">
+              <div class="text-4xl mb-3">🔔</div>
+              <h3 class="font-extrabold text-base sm:text-lg text-[#111827] dark:text-white mb-1.5">${emptyTitle}</h3>
+              <p class="text-sm sm:text-base text-gray-600 dark:text-gray-300 max-w-xs mx-auto leading-relaxed">${emptyDesc}</p>
             </div>
           `;
+          renderDetail(null);
           return;
         }
 
-        const style = getSafeStyle(n.type);
-        const allOrders = getOrders();
-        const targetRefId = n.reservationId || n.orderId || n.targetId || '';
-        const matchedOrder = targetRefId 
-          ? allOrders.find(o => String(o.id).trim().toLowerCase() === String(targetRefId).trim().toLowerCase()) 
-          : null;
-        const targetType = n.targetType || (n.type === 'reservation' || n.reservationId || (targetRefId && String(targetRefId).toUpperCase().startsWith('RES-')) ? 'reservation' : 'order');
-
-        const isUnallocChoice = Boolean(
-          n.requiresUnallocatedChoice ||
-          (n.title && String(n.title).includes('Not Included in Latest Stock Allocation'))
-        );
-
-        const isPaymentRelated = Boolean(
-          n.type === 'payment' || 
-          n.scrollPayment || 
-          (n.title && (
-            n.title.toLowerCase().includes('payment') || 
-            n.title.toLowerCase().includes('downpayment') || 
-            n.title.toLowerCase().includes('correction') || 
-            n.title.toLowerCase().includes('failed') || 
-            n.title.toLowerCase().includes('rejected')
-          ))
-        );
-
-        let actionBoxHtml = '';
-        if (targetRefId) {
-          const isRes = targetType === 'reservation';
-          const titleTag = isRes ? 'Pre-Order Reservation Reference' : 'Customer Order Reference';
-          const linkTab = isRes ? 'reservations' : (matchedOrder ? (matchedOrder.status || 'all') : 'all');
-          const profileLink = `profile.html?targetType=${isRes ? 'reservation' : 'order'}&orderId=${encodeURIComponent(targetRefId)}&reservationId=${encodeURIComponent(targetRefId)}&tab=${encodeURIComponent(linkTab)}`;
-
-          actionBoxHtml = `
-            <div class="mt-6 p-4 sm:p-5 rounded-2xl bg-[#EAF5E9] dark:bg-slate-700/60 border border-[#BCE3BD] dark:border-slate-600 space-y-3.5">
-              <div class="flex items-center justify-between flex-wrap gap-2">
-                <div>
-                  <span class="text-[10px] font-black uppercase tracking-wider text-[#1E6C02] dark:text-emerald-300 block">${titleTag}</span>
-                  <span class="text-base font-black text-[#0B1528] dark:text-white tracking-tight">${targetRefId}</span>
-                </div>
-                ${matchedOrder ? `
-                  <span class="px-3 py-1 rounded-full text-xs font-black uppercase tracking-wide bg-white dark:bg-emerald-950/80 text-[#1E6C02] dark:text-emerald-300 border border-[#BCE3BD] dark:border-emerald-800 shadow-2xs">
-                    Status: ${matchedOrder.status || 'Active'}
-                  </span>
-                ` : ''}
-              </div>
-
-              ${isUnallocChoice ? `
-                <div class="pt-3 border-t border-[#BCE3BD] dark:border-slate-600">
-                  <p class="text-xs font-black text-[#0B1528] dark:text-white mb-2.5">Please choose what you would like to do with this reservation:</p>
-                  <div class="flex flex-wrap gap-2.5">
-                    <button 
-                      type="button" 
-                      id="btn-detail-continue-res"
-                      class="px-4 py-2.5 text-xs font-black text-white bg-[#1E6C02] hover:bg-[#145001] rounded-xl transition-all cursor-pointer shadow-xs"
-                    >
-                      ✔ Continue in Waiting Queue
-                    </button>
-                    <button 
-                      type="button" 
-                      id="btn-detail-cancel-res"
-                      class="px-4 py-2.5 text-xs font-black text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/60 border border-rose-300 dark:border-rose-700 hover:bg-rose-600 hover:text-white rounded-xl transition-all cursor-pointer shadow-xs"
-                    >
-                      Cancel Reservation
-                    </button>
-                  </div>
-                </div>
-              ` : ''}
-
-              <!-- Contextual action buttons using existing RiceFlow destinations -->
-              <div class="pt-3 border-t border-[#BCE3BD] dark:border-slate-600 flex flex-wrap gap-2.5">
-                ${isPaymentRelated ? `
-                  <a 
-                    href="${profileLink}&scrollPayment=1"
-                    class="inline-flex items-center gap-1.5 px-4 py-2.5 bg-[#1E6C02] hover:bg-[#145001] text-white text-xs font-black rounded-xl transition-all shadow-md shadow-green-900/10 cursor-pointer"
-                  >
-                    <span>💳 Upload Payment Proof</span>
-                  </a>
-                ` : ''}
-
-                ${isRes ? `
-                  <a 
-                    href="${profileLink}" 
-                    class="inline-flex items-center gap-1.5 px-4 py-2.5 ${isPaymentRelated ? 'bg-white dark:bg-slate-800 text-[#1E6C02] dark:text-emerald-400 border border-[#BCE3BD] dark:border-emerald-800 hover:bg-[#EAF5E9]' : 'bg-[#1E6C02] hover:bg-[#145001] text-white shadow-md shadow-green-900/10'} text-xs font-black rounded-xl transition-all cursor-pointer"
-                  >
-                    <span>📊 View Reservation in Queue</span>
-                    <svg class="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
-                  </a>
-                ` : `
-                  <a 
-                    href="${profileLink}" 
-                    class="inline-flex items-center gap-1.5 px-4 py-2.5 ${isPaymentRelated ? 'bg-white dark:bg-slate-800 text-[#1E6C02] dark:text-emerald-400 border border-[#BCE3BD] dark:border-emerald-800 hover:bg-[#EAF5E9]' : 'bg-[#1E6C02] hover:bg-[#145001] text-white shadow-md shadow-green-900/10'} text-xs font-black rounded-xl transition-all cursor-pointer"
-                  >
-                    <span>📦 View Order Status & Tracking</span>
-                    <svg class="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
-                  </a>
-                `}
-              </div>
-            </div>
-          `;
+        // Selection resolution
+        let activeObj = filtered.find(n => n.id === selectedNotifId);
+        if (!activeObj) {
+          activeObj = filtered[0];
+          selectedNotifId = activeObj.id;
         }
 
-        detailContent.innerHTML = `
-          <div class="space-y-5 text-left">
-            <!-- Header bar with icon, categories and timestamps (NO GRAY FONT COLORS) -->
-            <div class="flex items-start gap-4">
-              <div class="w-12 h-12 rounded-2xl ${style.bg} border-2 ${style.text} flex items-center justify-center shrink-0 text-xl shadow-2xs">
-                ${style.icon}
-              </div>
-              <div class="flex-1 min-w-0">
-                <div class="flex items-center gap-2 flex-wrap mb-1">
-                  <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-[#EAF5E9] dark:bg-slate-700 text-[#1E6C02] dark:text-emerald-300 border border-[#BCE3BD] dark:border-slate-600">
-                    ${n.type || 'General'}
-                  </span>
-                  <span class="text-xs font-bold text-[#0B1528] dark:text-emerald-300">
-                    ${n.createdDate || ''} ${n.createdTime ? '• ' + n.createdTime : ''}
-                  </span>
-                </div>
-                <h2 class="text-lg sm:text-xl font-black text-[#0B1528] dark:text-white tracking-tight leading-snug">
-                  ${n.title}
-                </h2>
-              </div>
-            </div>
-
-            <!-- Full Message Body Card: White / Warm surface with high contrast dark navy or white text -->
-            <div class="p-4 sm:p-5 rounded-2xl bg-[#F8FAF7] dark:bg-slate-900 border border-[#D8E8D5] dark:border-slate-700 text-[#0B1528] dark:text-white text-sm leading-relaxed whitespace-pre-line font-medium shadow-2xs">
-              ${n.message}
-            </div>
-
-            <!-- Action Box with Contextual Action buttons -->
-            ${actionBoxHtml}
-
-            <!-- Bottom utility actions (Read toggle and profile jump) -->
-            <div class="pt-4 border-t border-[#D8E8D5] dark:border-slate-700 flex items-center justify-between flex-wrap gap-3">
-              <button 
-                type="button"
-                id="btn-toggle-read-status"
-                class="text-xs font-black text-[#0B1528] dark:text-white hover:text-[#1E6C02] dark:hover:text-emerald-400 transition-colors cursor-pointer inline-flex items-center gap-1.5"
-              >
-                ${n.read ? '✉ Mark as unread' : '✔ Mark as read'}
-              </button>
-              <a 
-                href="profile.html" 
-                class="text-xs font-black text-[#1E6C02] dark:text-emerald-400 hover:underline inline-flex items-center gap-1"
-              >
-                Go to My Purchases in Profile &rarr;
-              </a>
-            </div>
-          </div>
-        `;
-
-        // Wire interactive unallocated buttons if present
-        const btnContinue = document.getElementById('btn-detail-continue-res');
-        if (btnContinue && targetRefId) {
-          btnContinue.addEventListener('click', () => {
-            confirmContinueUnallocatedReservation(targetRefId);
-            showToast('✔ Your reservation remains active in the queue for the next restock.', 'success');
-            renderNotifications();
-            renderNotificationDetails(notifId);
-          });
+        if (activeObj && !activeObj.read) {
+          markNotificationAsRead(activeObj.id, user.id, 'customer');
+          activeObj.read = true;
+          const updatedUnread = notifs.filter(n => !n.read && n.id !== activeObj.id).length;
+          if (badgeUnread) badgeUnread.textContent = updatedUnread;
         }
 
-        const btnCancel = document.getElementById('btn-detail-cancel-res');
-        if (btnCancel && targetRefId) {
-          btnCancel.addEventListener('click', () => {
-            window.location.href = `profile.html?targetType=reservation&orderId=${encodeURIComponent(targetRefId)}&reservationId=${encodeURIComponent(targetRefId)}&tab=reservations&promptCancel=1`;
-          });
-        }
-
-        // Toggle read/unread status
-        const toggleReadBtn = document.getElementById('btn-toggle-read-status');
-        if (toggleReadBtn) {
-          toggleReadBtn.addEventListener('click', () => {
-            const allNotifs = getNotifications();
-            const target = allNotifs.find(item => String(item.id) === String(notifId));
-            if (target) {
-              target.read = !target.read;
-              localStorage.setItem('aurora-notifications', JSON.stringify(allNotifs));
-              window.dispatchEvent(new CustomEvent('aurora-sync-event', { detail: { key: 'aurora-notifications', value: allNotifs } }));
-              showToast(target.read ? 'Marked as read' : 'Marked as unread', 'info');
-              renderNotifications();
-              renderNotificationDetails(notifId);
-            }
-          });
-        }
-      };
-
-      // Initial render
-      renderNotifications();
-
-      // If pre-selected ID from URL, render details immediately
-      if (selectedNotifId) {
-        renderNotificationDetails(selectedNotifId);
-        if (window.innerWidth < 768) {
-          listPane.classList.add('hidden');
-          detailPane.classList.remove('hidden');
-        }
-      } else {
-        // Automatically select the first notification on desktop
-        const notifs = getCustomerNotifications();
-        if (notifs.length > 0 && window.innerWidth >= 768) {
-          selectedNotifId = notifs[0].id;
-          renderNotificationDetails(selectedNotifId);
-        }
+        renderDetail(activeObj);
+        renderListItems(filtered, selectedNotifId);
       }
 
-      // Real-time synchronization
+      // Initial render
+      render();
+
+      // Listen to cross-tab / background storage sync events
       window.addEventListener('aurora-sync-event', (e) => {
-        if (!e.detail || e.detail.key === 'aurora-notifications') {
-          renderNotifications();
-          if (selectedNotifId) {
-            renderNotificationDetails(selectedNotifId);
-          }
+        if (!e.detail || !e.detail.key || e.detail.key === 'aurora-notifications') {
+          render();
         }
       });
     });
   </script>
-
 </body>
 </html>

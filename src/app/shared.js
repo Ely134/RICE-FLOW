@@ -66,7 +66,12 @@ import {
   registerPendingOrderWrite,
   unregisterPendingOrderWrite,
   syncOrdersFromFirestore,
-  syncStoreSettingsFromFirestore
+  syncStoreSettingsFromFirestore,
+  db,
+  runTransaction,
+  doc,
+  getDoc,
+  getDocFromServer
 } from '../lib/firebase.js';
 
 export { 
@@ -5517,6 +5522,502 @@ export function generateReservationId(existingOrders = null) {
     attempts < 100
   );
   return candidateId;
+}
+
+export function generateOrderId(existingOrders = null) {
+  const orders = existingOrders || getOrders() || [];
+  const prefix = 'RF';
+  let maxNum = 200000;
+  orders.forEach(o => {
+    if (o && o.id && String(o.id).startsWith(prefix)) {
+      const numPart = parseInt(String(o.id).substring(prefix.length), 10);
+      if (!isNaN(numPart) && numPart > maxNum) {
+        maxNum = numPart;
+      }
+    }
+  });
+  return prefix + (maxNum + 1);
+}
+
+/**
+ * Reliable atomic Firestore transaction for concurrent-order stock validation & commitment.
+ * - Reads authoritative physical stock directly from Firestore inside runTransaction.
+ * - Prevents race conditions and double-claims across concurrent customer checkouts.
+ * - Handles transaction conflicts via automatic transaction retries with fresh reads.
+ * - Atomically commits stock updates, order documents, and inventory history together.
+ * - Guarantees zero partial successes or phantom stock deductions.
+ */
+export async function addOrderAtomic(orderData) {
+  if (!orderData) throw new Error("Order data is required.");
+
+  // Idempotency / duplicate order guard: prevent double-clicks or repeated requests
+  if (orderData.referenceNumber) {
+    const cachedOrders = getOrders();
+    const existing = cachedOrders.find(o => o && o.referenceNumber === orderData.referenceNumber);
+    if (existing) {
+      console.warn(`[ATOMIC-ORDER] Duplicate order submission detected for reference: ${orderData.referenceNumber}`);
+      return existing;
+    }
+  }
+
+  // Ensure secure Firestore transaction capability is available; never fall back to non-atomic writes during checkout
+  if (!db || typeof runTransaction !== 'function') {
+    throw new Error('Secure order processing is temporarily unavailable. Please check your internet connection and retry.');
+  }
+
+  const user = getCurrentUser();
+  const customerEmail = orderData.customerEmail || user?.email || '';
+  const userId = user ? user.id : (orderData.userId || '');
+  const customerId = user ? user.id : (orderData.customerId || '');
+  const startStatus = orderData.status || 'to-pay';
+  const now = new Date();
+
+  const clonedItems = orderData.items ? JSON.parse(JSON.stringify(orderData.items)) : [];
+  if (clonedItems.length === 0) {
+    throw new Error("Order items cannot be empty.");
+  }
+
+  // Extract unique product IDs requested in this order
+  const uniqueProductIds = Array.from(new Set(
+    clonedItems.map(it => String(it.product?.id || it.productId || it.id || '').trim()).filter(Boolean)
+  ));
+
+  // Determine current active allocated reservations to preserve allocated reservation commitments
+  const cachedOrders = getOrders();
+  const allocatedMap = {};
+  cachedOrders.forEach(o => {
+    if (!o || o.status === 'cancelled' || o.status === 'Cancelled' || o.status === 'completed' || o.status === 'delivered') return;
+    const isRes = o.isPreOrder || (o.items && o.items.some(it => it.isReservation));
+    if (isRes && Array.isArray(o.items)) {
+      o.items.forEach(it => {
+        const pId = String(it.product?.id || it.productId || it.id || '').trim();
+        if (pId) {
+          const totalQty = Number(it.quantity || 0);
+          const allocatedQty = Math.min(totalQty, Math.max(0, Number(o.allocatedQuantity || 0)));
+          if (allocatedQty > 0) {
+            allocatedMap[pId] = (allocatedMap[pId] || 0) + allocatedQty;
+          }
+        }
+      });
+    }
+  });
+
+  // Execute atomic Firestore transaction
+  const txResult = await runTransaction(db, async (transaction) => {
+    // -----------------------------------------------------------------
+    // PHASE 1: TRANSACTION READS (All reads must precede all writes)
+    // -----------------------------------------------------------------
+    const productSnaps = {};
+    for (const pId of uniqueProductIds) {
+      const pRef = doc(db, 'products', pId);
+      const snap = await transaction.get(pRef);
+      if (!snap.exists()) {
+        throw new Error(`Product ${pId} was not found in the inventory database.`);
+      }
+      productSnaps[pId] = snap;
+    }
+
+    // Determine candidate Order ID and verify uniqueness in Firestore
+    let candidateOrderId = orderData.id || generateOrderId(cachedOrders);
+    let orderDocRef = doc(db, 'orders', candidateOrderId);
+    let orderDocSnap = await transaction.get(orderDocRef);
+    let orderAttempts = 0;
+    while (orderDocSnap.exists() && orderAttempts < 15) {
+      const numPart = parseInt(candidateOrderId.replace(/^RF/, ''), 10) || 200000;
+      candidateOrderId = 'RF' + (numPart + 1);
+      orderDocRef = doc(db, 'orders', candidateOrderId);
+      orderDocSnap = await transaction.get(orderDocRef);
+      orderAttempts++;
+    }
+
+    // Candidate Reservation ID in case partial split or reservation conversion is needed
+    let candidateResId = generateReservationId(cachedOrders);
+    let resDocRef = doc(db, 'orders', candidateResId);
+    let resDocSnap = await transaction.get(resDocRef);
+    let resAttempts = 0;
+    while (resDocSnap.exists() && resAttempts < 15) {
+      candidateResId = generateReservationId(cachedOrders);
+      resDocRef = doc(db, 'orders', candidateResId);
+      resDocSnap = await transaction.get(resDocRef);
+      resAttempts++;
+    }
+
+    // -----------------------------------------------------------------
+    // PHASE 2: TRANSACTION EVALUATION (Stock calculation & order logic)
+    // -----------------------------------------------------------------
+    const productUpdates = {};
+    const stockDeductions = [];
+    const updatedItems = [];
+    let createdReservation = null;
+    let anyPhysicalStockDeducted = false;
+
+    for (const item of clonedItems) {
+      const pId = String(item.product?.id || item.productId || item.id || '').trim();
+      const snap = productSnaps[pId];
+      const pData = snap ? snap.data() : null;
+      if (!pData) {
+        updatedItems.push(item);
+        continue;
+      }
+
+      // Read authoritative physical warehouse stock from Firestore
+      const physicalStock = Math.max(0, Number(pData.currentStock !== undefined ? pData.currentStock : (pData.stock !== undefined ? pData.stock : 0)));
+      const committedAllocated = allocatedMap[pId] || 0;
+      const availStock = Math.max(0, physicalStock - committedAllocated);
+      const requestedQty = Number(item.quantity || 0);
+
+      const isOriginallyReservation = Boolean(orderData.isPreOrder || item.isReservation);
+
+      if (isOriginallyReservation) {
+        // Pure reservation item
+        updatedItems.push({ ...item, isReservation: true });
+        continue;
+      }
+
+      if (requestedQty <= availStock) {
+        // Full stock available: deduct directly from physical stock
+        anyPhysicalStockDeducted = true;
+        const newPhysical = physicalStock - requestedQty;
+        productUpdates[pId] = {
+          stock: newPhysical,
+          currentStock: newPhysical,
+          name: pData.name || item.product?.name || 'Rice',
+          price: pData.price || item.product?.price || 0,
+          rawDoc: pData
+        };
+        stockDeductions.push({
+          productId: pId,
+          productName: pData.name || item.product?.name || 'Rice',
+          qty: requestedQty,
+          remarks: `Order placed: #${candidateOrderId}`
+        });
+        updatedItems.push({ ...item, quantity: requestedQty, isReservation: false });
+      } else {
+        // requestedQty > availStock
+        if (orderData.skipReservation) {
+          // Customer chose to skip reservation: claim only available physical stock
+          if (availStock > 0) {
+            anyPhysicalStockDeducted = true;
+            const approvedQty = availStock;
+            const newPhysical = physicalStock - approvedQty;
+            productUpdates[pId] = {
+              stock: newPhysical,
+              currentStock: newPhysical,
+              name: pData.name || item.product?.name || 'Rice',
+              price: pData.price || item.product?.price || 0,
+              rawDoc: pData
+            };
+            stockDeductions.push({
+              productId: pId,
+              productName: pData.name || item.product?.name || 'Rice',
+              qty: approvedQty,
+              remarks: `Order placed (available stock only): #${candidateOrderId}`
+            });
+            updatedItems.push({ ...item, quantity: approvedQty, isReservation: false });
+          } else {
+            throw new Error(`The item "${pData.name || 'Rice'}" was just claimed by another order and is currently out of stock.`);
+          }
+        } else {
+          // Default: Partial split or reservation
+          if (availStock > 0) {
+            // PARTIAL SPLIT
+            anyPhysicalStockDeducted = true;
+            const approvedQty = availStock;
+            const remainingQty = requestedQty - availStock;
+            const newPhysical = physicalStock - approvedQty;
+            productUpdates[pId] = {
+              stock: newPhysical,
+              currentStock: newPhysical,
+              name: pData.name || item.product?.name || 'Rice',
+              price: pData.price || item.product?.price || 0,
+              rawDoc: pData
+            };
+            stockDeductions.push({
+              productId: pId,
+              productName: pData.name || item.product?.name || 'Rice',
+              qty: approvedQty,
+              remarks: `Order placed (partial split): #${candidateOrderId}`
+            });
+            updatedItems.push({ ...item, quantity: approvedQty, isReservation: false });
+
+            // Prepare linked reservation
+            const itemPrice = Number(item.product?.price || item.price || pData.price || 0);
+            const resTotal = remainingQty * itemPrice;
+            let estDate = pData.restockDate || null;
+
+            createdReservation = {
+              id: candidateResId,
+              linkedOrderId: candidateOrderId,
+              originalOrderId: candidateOrderId,
+              isPreOrder: true,
+              status: 'pre-order',
+              createdAt: now.toISOString(),
+              userId,
+              customerId,
+              fullName: orderData.fullName || '',
+              phone: orderData.phone || '',
+              email: customerEmail,
+              deliveryOption: orderData.deliveryOption || 'delivery',
+              address: orderData.address || '',
+              pickupNotes: orderData.pickupNotes || '',
+              paymentMethod: 'none',
+              paymentType: 'none',
+              paymentProof: '',
+              paymentProofDataUrl: '',
+              paymentVerified: false,
+              items: [{
+                ...item,
+                quantity: remainingQty,
+                isReservation: true
+              }],
+              total: resTotal,
+              amountPaid: 0,
+              remainingAmount: resTotal,
+              queuePosition: 1,
+              estimatedRestockDate: estDate,
+              estimatedAvailability: estDate,
+              estimatedFulfillmentDate: null,
+              stockDeducted: false,
+              statusHistory: [{
+                id: 'hist-res-' + Date.now(),
+                status: 'Waiting for Stock',
+                changedBy: 'System Auto-Split',
+                changedAt: now.toLocaleString(),
+                note: `Partial order: Approved ${approvedQty} sacks for processing. Created reservation for remaining ${remainingQty} sacks linked to Order Ticket #${candidateOrderId}.`
+              }]
+            };
+
+            const initialSplitEst = getEstimatedArrivalDate(createdReservation);
+            if (initialSplitEst && initialSplitEst !== 'Waiting for Restock' && initialSplitEst !== 'Not yet scheduled') {
+              createdReservation.estimatedFulfillmentDate = initialSplitEst;
+            }
+          } else {
+            // Entire item is out of stock -> convert order into reservation
+            updatedItems.push({ ...item, quantity: requestedQty, isReservation: true });
+          }
+        }
+      }
+    }
+
+    // Determine final order role (Normal Order vs Pure Reservation)
+    const isConvertedReservation = !anyPhysicalStockDeducted && (orderData.isPreOrder || updatedItems.every(i => i.isReservation));
+    const finalOrderId = isConvertedReservation ? candidateResId : candidateOrderId;
+
+    // Recalculate totals
+    const deliveryFee = orderData.deliveryOption === 'delivery' ? 80 : 0;
+    const finalSubtotal = updatedItems.reduce((acc, it) => {
+      const pPrice = Number(it.product?.price || it.price || 0);
+      return acc + (it.isReservation ? 0 : pPrice * Number(it.quantity || 0));
+    }, 0);
+
+    let finalTotal = finalSubtotal + (isConvertedReservation ? 0 : deliveryFee);
+    let finalAmountPaid = orderData.paymentMethod === 'gcash' ? finalTotal : Math.floor(finalTotal * 0.3);
+    let finalRemaining = Math.max(0, finalTotal - finalAmountPaid);
+
+    if (isConvertedReservation) {
+      finalTotal = updatedItems.reduce((acc, it) => acc + (Number(it.product?.price || it.price || 0) * Number(it.quantity || 0)), 0);
+      finalAmountPaid = 0;
+      finalRemaining = finalTotal;
+    }
+
+    const finalOrder = {
+      ...orderData,
+      id: finalOrderId,
+      items: updatedItems,
+      userId,
+      customerId,
+      customerEmail,
+      createdAt: orderData.createdAt ? new Date(orderData.createdAt).toISOString() : now.toISOString(),
+      updatedAt: now.toISOString(),
+      status: isConvertedReservation ? 'pre-order' : startStatus,
+      isPreOrder: isConvertedReservation,
+      stockDeducted: anyPhysicalStockDeducted,
+      consumedFromStock: anyPhysicalStockDeducted ? stockDeductions.reduce((acc, d) => acc + d.qty, 0) : 0,
+      consumedAt: anyPhysicalStockDeducted ? now.toISOString() : null,
+      total: finalTotal,
+      amountPaid: isConvertedReservation ? 0 : (orderData.amountPaid !== undefined ? orderData.amountPaid : finalAmountPaid),
+      remainingAmount: isConvertedReservation ? finalTotal : (orderData.remainingAmount !== undefined ? orderData.remainingAmount : finalRemaining),
+      paymentMethod: isConvertedReservation ? 'none' : (orderData.paymentMethod || 'gcash'),
+      paymentType: isConvertedReservation ? 'none' : (orderData.paymentType || 'full'),
+      statusHistory: orderData.statusHistory ? JSON.parse(JSON.stringify(orderData.statusHistory)) : [
+        {
+          id: Date.now().toString() + '-init',
+          status: isConvertedReservation ? 'Waiting for Stock' : 'New Order',
+          changedBy: 'System',
+          changedAt: now.toLocaleString(),
+          note: isConvertedReservation ? 'Reservation submitted by customer' : 'Order submitted by customer'
+        }
+      ]
+    };
+
+    if (createdReservation) {
+      finalOrder.linkedReservationId = createdReservation.id;
+      finalOrder.partialApprovedQty = updatedItems[0]?.quantity || 0;
+      finalOrder.partialReservedQty = createdReservation.items[0]?.quantity || 0;
+      finalOrder.createdReservation = createdReservation;
+    }
+
+    // -----------------------------------------------------------------
+    // PHASE 3: TRANSACTION WRITES (All atomic writes together)
+    // -----------------------------------------------------------------
+    // 1. Update product physical stocks in Firestore
+    for (const [pId, pUpdate] of Object.entries(productUpdates)) {
+      const pRef = doc(db, 'products', pId);
+      transaction.update(pRef, {
+        stock: pUpdate.stock,
+        currentStock: pUpdate.currentStock,
+        updatedAt: now.toISOString()
+      });
+    }
+
+    // 2. Commit Main Order in Firestore
+    const finalOrderRef = doc(db, 'orders', finalOrder.id);
+    transaction.set(finalOrderRef, finalOrder);
+
+    // 3. Commit Created Reservation if partial split occurred
+    if (createdReservation) {
+      const splitResRef = doc(db, 'orders', createdReservation.id);
+      transaction.set(splitResRef, createdReservation);
+    }
+
+    // 4. Commit Inventory History logs atomically
+    for (const d of stockDeductions) {
+      const histId = 'INV-' + Date.now() + '-' + Math.random().toString(36).substring(2, 7);
+      const histRef = doc(db, 'inventoryHistory', histId);
+      transaction.set(histRef, {
+        id: histId,
+        productId: d.productId,
+        productName: d.productName,
+        quantityAdded: -d.qty,
+        remarks: d.remarks,
+        createdAt: now.toISOString(),
+        timestamp: Date.now()
+      });
+    }
+
+    return {
+      finalOrder,
+      createdReservation,
+      productUpdates,
+      stockDeductions
+    };
+  });
+
+  // -----------------------------------------------------------------
+  // PHASE 4: POST-TRANSACTION LOCAL RECONCILIATION & NOTIFICATIONS
+  // -----------------------------------------------------------------
+  const { finalOrder, createdReservation, productUpdates, stockDeductions } = txResult;
+
+  // Register pending writes so real-time sync listeners don't overwrite
+  registerPendingOrderWrite(finalOrder.id, finalOrder);
+  if (createdReservation) {
+    registerPendingOrderWrite(createdReservation.id, createdReservation);
+  }
+
+  // Update local product cache
+  try {
+    const localProducts = getProducts();
+    let prodsChanged = false;
+    for (const [pId, pUp] of Object.entries(productUpdates)) {
+      const p = localProducts.find(pr => String(pr.id) === String(pId));
+      if (p) {
+        p.stock = pUp.stock;
+        p.currentStock = pUp.currentStock;
+        prodsChanged = true;
+      }
+    }
+    if (prodsChanged) {
+      saveProducts(localProducts, true);
+    }
+  } catch (lpErr) {
+    console.warn('[ATOMIC-ORDER] Local products cache update warning:', lpErr);
+  }
+
+  // Update local orders cache
+  try {
+    const localOrders = getOrders();
+    if (createdReservation && !localOrders.some(o => o.id === createdReservation.id)) {
+      localOrders.unshift(createdReservation);
+    }
+    if (!localOrders.some(o => o.id === finalOrder.id)) {
+      localOrders.unshift(finalOrder);
+    }
+    saveOrders(localOrders, { colName: 'orders', docId: finalOrder.id, docData: finalOrder });
+  } catch (loErr) {
+    console.warn('[ATOMIC-ORDER] Local orders cache update warning:', loErr);
+  }
+
+  // Update local inventory history cache
+  try {
+    for (const d of stockDeductions) {
+      addInventoryHistory({
+        productId: d.productId,
+        productName: d.productName,
+        quantityAdded: -d.qty,
+        remarks: d.remarks
+      }, true);
+    }
+  } catch (ihErr) {
+    console.warn('[ATOMIC-ORDER] Local inventory history update warning:', ihErr);
+  }
+
+  // Real-time notifications
+  try {
+    const isPre = !!finalOrder.isPreOrder || (finalOrder.items && finalOrder.items.some(i => i.isReservation));
+    if (isPre) {
+      addNotification(
+        userId,
+        '📌 Reservation Submitted',
+        'Your reservation has been successfully submitted.',
+        { role: 'customer', type: 'reservation', reservationId: finalOrder.id }
+      );
+    } else {
+      addNotification(
+        userId,
+        '🛒 Order Submitted',
+        `Your order #${finalOrder.id} has been submitted successfully and is waiting for administrator approval.`,
+        { role: 'customer', type: 'order', orderId: finalOrder.id }
+      );
+    }
+
+    if (createdReservation) {
+      addNotification(
+        userId,
+        '⚡ Partial Order Approved & Reservation Created',
+        `Your order #${finalOrder.id} had partial available stock approved, and a reservation (#${createdReservation.id}) has been created for the remaining stock.`,
+        { role: 'customer', type: 'reservation', orderId: finalOrder.id, reservationId: createdReservation.id }
+      );
+    }
+
+    if (isPre) {
+      addNotification(
+        'admin',
+        '📌 New Reservation',
+        'A customer submitted a reservation request.',
+        { role: 'admin', type: 'reservation', reservationId: finalOrder.id }
+      );
+    } else {
+      addNotification(
+        'admin',
+        '🛒 New Order Received',
+        'A new customer order is waiting for review.',
+        { role: 'admin', type: 'new-order', orderId: finalOrder.id }
+      );
+    }
+
+    if (finalOrder.paymentMethod === 'gcash' && finalOrder.paymentProofDataUrl) {
+      addNotification(
+        'admin',
+        '💳 Payment Submitted',
+        'A customer uploaded a payment receipt.',
+        { role: 'admin', type: 'payment', orderId: finalOrder.id }
+      );
+    }
+  } catch (notifErr) {
+    console.warn('[ATOMIC-ORDER] Notifications warning:', notifErr);
+  }
+
+  return finalOrder;
 }
 
 export function addOrder(orderData) {
