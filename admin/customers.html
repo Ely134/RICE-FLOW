@@ -38,9 +38,264 @@
     }
   </style>
   <link rel="stylesheet" href="../src/styles/index.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Source+Sans+3:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400;1,600&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" crossorigin="anonymous"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js" crossorigin="anonymous"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" crossorigin="anonymous"></script>
+  <style id="admin-customers-typography-and-colors">
+    /* ==========================================================================
+       ADMIN CUSTOMERS PAGE READABILITY & APPROVED TYPOGRAPHY SYSTEM
+       - Inter: Page Headings, Section Headings, Table Headers, Buttons,
+                Important Numbers & Counts
+       - Source Sans 3: Customer Names & Details, Email Addresses, Phone Numbers,
+                        Table Body Text, Form Labels, Inputs, and Supporting Information
+       - Solid Black (#000000): In Day/Light mode for ordinary readable text
+       ========================================================================== */
+
+    /* 1. Base typography: Default body, workspace, and modals to Source Sans 3 */
+    body,
+    #admin-layout-container,
+    #admin-main-content,
+    #edit-customer-dialog,
+    #customer-archive-confirm-modal,
+    #customer-export-confirm-modal {
+      font-family: 'Source Sans 3', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* 2. PRIMARY FONT: INTER
+          - Page headings & section titles
+          - Table column headers (th)
+          - All buttons across workspace and modals
+          - Key numeric values & index counters */
+    #admin-right-workspace header h2,
+    #admin-layout-container h1,
+    #admin-layout-container h2,
+    #admin-layout-container h3,
+    #admin-layout-container h4,
+    #admin-main-content h1,
+    #admin-main-content h2,
+    #admin-main-content h3,
+    #admin-main-content h4,
+    #edit-customer-dialog h3,
+    #edit-customer-dialog h4,
+    #customer-archive-confirm-modal h4,
+    #customer-export-confirm-modal h4,
+    /* Table column headers */
+    table thead th,
+    table thead th *,
+    /* All buttons */
+    button,
+    button:not(.font-mono),
+    #btn-toggle-archived-clients,
+    #btn-export-excel,
+    #btn-export-csv,
+    #btn-export-pdf,
+    #btn-modal-archive-customer,
+    #btn-customer-close-footer,
+    #btn-cancel-customer-archive-modal,
+    #btn-confirm-customer-archive-modal,
+    #btn-customer-export-cancel,
+    #btn-customer-export-download,
+    /* Important numbers, indices, and stats */
+    #modal-stat-total-spent,
+    #modal-stat-total-orders,
+    #modal-stat-completed-orders,
+    #modal-stat-reservations,
+    .customer-index-cell,
+    .customer-spent-cell,
+    table tbody td:first-child {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+    }
+
+    /* 3. SECONDARY FONT: SOURCE SANS 3
+          - Customer names & details
+          - Email addresses, phone numbers, delivery addresses
+          - Table body text
+          - Form labels, search input, filter selects
+          - Modal body descriptions & supporting text */
+    table tbody td,
+    table tbody td *:not(button):not(.font-mono):not(.customer-index-cell):not(.customer-spent-cell):not(table tbody td:first-child),
+    .customer-name-cell,
+    .customer-email-cell,
+    .customer-phone-cell,
+    label,
+    input,
+    textarea,
+    select,
+    p,
+    #edit-customer-dialog p,
+    #customer-archive-confirm-modal p,
+    #customer-export-confirm-modal p {
+      font-family: 'Source Sans 3', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+    }
+
+    /* 4. BALANCED FONT SIZING & HIERARCHY */
+    /* Page Title (24-28px guideline) */
+    #admin-right-workspace header h2 {
+      font-size: 1.625rem !important; /* 26px */
+      line-height: 2rem !important;
+      font-weight: 700 !important;
+      letter-spacing: -0.025em !important;
+    }
+
+    /* Section Headings & Card Titles (16-18px guideline) */
+    #admin-main-content h3 {
+      font-size: 1.125rem !important; /* 18px */
+      line-height: 1.5rem !important;
+      font-weight: 600 !important;
+      letter-spacing: -0.015em !important;
+    }
+    #edit-customer-dialog h3 {
+      font-size: 1.25rem !important; /* 20px */
+      font-weight: 600 !important;
+      letter-spacing: -0.02em !important;
+    }
+    #customer-archive-modal-title,
+    #customer-export-confirm-modal h4 {
+      font-size: 1.125rem !important; /* 18px */
+      font-weight: 600 !important;
+    }
+
+    /* Modal Subsection Headings (Customer Information, Customer Stats, Recent Orders) */
+    #edit-customer-dialog h4 {
+      font-size: 0.8125rem !important; /* 13px */
+      font-weight: 600 !important;
+      letter-spacing: 0.05em !important;
+    }
+
+    /* Table Column Headers (13-14px guideline) */
+    table thead th {
+      font-size: 0.84375rem !important; /* 13.5px */
+      font-weight: 600 !important;
+      letter-spacing: 0.025em !important;
+      padding-top: 0.875rem !important;
+      padding-bottom: 0.875rem !important;
+    }
+
+    /* Customer Names and Table Body Text (15-16px guideline) */
+    table tbody td {
+      font-size: 0.96875rem !important; /* 15.5px */
+      line-height: 1.45 !important;
+      padding-top: 1rem !important;
+      padding-bottom: 1rem !important;
+    }
+    .customer-name-cell {
+      font-size: 0.96875rem !important; /* 15.5px */
+      font-weight: 500 !important;
+      line-height: 1.35 !important;
+    }
+
+    /* Email Addresses and Phone Numbers (14-15px guideline) */
+    .customer-email-cell,
+    .customer-phone-cell {
+      font-size: 0.90625rem !important; /* 14.5px */
+      font-weight: 400 !important;
+      line-height: 1.4 !important;
+    }
+
+    /* Form Labels, Inputs & Supporting Text (14-15px guideline) */
+    label,
+    .form-label-comfort {
+      font-size: 0.90625rem !important; /* 14.5px */
+      font-weight: 500 !important;
+      line-height: 1.35 !important;
+    }
+    input, textarea, select {
+      font-size: 0.9375rem !important; /* 15px */
+      font-weight: 400 !important;
+      line-height: 1.4 !important;
+    }
+
+    /* Buttons (14-15px guideline) */
+    #btn-toggle-archived-clients,
+    #btn-export-excel,
+    #btn-export-csv,
+    #btn-export-pdf,
+    #btn-modal-archive-customer,
+    #btn-customer-close-footer,
+    #btn-cancel-customer-archive-modal,
+    #btn-confirm-customer-archive-modal,
+    #btn-customer-export-cancel,
+    #btn-customer-export-download {
+      font-size: 0.90625rem !important; /* 14.5px */
+      font-weight: 600 !important;
+    }
+
+    /* Small Helper & Detail Text (preferably at least 12-13px) */
+    .helper-text-sm,
+    .customer-detail-label,
+    #edit-customer-dialog .text-xs {
+      font-size: 0.8125rem !important; /* 13px */
+    }
+
+    /* 5. SOLID BLACK (#000000) TEXT ENFORCEMENT IN DAY/LIGHT MODE */
+    html:not(.dark) #admin-right-workspace header h2,
+    html:not(.dark) #admin-layout-container h1,
+    html:not(.dark) #admin-layout-container h2,
+    html:not(.dark) #admin-layout-container h3,
+    html:not(.dark) #admin-main-content h3,
+    html:not(.dark) #edit-customer-dialog h3,
+    html:not(.dark) #customer-export-confirm-modal h4 {
+      color: #000000 !important;
+    }
+
+    html:not(.dark) table thead th,
+    html:not(.dark) table thead th * {
+      color: #000000 !important;
+    }
+
+    html:not(.dark) table tbody td {
+      color: #000000 !important;
+    }
+
+    html:not(.dark) .customer-name-cell,
+    html:not(.dark) .customer-email-cell,
+    html:not(.dark) .customer-phone-cell {
+      color: #000000 !important;
+    }
+
+    html:not(.dark) input:not([type="button"]):not([type="submit"]),
+    html:not(.dark) textarea,
+    html:not(.dark) select {
+      color: #000000 !important;
+    }
+
+    /* Dialog subtitles & descriptions in light mode */
+    html:not(.dark) #edit-customer-dialog p,
+    html:not(.dark) #customer-archive-confirm-message,
+    html:not(.dark) #customer-export-confirm-modal p {
+      color: #1F2937 !important;
+    }
+
+    /* Meaningful Status Colors Preserved */
+    .text-emerald-700,
+    .text-emerald-800 {
+      color: #065F46 !important;
+    }
+    .text-rose-700,
+    .text-rose-800 {
+      color: #BE123C !important;
+    }
+
+    /* Dark Mode Readability */
+    html.dark #admin-right-workspace header h2,
+    html.dark #admin-layout-container h1,
+    html.dark #admin-layout-container h2,
+    html.dark #admin-layout-container h3,
+    html.dark #admin-main-content h3,
+    html.dark #edit-customer-dialog h3,
+    html.dark table thead th,
+    html.dark table tbody td,
+    html.dark .customer-name-cell,
+    html.dark .customer-email-cell,
+    html.dark .customer-phone-cell {
+      color: #F9FAFB !important;
+    }
+  </style>
   <style>
     /* Custom scrollbar styling for the order history ledger and main customer table */
     #modal-orders-scrollbar-wrapper::-webkit-scrollbar,
@@ -113,65 +368,65 @@
 
         <!-- Customer Information Section -->
         <div class="space-y-3 px-1 sm:px-2">
-          <h4 class="text-sm font-bold text-gray-900 dark:text-gray-100 uppercase tracking-wider border-b border-gray-200 dark:border-gray-800 pb-2">Customer Information</h4>
+          <h4 class="text-sm font-semibold text-gray-900 dark:text-gray-100 uppercase tracking-wider border-b border-gray-200 dark:border-gray-800 pb-2">Customer Information</h4>
           <div class="grid sm:grid-cols-2 gap-x-8 gap-y-4 text-sm px-1 sm:px-2">
             <div>
-              <span class="font-extrabold block text-xs uppercase text-black dark:text-white mb-0.5">Full Name</span>
-              <span id="modal-info-fullname" class="font-bold text-black dark:text-white text-base"></span>
+              <span class="font-medium block text-xs uppercase text-gray-700 dark:text-gray-300 mb-0.5 customer-detail-label">Full Name</span>
+              <span id="modal-info-fullname" class="font-medium text-black dark:text-white text-base"></span>
             </div>
             <div>
-              <span class="font-extrabold block text-xs uppercase text-black dark:text-white mb-0.5">Email Address</span>
-              <span id="modal-info-email" class="font-bold text-black dark:text-white text-base"></span>
+              <span class="font-medium block text-xs uppercase text-gray-700 dark:text-gray-300 mb-0.5 customer-detail-label">Email Address</span>
+              <span id="modal-info-email" class="font-normal text-black dark:text-white text-[15px]"></span>
             </div>
             <div>
-              <span class="font-extrabold block text-xs uppercase text-black dark:text-white mb-0.5">Contact Number</span>
-              <span id="modal-info-phone" class="font-bold text-black dark:text-white text-base"></span>
+              <span class="font-medium block text-xs uppercase text-gray-700 dark:text-gray-300 mb-0.5 customer-detail-label">Contact Number</span>
+              <span id="modal-info-phone" class="font-normal text-black dark:text-white text-[15px]"></span>
             </div>
             <div>
-              <span class="font-extrabold block text-xs uppercase text-black dark:text-white mb-0.5">Gender</span>
-              <span id="modal-info-gender" class="font-bold text-black dark:text-white text-base"></span>
+              <span class="font-medium block text-xs uppercase text-gray-700 dark:text-gray-300 mb-0.5 customer-detail-label">Gender</span>
+              <span id="modal-info-gender" class="font-normal text-black dark:text-white text-[15px]"></span>
             </div>
             <div class="sm:col-span-2">
-              <span class="font-extrabold block text-xs uppercase text-black dark:text-white mb-0.5">Shipping Address</span>
-              <span id="modal-info-address" class="font-bold text-black dark:text-white text-base"></span>
+              <span class="font-medium block text-xs uppercase text-gray-700 dark:text-gray-300 mb-0.5 customer-detail-label">Shipping Address</span>
+              <span id="modal-info-address" class="font-normal text-black dark:text-white text-[15px]"></span>
             </div>
           </div>
         </div>
 
         <!-- Customer Stats Section -->
         <div class="space-y-3 px-1 sm:px-2">
-          <h4 class="text-sm font-bold text-gray-900 dark:text-gray-100 uppercase tracking-wider border-b border-gray-200 dark:border-gray-800 pb-2">Customer Stats</h4>
+          <h4 class="text-sm font-semibold text-gray-900 dark:text-gray-100 uppercase tracking-wider border-b border-gray-200 dark:border-gray-800 pb-2">Customer Stats</h4>
           <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
             <div class="bg-emerald-50/80 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 p-3 rounded-xl">
-              <span class="text-xs font-bold text-emerald-800 dark:text-emerald-300 uppercase block">Total Spent</span>
-              <span id="modal-stat-total-spent" class="text-lg font-bold text-emerald-950 dark:text-emerald-100">₱0.00</span>
+              <span class="text-xs font-semibold text-emerald-800 dark:text-emerald-300 uppercase block customer-detail-label">Total Spent</span>
+              <span id="modal-stat-total-spent" class="text-lg font-semibold text-emerald-950 dark:text-emerald-100">₱0.00</span>
             </div>
             <div class="bg-blue-50/80 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800/60 p-3 rounded-xl">
-              <span class="text-xs font-bold text-blue-800 dark:text-blue-300 uppercase block">Total Orders</span>
-              <span id="modal-stat-total-orders" class="text-lg font-bold text-blue-950 dark:text-blue-100">0</span>
+              <span class="text-xs font-semibold text-blue-800 dark:text-blue-300 uppercase block customer-detail-label">Total Orders</span>
+              <span id="modal-stat-total-orders" class="text-lg font-semibold text-blue-950 dark:text-blue-100">0</span>
             </div>
             <div class="bg-teal-50/80 dark:bg-teal-950/40 border border-teal-200 dark:border-teal-800/60 p-3 rounded-xl">
-              <span class="text-xs font-bold text-teal-800 dark:text-teal-300 uppercase block">Completed Orders</span>
-              <span id="modal-stat-completed-orders" class="text-lg font-bold text-teal-950 dark:text-teal-100">0</span>
+              <span class="text-xs font-semibold text-teal-800 dark:text-teal-300 uppercase block customer-detail-label">Completed Orders</span>
+              <span id="modal-stat-completed-orders" class="text-lg font-semibold text-teal-950 dark:text-teal-100">0</span>
             </div>
             <div class="bg-purple-50/80 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800/60 p-3 rounded-xl">
-              <span class="text-xs font-bold text-purple-800 dark:text-purple-300 uppercase block">Reservations</span>
-              <span id="modal-stat-reservations" class="text-lg font-bold text-purple-950 dark:text-purple-100">0</span>
+              <span class="text-xs font-semibold text-purple-800 dark:text-purple-300 uppercase block customer-detail-label">Reservations</span>
+              <span id="modal-stat-reservations" class="text-lg font-semibold text-purple-950 dark:text-purple-100">0</span>
             </div>
           </div>
         </div>
 
         <!-- Recent Orders Section -->
         <div class="space-y-3 px-1 sm:px-2">
-          <h4 class="text-sm font-bold text-gray-900 dark:text-gray-100 uppercase tracking-wider border-b border-gray-200 dark:border-gray-800 pb-2">Recent Orders</h4>
+          <h4 class="text-sm font-semibold text-gray-900 dark:text-gray-100 uppercase tracking-wider border-b border-gray-200 dark:border-gray-800 pb-2">Recent Orders</h4>
           <div class="overflow-x-auto rounded-xl border border-gray-200 dark:border-gray-800">
             <table class="w-full text-left text-sm font-normal text-gray-900 dark:text-gray-100">
               <thead>
-                <tr class="border-b border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-bold uppercase text-xs tracking-wider bg-gray-50 dark:bg-gray-800/80">
-                  <th class="py-3 px-4 font-bold text-gray-900 dark:text-gray-100">Date</th>
-                  <th class="py-3 px-4 font-bold text-gray-900 dark:text-gray-100">Rice Variety</th>
-                  <th class="py-3 px-4 font-bold text-gray-900 dark:text-gray-100">Amount</th>
-                  <th class="py-3 px-4 text-right font-bold text-gray-900 dark:text-gray-100">Status</th>
+                <tr class="border-b border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold uppercase text-xs tracking-wider bg-gray-50 dark:bg-gray-800/80">
+                  <th class="py-3 px-4 font-semibold text-gray-900 dark:text-gray-100">Date</th>
+                  <th class="py-3 px-4 font-semibold text-gray-900 dark:text-gray-100">Rice Variety</th>
+                  <th class="py-3 px-4 font-semibold text-gray-900 dark:text-gray-100">Amount</th>
+                  <th class="py-3 px-4 text-right font-semibold text-gray-900 dark:text-gray-100">Status</th>
                 </tr>
               </thead>
               <tbody id="modal-orders-tbody" class="divide-y divide-gray-100 dark:divide-gray-800 font-normal text-gray-900 dark:text-gray-100">
@@ -184,11 +439,11 @@
 
       <!-- Modal Footer -->
       <div class="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-800 mt-6 gap-3">
-        <button id="btn-modal-archive-customer" class="px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider cursor-pointer transition-colors flex items-center gap-2">
+        <button id="btn-modal-archive-customer" class="px-5 py-2.5 rounded-xl text-xs font-semibold uppercase tracking-wider cursor-pointer transition-colors flex items-center gap-2">
           <!-- Populated dynamically -->
         </button>
         <div class="flex items-center gap-3">
-          <button id="btn-customer-close-footer" class="px-6 py-2.5 bg-gray-900 hover:bg-black text-white dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-white rounded-xl text-xs font-bold uppercase tracking-wider cursor-pointer transition-colors">
+          <button id="btn-customer-close-footer" class="px-6 py-2.5 bg-gray-900 hover:bg-black text-white dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-white rounded-xl text-xs font-semibold uppercase tracking-wider cursor-pointer transition-colors">
             Close
           </button>
         </div>
@@ -205,21 +460,21 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-5 h-5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
         </div>
         <div>
-          <h4 id="customer-archive-modal-title" class="text-lg font-bold text-rose-700 dark:text-rose-300 tracking-tight">Archive Customer Account</h4>
+          <h4 id="customer-archive-modal-title" class="text-lg font-semibold text-rose-700 dark:text-rose-300 tracking-tight">Archive Customer Account</h4>
         </div>
-        <button id="close-customer-archive-modal-x" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 font-bold text-sm ml-auto p-1 cursor-pointer select-none" title="Cancel">✕</button>
+        <button id="close-customer-archive-modal-x" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 font-semibold text-sm ml-auto p-1 cursor-pointer select-none" title="Cancel">✕</button>
       </div>
 
       <div class="p-6 space-y-5">
-        <p id="customer-archive-confirm-message" class="text-sm text-gray-800 dark:text-gray-200 font-medium leading-relaxed">
+        <p id="customer-archive-confirm-message" class="text-sm text-gray-800 dark:text-gray-200 font-normal leading-relaxed">
           <!-- Dynamically populated -->
         </p>
 
         <div class="flex items-center justify-end gap-3 pt-4 border-t border-gray-100 dark:border-gray-800">
-          <button id="btn-cancel-customer-archive-modal" class="px-5 py-2.5 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200 font-bold text-xs uppercase tracking-wider rounded-xl cursor-pointer transition-colors select-none">
+          <button id="btn-cancel-customer-archive-modal" class="px-5 py-2.5 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200 font-semibold text-xs uppercase tracking-wider rounded-xl cursor-pointer transition-colors select-none">
             Cancel
           </button>
-          <button id="btn-confirm-customer-archive-modal" class="px-5 py-2.5 bg-rose-600 hover:bg-rose-700 active:scale-[0.98] text-white font-bold text-xs uppercase tracking-wider rounded-xl cursor-pointer shadow-md transition-all select-none flex items-center gap-2">
+          <button id="btn-confirm-customer-archive-modal" class="px-5 py-2.5 bg-rose-600 hover:bg-rose-700 active:scale-[0.98] text-white font-semibold text-xs uppercase tracking-wider rounded-xl cursor-pointer shadow-md transition-all select-none flex items-center gap-2">
             Yes, Archive
           </button>
         </div>
@@ -333,14 +588,14 @@
                   id="inp-search-customers" 
                   placeholder="Search by name, phone, email..." 
                   value="${searchQuery}"
-                  class="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-sm font-semibold text-gray-900 dark:text-gray-100 pl-10 pr-4 py-2.5 rounded-xl focus:border-[#1E6C02] focus:bg-white dark:focus:bg-gray-800 outline-none transition-all"
+                  class="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-sm font-normal text-gray-900 dark:text-gray-100 pl-10 pr-4 py-2.5 rounded-xl focus:border-[#1E6C02] focus:bg-white dark:focus:bg-gray-800 outline-none transition-all"
                 />
               </div>
 
               <!-- Controls Toolbar Items 2-6 -->
               <div class="flex items-center gap-2 sm:gap-2.5 lg:gap-3 shrink-0 flex-nowrap">
                 <!-- 2. Time Filter -->
-                <select id="select-time-filter" class="px-3.5 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 font-bold text-xs uppercase tracking-wider rounded-xl cursor-pointer focus:border-[#1E6C02] outline-none transition-colors shrink-0">
+                <select id="select-time-filter" class="px-3.5 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 font-semibold text-xs uppercase tracking-wider rounded-xl cursor-pointer focus:border-[#1E6C02] outline-none transition-colors shrink-0">
                   <option value="all" ${timeFilter === 'all' ? 'selected' : ''}>All Time</option>
                   <option value="today" ${timeFilter === 'today' ? 'selected' : ''}>Today</option>
                   <option value="this-week" ${timeFilter === 'this-week' ? 'selected' : ''}>This Week</option>
@@ -349,25 +604,25 @@
                 </select>
 
                 <!-- 3. View Archived -->
-                <button id="btn-toggle-archived-clients" class="flex items-center gap-2 px-3.5 py-2.5 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-700 font-bold text-xs uppercase tracking-wider rounded-xl cursor-pointer transition-colors whitespace-nowrap shrink-0">
+                <button id="btn-toggle-archived-clients" class="flex items-center gap-2 px-3.5 py-2.5 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-700 font-semibold text-xs uppercase tracking-wider rounded-xl cursor-pointer transition-colors whitespace-nowrap shrink-0">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 text-gray-900 dark:text-gray-100"><polyline points="21 8 21 21 3 21 3 8"></polyline><rect x="1" y="3" width="22" height="5"></rect><line x1="10" y1="12" x2="14" y2="12"></line></svg>
                   ${showArchived ? 'View Active' : 'View Archived'}
                 </button>
 
                 <!-- 4. Export Excel -->
-                <button id="btn-export-excel" class="flex items-center gap-2 px-3.5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs uppercase tracking-wider rounded-xl cursor-pointer transition-colors whitespace-nowrap shrink-0">
+                <button id="btn-export-excel" class="flex items-center gap-2 px-3.5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs uppercase tracking-wider rounded-xl cursor-pointer transition-colors whitespace-nowrap shrink-0">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="8" y1="13" x2="16" y2="13"></line><line x1="8" y1="17" x2="16" y2="17"></line></svg>
                   Export Excel
                 </button>
 
                 <!-- 5. Export CSV -->
-                <button id="btn-export-csv" class="flex items-center gap-2 px-3.5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs uppercase tracking-wider rounded-xl cursor-pointer transition-colors whitespace-nowrap shrink-0">
+                <button id="btn-export-csv" class="flex items-center gap-2 px-3.5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs uppercase tracking-wider rounded-xl cursor-pointer transition-colors whitespace-nowrap shrink-0">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
                   Export CSV
                 </button>
 
                 <!-- 6. Export PDF -->
-                <button id="btn-export-pdf" class="flex items-center gap-2 px-3.5 py-2.5 bg-red-600 hover:bg-red-700 text-white font-bold text-xs uppercase tracking-wider rounded-xl cursor-pointer transition-colors whitespace-nowrap shrink-0">
+                <button id="btn-export-pdf" class="flex items-center gap-2 px-3.5 py-2.5 bg-red-600 hover:bg-red-700 text-white font-semibold text-xs uppercase tracking-wider rounded-xl cursor-pointer transition-colors whitespace-nowrap shrink-0">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><path d="M12 18v-6"></path><path d="m9 15 3 3 3-3"></path></svg>
                   Export PDF
                 </button>
@@ -376,14 +631,14 @@
 
             <!-- Ledger Table Card -->
             <div class="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200/80 dark:border-gray-800 p-4 sm:p-6 shadow-xs space-y-4 text-gray-900 dark:text-gray-100 w-full">
-              <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100 tracking-tight">
+              <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 tracking-tight">
                 ${showArchived ? 'List of Archived Customers' : 'List of Customers'}
               </h3>
 
               <div id="customers-table-container" class="w-full overflow-x-auto rounded-xl border border-gray-200 dark:border-gray-800">
                 <table class="w-full text-left text-sm font-normal text-gray-900 dark:text-gray-100 min-w-[960px]">
                   <thead>
-                    <tr class="border-b border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-bold uppercase text-xs tracking-wider bg-gray-50 dark:bg-gray-800">
+                    <tr class="border-b border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold uppercase text-xs tracking-wider bg-gray-50 dark:bg-gray-800">
                       <th class="py-3.5 px-4 w-12 text-center">No.</th>
                       <th class="py-3.5 px-4 w-[22%]">Name</th>
                       <th class="py-3.5 px-4 w-[24%]">Email</th>
@@ -444,11 +699,11 @@
 
                         return `
                           <tr class="hover:bg-gray-50/80 dark:hover:bg-gray-800/50 transition-colors text-gray-900 dark:text-gray-100">
-                            <td class="py-3.5 px-4 text-center font-bold text-sm">${index + 1}</td>
-                            <td class="py-3.5 px-4 font-bold text-sm text-black dark:text-white">${client.name}</td>
-                            <td class="py-3.5 px-4 text-sm text-black dark:text-white font-medium">${client.email}</td>
-                            <td class="py-3.5 px-4 text-sm text-black dark:text-white font-medium whitespace-nowrap">${client.phone || 'N/A'}</td>
-                            <td class="py-3.5 px-4 font-bold text-sm text-black dark:text-white whitespace-nowrap">₱${totalSpentAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                            <td class="py-3.5 px-4 text-center font-medium text-sm customer-index-cell text-gray-900 dark:text-gray-100">${index + 1}</td>
+                            <td class="py-3.5 px-4 font-medium text-[15.5px] text-black dark:text-white customer-name-cell">${client.name}</td>
+                            <td class="py-3.5 px-4 text-[14.5px] text-black dark:text-white font-normal customer-email-cell">${client.email}</td>
+                            <td class="py-3.5 px-4 text-[14.5px] text-black dark:text-white font-normal whitespace-nowrap customer-phone-cell">${client.phone || 'N/A'}</td>
+                            <td class="py-3.5 px-4 font-medium text-[15px] text-black dark:text-white whitespace-nowrap customer-spent-cell">₱${totalSpentAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                             <td class="py-3.5 px-4 whitespace-nowrap">${statusBadgeHtml}</td>
                             <td class="py-3.5 px-4 text-center whitespace-nowrap">
                               <div class="flex items-center justify-center gap-1.5">
@@ -831,18 +1086,18 @@
           iconWrap.className = "w-10 h-10 rounded-full bg-rose-100 dark:bg-rose-900/60 flex items-center justify-center text-rose-600 dark:text-rose-400 shrink-0";
           iconWrap.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-5 h-5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>`;
           title.textContent = "Archive Customer Account";
-          title.className = "text-lg font-bold text-rose-700 dark:text-rose-300 tracking-tight";
-          msg.innerHTML = `Are you sure you want to archive <strong class="text-rose-700 dark:text-rose-400 font-extrabold">${customerDisplayName}</strong>?<br><br>Archived accounts cannot log in to RiceFlow. All order history and profile records will remain securely preserved.`;
-          confirmBtn.className = "px-5 py-2.5 bg-rose-600 hover:bg-rose-700 active:scale-[0.98] text-white font-bold text-xs uppercase tracking-wider rounded-xl cursor-pointer shadow-md transition-all select-none flex items-center gap-2";
+          title.className = "text-lg font-semibold text-rose-700 dark:text-rose-300 tracking-tight";
+          msg.innerHTML = `Are you sure you want to archive <strong class="text-rose-700 dark:text-rose-400 font-semibold">${customerDisplayName}</strong>?<br><br>Archived accounts cannot log in to RiceFlow. All order history and profile records will remain securely preserved.`;
+          confirmBtn.className = "px-5 py-2.5 bg-rose-600 hover:bg-rose-700 active:scale-[0.98] text-white font-semibold text-xs uppercase tracking-wider rounded-xl cursor-pointer shadow-md transition-all select-none flex items-center gap-2";
           confirmBtn.textContent = "Yes, Archive";
         } else {
           header.className = "bg-emerald-50 dark:bg-emerald-950/40 px-6 py-5 border-b border-emerald-100 dark:border-emerald-900/50 flex items-center gap-3";
           iconWrap.className = "w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-900/60 flex items-center justify-center text-emerald-600 dark:text-emerald-400 shrink-0";
           iconWrap.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-5 h-5"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg>`;
           title.textContent = "Restore Customer Account";
-          title.className = "text-lg font-bold text-emerald-700 dark:text-emerald-300 tracking-tight";
-          msg.innerHTML = `Are you sure you want to restore <strong class="text-emerald-700 dark:text-emerald-400 font-extrabold">${customerDisplayName}</strong>?<br><br>The customer will immediately regain access to their account and dashboard.`;
-          confirmBtn.className = "px-5 py-2.5 bg-[#1E6C02] hover:bg-[#145001] active:scale-[0.98] text-white font-bold text-xs uppercase tracking-wider rounded-xl cursor-pointer shadow-md transition-all select-none flex items-center gap-2";
+          title.className = "text-lg font-semibold text-emerald-700 dark:text-emerald-300 tracking-tight";
+          msg.innerHTML = `Are you sure you want to restore <strong class="text-emerald-700 dark:text-emerald-400 font-semibold">${customerDisplayName}</strong>?<br><br>The customer will immediately regain access to their account and dashboard.`;
+          confirmBtn.className = "px-5 py-2.5 bg-[#1E6C02] hover:bg-[#145001] active:scale-[0.98] text-white font-semibold text-xs uppercase tracking-wider rounded-xl cursor-pointer shadow-md transition-all select-none flex items-center gap-2";
           confirmBtn.textContent = "Yes, Restore";
         }
 
@@ -1155,35 +1410,35 @@
         panel.innerHTML = `
           <div class="flex items-start justify-between border-b border-gray-100 dark:border-gray-800 pb-4">
             <div>
-              <h4 class="text-2xl font-black text-gray-900 dark:text-gray-100 tracking-tight">Export Customers</h4>
-              <p class="text-sm font-semibold text-gray-500 dark:text-gray-400 mt-1">Review export settings and active filters before downloading.</p>
+              <h4 class="text-xl font-semibold text-gray-900 dark:text-gray-100 tracking-tight">Export Customers</h4>
+              <p class="text-sm font-normal text-gray-600 dark:text-gray-400 mt-1">Review export settings and active filters before downloading.</p>
             </div>
-            <button id="close-customer-export-modal-x" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 font-bold text-sm p-1.5 rounded-lg transition-colors cursor-pointer select-none" title="Cancel">✕</button>
+            <button id="close-customer-export-modal-x" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 font-semibold text-sm p-1.5 rounded-lg transition-colors cursor-pointer select-none" title="Cancel">✕</button>
           </div>
 
           <div class="space-y-4">
-            <div class="grid grid-cols-2 gap-y-4 gap-x-4 pb-4 border-b border-gray-100 dark:border-gray-800 text-sm font-bold">
+            <div class="grid grid-cols-2 gap-y-4 gap-x-4 pb-4 border-b border-gray-100 dark:border-gray-800 text-sm font-normal">
               <div>
-                <span class="text-[11px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-wider block">File Format:</span>
+                <span class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider block">File Format:</span>
                 ${badgeHtml}
               </div>
               <div>
-                <span class="text-[11px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-wider block">Status View:</span>
-                <span class="text-gray-900 dark:text-gray-100 font-extrabold block mt-1">${filterContext.statusFilter}</span>
+                <span class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider block">Status View:</span>
+                <span class="text-gray-900 dark:text-gray-100 font-medium block mt-1">${filterContext.statusFilter}</span>
               </div>
               <div>
-                <span class="text-[11px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-wider block">Time Period:</span>
-                <span class="text-gray-800 dark:text-gray-200 font-bold block mt-1">${filterContext.timeFilterLabel}</span>
+                <span class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider block">Time Period:</span>
+                <span class="text-gray-900 dark:text-gray-100 font-medium block mt-1">${filterContext.timeFilterLabel}</span>
               </div>
               <div>
-                <span class="text-[11px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-wider block">Search Filter:</span>
-                <span class="text-gray-800 dark:text-gray-200 font-bold block mt-1 truncate" title="${filterContext.searchQueryLabel}">${filterContext.searchQueryLabel}</span>
+                <span class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider block">Search Filter:</span>
+                <span class="text-gray-900 dark:text-gray-100 font-medium block mt-1 truncate" title="${filterContext.searchQueryLabel}">${filterContext.searchQueryLabel}</span>
               </div>
             </div>
 
             <div class="space-y-2.5">
-              <span class="text-[11px] font-black text-gray-400 dark:text-gray-500 uppercase block tracking-wider">The exported file will include:</span>
-              <div class="grid grid-cols-2 gap-2 text-xs font-bold text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-800/60 p-3.5 sm:p-4 rounded-2xl border border-gray-200 dark:border-gray-700">
+              <span class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase block tracking-wider">The exported file will include:</span>
+              <div class="grid grid-cols-2 gap-2 text-xs font-medium text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-800/60 p-3.5 sm:p-4 rounded-2xl border border-gray-200 dark:border-gray-700">
                 <div class="flex items-center gap-2"><span class="text-emerald-600 dark:text-emerald-400">✔</span> Customer ID</div>
                 <div class="flex items-center gap-2"><span class="text-emerald-600 dark:text-emerald-400">✔</span> Customer Name</div>
                 <div class="flex items-center gap-2"><span class="text-emerald-600 dark:text-emerald-400">✔</span> Email Address</div>
@@ -1198,21 +1453,21 @@
             </div>
 
             <div class="flex items-center justify-between pt-2 border-t border-gray-100 dark:border-gray-800 text-sm">
-              <span class="text-xs font-black text-gray-400 dark:text-gray-500 uppercase block text-left">Records To Export:</span>
-              <span class="font-extrabold text-gray-900 dark:text-gray-100 text-base">${recordsToExport.length} customer records</span>
+              <span class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase block text-left">Records To Export:</span>
+              <span class="font-semibold text-gray-900 dark:text-gray-100 text-base">${recordsToExport.length} customer records</span>
             </div>
           </div>
 
           <div class="flex flex-col sm:flex-row gap-3 pt-2">
             <button 
               id="btn-customer-export-cancel" 
-              class="w-full sm:flex-1 py-3 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200 font-extrabold text-sm rounded-xl transition-colors cursor-pointer"
+              class="w-full sm:flex-1 py-3 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200 font-semibold text-sm rounded-xl transition-colors cursor-pointer"
             >
               Cancel
             </button>
             <button 
               id="btn-customer-export-download" 
-              class="w-full sm:flex-1 py-3 ${downloadBtnBg} font-extrabold text-sm rounded-xl transition-all cursor-pointer flex items-center justify-center gap-2"
+              class="w-full sm:flex-1 py-3 ${downloadBtnBg} font-semibold text-sm rounded-xl transition-all cursor-pointer flex items-center justify-center gap-2"
             >
               Download ${format}
             </button>

@@ -38,6 +38,332 @@
     }
   </style>
   <link rel="stylesheet" href="../src/styles/index.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Source+Sans+3:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400;1,600&display=swap" rel="stylesheet">
+  <style id="admin-products-typography-and-colors">
+    /* ==========================================================================
+       ADMIN PRODUCTS PAGE READABILITY & APPROVED TYPOGRAPHY SYSTEM
+       - Inter: Page Headings, Section Headings, Table Headers, Buttons,
+                Important Numbers & Counts
+       - Source Sans 3: Product Names & Descriptions, Rice Variety Details,
+                        Stock Information, Prices, Table Body Text, Form Labels,
+                        Inputs, and Supporting Information
+       - Solid Black (#000000): In Day/Light mode for ordinary readable text
+       ========================================================================== */
+
+    /* 1. Base typography: Default body, workspace, content, and modals to Source Sans 3 */
+    body,
+    #admin-layout-container,
+    #admin-main-content,
+    #add-product-dialog,
+    #info-product-dialog,
+    #stock-product-dialog,
+    #confirm-stock-update-dialog,
+    #archive-product-confirm-dialog,
+    #restore-product-confirm-dialog,
+    #confirm-product-dialog,
+    #confirm-update-product-dialog {
+      font-family: 'Source Sans 3', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* 2. PRIMARY FONT: INTER
+          - Page headings & section titles
+          - Table column headers (th)
+          - All buttons across workspace and modals
+          - Key numeric indicators and counts */
+    #admin-right-workspace header h2,
+    #admin-layout-container h1,
+    #admin-layout-container h2,
+    #admin-layout-container h3,
+    #admin-layout-container h4,
+    #admin-main-content h1,
+    #admin-main-content h2,
+    #admin-main-content h3,
+    #admin-main-content h4,
+    #add-product-dialog h3,
+    #add-product-dialog h4,
+    #info-product-dialog h3,
+    #info-product-dialog h4,
+    #stock-product-dialog h3,
+    #stock-product-dialog h4,
+    #confirm-stock-update-dialog h3,
+    #archive-product-confirm-dialog h3,
+    #restore-product-confirm-dialog h3,
+    #confirm-product-dialog h3,
+    #confirm-update-product-dialog h3,
+    /* Table column headers */
+    table thead th,
+    table thead th *,
+    /* All buttons */
+    button,
+    button:not(.font-mono),
+    #btn-open-add-dialog,
+    #btn-toggle-archived,
+    #btn-op-add,
+    #btn-op-ded,
+    #btn-stock-qty-minus,
+    #btn-stock-qty-plus,
+    #btn-stock-confirm,
+    #btn-stock-cancel,
+    /* Key numbers & index */
+    #stock-modal-current-val,
+    #inp-stock-qty,
+    table tbody td:first-child {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+    }
+
+    /* 3. SECONDARY FONT: SOURCE SANS 3
+          - Product names & descriptions
+          - Rice variety details & categories
+          - Stock quantities, sack counts, and prices
+          - Form labels, inputs, textareas, selects
+          - Modal body descriptions & notices */
+    table tbody td,
+    table tbody td *:not(button):not(.font-mono):not(table tbody td:first-child),
+    .product-name-cell,
+    label,
+    input,
+    textarea,
+    select,
+    p,
+    #add-product-dialog p,
+    #info-product-dialog p,
+    #stock-product-dialog p,
+    #confirm-stock-update-dialog p,
+    #archive-product-confirm-dialog p,
+    #restore-product-confirm-dialog p,
+    #confirm-product-dialog p,
+    #confirm-update-product-dialog p {
+      font-family: 'Source Sans 3', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+    }
+
+    /* 4. BALANCED FONT SIZING & HIERARCHY */
+    /* Page Title (24-28px guideline) */
+    #admin-right-workspace header h2 {
+      font-size: 1.625rem !important; /* 26px */
+      line-height: 2rem !important;
+      font-weight: 700 !important;
+      letter-spacing: -0.025em !important;
+    }
+
+    /* Section Headings & Modal Titles (16-18px guideline, dialog titles up to 20-22px) */
+    #admin-main-content h3 {
+      font-size: 1.125rem !important; /* 18px */
+      line-height: 1.5rem !important;
+      font-weight: 600 !important;
+      letter-spacing: -0.015em !important;
+    }
+    #add-product-dialog h3,
+    #info-product-dialog h3,
+    #stock-product-dialog h3 {
+      font-size: 1.25rem !important; /* 20px */
+      font-weight: 600 !important;
+      letter-spacing: -0.02em !important;
+    }
+    #confirm-stock-update-dialog h3,
+    #archive-product-confirm-dialog h3,
+    #restore-product-confirm-dialog h3,
+    #confirm-product-dialog h3,
+    #confirm-update-product-dialog h3 {
+      font-size: 1.125rem !important; /* 18px */
+      font-weight: 600 !important;
+    }
+
+    /* Form Subsection Headings (Basic Info, Stock, etc.) */
+    #add-product-dialog h4,
+    #info-product-dialog h4 {
+      font-size: 0.8125rem !important; /* 13px */
+      font-weight: 600 !important;
+      letter-spacing: 0.05em !important;
+    }
+
+    /* Table Column Headers (13-14px guideline) */
+    table thead th {
+      font-size: 0.84375rem !important; /* 13.5px */
+      font-weight: 600 !important;
+      letter-spacing: 0.025em !important;
+      padding-top: 0.875rem !important;
+      padding-bottom: 0.875rem !important;
+    }
+
+    /* Table Body Text, Product Names, Stock Quantities & Prices (15-16px guideline) */
+    table tbody td {
+      font-size: 0.96875rem !important; /* 15.5px */
+      line-height: 1.45 !important;
+      padding-top: 1rem !important;
+      padding-bottom: 1rem !important;
+    }
+    .product-name-cell {
+      font-size: 0.96875rem !important; /* 15.5px */
+      font-weight: 500 !important;
+      line-height: 1.35 !important;
+    }
+
+    /* Form Labels & Supporting Text (14-15px guideline) */
+    label {
+      font-size: 0.90625rem !important; /* 14.5px */
+      font-weight: 500 !important;
+      line-height: 1.35 !important;
+    }
+    input, textarea, select {
+      font-size: 0.9375rem !important; /* 15px */
+      font-weight: 400 !important;
+      line-height: 1.4 !important;
+    }
+
+    /* Buttons (14-15px guideline) */
+    #btn-open-add-dialog,
+    #btn-toggle-archived,
+    #btn-add-cancel,
+    #btn-add-submit,
+    #btn-info-cancel,
+    #btn-info-submit,
+    #btn-stock-cancel,
+    #btn-stock-confirm,
+    #btn-confirm-cancel,
+    #btn-confirm-yes,
+    #btn-confirm-update-cancel,
+    #btn-confirm-update-yes,
+    #btn-archive-confirm-cancel,
+    #btn-archive-confirm-yes,
+    #btn-restore-confirm-cancel,
+    #btn-restore-confirm-yes,
+    #btn-confirm-stock-cancel,
+    #btn-confirm-stock-yes {
+      font-size: 0.90625rem !important; /* 14.5px */
+      font-weight: 600 !important;
+    }
+
+    /* Small Helper Text (12-13px guideline) */
+    .err-msg,
+    .helper-text-sm,
+    #add-product-dialog p.text-xs,
+    #info-product-dialog p.text-xs {
+      font-size: 0.8125rem !important; /* 13px */
+      font-weight: 400 !important;
+    }
+
+    /* 5. SOLID BLACK (#000000) TEXT ENFORCEMENT IN DAY/LIGHT MODE */
+    html:not(.dark) #admin-right-workspace header h2,
+    html:not(.dark) #admin-layout-container h1,
+    html:not(.dark) #admin-layout-container h2,
+    html:not(.dark) #admin-layout-container h3,
+    html:not(.dark) #admin-main-content h3,
+    html:not(.dark) #add-product-dialog h3,
+    html:not(.dark) #info-product-dialog h3,
+    html:not(.dark) #stock-product-dialog h3,
+    html:not(.dark) #stock-modal-title,
+    html:not(.dark) #confirm-stock-update-dialog h3,
+    html:not(.dark) #archive-product-confirm-dialog h3,
+    html:not(.dark) #restore-product-confirm-dialog h3,
+    html:not(.dark) #confirm-product-dialog h3,
+    html:not(.dark) #confirm-update-product-dialog h3 {
+      color: #000000 !important;
+    }
+
+    html:not(.dark) table thead th,
+    html:not(.dark) table thead th * {
+      color: #000000 !important;
+    }
+
+    html:not(.dark) table tbody td {
+      color: #000000 !important;
+    }
+
+    html:not(.dark) .product-name-cell {
+      color: #000000 !important;
+    }
+
+    html:not(.dark) label {
+      color: #000000 !important;
+    }
+
+    html:not(.dark) input:not([type="button"]):not([type="submit"]),
+    html:not(.dark) textarea,
+    html:not(.dark) select {
+      color: #000000 !important;
+    }
+
+    /* Dialog subtitles in light mode */
+    html:not(.dark) #add-product-dialog p:not(.err-msg):not(.text-xs),
+    html:not(.dark) #info-product-dialog p:not(.err-msg):not(.text-xs),
+    html:not(.dark) #stock-product-dialog p:not(.err-msg):not(.text-xs),
+    html:not(.dark) #confirm-stock-update-dialog p,
+    html:not(.dark) #archive-product-confirm-dialog p,
+    html:not(.dark) #restore-product-confirm-dialog p,
+    html:not(.dark) #confirm-product-dialog p,
+    html:not(.dark) #confirm-update-product-dialog p {
+      color: #1F2937 !important;
+    }
+
+    /* Preserve meaningful status & indicator colors */
+    .text-rose-500,
+    .text-red-500,
+    .text-red-600 {
+      color: #DC2626 !important;
+    }
+    .text-amber-600 {
+      color: #D97706 !important;
+    }
+    .text-emerald-800 {
+      color: #065F46 !important;
+    }
+    .text-emerald-900 {
+      color: #064E3B !important;
+    }
+
+    /* Dark Mode Readability */
+    html.dark #admin-right-workspace header h2,
+    html.dark #admin-layout-container h1,
+    html.dark #admin-layout-container h2,
+    html.dark #admin-layout-container h3,
+    html.dark #admin-main-content h3,
+    html.dark #add-product-dialog h3,
+    html.dark #info-product-dialog h3,
+    html.dark #stock-product-dialog h3,
+    html.dark #stock-modal-title,
+    html.dark #confirm-stock-update-dialog h3,
+    html.dark #archive-product-confirm-dialog h3,
+    html.dark #restore-product-confirm-dialog h3,
+    html.dark #confirm-product-dialog h3,
+    html.dark #confirm-update-product-dialog h3,
+    html.dark table thead th,
+    html.dark table thead th *,
+    html.dark table tbody td,
+    html.dark .product-name-cell,
+    html.dark label {
+      color: #F9FAFB !important;
+    }
+
+    html.dark input:not([type="button"]):not([type="submit"]),
+    html.dark textarea,
+    html.dark select {
+      background-color: #1F2937 !important;
+      color: #F9FAFB !important;
+      border-color: #374151 !important;
+    }
+
+    html.dark #add-product-dialog > div,
+    html.dark #info-product-dialog > div,
+    html.dark #stock-product-dialog > div,
+    html.dark #confirm-stock-update-dialog > div,
+    html.dark #archive-product-confirm-dialog > div,
+    html.dark #restore-product-confirm-dialog > div,
+    html.dark #confirm-product-dialog > div,
+    html.dark #confirm-update-product-dialog > div {
+      background-color: #111827 !important;
+      border-color: #374151 !important;
+      color: #F9FAFB !important;
+    }
+    html.dark #add-product-dialog .bg-white,
+    html.dark #info-product-dialog .bg-white {
+      background-color: #1F2937 !important;
+      border-color: #374151 !important;
+    }
+  </style>
   <style>
     /* Top horizontal scrollbar for products table */
     #admin-products-table-scroll::-webkit-scrollbar {
@@ -72,102 +398,102 @@
       <!-- Popup Header -->
       <div class="px-8 py-6 border-b border-gray-150 flex justify-between items-start shrink-0">
         <div class="text-left">
-          <h3 class="text-2xl font-black text-black tracking-tight">Add New Product</h3>
-          <p class="text-sm text-gray-700 font-bold mt-1.5">Please complete the following form to add data.</p>
+          <h3 class="text-xl font-semibold text-gray-900 dark:text-white tracking-tight">Add New Product</h3>
+          <p class="text-sm text-gray-600 dark:text-gray-300 font-normal mt-1">Please complete the following form to add data.</p>
         </div>
         <button type="button" id="close-add-modal" class="text-gray-400 hover:text-black cursor-pointer p-1">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" class="w-6 h-6"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-5 h-5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
         </button>
       </div>
 
       <form id="add-product-form" class="flex-1 overflow-y-auto p-8 space-y-6">
         <!-- Section 1 – Basic Information -->
         <div class="bg-white rounded-2xl p-6 border border-gray-200 shadow-xs space-y-5 text-left">
-          <h4 class="text-base font-black text-black uppercase tracking-wider">Basic Information</h4>
+          <h4 class="text-[13px] font-semibold text-gray-900 dark:text-white uppercase tracking-wider">Basic Information</h4>
           
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <div class="space-y-1.5">
-              <label class="text-sm font-extrabold text-black flex items-center gap-1">Product Name <span class="text-rose-500">*</span></label>
-              <input type="text" id="add-inp-name" placeholder="e.g., Dinorado Rice" class="w-full bg-gray-50/50 border border-gray-250 text-base font-semibold text-gray-800 px-4 py-3 rounded-xl outline-none focus:border-[#1E6C02] focus:bg-white transition-all shadow-2xs" />
-              <span id="err-add-name" class="err-msg text-xs font-semibold text-rose-500 hidden mt-1 block">Please enter the product name.</span>
+              <label class="text-sm font-medium text-gray-900 dark:text-gray-100 flex items-center gap-1">Product Name <span class="text-rose-500 font-bold">*</span></label>
+              <input type="text" id="add-inp-name" placeholder="e.g., Dinorado Rice" class="w-full bg-gray-50/50 border border-gray-250 text-[15px] font-normal text-gray-900 dark:text-white px-4 py-2.5 rounded-xl outline-none focus:border-[#1E6C02] focus:bg-white transition-all shadow-2xs" />
+              <span id="err-add-name" class="err-msg text-xs font-medium text-rose-500 hidden mt-1 block">Please enter the product name.</span>
             </div>
             
             <div class="space-y-1.5">
-              <label class="text-sm font-extrabold text-black flex items-center gap-1">Product Code <span class="text-rose-500">*</span></label>
-              <input type="text" id="add-inp-sku" placeholder="e.g., RICE-001" class="w-full bg-gray-50/50 border border-gray-250 text-base font-semibold text-gray-800 px-4 py-3 rounded-xl outline-none focus:border-[#1E6C02] focus:bg-white transition-all shadow-2xs" />
-              <span id="err-add-sku" class="err-msg text-xs font-semibold text-rose-500 hidden mt-1 block">Please enter the product code.</span>
+              <label class="text-sm font-medium text-gray-900 dark:text-gray-100 flex items-center gap-1">Product Code <span class="text-rose-500 font-bold">*</span></label>
+              <input type="text" id="add-inp-sku" placeholder="e.g., RICE-001" class="w-full bg-gray-50/50 border border-gray-250 text-[15px] font-normal text-gray-900 dark:text-white px-4 py-2.5 rounded-xl outline-none focus:border-[#1E6C02] focus:bg-white transition-all shadow-2xs" />
+              <span id="err-add-sku" class="err-msg text-xs font-medium text-rose-500 hidden mt-1 block">Please enter the product code.</span>
             </div>
           </div>
           
           <div class="space-y-1.5">
-            <label class="text-sm font-extrabold text-black flex items-center gap-1">Rice Variety <span class="text-rose-500">*</span></label>
-            <input type="text" id="add-inp-variety" placeholder="e.g., Premium, Local, Specialty" class="w-full bg-gray-50/50 border border-gray-250 text-base font-semibold text-gray-800 px-4 py-3 rounded-xl outline-none focus:border-[#1E6C02] focus:bg-white transition-all shadow-2xs" />
-            <span id="err-add-variety" class="err-msg text-xs font-semibold text-rose-500 hidden mt-1 block">Please specify the rice variety.</span>
+            <label class="text-sm font-medium text-gray-900 dark:text-gray-100 flex items-center gap-1">Rice Variety <span class="text-rose-500 font-bold">*</span></label>
+            <input type="text" id="add-inp-variety" placeholder="e.g., Premium, Local, Specialty" class="w-full bg-gray-50/50 border border-gray-250 text-[15px] font-normal text-gray-900 dark:text-white px-4 py-2.5 rounded-xl outline-none focus:border-[#1E6C02] focus:bg-white transition-all shadow-2xs" />
+            <span id="err-add-variety" class="err-msg text-xs font-medium text-rose-500 hidden mt-1 block">Please specify the rice variety.</span>
           </div>
         </div>
 
         <!-- Section 2 – Product Stock -->
         <div class="bg-white rounded-2xl p-6 border border-gray-200 shadow-xs space-y-5 text-left">
-          <h4 class="text-base font-black text-black uppercase tracking-wider">Product Stock</h4>
+          <h4 class="text-[13px] font-semibold text-gray-900 dark:text-white uppercase tracking-wider">Product Stock</h4>
           
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <div class="space-y-1.5">
-              <label class="text-sm font-extrabold text-black flex items-center gap-1">Stock Quantity <span class="text-rose-500">*</span></label>
-              <input type="number" id="add-inp-stock" placeholder="e.g., 500" class="w-full bg-gray-50/50 border border-gray-250 text-base font-semibold text-gray-800 px-4 py-3 rounded-xl outline-none focus:border-[#1E6C02] focus:bg-white transition-all shadow-2xs" />
-              <span id="err-add-stock" class="err-msg text-xs font-semibold text-rose-500 hidden mt-1 block">Please enter a valid stock quantity (0 or greater).</span>
+              <label class="text-sm font-medium text-gray-900 dark:text-gray-100 flex items-center gap-1">Stock Quantity <span class="text-rose-500 font-bold">*</span></label>
+              <input type="number" id="add-inp-stock" placeholder="e.g., 500" class="w-full bg-gray-50/50 border border-gray-250 text-[15px] font-normal text-gray-900 dark:text-white px-4 py-2.5 rounded-xl outline-none focus:border-[#1E6C02] focus:bg-white transition-all shadow-2xs" />
+              <span id="err-add-stock" class="err-msg text-xs font-medium text-rose-500 hidden mt-1 block">Please enter a valid stock quantity (0 or greater).</span>
             </div>
             
             <div class="space-y-1.5">
-              <label class="text-sm font-extrabold text-black flex items-center gap-1">Product Weight <span class="text-rose-500">*</span></label>
-              <input type="text" id="add-inp-unit" placeholder="e.g., 1kg" class="w-full bg-gray-50/50 border border-gray-250 text-base font-semibold text-gray-800 px-4 py-3 rounded-xl outline-none focus:border-[#1E6C02] focus:bg-white transition-all shadow-2xs" />
-              <span id="err-add-unit" class="err-msg text-xs font-semibold text-rose-500 hidden mt-1 block">Please specify the unit.</span>
+              <label class="text-sm font-medium text-gray-900 dark:text-gray-100 flex items-center gap-1">Product Weight <span class="text-rose-500 font-bold">*</span></label>
+              <input type="text" id="add-inp-unit" placeholder="e.g., 1kg" class="w-full bg-gray-50/50 border border-gray-250 text-[15px] font-normal text-gray-900 dark:text-white px-4 py-2.5 rounded-xl outline-none focus:border-[#1E6C02] focus:bg-white transition-all shadow-2xs" />
+              <span id="err-add-unit" class="err-msg text-xs font-medium text-rose-500 hidden mt-1 block">Please specify the unit.</span>
             </div>
             
             <div class="space-y-1.5">
-              <label class="text-sm font-extrabold text-black flex items-center gap-1">Price <span class="text-rose-500">*</span></label>
-              <input type="number" id="add-inp-price" placeholder="e.g., 75.00" class="w-full bg-gray-50/50 border border-gray-250 text-base font-semibold text-gray-800 px-4 py-3 rounded-xl outline-none focus:border-[#1E6C02] focus:bg-white transition-all shadow-2xs" />
-              <span id="err-add-price" class="err-msg text-xs font-semibold text-rose-500 hidden mt-1 block">Please enter a valid selling price.</span>
+              <label class="text-sm font-medium text-gray-900 dark:text-gray-100 flex items-center gap-1">Price <span class="text-rose-500 font-bold">*</span></label>
+              <input type="number" id="add-inp-price" placeholder="e.g., 75.00" class="w-full bg-gray-50/50 border border-gray-250 text-[15px] font-normal text-gray-900 dark:text-white px-4 py-2.5 rounded-xl outline-none focus:border-[#1E6C02] focus:bg-white transition-all shadow-2xs" />
+              <span id="err-add-price" class="err-msg text-xs font-medium text-rose-500 hidden mt-1 block">Please enter a valid selling price.</span>
             </div>
             
             <div class="space-y-1.5">
-              <label class="text-sm font-extrabold text-black flex items-center gap-1">Down Payment Price <span class="text-rose-500">*</span></label>
-              <input type="number" step="any" id="add-inp-reorder" placeholder="0.03" class="w-full bg-gray-50/50 border border-gray-250 text-base font-semibold text-gray-800 px-4 py-3 rounded-xl outline-none focus:border-[#1E6C02] focus:bg-white transition-all shadow-2xs" />
-              <span id="err-add-reorder" class="err-msg text-xs font-semibold text-rose-500 hidden mt-1 block">Please specify the reorder level (0 or greater).</span>
+              <label class="text-sm font-medium text-gray-900 dark:text-gray-100 flex items-center gap-1">Down Payment Price <span class="text-rose-500 font-bold">*</span></label>
+              <input type="number" step="any" id="add-inp-reorder" placeholder="0.03" class="w-full bg-gray-50/50 border border-gray-250 text-[15px] font-normal text-gray-900 dark:text-white px-4 py-2.5 rounded-xl outline-none focus:border-[#1E6C02] focus:bg-white transition-all shadow-2xs" />
+              <span id="err-add-reorder" class="err-msg text-xs font-medium text-rose-500 hidden mt-1 block">Please specify the reorder level (0 or greater).</span>
             </div>
           </div>
         </div>
 
         <!-- Section 3 – Product Description -->
         <div class="space-y-2 text-left">
-          <label class="text-sm font-black text-black uppercase tracking-wider block">Product Description <span class="text-rose-500">*</span></label>
-          <textarea id="add-inp-desc" rows="3" placeholder="Enter product description..." class="w-full bg-gray-50 border border-gray-250 text-base font-semibold text-gray-800 p-4 rounded-xl outline-none focus:border-[#1E6C02] focus:bg-white transition-all shadow-2xs"></textarea>
-          <span id="err-add-desc" class="err-msg text-xs font-semibold text-rose-500 hidden mt-1 block">Please enter a product description.</span>
+          <label class="text-sm font-medium text-gray-900 dark:text-gray-100 uppercase tracking-wider block">Product Description <span class="text-rose-500 font-bold">*</span></label>
+          <textarea id="add-inp-desc" rows="3" placeholder="Enter product description..." class="w-full bg-gray-50 border border-gray-250 text-[15px] font-normal text-gray-900 dark:text-white p-3.5 rounded-xl outline-none focus:border-[#1E6C02] focus:bg-white transition-all shadow-2xs"></textarea>
+          <span id="err-add-desc" class="err-msg text-xs font-medium text-rose-500 hidden mt-1 block">Please enter a product description.</span>
         </div>
 
         <!-- Section 5 – Product Image -->
         <div class="space-y-2 text-left">
-          <label class="text-sm font-black text-black uppercase tracking-wider block">Product Image <span class="text-rose-500">*</span></label>
+          <label class="text-sm font-medium text-gray-900 dark:text-gray-100 uppercase tracking-wider block">Product Image <span class="text-rose-500 font-bold">*</span></label>
           
           <div id="add-image-upload-zone" class="border-2 border-dashed border-gray-300 hover:border-[#1E6C02] rounded-2xl p-8 flex flex-col items-center justify-center cursor-pointer transition-all bg-gray-50/50 hover:bg-green-50/5">
             <svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
               <path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" stroke-linecap="round" stroke-linejoin="round"></path>
             </svg>
-            <p class="text-base font-extrabold text-gray-800 mt-3">Click to upload product image</p>
-            <p class="text-xs text-gray-400 mt-1">Supported formats: PNG, JPG, WEBP</p>
+            <p class="text-[14.5px] font-medium text-gray-800 dark:text-gray-200 mt-2.5">Click to upload product image</p>
+            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Supported formats: PNG, JPG, WEBP</p>
           </div>
           <input type="file" id="add-file-image" accept=".png,.jpg,.jpeg,.webp" class="hidden">
           
           <div id="add-image-preview-container" class="hidden flex flex-col items-center gap-3 border border-gray-200 rounded-2xl p-4 bg-white">
             <img id="add-image-preview-img" class="max-h-48 object-contain rounded-lg shadow-xs" />
-            <button type="button" id="btn-add-replace-image" class="px-3.5 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-xs font-bold transition-all cursor-pointer">Replace Image</button>
+            <button type="button" id="btn-add-replace-image" class="px-3.5 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-xs font-semibold transition-all cursor-pointer">Replace Image</button>
           </div>
-          <span id="err-add-image" class="err-msg text-xs font-semibold text-rose-500 hidden mt-1 block">Please upload a product image.</span>
+          <span id="err-add-image" class="err-msg text-xs font-medium text-rose-500 hidden mt-1 block">Please upload a product image.</span>
         </div>
 
         <!-- Bottom Buttons -->
         <div class="flex gap-3 pt-6 border-t border-gray-150 justify-end shrink-0">
-          <button type="button" id="btn-add-cancel" class="px-6 py-3 text-sm font-extrabold text-gray-600 border border-gray-300 rounded-xl hover:bg-gray-50 transition-all cursor-pointer">Cancel</button>
-          <button type="submit" id="btn-add-submit" disabled class="px-6 py-3 text-sm font-extrabold bg-[#1E6C02] text-white hover:bg-[#145001] disabled:bg-[#A3DDA1] disabled:text-white disabled:cursor-not-allowed rounded-xl transition-all shadow-xs cursor-pointer">Add New Product</button>
+          <button type="button" id="btn-add-cancel" class="px-5 py-2.5 text-[14.5px] font-medium text-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-600 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 transition-all cursor-pointer">Cancel</button>
+          <button type="submit" id="btn-add-submit" disabled class="px-5 py-2.5 text-[14.5px] font-semibold bg-[#1E6C02] text-white hover:bg-[#145001] disabled:bg-[#A3DDA1] disabled:text-white disabled:cursor-not-allowed rounded-xl transition-all shadow-xs cursor-pointer">Add New Product</button>
         </div>
       </form>
     </div>
@@ -179,93 +505,93 @@
       <!-- Popup Header -->
       <div class="px-8 py-6 border-b border-gray-150 flex justify-between items-start shrink-0">
         <div class="text-left">
-          <h3 class="text-2xl font-black text-black tracking-tight">Update Product Details</h3>
-          <p class="text-sm text-gray-700 font-bold mt-1.5" id="info-modal-subtitle">Modify descriptions and other information.</p>
+          <h3 class="text-xl font-semibold text-gray-900 dark:text-white tracking-tight">Update Product Details</h3>
+          <p class="text-sm text-gray-600 dark:text-gray-300 font-normal mt-1" id="info-modal-subtitle">Modify descriptions and other information.</p>
         </div>
         <button type="button" id="close-info-modal" class="text-gray-400 hover:text-black cursor-pointer p-1">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" class="w-6 h-6"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-5 h-5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
         </button>
       </div>
 
       <form id="info-product-form" class="flex-1 overflow-y-auto p-8 space-y-6">
         <!-- Section 1 – Basic Information -->
         <div class="bg-white rounded-2xl p-6 border border-gray-200 shadow-xs space-y-5 text-left">
-          <h4 class="text-base font-black text-black uppercase tracking-wider">Basic Information</h4>
+          <h4 class="text-[13px] font-semibold text-gray-900 dark:text-white uppercase tracking-wider">Basic Information</h4>
           
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <div class="space-y-1.5">
-              <label class="text-sm font-extrabold text-black flex items-center gap-1">Product Name <span class="text-rose-500">*</span></label>
-              <input type="text" id="info-inp-name" required placeholder="e.g., Dinorado Rice" class="w-full bg-gray-50/50 border border-gray-250 text-base font-semibold text-gray-800 px-4 py-3 rounded-xl outline-none focus:border-[#1E6C02] focus:bg-white transition-all shadow-2xs" />
+              <label class="text-sm font-medium text-gray-900 dark:text-gray-100 flex items-center gap-1">Product Name <span class="text-rose-500 font-bold">*</span></label>
+              <input type="text" id="info-inp-name" required placeholder="e.g., Dinorado Rice" class="w-full bg-gray-50/50 border border-gray-250 text-[15px] font-normal text-gray-900 dark:text-white px-4 py-2.5 rounded-xl outline-none focus:border-[#1E6C02] focus:bg-white transition-all shadow-2xs" />
             </div>
             
             <div class="space-y-1.5">
-              <label class="text-sm font-extrabold text-black flex items-center gap-1">Product Code <span class="text-rose-500">*</span></label>
-              <input type="text" id="info-inp-sku" required placeholder="e.g., RICE-001" class="w-full bg-gray-50/50 border border-gray-250 text-base font-semibold text-gray-800 px-4 py-3 rounded-xl outline-none focus:border-[#1E6C02] focus:bg-white transition-all shadow-2xs" />
+              <label class="text-sm font-medium text-gray-900 dark:text-gray-100 flex items-center gap-1">Product Code <span class="text-rose-500 font-bold">*</span></label>
+              <input type="text" id="info-inp-sku" required placeholder="e.g., RICE-001" class="w-full bg-gray-50/50 border border-gray-250 text-[15px] font-normal text-gray-900 dark:text-white px-4 py-2.5 rounded-xl outline-none focus:border-[#1E6C02] focus:bg-white transition-all shadow-2xs" />
             </div>
           </div>
           
           <div class="space-y-1.5">
-            <label class="text-sm font-extrabold text-black flex items-center gap-1">Rice Variety <span class="text-rose-500">*</span></label>
-            <input type="text" id="info-inp-category" required placeholder="e.g., Premium, Local, Specialty" class="w-full bg-gray-50/50 border border-gray-250 text-base font-semibold text-gray-800 px-4 py-3 rounded-xl outline-none focus:border-[#1E6C02] focus:bg-white transition-all shadow-2xs" />
+            <label class="text-sm font-medium text-gray-900 dark:text-gray-100 flex items-center gap-1">Rice Variety <span class="text-rose-500 font-bold">*</span></label>
+            <input type="text" id="info-inp-category" required placeholder="e.g., Premium, Local, Specialty" class="w-full bg-gray-50/50 border border-gray-250 text-[15px] font-normal text-gray-900 dark:text-white px-4 py-2.5 rounded-xl outline-none focus:border-[#1E6C02] focus:bg-white transition-all shadow-2xs" />
           </div>
         </div>
 
         <!-- Section 2 – Product Stock -->
         <div class="bg-white rounded-2xl p-6 border border-gray-200 shadow-xs space-y-5 text-left">
-          <h4 class="text-base font-black text-black uppercase tracking-wider">Product Stock</h4>
+          <h4 class="text-[13px] font-semibold text-gray-900 dark:text-white uppercase tracking-wider">Product Stock</h4>
           
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <div class="space-y-1.5">
-              <label class="text-sm font-extrabold text-black flex items-center gap-1">Stock Quantity <span class="text-rose-500">*</span></label>
-              <input type="number" id="info-inp-stock" required placeholder="e.g., 500" class="w-full bg-gray-50/50 border border-gray-250 text-base font-semibold text-gray-800 px-4 py-3 rounded-xl outline-none focus:border-[#1E6C02] focus:bg-white transition-all shadow-2xs" />
+              <label class="text-sm font-medium text-gray-900 dark:text-gray-100 flex items-center gap-1">Stock Quantity <span class="text-rose-500 font-bold">*</span></label>
+              <input type="number" id="info-inp-stock" required placeholder="e.g., 500" class="w-full bg-gray-50/50 border border-gray-250 text-[15px] font-normal text-gray-900 dark:text-white px-4 py-2.5 rounded-xl outline-none focus:border-[#1E6C02] focus:bg-white transition-all shadow-2xs" />
             </div>
             
             <div class="space-y-1.5">
-              <label class="text-sm font-extrabold text-black flex items-center gap-1">Product Weight <span class="text-rose-500">*</span></label>
-              <input type="text" id="info-inp-weight" required placeholder="e.g., 1kg" class="w-full bg-gray-50/50 border border-gray-250 text-base font-semibold text-gray-800 px-4 py-3 rounded-xl outline-none focus:border-[#1E6C02] focus:bg-white transition-all shadow-2xs" />
+              <label class="text-sm font-medium text-gray-900 dark:text-gray-100 flex items-center gap-1">Product Weight <span class="text-rose-500 font-bold">*</span></label>
+              <input type="text" id="info-inp-weight" required placeholder="e.g., 1kg" class="w-full bg-gray-50/50 border border-gray-250 text-[15px] font-normal text-gray-900 dark:text-white px-4 py-2.5 rounded-xl outline-none focus:border-[#1E6C02] focus:bg-white transition-all shadow-2xs" />
             </div>
             
             <div class="space-y-1.5">
-              <label class="text-sm font-extrabold text-black flex items-center gap-1">Price <span class="text-rose-500">*</span></label>
-              <input type="number" id="info-inp-price" required placeholder="e.g., 75.00" class="w-full bg-gray-50/50 border border-gray-250 text-base font-semibold text-gray-800 px-4 py-3 rounded-xl outline-none focus:border-[#1E6C02] focus:bg-white transition-all shadow-2xs" />
+              <label class="text-sm font-medium text-gray-900 dark:text-gray-100 flex items-center gap-1">Price <span class="text-rose-500 font-bold">*</span></label>
+              <input type="number" id="info-inp-price" required placeholder="e.g., 75.00" class="w-full bg-gray-50/50 border border-gray-250 text-[15px] font-normal text-gray-900 dark:text-white px-4 py-2.5 rounded-xl outline-none focus:border-[#1E6C02] focus:bg-white transition-all shadow-2xs" />
             </div>
             
             <div class="space-y-1.5">
-              <label class="text-sm font-extrabold text-black flex items-center gap-1">Down Payment Price <span class="text-rose-500">*</span></label>
-              <input type="number" step="any" id="info-inp-reorder" required placeholder="0.03" class="w-full bg-gray-50/50 border border-gray-250 text-base font-semibold text-gray-800 px-4 py-3 rounded-xl outline-none focus:border-[#1E6C02] focus:bg-white transition-all shadow-2xs" />
+              <label class="text-sm font-medium text-gray-900 dark:text-gray-100 flex items-center gap-1">Down Payment Price <span class="text-rose-500 font-bold">*</span></label>
+              <input type="number" step="any" id="info-inp-reorder" required placeholder="0.03" class="w-full bg-gray-50/50 border border-gray-250 text-[15px] font-normal text-gray-900 dark:text-white px-4 py-2.5 rounded-xl outline-none focus:border-[#1E6C02] focus:bg-white transition-all shadow-2xs" />
             </div>
           </div>
         </div>
 
         <!-- Section 3 – Product Description -->
         <div class="space-y-2 text-left">
-          <label class="text-sm font-black text-black uppercase tracking-wider block">Product Description <span class="text-rose-500">*</span></label>
-          <textarea id="info-inp-desc" required rows="3" placeholder="Enter product description..." class="w-full bg-gray-50 border border-gray-250 text-base font-semibold text-gray-800 p-4 rounded-xl outline-none focus:border-[#1E6C02] focus:bg-white transition-all shadow-2xs"></textarea>
+          <label class="text-sm font-medium text-gray-900 dark:text-gray-100 uppercase tracking-wider block">Product Description <span class="text-rose-500 font-bold">*</span></label>
+          <textarea id="info-inp-desc" required rows="3" placeholder="Enter product description..." class="w-full bg-gray-50 border border-gray-250 text-[15px] font-normal text-gray-900 dark:text-white p-3.5 rounded-xl outline-none focus:border-[#1E6C02] focus:bg-white transition-all shadow-2xs"></textarea>
         </div>
 
         <!-- Section 5 – Product Image -->
         <div class="space-y-2 text-left">
-          <label class="text-sm font-black text-black uppercase tracking-wider block">Product Image <span class="text-rose-500">*</span></label>
+          <label class="text-sm font-medium text-gray-900 dark:text-gray-100 uppercase tracking-wider block">Product Image <span class="text-rose-500 font-bold">*</span></label>
           
           <div id="info-image-upload-zone" class="border-2 border-dashed border-gray-300 hover:border-[#1E6C02] rounded-2xl p-8 flex flex-col items-center justify-center cursor-pointer transition-all bg-gray-50/50 hover:bg-green-50/5">
             <svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
               <path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" stroke-linecap="round" stroke-linejoin="round"></path>
             </svg>
-            <p class="text-base font-extrabold text-gray-800 mt-3">Click to upload product image</p>
-            <p class="text-xs text-gray-400 mt-1">Supported formats: PNG, JPG, WEBP</p>
+            <p class="text-[14.5px] font-medium text-gray-800 dark:text-gray-200 mt-2.5">Click to upload product image</p>
+            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Supported formats: PNG, JPG, WEBP</p>
           </div>
           <input type="file" id="info-file-image" accept=".png,.jpg,.jpeg,.webp" class="hidden">
           
           <div id="info-image-preview-container" class="hidden flex flex-col items-center gap-3 border border-gray-200 rounded-2xl p-4 bg-white">
             <img id="info-image-preview-img" class="max-h-48 object-contain rounded-lg shadow-xs" />
-            <button type="button" id="btn-info-replace-image" class="px-3.5 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-xs font-bold transition-all cursor-pointer">Replace Image</button>
+            <button type="button" id="btn-info-replace-image" class="px-3.5 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-xs font-semibold transition-all cursor-pointer">Replace Image</button>
           </div>
         </div>
 
         <!-- Bottom Buttons -->
         <div class="flex gap-3 pt-6 border-t border-gray-150 justify-end shrink-0">
-          <button type="button" id="btn-info-cancel" class="px-6 py-3 text-sm font-extrabold text-gray-600 border border-gray-300 rounded-xl hover:bg-gray-50 transition-all cursor-pointer">Cancel</button>
-          <button type="submit" id="btn-info-submit" class="px-6 py-3 text-sm font-extrabold bg-[#1E6C02] text-white hover:bg-[#145001] rounded-xl transition-all shadow-xs cursor-pointer">Update Information</button>
+          <button type="button" id="btn-info-cancel" class="px-5 py-2.5 text-[14.5px] font-medium text-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-600 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 transition-all cursor-pointer">Cancel</button>
+          <button type="submit" id="btn-info-submit" class="px-5 py-2.5 text-[14.5px] font-semibold bg-[#1E6C02] text-white hover:bg-[#145001] rounded-xl transition-all shadow-xs cursor-pointer">Update Information</button>
         </div>
       </form>
     </div>
@@ -281,9 +607,9 @@
 
       <!-- Popup Header -->
       <div class="text-center mb-8">
-        <h3 class="text-3xl font-black text-black tracking-tight" id="stock-modal-title">Add Product Stock</h3>
-        <p class="text-base text-black font-semibold mt-2" id="stock-modal-subtitle">
-          Manage inventory for <span id="stock-modal-product-name" class="font-black text-black">7A Hope Rice</span>.
+        <h3 class="text-2xl font-bold text-gray-900 dark:text-white tracking-tight" id="stock-modal-title">Add Product Stock</h3>
+        <p class="text-[15px] text-gray-700 dark:text-gray-300 font-normal mt-2" id="stock-modal-subtitle">
+          Manage inventory for <span id="stock-modal-product-name" class="font-semibold text-gray-900 dark:text-white">7A Hope Rice</span>.
         </p>
       </div>
 
@@ -291,31 +617,31 @@
       <div class="flex justify-center gap-6 mb-8">
         <!-- Add Button -->
         <button id="btn-op-add" class="w-32 h-32 rounded-3xl border-2 flex flex-col items-center justify-center gap-2 cursor-pointer transition-all shadow-sm">
-          <span class="text-3xl font-black">+</span>
-          <span class="text-lg font-black">Add</span>
+          <span class="text-2xl font-bold">+</span>
+          <span class="text-[15px] font-semibold">Add</span>
         </button>
         <!-- Deduct Button -->
         <button id="btn-op-ded" class="w-32 h-32 rounded-3xl border-2 flex flex-col items-center justify-center gap-2 cursor-pointer transition-all shadow-sm">
-          <span class="text-3xl font-black">−</span>
-          <span class="text-lg font-black">Deduct</span>
+          <span class="text-2xl font-bold">−</span>
+          <span class="text-[15px] font-semibold">Deduct</span>
         </button>
       </div>
 
       <!-- Quantity input with Enter Quantity label -->
       <div class="text-center mb-8 space-y-3">
-        <label class="text-lg font-black text-black block">Enter Quantity</label>
+        <label class="text-[15px] font-semibold text-gray-900 dark:text-white block">Enter Quantity</label>
         
         <div class="flex items-center justify-center gap-4">
           <!-- Circular minus button -->
-          <button type="button" id="btn-stock-qty-minus" class="w-12 h-12 rounded-full border-2 border-gray-300 flex items-center justify-center text-2xl font-black text-black hover:bg-gray-50 active:scale-95 transition-all cursor-pointer">
+          <button type="button" id="btn-stock-qty-minus" class="w-12 h-12 rounded-full border-2 border-gray-300 flex items-center justify-center text-xl font-bold text-gray-900 hover:bg-gray-50 active:scale-95 transition-all cursor-pointer">
             −
           </button>
           
           <!-- Text value input field -->
-          <input type="number" id="inp-stock-qty" min="0" value="0" class="w-48 bg-gray-100 border border-gray-200 text-center text-xl font-black text-black py-3 rounded-2xl outline-none focus:bg-white focus:border-[#1E6C02] transition-all [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
+          <input type="number" id="inp-stock-qty" min="0" value="0" class="w-48 bg-gray-100 border border-gray-200 text-center text-lg font-semibold text-gray-900 dark:text-white py-2.5 rounded-2xl outline-none focus:bg-white focus:border-[#1E6C02] transition-all [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
           
           <!-- Circular plus button -->
-          <button type="button" id="btn-stock-qty-plus" class="w-12 h-12 rounded-full border-2 border-gray-300 flex items-center justify-center text-2xl font-black text-black hover:bg-gray-50 active:scale-95 transition-all cursor-pointer">
+          <button type="button" id="btn-stock-qty-plus" class="w-12 h-12 rounded-full border-2 border-gray-300 flex items-center justify-center text-xl font-bold text-gray-900 hover:bg-gray-50 active:scale-95 transition-all cursor-pointer">
             +
           </button>
         </div>
@@ -323,17 +649,17 @@
 
       <!-- Current Stock display -->
       <div class="text-center mb-8">
-        <p class="text-lg text-black font-bold">
-          Current Stock: <span id="stock-modal-current-val" class="font-black text-black">200</span>
+        <p class="text-[15px] text-gray-700 dark:text-gray-300 font-normal">
+          Current Stock: <span id="stock-modal-current-val" class="font-semibold text-gray-900 dark:text-white">200</span> Sacks
         </p>
       </div>
 
       <!-- Bottom Buttons -->
       <div class="grid grid-cols-2 gap-4 pt-6 border-t border-gray-150">
-        <button id="btn-stock-cancel" class="py-4 text-base font-black text-black border-2 border-gray-300 rounded-2xl hover:bg-gray-50 transition-all cursor-pointer">
+        <button id="btn-stock-cancel" class="py-3 text-[14.5px] font-medium text-gray-700 dark:text-gray-200 border-2 border-gray-300 dark:border-gray-600 rounded-2xl hover:bg-gray-50 dark:hover:bg-gray-800 transition-all cursor-pointer">
           Cancel
         </button>
-        <button id="btn-stock-confirm" disabled class="py-4 text-base font-black text-white bg-[#1E6C02] hover:bg-[#145001] disabled:bg-[#A3DDA1] disabled:text-white disabled:cursor-not-allowed rounded-2xl transition-all shadow-xs cursor-pointer">
+        <button id="btn-stock-confirm" disabled class="py-3 text-[14.5px] font-semibold text-white bg-[#1E6C02] hover:bg-[#145001] disabled:bg-[#A3DDA1] disabled:text-white disabled:cursor-not-allowed rounded-2xl transition-all shadow-xs cursor-pointer">
           Confirm Stock Update
         </button>
       </div>
@@ -348,14 +674,14 @@
           <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
         </svg>
       </div>
-      <h3 class="text-xl font-black text-gray-900 mb-2">Update Product Stock</h3>
-      <p class="text-sm font-bold text-gray-650 leading-relaxed mb-6 text-center">
+      <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">Update Product Stock</h3>
+      <p class="text-[14.5px] font-normal text-gray-700 dark:text-gray-300 leading-relaxed mb-6 text-center">
         Are you sure you want to update the inventory stock for this product?<br>
-        <span class="text-xs text-gray-400 font-semibold block mt-1">Please review the quantity before continuing.</span>
+        <span class="text-[13px] text-gray-500 dark:text-gray-400 font-normal block mt-1">Please review the quantity before continuing.</span>
       </p>
       <div class="grid grid-cols-2 gap-3">
-        <button type="button" id="btn-confirm-stock-cancel" class="px-5 py-3 text-sm font-extrabold text-gray-700 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 transition-all cursor-pointer">Cancel</button>
-        <button type="button" id="btn-confirm-stock-yes" class="px-5 py-3 text-sm font-extrabold text-white bg-[#1E6C02] hover:bg-[#145001] rounded-xl transition-all shadow-xs cursor-pointer">Yes, Update Stock</button>
+        <button type="button" id="btn-confirm-stock-cancel" class="px-5 py-2.5 text-[14.5px] font-medium text-gray-700 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 transition-all cursor-pointer">Cancel</button>
+        <button type="button" id="btn-confirm-stock-yes" class="px-5 py-2.5 text-[14.5px] font-semibold text-white bg-[#1E6C02] hover:bg-[#145001] rounded-xl transition-all shadow-xs cursor-pointer">Yes, Update Stock</button>
       </div>
     </div>
   </div>
@@ -366,14 +692,14 @@
       <div class="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4 border border-red-100">
         <span class="text-3xl text-red-600 font-bold">⚠️</span>
       </div>
-      <h3 class="text-xl font-black text-gray-900 mb-2">Archive Product</h3>
-      <p class="text-sm font-bold text-gray-650 leading-relaxed mb-6 text-center">
+      <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">Archive Product</h3>
+      <p class="text-[14.5px] font-normal text-gray-700 dark:text-gray-300 leading-relaxed mb-6 text-center">
         Are you sure you want to archive this product?<br>
-        <span class="text-xs text-red-500 font-semibold block mt-1">Archived products will no longer appear in the active inventory, but all product records will be preserved and can be restored later.</span>
+        <span class="text-[13px] text-red-500 font-normal block mt-1">Archived products will no longer appear in the active inventory, but all product records will be preserved and can be restored later.</span>
       </p>
       <div class="grid grid-cols-2 gap-3">
-        <button type="button" id="btn-archive-confirm-cancel" class="px-5 py-3 text-sm font-extrabold text-gray-700 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 transition-all cursor-pointer">Cancel</button>
-        <button type="button" id="btn-archive-confirm-yes" class="px-5 py-3 text-sm font-extrabold text-white bg-red-600 hover:bg-red-700 rounded-xl transition-all shadow-xs cursor-pointer">Yes, Archive Product</button>
+        <button type="button" id="btn-archive-confirm-cancel" class="px-5 py-2.5 text-[14.5px] font-medium text-gray-700 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 transition-all cursor-pointer">Cancel</button>
+        <button type="button" id="btn-archive-confirm-yes" class="px-5 py-2.5 text-[14.5px] font-semibold text-white bg-red-600 hover:bg-red-700 rounded-xl transition-all shadow-xs cursor-pointer">Yes, Archive Product</button>
       </div>
     </div>
   </div>
@@ -384,14 +710,14 @@
       <div class="w-16 h-16 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-4 border border-green-100">
         <span class="text-3xl text-[#1E6C02] font-bold">♻️</span>
       </div>
-      <h3 class="text-xl font-black text-gray-900 mb-2">Restore Product</h3>
-      <p class="text-sm font-bold text-gray-650 leading-relaxed mb-6 text-center">
+      <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">Restore Product</h3>
+      <p class="text-[14.5px] font-normal text-gray-700 dark:text-gray-300 leading-relaxed mb-6 text-center">
         Are you sure you want to restore this product?<br>
-        <span class="text-xs text-[#1E6C02] font-semibold block mt-1">This product will become active again and will be visible in the Product Inventory.</span>
+        <span class="text-[13px] text-[#1E6C02] dark:text-emerald-400 font-normal block mt-1">This product will become active again and will be visible in the Product Inventory.</span>
       </p>
       <div class="grid grid-cols-2 gap-3">
-        <button type="button" id="btn-restore-confirm-cancel" class="px-5 py-3 text-sm font-extrabold text-gray-700 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 transition-all cursor-pointer">Cancel</button>
-        <button type="button" id="btn-restore-confirm-yes" class="px-5 py-3 text-sm font-extrabold text-white bg-[#1E6C02] hover:bg-[#145001] rounded-xl transition-all shadow-xs cursor-pointer">Restore Product</button>
+        <button type="button" id="btn-restore-confirm-cancel" class="px-5 py-2.5 text-[14.5px] font-medium text-gray-700 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 transition-all cursor-pointer">Cancel</button>
+        <button type="button" id="btn-restore-confirm-yes" class="px-5 py-2.5 text-[14.5px] font-semibold text-white bg-[#1E6C02] hover:bg-[#145001] rounded-xl transition-all shadow-xs cursor-pointer">Restore Product</button>
       </div>
     </div>
   </div>
@@ -404,14 +730,14 @@
           <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
         </svg>
       </div>
-      <h3 class="text-xl font-black text-gray-900 mb-2">Add New Product</h3>
-      <p class="text-sm font-bold text-gray-650 leading-relaxed mb-6">
+      <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">Add New Product</h3>
+      <p class="text-[14.5px] font-normal text-gray-700 dark:text-gray-300 leading-relaxed mb-6">
         Are you sure you want to add this new product to the inventory?<br>
-        <span class="text-xs text-gray-400 font-semibold">Please review the information before continuing.</span>
+        <span class="text-[13px] text-gray-500 dark:text-gray-400 font-normal">Please review the information before continuing.</span>
       </p>
       <div class="grid grid-cols-2 gap-3">
-        <button type="button" id="btn-confirm-cancel" class="px-5 py-3 text-sm font-extrabold text-gray-700 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 transition-all cursor-pointer">Cancel</button>
-        <button type="button" id="btn-confirm-yes" class="px-5 py-3 text-sm font-extrabold text-white bg-[#1E6C02] hover:bg-[#145001] rounded-xl transition-all shadow-xs cursor-pointer">Yes, Add Product</button>
+        <button type="button" id="btn-confirm-cancel" class="px-5 py-2.5 text-[14.5px] font-medium text-gray-700 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 transition-all cursor-pointer">Cancel</button>
+        <button type="button" id="btn-confirm-yes" class="px-5 py-2.5 text-[14.5px] font-semibold text-white bg-[#1E6C02] hover:bg-[#145001] rounded-xl transition-all shadow-xs cursor-pointer">Yes, Add Product</button>
       </div>
     </div>
   </div>
@@ -424,14 +750,14 @@
           <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
         </svg>
       </div>
-      <h3 class="text-xl font-black text-gray-900 mb-2">Update Product Information</h3>
-      <p class="text-sm font-bold text-gray-650 leading-relaxed mb-6">
+      <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">Update Product Information</h3>
+      <p class="text-[14.5px] font-normal text-gray-700 dark:text-gray-300 leading-relaxed mb-6">
         Are you sure you want to save the changes made to this product?<br>
-        <span class="text-xs text-gray-400 font-semibold">Please review the updated information before continuing.</span>
+        <span class="text-[13px] text-gray-500 dark:text-gray-400 font-normal">Please review the updated information before continuing.</span>
       </p>
       <div class="grid grid-cols-2 gap-3">
-        <button type="button" id="btn-confirm-update-cancel" class="px-5 py-3 text-sm font-extrabold text-gray-700 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 transition-all cursor-pointer">Cancel</button>
-        <button type="button" id="btn-confirm-update-yes" class="px-5 py-3 text-sm font-extrabold text-white bg-[#1E6C02] hover:bg-[#145001] rounded-xl transition-all shadow-xs cursor-pointer">Yes, Update Product</button>
+        <button type="button" id="btn-confirm-update-cancel" class="px-5 py-2.5 text-[14.5px] font-medium text-gray-700 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 transition-all cursor-pointer">Cancel</button>
+        <button type="button" id="btn-confirm-update-yes" class="px-5 py-2.5 text-[14.5px] font-semibold text-white bg-[#1E6C02] hover:bg-[#145001] rounded-xl transition-all shadow-xs cursor-pointer">Yes, Update Product</button>
       </div>
     </div>
   </div>
@@ -489,32 +815,32 @@
         let filterBannerHtml = '';
         if (stockFilterParam === 'healthy') {
           filterBannerHtml = `
-            <div class="mb-4 p-4 bg-emerald-50 dark:bg-emerald-950/80 border border-emerald-300 dark:border-emerald-700/80 rounded-2xl text-slate-900 dark:text-white font-bold text-sm flex items-center justify-between shadow-xs gap-3">
+            <div class="mb-4 p-4 bg-emerald-50 dark:bg-emerald-950/80 border border-emerald-300 dark:border-emerald-700/80 rounded-2xl text-slate-900 dark:text-white font-normal text-[14.5px] flex items-center justify-between shadow-xs gap-3">
               <div class="flex items-center gap-2">
                 <span class="text-base shrink-0">✅</span>
-                <span class="text-slate-900 dark:text-white"><strong class="text-emerald-900 dark:text-emerald-300">Dashboard Filter Active:</strong> Showing Healthy Stock Products (&gt; 20 Sacks)</span>
+                <span class="text-slate-900 dark:text-white"><strong class="font-semibold text-emerald-900 dark:text-emerald-300">Dashboard Filter Active:</strong> Showing Healthy Stock Products (&gt; 20 Sacks)</span>
               </div>
-              <a href="products.html" class="text-xs bg-[#1E6C02] hover:bg-[#145001] dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white font-black px-4 py-2 rounded-xl transition-all shadow-xs shrink-0 whitespace-nowrap cursor-pointer">Clear Filter</a>
+              <a href="products.html" class="text-xs bg-[#1E6C02] hover:bg-[#145001] dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white font-semibold px-4 py-2 rounded-xl transition-all shadow-xs shrink-0 whitespace-nowrap cursor-pointer">Clear Filter</a>
             </div>
           `;
         } else if (stockFilterParam === 'low') {
           filterBannerHtml = `
-            <div class="mb-4 p-4 bg-amber-50 dark:bg-amber-950/80 border border-amber-300 dark:border-amber-700/80 rounded-2xl text-slate-900 dark:text-white font-bold text-sm flex items-center justify-between shadow-xs gap-3">
+            <div class="mb-4 p-4 bg-amber-50 dark:bg-amber-950/80 border border-amber-300 dark:border-amber-700/80 rounded-2xl text-slate-900 dark:text-white font-normal text-[14.5px] flex items-center justify-between shadow-xs gap-3">
               <div class="flex items-center gap-2">
                 <span class="text-base shrink-0">⚡</span>
-                <span class="text-slate-900 dark:text-white"><strong class="text-amber-900 dark:text-amber-300">Dashboard Filter Active:</strong> Showing Low Stock Products (1 to 20 Sacks)</span>
+                <span class="text-slate-900 dark:text-white"><strong class="font-semibold text-amber-900 dark:text-amber-300">Dashboard Filter Active:</strong> Showing Low Stock Products (1 to 20 Sacks)</span>
               </div>
-              <a href="products.html" class="text-xs bg-amber-700 hover:bg-amber-800 dark:bg-amber-500 dark:hover:bg-amber-400 text-white dark:text-slate-950 font-black px-4 py-2 rounded-xl transition-all shadow-xs shrink-0 whitespace-nowrap cursor-pointer">Clear Filter</a>
+              <a href="products.html" class="text-xs bg-amber-700 hover:bg-amber-800 dark:bg-amber-500 dark:hover:bg-amber-400 text-white dark:text-slate-950 font-semibold px-4 py-2 rounded-xl transition-all shadow-xs shrink-0 whitespace-nowrap cursor-pointer">Clear Filter</a>
             </div>
           `;
         } else if (stockFilterParam === 'out') {
           filterBannerHtml = `
-            <div class="mb-4 p-4 bg-red-50 dark:bg-rose-950/80 border border-red-300 dark:border-rose-700/80 rounded-2xl text-slate-900 dark:text-white font-bold text-sm flex items-center justify-between shadow-xs gap-3">
+            <div class="mb-4 p-4 bg-red-50 dark:bg-rose-950/80 border border-red-300 dark:border-rose-700/80 rounded-2xl text-slate-900 dark:text-white font-normal text-[14.5px] flex items-center justify-between shadow-xs gap-3">
               <div class="flex items-center gap-2">
                 <span class="text-base shrink-0">🚨</span>
-                <span class="text-slate-900 dark:text-white"><strong class="text-red-900 dark:text-rose-300">Dashboard Filter Active:</strong> Showing Out of Stock Products (0 Sacks)</span>
+                <span class="text-slate-900 dark:text-white"><strong class="font-semibold text-red-900 dark:text-rose-300">Dashboard Filter Active:</strong> Showing Out of Stock Products (0 Sacks)</span>
               </div>
-              <a href="products.html" class="text-xs bg-red-600 hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-500 text-white font-black px-4 py-2 rounded-xl transition-all shadow-xs shrink-0 whitespace-nowrap cursor-pointer">Clear Filter</a>
+              <a href="products.html" class="text-xs bg-red-600 hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-500 text-white font-semibold px-4 py-2 rounded-xl transition-all shadow-xs shrink-0 whitespace-nowrap cursor-pointer">Clear Filter</a>
             </div>
           `;
         }
@@ -535,22 +861,22 @@
                   id="inp-search-products" 
                   placeholder="Search products..." 
                   value="${searchQuery}"
-                  class="w-full bg-gray-50 border border-gray-200 text-base font-semibold text-gray-800 pl-11 pr-4 py-3 rounded-xl focus:border-[#1E6C02] focus:bg-white outline-none transition-all shadow-2xs"
+                  class="w-full bg-gray-50 border border-gray-200 text-[15px] font-normal text-gray-900 dark:text-white pl-11 pr-4 py-2.5 rounded-xl focus:border-[#1E6C02] focus:bg-white outline-none transition-all shadow-2xs"
                 />
               </div>
 
               <!-- Switchers and actions button -->
               <div class="flex items-center gap-3 w-full md:w-auto shrink-0 justify-end">
-                <button id="btn-toggle-archived" class="flex items-center gap-2 h-12 px-5 bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 font-black text-sm uppercase tracking-wider rounded-xl cursor-pointer transition-colors">
+                <button id="btn-toggle-archived" class="flex items-center gap-2 h-11 px-5 bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 font-semibold text-[14px] rounded-xl cursor-pointer transition-colors">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4.5 h-4.5 text-gray-550"><polyline points="21 8 21 21 3 21 3 8"></polyline><rect x="1" y="3" width="22" height="5"></rect><line x1="10" y1="12" x2="14" y2="12"></line></svg>
                   ${showArchived ? 'View Active' : 'View Archived'}
                 </button>
                 ${isAdmin ? `
-                <button id="btn-open-add-dialog" class="flex items-center gap-2 h-12 px-6 bg-[#1E6C02] text-white hover:bg-[#145001] font-black text-sm uppercase tracking-wider rounded-xl shadow-xs cursor-pointer transition-colors">
+                <button id="btn-open-add-dialog" class="flex items-center gap-2 h-11 px-5 bg-[#1E6C02] text-white hover:bg-[#145001] font-semibold text-[14.5px] rounded-xl shadow-xs cursor-pointer transition-colors">
                   + Add New Product
                 </button>
                 ` : `
-                <button id="btn-open-add-dialog" disabled title="Only the Administrator can manage products and inventory." class="flex items-center gap-2 h-12 px-6 bg-gray-200 text-gray-400 border border-gray-300 font-black text-sm uppercase tracking-wider rounded-xl cursor-not-allowed opacity-75">
+                <button id="btn-open-add-dialog" disabled title="Only the Administrator can manage products and inventory." class="flex items-center gap-2 h-11 px-5 bg-gray-200 text-gray-400 border border-gray-300 font-semibold text-[14.5px] rounded-xl cursor-not-allowed opacity-75">
                   + Add New Product
                 </button>
                 `}
@@ -559,7 +885,7 @@
  
             <!-- Table section -->
             <div class="bg-white rounded-3xl border border-gray-200 p-6 shadow-xs space-y-4">
-              <h3 class="text-2xl font-black text-gray-900 tracking-tight">
+              <h3 class="text-xl font-bold text-gray-900 dark:text-white tracking-tight">
                 ${showArchived ? 'Archived Products' : 'Product Stock'}
               </h3>
  
@@ -567,14 +893,14 @@
                 <div style="transform: rotateX(180deg); -webkit-transform: rotateX(180deg); padding-top: 10px;">
                   <table class="w-full text-left text-sm font-semibold text-gray-700 min-w-[1150px]">
                     <thead>
-                      <tr class="border-b border-gray-200 text-gray-900 uppercase text-xs tracking-wider font-extrabold bg-gray-50/50">
-                        <th class="py-4 px-5 text-left font-bold text-gray-900">No.</th>
-                        <th class="py-4 px-6 text-left font-bold text-gray-900">Product Name</th>
-                        <th class="py-4 px-6 text-left font-bold text-gray-900">Price</th>
-                        <th class="py-4 px-6 text-center font-bold text-gray-900">Current Stock</th>
-                        <th class="py-4 px-6 text-center font-bold text-gray-900">Reserved Stock</th>
-                        <th class="py-4 px-6 text-center font-bold text-gray-900">Category</th>
-                        <th class="py-4 px-6 text-center font-bold text-gray-900">Actions</th>
+                      <tr class="border-b border-gray-200 text-gray-900 uppercase text-[13px] tracking-wider font-semibold bg-gray-50/75">
+                        <th class="py-3.5 px-5 text-left font-semibold text-gray-900">No.</th>
+                        <th class="py-3.5 px-6 text-left font-semibold text-gray-900">Product Name</th>
+                        <th class="py-3.5 px-6 text-left font-semibold text-gray-900">Price</th>
+                        <th class="py-3.5 px-6 text-center font-semibold text-gray-900">Available Stock</th>
+                        <th class="py-3.5 px-6 text-center font-semibold text-gray-900">Reserved Stock</th>
+                        <th class="py-3.5 px-6 text-center font-semibold text-gray-900">Category</th>
+                        <th class="py-3.5 px-6 text-center font-semibold text-gray-900">Actions</th>
                       </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-100">
@@ -587,50 +913,50 @@
                         let rowHighlightStyle = 'hover:bg-gray-50/50 transition-colors';
                         if (stockFilterParam === 'healthy' && av > 20) {
                           isHighlighted = true;
-                          rowHighlightStyle = 'bg-emerald-100/90 dark:bg-emerald-950/80 border-2 border-emerald-500 font-bold text-emerald-950 dark:text-emerald-100 shadow-md';
+                          rowHighlightStyle = 'bg-emerald-100/90 dark:bg-emerald-950/80 border-2 border-emerald-500 font-semibold text-emerald-950 dark:text-emerald-100 shadow-md';
                         } else if (stockFilterParam === 'low' && av >= 1 && av <= 20) {
                           isHighlighted = true;
-                          rowHighlightStyle = 'bg-amber-100/90 dark:bg-amber-950/80 border-2 border-amber-500 font-bold text-amber-950 dark:text-amber-100 shadow-md';
+                          rowHighlightStyle = 'bg-amber-100/90 dark:bg-amber-950/80 border-2 border-amber-500 font-semibold text-amber-950 dark:text-amber-100 shadow-md';
                         } else if (stockFilterParam === 'out' && av === 0) {
                           isHighlighted = true;
-                          rowHighlightStyle = 'bg-red-100/90 dark:bg-red-950/80 border-2 border-red-500 font-bold text-red-950 dark:text-red-100 shadow-md';
+                          rowHighlightStyle = 'bg-red-100/90 dark:bg-red-950/80 border-2 border-red-500 font-semibold text-red-950 dark:text-red-100 shadow-md';
                         }
 
-                        let currentStockColorClass = 'text-black dark:text-white font-bold';
+                        let currentStockColorClass = 'text-gray-900 dark:text-white font-medium';
                         if (cur === 0) {
-                          currentStockColorClass = 'text-red-600 font-bold';
+                          currentStockColorClass = 'text-red-600 font-medium';
                         } else if (cur <= 20) {
-                          currentStockColorClass = 'text-amber-600 font-bold';
+                          currentStockColorClass = 'text-amber-600 font-medium';
                         }
 
                         return `
                           <tr id="product-row-${item.id}" class="${rowHighlightStyle}">
-                            <td class="py-5 px-5 text-black dark:text-white font-bold text-base text-left whitespace-nowrap">${index + 1}</td>
-                            <td class="py-5 px-6 text-left min-w-[280px]">
-                              <div class="flex items-center gap-4">
-                                <div class="w-14 h-14 bg-[#F9F9F9] rounded-xl border border-gray-200 shrink-0 p-1.5 flex items-center justify-center overflow-hidden shadow-2xs">
+                            <td class="py-4 px-5 text-gray-900 dark:text-white font-medium text-[14.5px] text-left whitespace-nowrap">${index + 1}</td>
+                            <td class="py-4 px-6 text-left min-w-[280px]">
+                              <div class="flex items-center gap-3.5">
+                                <div class="w-13 h-13 bg-[#F9F9F9] rounded-xl border border-gray-200 shrink-0 p-1.5 flex items-center justify-center overflow-hidden shadow-2xs">
                                   <img src="${item.image || 'https://i.pinimg.com/736x/69/66/78/696678fbb7edb048d016178c6034872d.jpg'}" class="max-w-full max-h-full object-contain rounded-lg" style="image-rendering: -webkit-optimize-contrast; image-rendering: crisp-edges;" />
                                 </div>
                                 <div class="flex flex-col text-left">
-                                  <span class="font-bold text-black dark:text-white text-[17px] leading-snug block">${item.name}</span>
-                                  ${isHighlighted ? `<span class="text-[11px] font-extrabold uppercase ${stockFilterParam === 'healthy' ? 'text-emerald-800 dark:text-emerald-200' : (stockFilterParam === 'low' ? 'text-amber-800 dark:text-amber-200' : 'text-red-800 dark:text-red-200')}">★ Highlighted Product</span>` : ''}
+                                  <span class="font-medium text-gray-900 dark:text-white text-[15.5px] leading-snug block product-name-cell">${item.name}</span>
+                                  ${isHighlighted ? `<span class="text-[11.5px] font-semibold uppercase ${stockFilterParam === 'healthy' ? 'text-emerald-800 dark:text-emerald-200' : (stockFilterParam === 'low' ? 'text-amber-800 dark:text-amber-200' : 'text-red-800 dark:text-red-200')}">★ Highlighted Product</span>` : ''}
                                 </div>
                               </div>
                             </td>
-                            <td class="py-5 px-6 font-bold text-black dark:text-white text-base text-left whitespace-nowrap">
+                            <td class="py-4 px-6 font-medium text-gray-900 dark:text-white text-[15.5px] text-left whitespace-nowrap">
                               ₱${item.price?.toLocaleString()}.00 
-                              <span class="text-xs text-black dark:text-white font-bold uppercase">/ ${item.weight || item.unit || '25kg'}</span>
+                              <span class="text-[12.5px] text-gray-600 dark:text-gray-400 font-normal uppercase">/ ${item.weight || item.unit || '25kg'}</span>
                             </td>
-                            <td class="py-5 px-6 text-center text-base whitespace-nowrap">
+                            <td class="py-4 px-6 text-center text-[15.5px] whitespace-nowrap font-medium">
                               <span class="${currentStockColorClass}">${cur} Sack${cur !== 1 ? 's' : ''}</span>
                             </td>
-                            <td class="py-5 px-6 text-center text-base whitespace-nowrap">
-                              <span class="font-bold text-red-600">${res} Sack${res !== 1 ? 's' : ''}</span>
+                            <td class="py-4 px-6 text-center text-[15.5px] whitespace-nowrap font-medium">
+                              <span class="${res > 0 ? 'text-red-600 font-medium' : 'text-gray-500 dark:text-gray-400 font-normal'}">${res} Sack${res !== 1 ? 's' : ''}</span>
                             </td>
-                            <td class="py-5 px-6 text-center whitespace-nowrap">
-                              <span class="inline-flex items-center px-3.5 py-1.5 rounded-xl bg-gray-100 dark:bg-gray-800 text-black dark:text-white font-bold text-xs tracking-wide uppercase border border-gray-200 dark:border-gray-700">${item.type || 'Rice'} Rice</span>
+                            <td class="py-4 px-6 text-center whitespace-nowrap">
+                              <span class="inline-flex items-center px-3 py-1 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 font-medium text-[12.5px] tracking-wide uppercase border border-gray-200 dark:border-gray-700">${item.type || 'Rice'} Rice</span>
                             </td>
-                            <td class="py-5 px-6 text-center whitespace-nowrap">
+                            <td class="py-4 px-6 text-center whitespace-nowrap">
                             <div class="flex gap-2.5 justify-center">
                               <!-- Edit Info -->
                               ${isAdmin ? `
@@ -678,9 +1004,9 @@
                                 class="btn-archive-click p-2.5 ${showArchived ? 'bg-teal-600 hover:bg-teal-700' : 'bg-red-600 hover:bg-red-700'} text-white rounded-xl cursor-pointer transition-colors"
                               >
                                 ${showArchived ? `
-                                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-5 h-5"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
+                                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-5 h-5"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
                                 ` : `
-                                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-5 h-5"><polyline points="21 8 21 21 3 21 3 8"></polyline><rect x="1" y="3" width="22" height="5"></rect><line x1="10" y1="12" x2="14" y2="12"></line></svg>
+                                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-5 h-5"><polyline points="21 8 21 21 3 21 3 8"></polyline><rect x="1" y="3" width="22" height="5"></rect><line x1="10" y1="12" x2="14" y2="12"></line></svg>
                                 `}
                               </button>
                               ` : `
@@ -690,9 +1016,9 @@
                                 class="p-2.5 text-gray-400 bg-gray-100/60 rounded-xl cursor-not-allowed opacity-60"
                               >
                                 ${showArchived ? `
-                                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-5 h-5"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
+                                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-5 h-5"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
                                 ` : `
-                                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-5 h-5"><polyline points="21 8 21 21 3 21 3 8"></polyline><rect x="1" y="3" width="22" height="5"></rect><line x1="10" y1="12" x2="14" y2="12"></line></svg>
+                                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-5 h-5"><polyline points="21 8 21 21 3 21 3 8"></polyline><rect x="1" y="3" width="22" height="5"></rect><line x1="10" y1="12" x2="14" y2="12"></line></svg>
                                 `}
                               </button>
                               `}
@@ -704,7 +1030,7 @@
 
                     ${filtered.length === 0 ? `
                       <tr>
-                        <td colspan="7" class="py-16 text-center text-gray-500 font-extrabold text-base">
+                        <td colspan="7" class="py-16 text-center text-gray-500 dark:text-gray-400 font-medium text-[15px]">
                           No products matched current settings.
                         </td>
                       </tr>

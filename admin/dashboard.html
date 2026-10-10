@@ -34,18 +34,21 @@
       } catch (e) {}
     })();
   </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Source+Sans+3:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400;1,600&display=swap" rel="stylesheet">
   <style id="riceflow-theme-init">
-    html { background-color: #F5F5F5; color-scheme: light; }
-    html.dark { background-color: #1F2937 !important; color-scheme: dark; }
+    html { background-color: #F0F4F9; color-scheme: light; }
+    html.dark { background-color: #0A1329 !important; color-scheme: dark; }
     html.dark body,
     html.dark #admin-layout-container,
     html.dark #admin-main-content {
-      background-color: #1F2937;
-      color: #F9FAFB;
+      background-color: #0A1329;
+      color: #F0F6FC;
     }
     html.dark #auth-guard-loader {
-      background-color: #1F2937 !important;
-      color: #F9FAFB !important;
+      background-color: #0A1329 !important;
+      color: #F0F6FC !important;
     }
     html.dark #admin-sidebar,
     html.dark aside,
@@ -53,8 +56,8 @@
     html.dark .bg-white,
     html.dark .bg-gray-50,
     html.dark .bg-slate-50 {
-      background-color: #111827;
-      color: #F9FAFB;
+      background-color: #0E1B38;
+      color: #F0F6FC;
     }
   </style>
   <link rel="stylesheet" href="../src/styles/index.css">
@@ -96,20 +99,20 @@
        ========================================================================== */
     html:not(.dark) #admin-layout-container #stock-replenishment-guide-section {
       background: #FFFFFF !important;
-      border: 1px solid #E2E8F0 !important;
-      box-shadow: 0 4px 24px -4px rgba(15, 23, 42, 0.06) !important;
+      border: 1px solid #D6E3F0 !important;
+      box-shadow: 0 4px 24px -4px rgba(11, 27, 61, 0.06) !important;
     }
     html.dark #admin-layout-container #stock-replenishment-guide-section {
-      background: linear-gradient(180deg, #0F172A 0%, #0B1120 100%) !important;
-      border: 1px solid rgba(148, 163, 184, 0.18) !important;
+      background: linear-gradient(180deg, #0E1B38 0%, #0A1329 100%) !important;
+      border: 1px solid rgba(96, 165, 250, 0.2) !important;
       box-shadow: 0 14px 34px -8px rgba(0, 0, 0, 0.5) !important;
     }
 
     html:not(.dark) #admin-layout-container #stock-replenishment-guide-section .srg-header-divider {
-      border-bottom: 1px solid #EEF2F6 !important;
+      border-bottom: 1px solid #E2EDF7 !important;
     }
     html.dark #admin-layout-container #stock-replenishment-guide-section .srg-header-divider {
-      border-bottom: 1px solid rgba(148, 163, 184, 0.14) !important;
+      border-bottom: 1px solid rgba(96, 165, 250, 0.16) !important;
     }
 
     html:not(.dark) #admin-layout-container #stock-replenishment-guide-section .srg-header-icon {
@@ -155,34 +158,34 @@
 
     html:not(.dark) #admin-layout-container #stock-replenishment-guide-section .srg-logic-banner,
     html:not(.dark) #admin-layout-container #stock-replenishment-guide-section .srg-logic-banner p {
-      background: #F8FAFC !important;
-      color: #0F172A !important;
+      background: #F0F6FC !important;
+      color: #0B1B3D !important;
     }
     html:not(.dark) #admin-layout-container #stock-replenishment-guide-section .srg-logic-banner {
-      border: 1px solid #CBD5E1 !important;
+      border: 1px solid #D6E3F0 !important;
     }
     html.dark #admin-layout-container #stock-replenishment-guide-section .srg-logic-banner,
     html.dark #admin-layout-container #stock-replenishment-guide-section .srg-logic-banner p {
-      color: #F8FAFC !important;
+      color: #F0F6FC !important;
     }
     html.dark #admin-layout-container #stock-replenishment-guide-section .srg-logic-banner {
-      background: rgba(30, 41, 59, 0.65) !important;
-      border: 1px solid rgba(148, 163, 184, 0.22) !important;
+      background: rgba(21, 37, 74, 0.75) !important;
+      border: 1px solid rgba(96, 165, 250, 0.24) !important;
     }
 
     /* High-contrast header & supporting text */
     html:not(.dark) #admin-layout-container #stock-replenishment-guide-section .srg-text-main {
-      color: #0F172A !important;
+      color: #0B1B3D !important;
     }
     html.dark #admin-layout-container #stock-replenishment-guide-section .srg-text-main {
-      color: #F8FAFC !important;
+      color: #F0F6FC !important;
     }
 
     html:not(.dark) #admin-layout-container #stock-replenishment-guide-section .srg-text-sub {
-      color: #1E293B !important;
+      color: #2C4A6F !important;
     }
     html.dark #admin-layout-container #stock-replenishment-guide-section .srg-text-sub {
-      color: #E2E8F0 !important;
+      color: #BDD3ED !important;
     }
 
     /* 4 Polished Status Summary Cards */
@@ -268,36 +271,36 @@
     }
 
     html:not(.dark) #admin-layout-container #stock-replenishment-guide-section .srg-stat-neutral {
-      background: linear-gradient(145deg, #F8FAFC 0%, #FFFFFF 100%) !important;
-      border: 1px solid #CBD5E1 !important;
+      background: linear-gradient(145deg, #F0F6FC 0%, #FFFFFF 100%) !important;
+      border: 1px solid #D6E3F0 !important;
     }
     html.dark #admin-layout-container #stock-replenishment-guide-section .srg-stat-neutral {
-      background: linear-gradient(145deg, rgba(30, 41, 59, 0.65) 0%, rgba(15, 23, 42, 0.9) 100%) !important;
-      border: 1px solid rgba(148, 163, 184, 0.28) !important;
+      background: linear-gradient(145deg, rgba(21, 37, 74, 0.75) 0%, rgba(14, 27, 56, 0.95) 100%) !important;
+      border: 1px solid rgba(96, 165, 250, 0.28) !important;
     }
     html:not(.dark) #admin-layout-container #stock-replenishment-guide-section .srg-stat-neutral .srg-card-label,
     html:not(.dark) #admin-layout-container #stock-replenishment-guide-section .srg-stat-neutral .srg-card-num {
-      color: #0F172A !important;
+      color: #0B1B3D !important;
     }
     html.dark #admin-layout-container #stock-replenishment-guide-section .srg-stat-neutral .srg-card-label,
     html.dark #admin-layout-container #stock-replenishment-guide-section .srg-stat-neutral .srg-card-num {
       color: #FFFFFF !important;
     }
     html:not(.dark) #admin-layout-container #stock-replenishment-guide-section .srg-stat-neutral .srg-card-sub {
-      color: #1E293B !important;
+      color: #2C4A6F !important;
     }
     html.dark #admin-layout-container #stock-replenishment-guide-section .srg-stat-neutral .srg-card-sub {
-      color: #E2E8F0 !important;
+      color: #BDD3ED !important;
     }
 
     /* Table container, headers, rows, and cells */
     html:not(.dark) #admin-layout-container #stock-replenishment-guide-section .srg-table-container {
       background: #FFFFFF !important;
-      border: 1px solid #CBD5E1 !important;
+      border: 1px solid #D6E3F0 !important;
     }
     html.dark #admin-layout-container #stock-replenishment-guide-section .srg-table-container {
-      background: #0F172A !important;
-      border: 1px solid rgba(148, 163, 184, 0.2) !important;
+      background: #0E1B38 !important;
+      border: 1px solid rgba(96, 165, 250, 0.2) !important;
     }
 
     html:not(.dark) #admin-layout-container #stock-replenishment-guide-section table.srg-table {
@@ -311,44 +314,44 @@
     html:not(.dark) #admin-layout-container #stock-replenishment-guide-section thead.srg-thead th,
     html:not(.dark) #admin-layout-container #stock-replenishment-guide-section thead.srg-thead th span,
     html:not(.dark) #admin-layout-container #stock-replenishment-guide-section thead.srg-thead th svg {
-      background: #F1F5F9 !important;
-      border-bottom: 1px solid #CBD5E1 !important;
-      color: #0F172A !important;
+      background: #EBF2F9 !important;
+      border-bottom: 1px solid #D6E3F0 !important;
+      color: #0B1B3D !important;
     }
     html.dark #admin-layout-container #stock-replenishment-guide-section thead.srg-thead tr,
     html.dark #admin-layout-container #stock-replenishment-guide-section thead.srg-thead th,
     html.dark #admin-layout-container #stock-replenishment-guide-section thead.srg-thead th span,
     html.dark #admin-layout-container #stock-replenishment-guide-section thead.srg-thead th svg {
-      background: #162033 !important;
-      border-bottom: 1px solid rgba(148, 163, 184, 0.22) !important;
-      color: #F8FAFC !important;
+      background: #15254A !important;
+      border-bottom: 1px solid rgba(96, 165, 250, 0.22) !important;
+      color: #F0F6FC !important;
     }
 
     html:not(.dark) #admin-layout-container #stock-replenishment-guide-section tbody tr.srg-row:nth-child(odd) {
       background: #FFFFFF !important;
     }
     html:not(.dark) #admin-layout-container #stock-replenishment-guide-section tbody tr.srg-row:nth-child(even) {
-      background: #F8FAFC !important;
+      background: #F0F6FC !important;
     }
     html:not(.dark) #admin-layout-container #stock-replenishment-guide-section tbody tr.srg-row:hover {
-      background: #F1F5F9 !important;
+      background: #E2EEF9 !important;
     }
 
     html.dark #admin-layout-container #stock-replenishment-guide-section tbody tr.srg-row:nth-child(odd) {
-      background: rgba(15, 23, 42, 0.75) !important;
+      background: rgba(14, 27, 56, 0.75) !important;
     }
     html.dark #admin-layout-container #stock-replenishment-guide-section tbody tr.srg-row:nth-child(even) {
-      background: rgba(30, 41, 59, 0.38) !important;
+      background: rgba(21, 37, 74, 0.38) !important;
     }
     html.dark #admin-layout-container #stock-replenishment-guide-section tbody tr.srg-row:hover {
-      background: rgba(30, 41, 59, 0.75) !important;
+      background: rgba(28, 48, 92, 0.75) !important;
     }
 
     html:not(.dark) #admin-layout-container #stock-replenishment-guide-section tbody tr.srg-row td {
-      border-bottom: 1px solid #E2E8F0 !important;
+      border-bottom: 1px solid #E2EDF7 !important;
     }
     html.dark #admin-layout-container #stock-replenishment-guide-section tbody tr.srg-row td {
-      border-bottom: 1px solid rgba(148, 163, 184, 0.14) !important;
+      border-bottom: 1px solid rgba(96, 165, 250, 0.14) !important;
     }
     html #admin-layout-container #stock-replenishment-guide-section tbody tr.srg-row:last-child td {
       border-bottom: none !important;
@@ -356,20 +359,20 @@
 
     /* Circular Rice Avatar / Thumbnail */
     html:not(.dark) #admin-layout-container #stock-replenishment-guide-section .srg-avatar {
-      background: #F1F5F9 !important;
-      border: 2px solid #CBD5E1 !important;
+      background: #EBF2F9 !important;
+      border: 2px solid #D6E3F0 !important;
     }
     html.dark #admin-layout-container #stock-replenishment-guide-section .srg-avatar {
-      background: #1E293B !important;
-      border: 2px solid rgba(148, 163, 184, 0.3) !important;
+      background: #15254A !important;
+      border: 2px solid rgba(96, 165, 250, 0.3) !important;
     }
 
     /* Subtle Progress Bars */
     html:not(.dark) #admin-layout-container #stock-replenishment-guide-section .srg-progress-track {
-      background: #E2E8F0 !important;
+      background: #DCE6F2 !important;
     }
     html.dark #admin-layout-container #stock-replenishment-guide-section .srg-progress-track {
-      background: rgba(51, 65, 85, 0.75) !important;
+      background: rgba(30, 53, 99, 0.75) !important;
     }
 
     /* High-Contrast Status Badges: White Text on Solid Backgrounds */
@@ -436,8 +439,8 @@
       font-weight: 700 !important;
     }
     html:not(.dark) #admin-layout-container #stock-replenishment-guide-section .srg-badge-neutral {
-      background: #475569 !important;
-      border: 1px solid #334155 !important;
+      background: #1E3A5F !important;
+      border: 1px solid #162C48 !important;
     }
     html.dark #admin-layout-container #stock-replenishment-guide-section .srg-badge-neutral,
     html.dark #admin-layout-container #stock-replenishment-guide-section .srg-badge-neutral span {
@@ -445,23 +448,23 @@
       font-weight: 700 !important;
     }
     html.dark #admin-layout-container #stock-replenishment-guide-section .srg-badge-neutral {
-      background: #334155 !important;
-      border: 1px solid #64748B !important;
+      background: #1E3A5F !important;
+      border: 1px solid #2B5282 !important;
     }
 
     /* High-contrast table numbers, units, and semantic status values */
     html:not(.dark) #admin-layout-container #stock-replenishment-guide-section .srg-table .srg-num-primary {
-      color: #0F172A !important;
+      color: #0B1B3D !important;
     }
     html.dark #admin-layout-container #stock-replenishment-guide-section .srg-table .srg-num-primary {
       color: #FFFFFF !important;
     }
 
     html:not(.dark) #admin-layout-container #stock-replenishment-guide-section .srg-table .srg-unit-label {
-      color: #1E293B !important;
+      color: #2C4A6F !important;
     }
     html.dark #admin-layout-container #stock-replenishment-guide-section .srg-table .srg-unit-label {
-      color: #E2E8F0 !important;
+      color: #BDD3ED !important;
     }
 
     html:not(.dark) #admin-layout-container #stock-replenishment-guide-section .srg-table .srg-num-critical {
@@ -491,14 +494,20 @@
       background: #FFEDD5 !important;
       border: 1px solid #FDBA74 !important;
       color: #9A3412 !important;
-      font-weight: 800 !important;
+      font-weight: 500 !important;
+      font-size: 12.5px !important;
+      letter-spacing: normal !important;
+      line-height: 1.25 !important;
     }
     html.dark #admin-layout-container #stock-replenishment-guide-section .srg-pill-lowstock,
     html.dark #admin-layout-container #stock-replenishment-guide-section .srg-pill-preparesoon {
       background: #FED7AA !important;
       border: 1px solid #FB923C !important;
       color: #7C2D12 !important;
-      font-weight: 800 !important;
+      font-weight: 500 !important;
+      font-size: 12.5px !important;
+      letter-spacing: normal !important;
+      line-height: 1.25 !important;
     }
 
     html:not(.dark) #admin-layout-container #stock-replenishment-guide-section .srg-pill-needstock,
@@ -506,27 +515,91 @@
       background: #FEE2E2 !important;
       border: 1px solid #FCA5A5 !important;
       color: #991B1B !important;
-      font-weight: 800 !important;
+      font-weight: 500 !important;
+      font-size: 12.5px !important;
+      letter-spacing: normal !important;
+      line-height: 1.25 !important;
     }
     html.dark #admin-layout-container #stock-replenishment-guide-section .srg-pill-needstock,
     html.dark #admin-layout-container #stock-replenishment-guide-section .srg-pill-outofstock {
       background: #FECACA !important;
       border: 1px solid #F87171 !important;
       color: #7F1D1D !important;
-      font-weight: 800 !important;
+      font-weight: 500 !important;
+      font-size: 12.5px !important;
+      letter-spacing: normal !important;
+      line-height: 1.25 !important;
     }
 
     html:not(.dark) #admin-layout-container #stock-replenishment-guide-section .srg-pill-enough {
       background: #DCFCE7 !important;
       border: 1px solid #86EFAC !important;
       color: #14532D !important;
-      font-weight: 800 !important;
+      font-weight: 500 !important;
+      font-size: 12.5px !important;
+      letter-spacing: normal !important;
+      line-height: 1.25 !important;
     }
     html.dark #admin-layout-container #stock-replenishment-guide-section .srg-pill-enough {
       background: #BBF7D0 !important;
       border: 1px solid #4ADE80 !important;
       color: #14532D !important;
-      font-weight: 800 !important;
+      font-weight: 500 !important;
+      font-size: 12.5px !important;
+      letter-spacing: normal !important;
+      line-height: 1.25 !important;
+    }
+
+    #admin-layout-container #stock-replenishment-guide-section .srg-dash-status-pill,
+    #admin-layout-container #stock-replenishment-guide-section [class*="srg-pill-"] {
+      font-size: 12.5px !important;
+      font-weight: 500 !important;
+      letter-spacing: normal !important;
+      line-height: 1.25 !important;
+      padding: 3px 9px !important;
+    }
+
+    /* Stock Needs rice variety product names - solid black, ~14.5px, regular/medium weight, comfortable spacing */
+    #admin-layout-container #stock-replenishment-guide-section .srg-dash-product-name {
+      font-family: 'Inter', sans-serif !important;
+      font-size: 14.5px !important;
+      font-weight: 500 !important;
+      letter-spacing: normal !important;
+      line-height: 1.35 !important;
+    }
+    html:not(.dark) #admin-layout-container #stock-replenishment-guide-section .srg-dash-product-name {
+      color: #000000 !important;
+    }
+    html.dark #admin-layout-container #stock-replenishment-guide-section .srg-dash-product-name {
+      color: #FFFFFF !important;
+    }
+
+    /* Inventory Analytics Legend - solid black (#000000), 13.5px, medium font weight */
+    #admin-layout-container #inventory-analytics-section #dash-inv-legend,
+    #admin-layout-container #inventory-analytics-section #dash-inv-legend span {
+      font-size: 13.5px !important;
+      font-weight: 500 !important;
+      letter-spacing: normal !important;
+    }
+    html:not(.dark) #admin-layout-container #inventory-analytics-section #dash-inv-legend,
+    html:not(.dark) #admin-layout-container #inventory-analytics-section #dash-inv-legend span {
+      color: #000000 !important;
+    }
+    html.dark #admin-layout-container #inventory-analytics-section #dash-inv-legend,
+    html.dark #admin-layout-container #inventory-analytics-section #dash-inv-legend span {
+      color: #D6E6F8 !important;
+    }
+
+    /* Inventory Analytics SVG Chart text (axis and month labels) - solid black in light mode */
+    #admin-layout-container #inventory-analytics-section #dash-inv-chart-container text,
+    #dash-inv-chart-container text {
+      font-family: 'Source Sans 3', sans-serif !important;
+      font-weight: 500 !important;
+    }
+    html:not(.dark) #admin-layout-container #inventory-analytics-section #dash-inv-chart-container text,
+    html:not(.dark) #dash-inv-chart-container text {
+      fill: #000000 !important;
+      color: #000000 !important;
     }
 
     html:not(.dark) #admin-layout-container #stock-replenishment-guide-section .srg-bar-lowstock,
@@ -559,28 +632,29 @@
        ========================================================================== */
     html:not(.dark) #admin-layout-container #sales-overview-section {
       background: #FFFFFF !important;
-      border: 1px solid #CBD5E1 !important;
-      box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.05), 0 2px 6px -1px rgba(15, 23, 42, 0.03) !important;
+      border: 1px solid #D6E3F0 !important;
+      box-shadow: 0 4px 20px -2px rgba(11, 27, 61, 0.05), 0 2px 6px -1px rgba(11, 27, 61, 0.03) !important;
     }
     html.dark #admin-layout-container #sales-overview-section {
-      background: #0F172A !important;
-      border: 1px solid #1E293B !important;
+      background: #0E1B38 !important;
+      border: 1px solid #1E3563 !important;
       box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.45) !important;
     }
 
     /* High-Contrast Typography inside Sales Overview (No Gray Text/Numbers) */
     html:not(.dark) #admin-layout-container #sales-overview-section .so-text-main {
-      color: #0F172A !important;
+      color: #0B1B3D !important;
     }
     html.dark #admin-layout-container #sales-overview-section .so-text-main {
       color: #FFFFFF !important;
     }
 
     html:not(.dark) #admin-layout-container #sales-overview-section .so-text-sub {
-      color: #1E293B !important;
+      color: #000000 !important;
+      font-weight: 400 !important;
     }
     html.dark #admin-layout-container #sales-overview-section .so-text-sub {
-      color: #E2E8F0 !important;
+      color: #BDD3ED !important;
     }
 
     html:not(.dark) #admin-layout-container #sales-overview-section .so-text-accent {
@@ -592,10 +666,10 @@
 
     /* Header Divider & Icon Badge */
     html:not(.dark) #admin-layout-container #sales-overview-section .so-header-divider {
-      border-bottom: 1px solid #E2E8F0 !important;
+      border-bottom: 1px solid #E2EDF7 !important;
     }
     html.dark #admin-layout-container #sales-overview-section .so-header-divider {
-      border-bottom: 1px solid rgba(148, 163, 184, 0.18) !important;
+      border-bottom: 1px solid rgba(96, 165, 250, 0.18) !important;
     }
 
     html:not(.dark) #admin-layout-container #sales-overview-section .so-header-icon {
@@ -611,23 +685,23 @@
 
     /* Top Controls (Date Button, Selects, Reset) */
     html:not(.dark) #admin-layout-container #sales-overview-section .so-control-select {
-      background-color: #F8FAFC !important;
-      border: 1px solid #94A3B8 !important;
-      color: #0F172A !important;
+      background-color: #F0F6FC !important;
+      border: 1px solid #B8D0E8 !important;
+      color: #0B1B3D !important;
     }
     html:not(.dark) #admin-layout-container #sales-overview-section .so-control-select:hover,
     html:not(.dark) #admin-layout-container #sales-overview-section .so-control-select:focus {
-      background-color: #F1F5F9 !important;
+      background-color: #E2EEF9 !important;
       border-color: #1E6C02 !important;
     }
     html.dark #admin-layout-container #sales-overview-section .so-control-select {
-      background-color: #1E293B !important;
-      border: 1px solid #475569 !important;
+      background-color: #15254A !important;
+      border: 1px solid #1E3563 !important;
       color: #FFFFFF !important;
     }
     html.dark #admin-layout-container #sales-overview-section .so-control-select:hover,
     html.dark #admin-layout-container #sales-overview-section .so-control-select:focus {
-      background-color: #334155 !important;
+      background-color: #1C305C !important;
       border-color: #34D399 !important;
     }
 
@@ -669,81 +743,81 @@
     /* Calendar Popover */
     html:not(.dark) #admin-layout-container #sales-overview-section #sales-calendar-popover {
       background: #FFFFFF !important;
-      border: 1px solid #94A3B8 !important;
-      box-shadow: 0 20px 35px -5px rgba(15, 23, 42, 0.18) !important;
+      border: 1px solid #CBDDF0 !important;
+      box-shadow: 0 20px 35px -5px rgba(11, 27, 61, 0.18) !important;
     }
     html.dark #admin-layout-container #sales-overview-section #sales-calendar-popover {
-      background: #0F172A !important;
-      border: 1px solid #334155 !important;
+      background: #0E1B38 !important;
+      border: 1px solid #1E3563 !important;
       box-shadow: 0 20px 35px -5px rgba(0, 0, 0, 0.7) !important;
     }
 
     html:not(.dark) #admin-layout-container #sales-overview-section .so-cal-filler {
-      color: #475569 !important;
+      color: #3A5D88 !important;
     }
     html.dark #admin-layout-container #sales-overview-section .so-cal-filler {
-      color: #CBD5E1 !important;
+      color: #BDD3ED !important;
     }
 
     /* Main Sales Chart Stage */
     html:not(.dark) #admin-layout-container #sales-overview-section .so-chart-stage {
-      background: #F8FAFC !important;
-      border: 1px solid #E2E8F0 !important;
+      background: #F0F6FC !important;
+      border: 1px solid #D6E3F0 !important;
       border-radius: 0.875rem !important;
     }
     html.dark #admin-layout-container #sales-overview-section .so-chart-stage {
-      background: rgba(15, 23, 42, 0.55) !important;
-      border: 1px solid rgba(51, 65, 85, 0.4) !important;
+      background: rgba(14, 27, 56, 0.55) !important;
+      border: 1px solid rgba(96, 165, 250, 0.25) !important;
       border-radius: 0.875rem !important;
     }
 
     html:not(.dark) #admin-layout-container #sales-overview-section .so-chart-gridline {
-      border-color: #CBD5E1 !important;
+      border-color: #D6E3F0 !important;
     }
     html.dark #admin-layout-container #sales-overview-section .so-chart-gridline {
-      border-color: rgba(148, 163, 184, 0.25) !important;
+      border-color: rgba(96, 165, 250, 0.2) !important;
     }
 
     html:not(.dark) #admin-layout-container #sales-overview-section .so-chart-axis-pill {
       background: #FFFFFF !important;
-      border: 1px solid #CBD5E1 !important;
-      color: #0F172A !important;
+      border: 1px solid #D6E3F0 !important;
+      color: #000000 !important;
     }
     html.dark #admin-layout-container #sales-overview-section .so-chart-axis-pill {
-      background: #1E293B !important;
-      border: 1px solid #475569 !important;
-      color: #F8FAFC !important;
+      background: #15254A !important;
+      border: 1px solid #1E3563 !important;
+      color: #D6E6F8 !important;
     }
 
     /* Summary Cards (Time Range, Completed Orders, Active Variety, Sacks Sold) */
     html:not(.dark) #admin-layout-container #sales-overview-section .so-summary-card {
-      background: #F8FAFC !important;
-      border: 1px solid #CBD5E1 !important;
+      background: #F0F6FC !important;
+      border: 1px solid #D6E3F0 !important;
     }
     html.dark #admin-layout-container #sales-overview-section .so-summary-card {
-      background: rgba(30, 41, 59, 0.65) !important;
-      border: 1px solid rgba(148, 163, 184, 0.24) !important;
+      background: rgba(21, 37, 74, 0.65) !important;
+      border: 1px solid rgba(96, 165, 250, 0.24) !important;
     }
 
     /* Completed Orders Container & Inner Metric Cards */
     html:not(.dark) #admin-layout-container #sales-overview-section #cal-selected-status {
-      background: #F8FAFC !important;
-      border: 1px solid #CBD5E1 !important;
-      color: #0F172A !important;
+      background: #F0F6FC !important;
+      border: 1px solid #D6E3F0 !important;
+      color: #0B1B3D !important;
     }
     html.dark #admin-layout-container #sales-overview-section #cal-selected-status {
-      background: rgba(30, 41, 59, 0.55) !important;
-      border: 1px solid rgba(148, 163, 184, 0.24) !important;
+      background: rgba(21, 37, 74, 0.55) !important;
+      border: 1px solid rgba(96, 165, 250, 0.24) !important;
       color: #FFFFFF !important;
     }
 
     html:not(.dark) #admin-layout-container #sales-overview-section .so-ops-card {
       background: #FFFFFF !important;
-      border: 1px solid #CBD5E1 !important;
+      border: 1px solid #D6E3F0 !important;
     }
     html.dark #admin-layout-container #sales-overview-section .so-ops-card {
-      background: #0F172A !important;
-      border: 1px solid rgba(148, 163, 184, 0.28) !important;
+      background: #0E1B38 !important;
+      border: 1px solid rgba(96, 165, 250, 0.28) !important;
     }
 
     html:not(.dark) #admin-layout-container #sales-overview-section .so-activity-badge {
@@ -768,18 +842,18 @@
        ========================================================================== */
     html:not(.dark) #admin-layout-container #inventory-analytics-section {
       background: #FFFFFF !important;
-      border: 1px solid #CBD5E1 !important;
-      box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.05), 0 2px 6px -1px rgba(15, 23, 42, 0.03) !important;
+      border: 1px solid #D6E3F0 !important;
+      box-shadow: 0 4px 20px -2px rgba(11, 27, 61, 0.05), 0 2px 6px -1px rgba(11, 27, 61, 0.03) !important;
     }
     html.dark #admin-layout-container #inventory-analytics-section {
-      background: #0F172A !important;
-      border: 1px solid #1E293B !important;
+      background: #0E1B38 !important;
+      border: 1px solid #1E3563 !important;
       box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.45) !important;
     }
 
     html:not(.dark) #admin-layout-container #inventory-analytics-section .ia-text-main,
     html:not(.dark) #admin-layout-container #inventory-analytics-section .ia-text-sub {
-      color: #0F172A !important;
+      color: #0B1B3D !important;
     }
     html.dark #admin-layout-container #inventory-analytics-section .ia-text-main,
     html.dark #admin-layout-container #inventory-analytics-section .ia-text-sub {
@@ -787,10 +861,10 @@
     }
 
     html:not(.dark) #admin-layout-container #inventory-analytics-section .ia-header-divider {
-      border-bottom: 1px solid #E2E8F0 !important;
+      border-bottom: 1px solid #E2EDF7 !important;
     }
     html.dark #admin-layout-container #inventory-analytics-section .ia-header-divider {
-      border-bottom: 1px solid rgba(148, 163, 184, 0.18) !important;
+      border-bottom: 1px solid rgba(96, 165, 250, 0.18) !important;
     }
 
     html:not(.dark) #admin-layout-container #inventory-analytics-section .ia-header-icon {
@@ -808,7 +882,7 @@
     html:not(.dark) #admin-layout-container #inventory-analytics-section .ia-period-badge span {
       background: #ECFDF5 !important;
       border-color: #A7F3D0 !important;
-      color: #0F172A !important;
+      color: #064E3B !important;
     }
     html.dark #admin-layout-container #inventory-analytics-section .ia-period-badge,
     html.dark #admin-layout-container #inventory-analytics-section .ia-period-badge span {
@@ -872,31 +946,31 @@
     }
 
     html:not(.dark) #admin-layout-container #inventory-analytics-section .ia-control-select {
-      background-color: #F8FAFC !important;
-      border: 1px solid #94A3B8 !important;
-      color: #0F172A !important;
+      background-color: #F0F6FC !important;
+      border: 1px solid #B8D0E8 !important;
+      color: #0B1B3D !important;
     }
     html:not(.dark) #admin-layout-container #inventory-analytics-section .ia-control-select:hover,
     html:not(.dark) #admin-layout-container #inventory-analytics-section .ia-control-select:focus {
-      background-color: #F1F5F9 !important;
+      background-color: #E2EEF9 !important;
       border-color: #1E6C02 !important;
     }
     html.dark #admin-layout-container #inventory-analytics-section .ia-control-select {
-      background-color: #1E293B !important;
-      border: 1px solid #475569 !important;
+      background-color: #15254A !important;
+      border: 1px solid #1E3563 !important;
       color: #FFFFFF !important;
     }
     html.dark #admin-layout-container #inventory-analytics-section .ia-control-select:hover,
     html.dark #admin-layout-container #inventory-analytics-section .ia-control-select:focus {
-      background-color: #334155 !important;
+      background-color: #1C305C !important;
       border-color: #34D399 !important;
     }
     html:not(.dark) #admin-layout-container #inventory-analytics-section .ia-control-select option {
       background-color: #FFFFFF !important;
-      color: #0F172A !important;
+      color: #0B1B3D !important;
     }
     html.dark #admin-layout-container #inventory-analytics-section .ia-control-select option {
-      background-color: #0F172A !important;
+      background-color: #0E1B38 !important;
       color: #FFFFFF !important;
     }
 
@@ -924,9 +998,9 @@
     html:not(.dark) #admin-layout-container #stock-replenishment-guide-section .ia-date-btn-default span,
     html:not(.dark) #admin-layout-container #sales-overview-section .ia-date-btn-default,
     html:not(.dark) #admin-layout-container #sales-overview-section .ia-date-btn-default span {
-      background-color: #F8FAFC !important;
-      border-color: #94A3B8 !important;
-      color: #0F172A !important;
+      background-color: #F0F6FC !important;
+      border-color: #B8D0E8 !important;
+      color: #0B1B3D !important;
     }
     html:not(.dark) #admin-layout-container #inventory-analytics-section .ia-date-btn-default:hover,
     html:not(.dark) #admin-layout-container #inventory-analytics-section .ia-date-btn-default:hover span,
@@ -934,7 +1008,7 @@
     html:not(.dark) #admin-layout-container #stock-replenishment-guide-section .ia-date-btn-default:hover span,
     html:not(.dark) #admin-layout-container #sales-overview-section .ia-date-btn-default:hover,
     html:not(.dark) #admin-layout-container #sales-overview-section .ia-date-btn-default:hover span {
-      background-color: #F1F5F9 !important;
+      background-color: #E2EEF9 !important;
       border-color: #1E6C02 !important;
     }
     html.dark #admin-layout-container #inventory-analytics-section .ia-date-btn-default,
@@ -943,8 +1017,8 @@
     html.dark #admin-layout-container #stock-replenishment-guide-section .ia-date-btn-default span,
     html.dark #admin-layout-container #sales-overview-section .ia-date-btn-default,
     html.dark #admin-layout-container #sales-overview-section .ia-date-btn-default span {
-      background-color: #1E293B !important;
-      border-color: #475569 !important;
+      background-color: #15254A !important;
+      border-color: #1E3563 !important;
       color: #FFFFFF !important;
     }
     html.dark #admin-layout-container #inventory-analytics-section .ia-date-btn-default:hover,
@@ -953,7 +1027,7 @@
     html.dark #admin-layout-container #stock-replenishment-guide-section .ia-date-btn-default:hover span,
     html.dark #admin-layout-container #sales-overview-section .ia-date-btn-default:hover,
     html.dark #admin-layout-container #sales-overview-section .ia-date-btn-default:hover span {
-      background-color: #334155 !important;
+      background-color: #1C305C !important;
       border-color: #34D399 !important;
     }
     html:not(.dark) #admin-layout-container #inventory-analytics-section .ia-date-btn-active,
@@ -981,28 +1055,28 @@
     html:not(.dark) #admin-layout-container #stock-replenishment-guide-section #srg-calendar-popover,
     html:not(.dark) #admin-layout-container #sales-overview-section #sales-calendar-popover {
       background: #FFFFFF !important;
-      border: 1px solid #94A3B8 !important;
-      box-shadow: 0 20px 35px -5px rgba(15, 23, 42, 0.18) !important;
+      border: 1px solid #CBDDF0 !important;
+      box-shadow: 0 20px 35px -5px rgba(11, 27, 61, 0.16) !important;
     }
     html.dark #admin-layout-container #inventory-analytics-section #inv-calendar-popover,
     html.dark #admin-layout-container #stock-replenishment-guide-section #srg-calendar-popover,
     html.dark #admin-layout-container #sales-overview-section #sales-calendar-popover {
-      background: #0F172A !important;
-      border: 1px solid #334155 !important;
+      background: #0E1B38 !important;
+      border: 1px solid #1E3563 !important;
       box-shadow: 0 20px 35px -5px rgba(0, 0, 0, 0.7) !important;
     }
     html:not(.dark) #admin-layout-container #inventory-analytics-section .ia-cal-range-slot,
     html:not(.dark) #admin-layout-container #stock-replenishment-guide-section .ia-cal-range-slot,
     html:not(.dark) #admin-layout-container #sales-overview-section .ia-cal-range-slot {
-      background: #F8FAFC !important;
-      border: 1px solid #CBD5E1 !important;
-      color: #0F172A !important;
+      background: #F0F6FC !important;
+      border: 1px solid #D6E3F0 !important;
+      color: #0B1B3D !important;
     }
     html.dark #admin-layout-container #inventory-analytics-section .ia-cal-range-slot,
     html.dark #admin-layout-container #stock-replenishment-guide-section .ia-cal-range-slot,
     html.dark #admin-layout-container #sales-overview-section .ia-cal-range-slot {
-      background: #1E293B !important;
-      border: 1px solid #334155 !important;
+      background: #15254A !important;
+      border: 1px solid #1E3563 !important;
       color: #FFFFFF !important;
     }
     html:not(.dark) #admin-layout-container #inventory-analytics-section .ia-cal-range-slot.ia-slot-active,
@@ -1010,7 +1084,7 @@
     html:not(.dark) #admin-layout-container #sales-overview-section .ia-cal-range-slot.ia-slot-active {
       background: #ECFDF5 !important;
       border: 1.5px solid #1E6C02 !important;
-      color: #0F172A !important;
+      color: #0B1B3D !important;
     }
     html.dark #admin-layout-container #inventory-analytics-section .ia-cal-range-slot.ia-slot-active,
     html.dark #admin-layout-container #stock-replenishment-guide-section .ia-cal-range-slot.ia-slot-active,
@@ -1022,26 +1096,26 @@
     html:not(.dark) #admin-layout-container #inventory-analytics-section .ia-cal-filler,
     html:not(.dark) #admin-layout-container #stock-replenishment-guide-section .ia-cal-filler,
     html:not(.dark) #admin-layout-container #sales-overview-section .ia-cal-filler {
-      color: #64748B !important;
+      color: #2C4A6F !important;
       opacity: 0.55 !important;
     }
     html.dark #admin-layout-container #inventory-analytics-section .ia-cal-filler,
     html.dark #admin-layout-container #stock-replenishment-guide-section .ia-cal-filler,
     html.dark #admin-layout-container #sales-overview-section .ia-cal-filler {
-      color: #94A3B8 !important;
+      color: #BDD3ED !important;
       opacity: 0.45 !important;
     }
     html:not(.dark) #admin-layout-container #inventory-analytics-section .ia-cal-day-default,
     html:not(.dark) #admin-layout-container #stock-replenishment-guide-section .ia-cal-day-default,
     html:not(.dark) #admin-layout-container #sales-overview-section .ia-cal-day-default {
-      color: #0F172A !important;
+      color: #0B1B3D !important;
       background: transparent !important;
     }
     html:not(.dark) #admin-layout-container #inventory-analytics-section .ia-cal-day-default:hover,
     html:not(.dark) #admin-layout-container #stock-replenishment-guide-section .ia-cal-day-default:hover,
     html:not(.dark) #admin-layout-container #sales-overview-section .ia-cal-day-default:hover {
-      background: #E2E8F0 !important;
-      color: #0F172A !important;
+      background: #E2EEF9 !important;
+      color: #0B1B3D !important;
     }
     html.dark #admin-layout-container #inventory-analytics-section .ia-cal-day-default,
     html.dark #admin-layout-container #stock-replenishment-guide-section .ia-cal-day-default,
@@ -1052,7 +1126,7 @@
     html.dark #admin-layout-container #inventory-analytics-section .ia-cal-day-default:hover,
     html.dark #admin-layout-container #stock-replenishment-guide-section .ia-cal-day-default:hover,
     html.dark #admin-layout-container #sales-overview-section .ia-cal-day-default:hover {
-      background: #1E293B !important;
+      background: #1C305C !important;
       color: #FFFFFF !important;
     }
     html:not(.dark) #admin-layout-container #inventory-analytics-section .ia-cal-day-inrange,
@@ -1063,7 +1137,7 @@
     html:not(.dark) #admin-layout-container #sales-overview-section .ia-cal-day-inrange span {
       background: #DCFCE7 !important;
       border: 1px solid #86EFAC !important;
-      color: #0F172A !important;
+      color: #064E3B !important;
     }
     html.dark #admin-layout-container #inventory-analytics-section .ia-cal-day-inrange,
     html.dark #admin-layout-container #inventory-analytics-section .ia-cal-day-inrange span,
@@ -1098,26 +1172,26 @@
     html:not(.dark) #admin-layout-container #inventory-analytics-section .ia-cal-cancel-btn,
     html:not(.dark) #admin-layout-container #stock-replenishment-guide-section .ia-cal-cancel-btn,
     html:not(.dark) #admin-layout-container #sales-overview-section .ia-cal-cancel-btn {
-      background: #F1F5F9 !important;
-      border: 1px solid #CBD5E1 !important;
-      color: #0F172A !important;
+      background: #F0F6FC !important;
+      border: 1px solid #CBDDF0 !important;
+      color: #1E3A5F !important;
     }
     html:not(.dark) #admin-layout-container #inventory-analytics-section .ia-cal-cancel-btn:hover,
     html:not(.dark) #admin-layout-container #stock-replenishment-guide-section .ia-cal-cancel-btn:hover,
     html:not(.dark) #admin-layout-container #sales-overview-section .ia-cal-cancel-btn:hover {
-      background: #E2E8F0 !important;
+      background: #E2EEF9 !important;
     }
     html.dark #admin-layout-container #inventory-analytics-section .ia-cal-cancel-btn,
     html.dark #admin-layout-container #stock-replenishment-guide-section .ia-cal-cancel-btn,
     html.dark #admin-layout-container #sales-overview-section .ia-cal-cancel-btn {
-      background: #1E293B !important;
-      border: 1px solid #475569 !important;
+      background: #15254A !important;
+      border: 1px solid #1E3563 !important;
       color: #FFFFFF !important;
     }
     html.dark #admin-layout-container #inventory-analytics-section .ia-cal-cancel-btn:hover,
     html.dark #admin-layout-container #stock-replenishment-guide-section .ia-cal-cancel-btn:hover,
     html.dark #admin-layout-container #sales-overview-section .ia-cal-cancel-btn:hover {
-      background: #334155 !important;
+      background: #1C305C !important;
     }
     #admin-layout-container #stock-replenishment-guide-section .ia-control-select,
     #admin-layout-container #sales-overview-section .ia-control-select {
@@ -1131,24 +1205,24 @@
     }
     html:not(.dark) #admin-layout-container #stock-replenishment-guide-section .ia-control-select,
     html:not(.dark) #admin-layout-container #sales-overview-section .ia-control-select {
-      background-color: #F8FAFC !important;
-      border: 1px solid #94A3B8 !important;
-      color: #0F172A !important;
+      background-color: #F0F6FC !important;
+      border: 1px solid #B8D0E8 !important;
+      color: #0B1B3D !important;
     }
     html:not(.dark) #admin-layout-container #stock-replenishment-guide-section .ia-control-select:hover,
     html:not(.dark) #admin-layout-container #sales-overview-section .ia-control-select:hover {
-      background-color: #F1F5F9 !important;
+      background-color: #E2EEF9 !important;
       border-color: #1E6C02 !important;
     }
     html.dark #admin-layout-container #stock-replenishment-guide-section .ia-control-select,
     html.dark #admin-layout-container #sales-overview-section .ia-control-select {
-      background-color: #1E293B !important;
-      border: 1px solid #475569 !important;
+      background-color: #15254A !important;
+      border: 1px solid #1E3563 !important;
       color: #FFFFFF !important;
     }
     html.dark #admin-layout-container #stock-replenishment-guide-section .ia-control-select:hover,
     html.dark #admin-layout-container #sales-overview-section .ia-control-select:hover {
-      background-color: #334155 !important;
+      background-color: #1C305C !important;
       border-color: #34D399 !important;
     }
 
@@ -1207,13 +1281,13 @@
       border: 1px solid #86EFAC !important;
     }
     html.dark #admin-layout-container #inventory-analytics-section #card-inv-added {
-      background: linear-gradient(145deg, rgba(6, 78, 59, 0.34) 0%, rgba(15, 23, 42, 0.92) 100%) !important;
+      background: linear-gradient(145deg, rgba(6, 78, 59, 0.34) 0%, rgba(14, 27, 56, 0.95) 100%) !important;
       border: 1px solid rgba(52, 211, 153, 0.38) !important;
     }
     html:not(.dark) #admin-layout-container #inventory-analytics-section #badge-inv-inflow {
       background: #D1FAE5 !important;
       border: 1px solid #6EE7B7 !important;
-      color: #0F172A !important;
+      color: #064E3B !important;
     }
     html.dark #admin-layout-container #inventory-analytics-section #badge-inv-inflow {
       background: rgba(16, 185, 129, 0.25) !important;
@@ -1227,13 +1301,13 @@
       border: 1px solid #A5B4FC !important;
     }
     html.dark #admin-layout-container #inventory-analytics-section #card-inv-deducted {
-      background: linear-gradient(145deg, rgba(49, 46, 129, 0.34) 0%, rgba(15, 23, 42, 0.92) 100%) !important;
+      background: linear-gradient(145deg, rgba(49, 46, 129, 0.34) 0%, rgba(14, 27, 56, 0.95) 100%) !important;
       border: 1px solid rgba(129, 140, 248, 0.4) !important;
     }
     html:not(.dark) #admin-layout-container #inventory-analytics-section #badge-inv-outflow {
       background: #E0E7FF !important;
       border: 1px solid #818CF8 !important;
-      color: #0F172A !important;
+      color: #1E1B4B !important;
     }
     html.dark #admin-layout-container #inventory-analytics-section #badge-inv-outflow {
       background: rgba(99, 102, 241, 0.28) !important;
@@ -1245,30 +1319,30 @@
     html:not(.dark) #admin-layout-container #inventory-analytics-section #card-inv-delivered,
     html:not(.dark) #admin-layout-container #inventory-analytics-section #card-inv-net,
     html:not(.dark) #admin-layout-container #inventory-analytics-section #card-inv-records {
-      background: linear-gradient(145deg, #F8FAFC 0%, #FFFFFF 100%) !important;
-      border: 1px solid #CBD5E1 !important;
+      background: linear-gradient(145deg, #F0F6FC 0%, #FFFFFF 100%) !important;
+      border: 1px solid #D6E3F0 !important;
     }
     html.dark #admin-layout-container #inventory-analytics-section #card-inv-total,
     html.dark #admin-layout-container #inventory-analytics-section #card-inv-delivered,
     html.dark #admin-layout-container #inventory-analytics-section #card-inv-net,
     html.dark #admin-layout-container #inventory-analytics-section #card-inv-records {
-      background: linear-gradient(145deg, rgba(30, 41, 59, 0.68) 0%, rgba(15, 23, 42, 0.92) 100%) !important;
-      border: 1px solid rgba(148, 163, 184, 0.32) !important;
+      background: linear-gradient(145deg, rgba(21, 37, 74, 0.68) 0%, rgba(14, 27, 56, 0.95) 100%) !important;
+      border: 1px solid rgba(96, 165, 250, 0.32) !important;
     }
     html:not(.dark) #admin-layout-container #inventory-analytics-section #badge-inv-total,
     html:not(.dark) #admin-layout-container #inventory-analytics-section #badge-inv-delivered,
     html:not(.dark) #admin-layout-container #inventory-analytics-section #badge-inv-net,
     html:not(.dark) #admin-layout-container #inventory-analytics-section #badge-inv-records {
-      background: #E2E8F0 !important;
-      border: 1px solid #94A3B8 !important;
-      color: #0F172A !important;
+      background: #EBF2F9 !important;
+      border: 1px solid #CBDDF0 !important;
+      color: #0B1B3D !important;
     }
     html.dark #admin-layout-container #inventory-analytics-section #badge-inv-total,
     html.dark #admin-layout-container #inventory-analytics-section #badge-inv-delivered,
     html.dark #admin-layout-container #inventory-analytics-section #badge-inv-net,
     html.dark #admin-layout-container #inventory-analytics-section #badge-inv-records {
-      background: #334155 !important;
-      border: 1px solid #64748B !important;
+      background: #15254A !important;
+      border: 1px solid #1E3563 !important;
       color: #FFFFFF !important;
     }
 
@@ -1284,7 +1358,7 @@
     html:not(.dark) #admin-layout-container #inventory-analytics-section .ia-num-positive,
     html:not(.dark) #admin-layout-container #inventory-analytics-section .ia-num-negative,
     html:not(.dark) #admin-layout-container #inventory-analytics-section .ia-num-neutral {
-      color: #0F172A !important;
+      color: #0B1B3D !important;
     }
     html.dark #admin-layout-container #inventory-analytics-section .ia-card-label,
     html.dark #admin-layout-container #inventory-analytics-section .ia-card-sub,
@@ -1302,10 +1376,10 @@
 
     /* Equivalent Weight (kg) row styling */
     html:not(.dark) #admin-layout-container #inventory-analytics-section .ia-card-kg {
-      color: #475569 !important;
+      color: #2C4A6F !important;
     }
     html.dark #admin-layout-container #inventory-analytics-section .ia-card-kg {
-      color: #94A3B8 !important;
+      color: #BDD3ED !important;
     }
 
     /* Consistent internal alignment across all Inventory Analytics Summary Cards */
@@ -1354,18 +1428,18 @@
 
     /* Stock Movement Trend Legend & Chart Stage */
     html:not(.dark) #admin-layout-container #inventory-analytics-section #legend-inv-chart {
-      background: #F8FAFC !important;
-      border: 1px solid #CBD5E1 !important;
+      background: #F0F6FC !important;
+      border: 1px solid #D6E3F0 !important;
     }
     html.dark #admin-layout-container #inventory-analytics-section #legend-inv-chart {
-      background: rgba(30, 41, 59, 0.85) !important;
-      border: 1px solid rgba(148, 163, 184, 0.32) !important;
+      background: rgba(21, 37, 74, 0.85) !important;
+      border: 1px solid rgba(96, 165, 250, 0.32) !important;
     }
     html:not(.dark) #admin-layout-container #inventory-analytics-section #legend-inv-green,
     html:not(.dark) #admin-layout-container #inventory-analytics-section #legend-inv-green span,
     html:not(.dark) #admin-layout-container #inventory-analytics-section #legend-inv-orange,
     html:not(.dark) #admin-layout-container #inventory-analytics-section #legend-inv-orange span {
-      color: #0F172A !important;
+      color: #0B1B3D !important;
     }
     html.dark #admin-layout-container #inventory-analytics-section #legend-inv-green,
     html.dark #admin-layout-container #inventory-analytics-section #legend-inv-green span,
@@ -1375,34 +1449,34 @@
     }
 
     html:not(.dark) #admin-layout-container #inventory-analytics-section #inv-movement-chart-inner {
-      background: #F8FAFC !important;
-      border: 1px solid #CBD5E1 !important;
+      background: #F0F6FC !important;
+      border: 1px solid #D6E3F0 !important;
     }
     html.dark #admin-layout-container #inventory-analytics-section #inv-movement-chart-inner {
-      background: rgba(30, 41, 59, 0.45) !important;
-      border: 1px solid rgba(148, 163, 184, 0.25) !important;
+      background: rgba(21, 37, 74, 0.45) !important;
+      border: 1px solid rgba(96, 165, 250, 0.25) !important;
     }
 
     html:not(.dark) #admin-layout-container #inventory-analytics-section .ia-chart-gridline {
-      border-color: #CBD5E1 !important;
+      border-color: #D6E3F0 !important;
     }
     html.dark #admin-layout-container #inventory-analytics-section .ia-chart-gridline {
-      border-color: rgba(148, 163, 184, 0.28) !important;
+      border-color: rgba(96, 165, 250, 0.28) !important;
     }
 
     html:not(.dark) #admin-layout-container #inventory-analytics-section .ia-chart-axis-pill {
       background: #FFFFFF !important;
-      border: 1px solid #CBD5E1 !important;
-      color: #0F172A !important;
+      border: 1px solid #D6E3F0 !important;
+      color: #2C4A6F !important;
     }
     html.dark #admin-layout-container #inventory-analytics-section .ia-chart-axis-pill {
-      background: #1E293B !important;
-      border: 1px solid #475569 !important;
+      background: #15254A !important;
+      border: 1px solid #1E3563 !important;
       color: #FFFFFF !important;
     }
 
     html:not(.dark) #admin-layout-container #inventory-analytics-section .ia-bar-val {
-      color: #0F172A !important;
+      color: #0B1B3D !important;
     }
     html.dark #admin-layout-container #inventory-analytics-section .ia-bar-val {
       color: #FFFFFF !important;
@@ -1413,18 +1487,18 @@
        ========================================================================== */
     html:not(.dark) #admin-layout-container #reservation-analytics-section {
       background: #FFFFFF !important;
-      border: 1px solid #CBD5E1 !important;
-      box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.05), 0 2px 6px -1px rgba(15, 23, 42, 0.03) !important;
+      border: 1px solid #D6E3F0 !important;
+      box-shadow: 0 4px 20px -2px rgba(11, 27, 61, 0.05), 0 2px 6px -1px rgba(11, 27, 61, 0.03) !important;
     }
     html.dark #admin-layout-container #reservation-analytics-section {
-      background: #0F172A !important;
-      border: 1px solid #1E293B !important;
+      background: #0E1B38 !important;
+      border: 1px solid #1E3563 !important;
       box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.45) !important;
     }
 
     html:not(.dark) #admin-layout-container #reservation-analytics-section .ra-text-main,
     html:not(.dark) #admin-layout-container #reservation-analytics-section .ra-text-sub {
-      color: #0F172A !important;
+      color: #0B1B3D !important;
     }
     html.dark #admin-layout-container #reservation-analytics-section .ra-text-main,
     html.dark #admin-layout-container #reservation-analytics-section .ra-text-sub {
@@ -1432,10 +1506,10 @@
     }
 
     html:not(.dark) #admin-layout-container #reservation-analytics-section .ra-header-divider {
-      border-bottom: 1px solid #E2E8F0 !important;
+      border-bottom: 1px solid #E2EDF7 !important;
     }
     html.dark #admin-layout-container #reservation-analytics-section .ra-header-divider {
-      border-bottom: 1px solid rgba(148, 163, 184, 0.18) !important;
+      border-bottom: 1px solid rgba(96, 165, 250, 0.18) !important;
     }
 
     html:not(.dark) #admin-layout-container #reservation-analytics-section .ra-header-icon {
@@ -1453,7 +1527,7 @@
     html:not(.dark) #admin-layout-container #reservation-analytics-section .ra-period-badge span {
       background: #ECFDF5 !important;
       border: 1px solid #A7F3D0 !important;
-      color: #0F172A !important;
+      color: #064E3B !important;
     }
     html.dark #admin-layout-container #reservation-analytics-section .ra-period-badge,
     html.dark #admin-layout-container #reservation-analytics-section .ra-period-badge span {
@@ -1463,31 +1537,31 @@
     }
 
     html:not(.dark) #admin-layout-container #reservation-analytics-section .ra-control-select {
-      background-color: #F8FAFC !important;
-      border: 1px solid #94A3B8 !important;
-      color: #0F172A !important;
+      background-color: #F0F6FC !important;
+      border: 1px solid #B8D0E8 !important;
+      color: #0B1B3D !important;
     }
     html:not(.dark) #admin-layout-container #reservation-analytics-section .ra-control-select:hover,
     html:not(.dark) #admin-layout-container #reservation-analytics-section .ra-control-select:focus {
-      background-color: #F1F5F9 !important;
+      background-color: #E2EEF9 !important;
       border-color: #1E6C02 !important;
     }
     html.dark #admin-layout-container #reservation-analytics-section .ra-control-select {
-      background-color: #1E293B !important;
-      border: 1px solid #475569 !important;
+      background-color: #15254A !important;
+      border: 1px solid #1E3563 !important;
       color: #FFFFFF !important;
     }
     html.dark #admin-layout-container #reservation-analytics-section .ra-control-select:hover,
     html.dark #admin-layout-container #reservation-analytics-section .ra-control-select:focus {
-      background-color: #334155 !important;
+      background-color: #1C305C !important;
       border-color: #34D399 !important;
     }
     html:not(.dark) #admin-layout-container #reservation-analytics-section .ra-control-select option {
       background-color: #FFFFFF !important;
-      color: #0F172A !important;
+      color: #0B1B3D !important;
     }
     html.dark #admin-layout-container #reservation-analytics-section .ra-control-select option {
-      background-color: #0F172A !important;
+      background-color: #0E1B38 !important;
       color: #FFFFFF !important;
     }
 
@@ -1520,13 +1594,13 @@
       border: 1px solid #93C5FD !important;
     }
     html.dark #admin-layout-container #reservation-analytics-section #card-res-active {
-      background: linear-gradient(145deg, rgba(30, 58, 138, 0.36) 0%, rgba(15, 23, 42, 0.94) 100%) !important;
+      background: linear-gradient(145deg, rgba(30, 58, 138, 0.36) 0%, rgba(14, 27, 56, 0.95) 100%) !important;
       border: 1px solid rgba(96, 165, 250, 0.42) !important;
     }
     html:not(.dark) #admin-layout-container #reservation-analytics-section #card-res-active .ra-kpi-badge {
       background: #DBEAFE !important;
       border: 1px solid #60A5FA !important;
-      color: #0F172A !important;
+      color: #1E3A8A !important;
     }
     html.dark #admin-layout-container #reservation-analytics-section #card-res-active .ra-kpi-badge {
       background: rgba(59, 130, 246, 0.26) !important;
@@ -1539,13 +1613,13 @@
       border: 1px solid #A5B4FC !important;
     }
     html.dark #admin-layout-container #reservation-analytics-section #card-res-sacks {
-      background: linear-gradient(145deg, rgba(49, 46, 129, 0.36) 0%, rgba(15, 23, 42, 0.94) 100%) !important;
+      background: linear-gradient(145deg, rgba(49, 46, 129, 0.36) 0%, rgba(14, 27, 56, 0.95) 100%) !important;
       border: 1px solid rgba(129, 140, 248, 0.42) !important;
     }
     html:not(.dark) #admin-layout-container #reservation-analytics-section #card-res-sacks .ra-kpi-badge {
       background: #E0E7FF !important;
       border: 1px solid #818CF8 !important;
-      color: #0F172A !important;
+      color: #312E81 !important;
     }
     html.dark #admin-layout-container #reservation-analytics-section #card-res-sacks .ra-kpi-badge {
       background: rgba(99, 102, 241, 0.26) !important;
@@ -1558,13 +1632,13 @@
       border: 1px solid #FCD34D !important;
     }
     html.dark #admin-layout-container #reservation-analytics-section #card-res-waiting {
-      background: linear-gradient(145deg, rgba(120, 53, 15, 0.36) 0%, rgba(15, 23, 42, 0.94) 100%) !important;
+      background: linear-gradient(145deg, rgba(120, 53, 15, 0.36) 0%, rgba(14, 27, 56, 0.95) 100%) !important;
       border: 1px solid rgba(251, 191, 36, 0.42) !important;
     }
     html:not(.dark) #admin-layout-container #reservation-analytics-section #card-res-waiting .ra-kpi-badge {
       background: #FEF3C7 !important;
       border: 1px solid #F59E0B !important;
-      color: #0F172A !important;
+      color: #78350F !important;
     }
     html.dark #admin-layout-container #reservation-analytics-section #card-res-waiting .ra-kpi-badge {
       background: rgba(245, 158, 11, 0.26) !important;
@@ -1577,13 +1651,13 @@
       border: 1px solid #7DD3FC !important;
     }
     html.dark #admin-layout-container #reservation-analytics-section #card-res-ready {
-      background: linear-gradient(145deg, rgba(12, 74, 110, 0.36) 0%, rgba(15, 23, 42, 0.94) 100%) !important;
+      background: linear-gradient(145deg, rgba(12, 74, 110, 0.36) 0%, rgba(14, 27, 56, 0.95) 100%) !important;
       border: 1px solid rgba(56, 189, 248, 0.42) !important;
     }
     html:not(.dark) #admin-layout-container #reservation-analytics-section #card-res-ready .ra-kpi-badge {
       background: #E0F2FE !important;
       border: 1px solid #38BDF8 !important;
-      color: #0F172A !important;
+      color: #0369A1 !important;
     }
     html.dark #admin-layout-container #reservation-analytics-section #card-res-ready .ra-kpi-badge {
       background: rgba(14, 165, 233, 0.26) !important;
@@ -1596,13 +1670,13 @@
       border: 1px solid #6EE7B7 !important;
     }
     html.dark #admin-layout-container #reservation-analytics-section #card-res-completed {
-      background: linear-gradient(145deg, rgba(6, 78, 59, 0.36) 0%, rgba(15, 23, 42, 0.94) 100%) !important;
+      background: linear-gradient(145deg, rgba(6, 78, 59, 0.36) 0%, rgba(14, 27, 56, 0.95) 100%) !important;
       border: 1px solid rgba(52, 211, 153, 0.42) !important;
     }
     html:not(.dark) #admin-layout-container #reservation-analytics-section #card-res-completed .ra-kpi-badge {
       background: #D1FAE5 !important;
       border: 1px solid #34D399 !important;
-      color: #0F172A !important;
+      color: #064E3B !important;
     }
     html.dark #admin-layout-container #reservation-analytics-section #card-res-completed .ra-kpi-badge {
       background: rgba(16, 185, 129, 0.26) !important;
@@ -1611,22 +1685,22 @@
     }
 
     html:not(.dark) #admin-layout-container #reservation-analytics-section #card-res-cancelled {
-      background: linear-gradient(145deg, #F8FAFC 0%, #FFFFFF 100%) !important;
-      border: 1px solid #CBD5E1 !important;
+      background: linear-gradient(145deg, #F0F6FC 0%, #FFFFFF 100%) !important;
+      border: 1px solid #D6E3F0 !important;
     }
     html.dark #admin-layout-container #reservation-analytics-section #card-res-cancelled {
-      background: linear-gradient(145deg, rgba(30, 41, 59, 0.68) 0%, rgba(15, 23, 42, 0.94) 100%) !important;
-      border: 1px solid rgba(148, 163, 184, 0.35) !important;
+      background: linear-gradient(145deg, #15254A 0%, #0E1B38 100%) !important;
+      border: 1px solid #1E3563 !important;
     }
     html:not(.dark) #admin-layout-container #reservation-analytics-section #card-res-cancelled .ra-kpi-badge {
-      background: #E2E8F0 !important;
-      border: 1px solid #94A3B8 !important;
-      color: #0F172A !important;
+      background: #EBF2F9 !important;
+      border: 1px solid #CBDDF0 !important;
+      color: #1E3A5F !important;
     }
     html.dark #admin-layout-container #reservation-analytics-section #card-res-cancelled .ra-kpi-badge {
-      background: #334155 !important;
-      border: 1px solid #64748B !important;
-      color: #FFFFFF !important;
+      background: #1C305C !important;
+      border: 1px solid #2B487A !important;
+      color: #D6E6F8 !important;
     }
 
     html:not(.dark) #admin-layout-container #reservation-analytics-section .ra-card-label,
@@ -1637,7 +1711,7 @@
     html:not(.dark) #admin-layout-container #reservation-analytics-section #res-stat-ready,
     html:not(.dark) #admin-layout-container #reservation-analytics-section #res-stat-completed,
     html:not(.dark) #admin-layout-container #reservation-analytics-section #res-stat-cancelled {
-      color: #0F172A !important;
+      color: #0B1B3D !important;
     }
     html.dark #admin-layout-container #reservation-analytics-section .ra-card-label,
     html.dark #admin-layout-container #reservation-analytics-section .ra-card-sub,
@@ -1652,18 +1726,18 @@
 
     /* Two Side-by-Side Analytics Subpanels */
     html:not(.dark) #admin-layout-container #reservation-analytics-section .ra-subpanel {
-      background: #F8FAFC !important;
-      border: 1px solid #CBD5E1 !important;
+      background: #F0F6FC !important;
+      border: 1px solid #D6E3F0 !important;
     }
     html.dark #admin-layout-container #reservation-analytics-section .ra-subpanel {
-      background: rgba(30, 41, 59, 0.5) !important;
-      border: 1px solid rgba(148, 163, 184, 0.24) !important;
+      background: #15254A !important;
+      border: 1px solid #1E3563 !important;
     }
 
     html:not(.dark) #admin-layout-container #reservation-analytics-section .ra-queue-link {
       background: #ECFDF5 !important;
       border: 1px solid #86EFAC !important;
-      color: #0F172A !important;
+      color: #064E3B !important;
     }
     html:not(.dark) #admin-layout-container #reservation-analytics-section .ra-queue-link:hover {
       background: #D1FAE5 !important;
@@ -1679,32 +1753,32 @@
 
     html:not(.dark) #admin-layout-container #reservation-analytics-section .ra-item-card {
       background: #FFFFFF !important;
-      border: 1px solid #CBD5E1 !important;
+      border: 1px solid #D6E3F0 !important;
     }
     html.dark #admin-layout-container #reservation-analytics-section .ra-item-card {
-      background: rgba(15, 23, 42, 0.78) !important;
-      border: 1px solid rgba(148, 163, 184, 0.22) !important;
+      background: #0E1B38 !important;
+      border: 1px solid #1E3563 !important;
     }
 
     html:not(.dark) #admin-layout-container #reservation-analytics-section .ra-bar-track {
-      background: #E2E8F0 !important;
+      background: #DCE5EF !important;
     }
     html.dark #admin-layout-container #reservation-analytics-section .ra-bar-track {
-      background: rgba(51, 65, 85, 0.75) !important;
+      background: #1C305C !important;
     }
 
     html:not(.dark) #admin-layout-container #reservation-analytics-section .ra-donut-track {
-      stroke: #E2E8F0 !important;
+      stroke: #DCE5EF !important;
     }
     html.dark #admin-layout-container #reservation-analytics-section .ra-donut-track {
-      stroke: #1E293B !important;
+      stroke: #1C305C !important;
     }
 
     /* Variety Status Badges — High Contrast */
     html:not(.dark) #admin-layout-container #reservation-analytics-section .ra-badge-sufficient {
       background: #D1FAE5 !important;
       border: 1px solid #34D399 !important;
-      color: #0F172A !important;
+      color: #064E3B !important;
     }
     html.dark #admin-layout-container #reservation-analytics-section .ra-badge-sufficient {
       background: rgba(16, 185, 129, 0.25) !important;
@@ -1715,7 +1789,7 @@
     html:not(.dark) #admin-layout-container #reservation-analytics-section .ra-badge-deficit {
       background: #FEF3C7 !important;
       border: 1px solid #F59E0B !important;
-      color: #0F172A !important;
+      color: #78350F !important;
     }
     html.dark #admin-layout-container #reservation-analytics-section .ra-badge-deficit {
       background: rgba(245, 158, 11, 0.25) !important;
@@ -1726,7 +1800,7 @@
     html:not(.dark) #admin-layout-container #reservation-analytics-section .ra-badge-critical {
       background: #FEE2E2 !important;
       border: 1px solid #F87171 !important;
-      color: #0F172A !important;
+      color: #7F1D1D !important;
     }
     html.dark #admin-layout-container #reservation-analytics-section .ra-badge-critical {
       background: rgba(239, 68, 68, 0.25) !important;
@@ -1735,14 +1809,14 @@
     }
 
     html:not(.dark) #admin-layout-container #reservation-analytics-section .ra-badge-none {
-      background: #E2E8F0 !important;
-      border: 1px solid #94A3B8 !important;
-      color: #0F172A !important;
+      background: #EBF2F9 !important;
+      border: 1px solid #CBDDF0 !important;
+      color: #1E3A5F !important;
     }
     html.dark #admin-layout-container #reservation-analytics-section .ra-badge-none {
-      background: #334155 !important;
-      border: 1px solid #64748B !important;
-      color: #FFFFFF !important;
+      background: #1C305C !important;
+      border: 1px solid #2B487A !important;
+      color: #D6E6F8 !important;
     }
 
     /* Total Orders Card "View →" Button — High Contrast Day & Dark Mode */
@@ -1754,7 +1828,7 @@
     html:not(.dark) #admin-layout-container #btn-view-total-orders:hover {
       background: #DBEAFE !important;
       border-color: #60A5FA !important;
-      color: #0F172A !important;
+      color: #0B1B3D !important;
     }
     html.dark #admin-layout-container #btn-view-total-orders {
       background: rgba(59, 130, 246, 0.2) !important;
@@ -1864,7 +1938,7 @@
     html:not(.dark) #admin-layout-container #btn-view-order-summary:hover {
       background: #DBEAFE !important;
       border-color: #3B82F6 !important;
-      color: #0F172A !important;
+      color: #0B1B3D !important;
     }
     html.dark #admin-layout-container #btn-view-order-summary {
       background: rgba(59, 130, 246, 0.16) !important;
@@ -2034,19 +2108,664 @@
     html:not(.dark) #admin-layout-container #sales-barchart-inner .so-bar-label-sep,
     html:not(.dark) .so-bar-label-sep {
       color: #1E6C02 !important;
-      font-weight: 900 !important;
+      font-weight: 700 !important;
     }
     html.dark #admin-layout-container #sales-barchart-inner .so-bar-label-sep,
     html.dark .so-bar-label-sep {
       color: #34D399 !important;
-      font-weight: 900 !important;
+      font-weight: 700 !important;
+    }
+
+    /* ==========================================================================
+       DASHBOARD READABILITY & APPROVED TYPOGRAPHY SYSTEM (INTER & SOURCE SANS 3)
+       ========================================================================== */
+
+    /* Base dashboard font: default to Source Sans 3 for body, descriptions, inputs, tables */
+    #admin-layout-container,
+    #admin-layout-container * {
+      font-family: 'Source Sans 3', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    #admin-layout-container {
+      background-color: #F0F4F9 !important;
+    }
+    html.dark #admin-layout-container {
+      background-color: #0A1329 !important;
+    }
+
+    /* --------------------------------------------------------------------------
+       PRIMARY FONT: INTER
+       - Main page title (26–28px, Bold)
+       - Section and card headings (18–20px, Semibold)
+       - Important numbers and statistics (25–30px, Bold)
+       - Buttons and navigation labels (14–16px, Medium/Semibold)
+       - Status badges and short UI labels (14–16px, Semibold)
+       -------------------------------------------------------------------------- */
+
+    /* 1. Main Page Title: 26–28px, Semibold/Bold */
+    #admin-right-workspace header h2,
+    .main-page-title {
+      font-family: 'Inter', sans-serif !important;
+      font-size: 1.75rem !important; /* 28px */
+      line-height: 2.125rem !important; /* 34px */
+      font-weight: 700 !important;
+      letter-spacing: -0.025em !important;
+      color: #0B1B3D !important;
+    }
+    html.dark #admin-right-workspace header h2 {
+      color: #F0F6FC !important;
+    }
+
+    /* 2. Section Headings: 18–20px, Semibold */
+    #sales-overview-section h4,
+    #order-summary-section h4,
+    #inventory-health-section h4,
+    #stock-replenishment-guide-section h4,
+    #inventory-analytics-section h4,
+    #reservation-analytics-section h4,
+    #recent-orders-section h4,
+    #admin-main-content h3,
+    #admin-main-content h4,
+    .section-heading {
+      font-family: 'Inter', sans-serif !important;
+      font-size: 1.1875rem !important; /* 19px, in 18-20px range */
+      line-height: 1.625rem !important; /* 26px */
+      font-weight: 600 !important;
+      letter-spacing: -0.015em !important;
+      color: #0B1B3D !important;
+    }
+    html.dark #sales-overview-section h4,
+    html.dark #order-summary-section h4,
+    html.dark #inventory-health-section h4,
+    html.dark #stock-replenishment-guide-section h4,
+    html.dark #inventory-analytics-section h4,
+    html.dark #reservation-analytics-section h4,
+    html.dark #recent-orders-section h4,
+    html.dark #admin-main-content h3,
+    html.dark #admin-main-content h4 {
+      color: #F0F6FC !important;
+    }
+
+    /* 3. Dashboard Card Titles: 16–18px, Semibold */
+    #top-kpi-cards-section span.uppercase,
+    #dash-kpi-total-orders span.uppercase,
+    #dash-kpi-active-reservations span.uppercase,
+    #dash-kpi-total-sales span.uppercase,
+    #dash-kpi-available-stock span.uppercase,
+    .dashboard-card-title {
+      font-family: 'Inter', sans-serif !important;
+      font-size: 1.0625rem !important; /* 17px, in 16-18px range */
+      line-height: 1.35 !important;
+      font-weight: 600 !important;
+      letter-spacing: 0.02em !important;
+      color: #0E244D !important;
+    }
+    html:not(.dark) #top-kpi-cards-section span.uppercase,
+    html:not(.dark) #dash-kpi-total-orders span.uppercase,
+    html:not(.dark) #dash-kpi-active-reservations span.uppercase,
+    html:not(.dark) #dash-kpi-total-sales span.uppercase,
+    html:not(.dark) #dash-kpi-available-stock span.uppercase {
+      color: #000000 !important;
+    }
+    html.dark #top-kpi-cards-section span.uppercase,
+    html.dark #dash-kpi-total-orders span.uppercase,
+    html.dark #dash-kpi-active-reservations span.uppercase,
+    html.dark #dash-kpi-total-sales span.uppercase,
+    html.dark #dash-kpi-available-stock span.uppercase {
+      color: #D6E6F8 !important;
+    }
+
+    /* Force Active Reservations and Available Stock titles to single line with clipping/truncation */
+    #dash-kpi-active-reservations span.uppercase,
+    #dash-kpi-available-stock span.uppercase {
+      white-space: nowrap !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+    }
+
+    /* 4. Important Figures and Statistics: 25–30px, Bold */
+    #dash-total-registered,
+    #dash-active-reservations,
+    #dash-total-reservations,
+    #dash-validated-revenue,
+    #dash-available-sacks,
+    #dash-top-product-name,
+    #piechart-container-inner svg + div p:first-child,
+    #inv-health-container-inner svg + div p:first-child,
+    #dash-res-donut-container svg + div span:first-child,
+    .kpi-stat-number {
+      font-family: 'Inter', sans-serif !important;
+      font-size: 1.75rem !important; /* 28px, in 25-30px range */
+      line-height: 2.125rem !important;
+      font-weight: 800 !important;
+      letter-spacing: -0.025em !important;
+      color: #0B1B3D !important;
+    }
+    html:not(.dark) #dash-total-registered,
+    html:not(.dark) #dash-active-reservations,
+    html:not(.dark) #dash-total-reservations,
+    html:not(.dark) #dash-validated-revenue,
+    html:not(.dark) #dash-available-sacks {
+      color: #000000 !important;
+      font-weight: 800 !important;
+    }
+    html.dark #dash-total-registered,
+    html.dark #dash-active-reservations,
+    html.dark #dash-total-reservations,
+    html.dark #dash-validated-revenue,
+    html.dark #dash-available-sacks,
+    html.dark #dash-top-product-name,
+    html.dark #piechart-container-inner svg + div p:first-child,
+    html.dark #inv-health-container-inner svg + div p:first-child,
+    html.dark #dash-res-donut-container svg + div span:first-child {
+      color: #FFFFFF !important;
+      font-weight: 800 !important;
+    }
+
+    /* 5. Buttons and Navigation Labels: 14–16px, Medium/Semibold */
+    #btn-view-all-orders,
+    #btn-view-total-orders,
+    #btn-view-active-reservations,
+    #btn-view-total-sales,
+    #btn-view-available-stock,
+    #btn-view-sales-overview,
+    #btn-view-order-summary,
+    #btn-view-inventory-health,
+    #btn-view-stock-replenishment,
+    #btn-view-inventory-analytics,
+    #btn-view-reservation-analytics,
+    .srg-manage-btn {
+      font-family: 'Inter', sans-serif !important;
+      font-size: 0.9375rem !important; /* 15px, in 14-16px range */
+      line-height: 1.35 !important;
+      font-weight: 600 !important;
+      letter-spacing: -0.01em !important;
+    }
+
+    /* Admin Sidebar Theme & Navigation Overrides */
+    #admin-sidebar {
+      background-color: #FFFFFF !important;
+      border-right: 1px solid #D6E3F0 !important;
+    }
+    html.dark #admin-sidebar {
+      background-color: #0E1B38 !important;
+      border-right: 1px solid #1E3563 !important;
+    }
+    #admin-sidebar .text-\[\#1E6C02\] {
+      font-family: 'Inter', sans-serif !important;
+      font-weight: 800 !important;
+    }
+    #admin-sidebar span.tracking-tight {
+      font-family: 'Source Sans 3', sans-serif !important;
+      font-size: 0.875rem !important; /* 14px */
+      color: #2C4A6F !important;
+    }
+    html.dark #admin-sidebar span.tracking-tight {
+      color: #BDD3ED !important;
+    }
+    #admin-sidebar > div > div:last-child {
+      border-top-color: #E2EDF7 !important;
+    }
+    html.dark #admin-sidebar > div > div:last-child {
+      border-top-color: #1E3563 !important;
+    }
+
+    /* Workspace Topbar Header Overrides (No Gray) */
+    #admin-right-workspace header {
+      background-color: #FFFFFF !important;
+      border-bottom: 1px solid #D6E3F0 !important;
+    }
+    html.dark #admin-right-workspace header {
+      background-color: #0E1B38 !important;
+      border-bottom: 1px solid #1E3563 !important;
+    }
+    #admin-sidebar-toggle {
+      border-color: #D6E3F0 !important;
+      background-color: #FFFFFF !important;
+      color: #1E3A5F !important;
+    }
+    #admin-sidebar-toggle:hover {
+      background-color: #F0F6FC !important;
+      border-color: #CBDDF0 !important;
+      color: #0B1B3D !important;
+    }
+    html.dark #admin-sidebar-toggle {
+      border-color: #1E3563 !important;
+      background-color: #15254A !important;
+      color: #D6E6F8 !important;
+    }
+    html.dark #admin-sidebar-toggle:hover {
+      background-color: #1C305C !important;
+      color: #FFFFFF !important;
+    }
+    #admin-calendar-date {
+      font-family: 'Source Sans 3', sans-serif !important;
+      font-size: 0.875rem !important; /* 14px */
+      font-weight: 500 !important;
+      border-color: #D6E3F0 !important;
+      background-color: #F0F6FC !important;
+      color: #1E3A5F !important;
+    }
+    html.dark #admin-calendar-date {
+      border-color: #1E3563 !important;
+      background-color: #15254A !important;
+      color: #D6E6F8 !important;
+    }
+
+    /* Clean, Cohesive Action Buttons (View → and View More →) */
+    #dash-kpi-total-orders a,
+    #dash-kpi-active-reservations a,
+    #dash-kpi-total-reservations a,
+    #dash-kpi-total-sales a,
+    #dash-kpi-available-stock a,
+    #dash-kpi-top-product a,
+    #btn-view-total-orders,
+    #btn-view-active-reservations,
+    #btn-view-total-sales,
+    #btn-view-available-stock,
+    #btn-view-sales-overview,
+    #btn-view-order-summary,
+    #btn-view-inventory-health,
+    #btn-view-stock-replenishment,
+    #btn-view-inventory-analytics,
+    #btn-view-reservation-analytics,
+    #btn-view-all-orders {
+      font-size: 0.875rem !important; /* 14px */
+      font-weight: 600 !important;
+      padding: 5px 12px !important;
+      border-radius: 10px !important;
+      border: 1px solid #CBDDF0 !important;
+      background-color: #F0F6FC !important;
+      color: #1E3A5F !important;
+      transition: all 150ms ease-in-out !important;
+    }
+    #dash-kpi-total-orders a:hover,
+    #dash-kpi-active-reservations a:hover,
+    #dash-kpi-total-reservations a:hover,
+    #dash-kpi-total-sales a:hover,
+    #dash-kpi-available-stock a:hover,
+    #dash-kpi-top-product a:hover,
+    #btn-view-total-orders:hover,
+    #btn-view-active-reservations:hover,
+    #btn-view-total-sales:hover,
+    #btn-view-available-stock:hover,
+    #btn-view-sales-overview:hover,
+    #btn-view-order-summary:hover,
+    #btn-view-inventory-health:hover,
+    #btn-view-stock-replenishment:hover,
+    #btn-view-inventory-analytics:hover,
+    #btn-view-reservation-analytics:hover,
+    #btn-view-all-orders:hover {
+      background-color: #E2EEF9 !important;
+      border-color: #B8D0E8 !important;
+      color: #0B1B3D !important;
+    }
+    html.dark #dash-kpi-total-orders a,
+    html.dark #dash-kpi-active-reservations a,
+    html.dark #dash-kpi-total-reservations a,
+    html.dark #dash-kpi-total-sales a,
+    html.dark #dash-kpi-available-stock a,
+    html.dark #dash-kpi-top-product a,
+    html.dark #btn-view-total-orders,
+    html.dark #btn-view-active-reservations,
+    html.dark #btn-view-total-sales,
+    html.dark #btn-view-available-stock,
+    html.dark #btn-view-sales-overview,
+    html.dark #btn-view-order-summary,
+    html.dark #btn-view-inventory-health,
+    html.dark #btn-view-stock-replenishment,
+    html.dark #btn-view-inventory-analytics,
+    html.dark #btn-view-reservation-analytics,
+    html.dark #btn-view-all-orders {
+      border-color: #1E3563 !important;
+      background-color: #15254A !important;
+      color: #D6E6F8 !important;
+    }
+    html.dark #btn-view-total-orders:hover,
+    html.dark #btn-view-active-reservations:hover,
+    html.dark #btn-view-total-sales:hover,
+    html.dark #btn-view-available-stock:hover,
+    html.dark #btn-view-sales-overview:hover,
+    html.dark #btn-view-order-summary:hover,
+    html.dark #btn-view-inventory-health:hover,
+    html.dark #btn-view-stock-replenishment:hover,
+    html.dark #btn-view-inventory-analytics:hover,
+    html.dark #btn-view-reservation-analytics:hover,
+    html.dark #btn-view-all-orders:hover {
+      background-color: #1C305C !important;
+      color: #FFFFFF !important;
+    }
+    html:not(.dark) #top-kpi-cards-section a,
+    html:not(.dark) #btn-view-total-orders,
+    html:not(.dark) #btn-view-active-reservations,
+    html:not(.dark) #btn-view-total-sales,
+    html:not(.dark) #btn-view-available-stock {
+      color: #000000 !important;
+    }
+
+    /* 6. Status Badges and Short UI Labels: 14–16px, Semibold */
+    [class*="srg-badge-"],
+    [class*="srg-pill-"],
+    #recent-orders-section table td span,
+    #dash-pipeline-tbody td span,
+    .srg-period-badge,
+    .status-badge {
+      font-family: 'Inter', sans-serif !important;
+      font-size: 0.875rem !important; /* 14px, in 14-16px range */
+      line-height: 1.25 !important;
+      font-weight: 600 !important;
+      letter-spacing: 0.01em !important;
+    }
+
+    /* --------------------------------------------------------------------------
+       SECONDARY FONT: SOURCE SANS 3
+       - Descriptions and supporting text (14–16px, Regular)
+       - Form labels and input text (14–16px, Medium)
+       - Table content and explanatory text (14–16px, Regular)
+       - Chart labels and data descriptions (~13–14px, Medium)
+       -------------------------------------------------------------------------- */
+
+    /* 7. Descriptions and Supporting Text: 14–16px, Regular */
+    #admin-layout-container p,
+    #admin-layout-container span.description,
+    #sales-overview-section p.so-text-sub,
+    #order-summary-section p.text-xs,
+    #inventory-health-section p.text-xs,
+    #stock-replenishment-guide-section p.text-xs,
+    #inventory-analytics-section p.text-xs,
+    #reservation-analytics-section p.text-xs,
+    #recent-orders-section p.text-xs,
+    #dash-kpi-total-orders p.leading-snug,
+    #dash-kpi-active-reservations p.leading-snug,
+    #dash-kpi-total-reservations p.leading-snug,
+    #dash-kpi-total-sales p.leading-snug,
+    #dash-kpi-available-stock p.leading-snug,
+    #dash-kpi-top-product p.leading-snug,
+    #dash-reservations-sub {
+      font-family: 'Source Sans 3', sans-serif !important;
+      font-size: 0.9375rem !important; /* 15px, in 14-16px range */
+      line-height: 1.45 !important;
+      font-weight: 400 !important;
+      color: #2C4A6F !important;
+    }
+    html:not(.dark) #sales-overview-section p.so-text-sub,
+    html:not(.dark) #dash-kpi-total-orders p.leading-snug,
+    html:not(.dark) #dash-kpi-available-stock p.leading-snug {
+      color: #000000 !important;
+      font-weight: 400 !important;
+    }
+    html:not(.dark) #dash-kpi-active-reservations p.leading-snug,
+    html:not(.dark) #dash-reservations-sub {
+      color: #0F766E !important;
+      font-weight: 400 !important;
+    }
+    html:not(.dark) #dash-kpi-total-sales p.leading-snug {
+      color: #1E6C02 !important;
+      font-weight: 400 !important;
+    }
+    html.dark #dash-kpi-total-orders p.leading-snug,
+    html.dark #dash-kpi-active-reservations p.leading-snug,
+    html.dark #dash-reservations-sub,
+    html.dark #dash-kpi-total-sales p.leading-snug,
+    html.dark #dash-kpi-available-stock p.leading-snug {
+      font-weight: 400 !important;
+    }
+    html.dark #admin-layout-container p,
+    html.dark #sales-overview-section p.so-text-sub,
+    html.dark #order-summary-section p.text-xs,
+    html.dark #inventory-health-section p.text-xs,
+    html.dark #stock-replenishment-guide-section p.text-xs,
+    html.dark #inventory-analytics-section p.text-xs,
+    html.dark #reservation-analytics-section p.text-xs,
+    html.dark #recent-orders-section p.text-xs {
+      color: #BDD3ED !important;
+    }
+
+    /* 8. Form Labels and Input Text: 14–16px, Medium */
+    #admin-layout-container label,
+    #admin-layout-container select,
+    #admin-layout-container input,
+    .so-control-select,
+    .ia-control-select {
+      font-family: 'Source Sans 3', sans-serif !important;
+      font-size: 0.9375rem !important; /* 15px */
+      line-height: 1.4 !important;
+      font-weight: 500 !important;
+      color: #0B1B3D !important;
+    }
+
+    /* 9. Table Content: 14–16px */
+    #recent-orders-section table th,
+    table.srg-table th,
+    thead th {
+      font-family: 'Inter', sans-serif !important;
+      font-size: 0.875rem !important; /* 14px, in 14-16px range */
+      line-height: 1.25 !important;
+      font-weight: 600 !important;
+      letter-spacing: 0.03em !important;
+      color: #1E3A5F !important;
+      background-color: #EBF2F9 !important;
+      border-bottom: 1px solid #D6E3F0 !important;
+    }
+    html.dark #recent-orders-section table th,
+    html.dark table.srg-table th {
+      color: #D6E6F8 !important;
+      background-color: #15254A !important;
+      border-bottom: 1px solid #1E3563 !important;
+    }
+
+    #recent-orders-section table td,
+    #dash-pipeline-tbody td,
+    table.srg-table td,
+    tbody tr.srg-row td {
+      font-family: 'Source Sans 3', sans-serif !important;
+      font-size: 0.9375rem !important; /* 15px, in 14-16px range */
+      line-height: 1.45 !important;
+      font-weight: 400 !important;
+      color: #0B1B3D !important;
+      border-bottom: 1px solid #E2EDF7 !important;
+    }
+    html.dark #recent-orders-section table td,
+    html.dark #dash-pipeline-tbody td,
+    html.dark table.srg-table td {
+      color: #F0F6FC !important;
+      border-bottom: 1px solid #1E3563 !important;
+    }
+
+    /* Table Order ID in clean tabular mono */
+    #recent-orders-section table td.font-mono,
+    #dash-pipeline-tbody td.font-mono {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+      font-size: 0.875rem !important; /* 14px */
+      font-weight: 600 !important;
+      color: #0B1B3D !important;
+    }
+    html.dark #recent-orders-section table td.font-mono,
+    html.dark #dash-pipeline-tbody td.font-mono {
+      color: #F0F6FC !important;
+    }
+
+    /* 10. Chart Labels & Data Descriptions: approximately 13–14px where practical */
+    #sales-barchart-inner .so-chart-axis-pill,
+    #sales-barchart-inner .so-text-main,
+    #dash-inv-chart-container text,
+    .so-chart-axis-pill,
+    .ia-chart-axis-pill,
+    .chart-label,
+    #piechart-container-inner svg + div p:last-child,
+    #inv-health-container-inner svg + div p:last-child,
+    #dash-res-donut-container svg + div span:last-child,
+    #piechart-container-inner .order-summary-row span,
+    #legend-inv-chart,
+    #legend-inv-chart span {
+      font-family: 'Source Sans 3', sans-serif !important;
+      font-size: 0.84375rem !important; /* 13.5px */
+      line-height: 1.3 !important;
+      color: #2C4A6F !important;
+    }
+    html:not(.dark) #sales-barchart-inner .so-chart-axis-pill,
+    html:not(.dark) .so-chart-axis-pill,
+    html:not(.dark) #dash-inv-chart-container text {
+      color: #000000 !important;
+      fill: #000000 !important;
+    }
+    html.dark #sales-barchart-inner .so-chart-axis-pill,
+    html.dark #dash-inv-chart-container text,
+    html.dark .so-chart-axis-pill,
+    html.dark .ia-chart-axis-pill,
+    html.dark #piechart-container-inner svg + div p:last-child,
+    html.dark #inv-health-container-inner svg + div p:last-child,
+    html.dark #dash-res-donut-container svg + div span:last-child {
+      color: #BDD3ED !important;
+    }
+
+    /* Donut Center Subtitle (Orders): 14px, Source Sans 3, Medium */
+    #piechart-container-inner svg + div p:last-child {
+      font-size: 0.875rem !important; /* 14px */
+      font-weight: 500 !important;
+      letter-spacing: 0.02em !important;
+      color: #2C4A6F !important;
+    }
+
+    /* Order Summary Breakdown Row Items */
+    #piechart-container-inner .order-summary-row {
+      padding-top: 5px !important;
+      padding-bottom: 5px !important;
+    }
+
+    /* --------------------------------------------------------------------------
+       ZERO GRAY COLOR PALETTE STANDARDIZATION ACROSS ADMIN DASHBOARD
+       -------------------------------------------------------------------------- */
+    /* Light Mode Blue-Slate Surfaces */
+    #admin-layout-container .bg-gray-50,
+    #admin-layout-container .bg-slate-50,
+    #admin-layout-container .bg-gray-50\/80,
+    #admin-layout-container .bg-slate-50\/80,
+    #admin-layout-container .bg-gray-50\/50 {
+      background-color: #F0F6FC !important;
+    }
+    #admin-layout-container .bg-gray-100,
+    #admin-layout-container .bg-slate-100 {
+      background-color: #EBF2F9 !important;
+    }
+    #admin-layout-container .hover\:bg-gray-50:hover,
+    #admin-layout-container .hover\:bg-slate-50:hover,
+    #admin-layout-container .hover\:bg-gray-50\/50:hover,
+    #admin-layout-container .hover\:bg-slate-50\/80:hover,
+    #admin-layout-container .hover\:bg-gray-100:hover,
+    #admin-layout-container .hover\:bg-slate-100:hover {
+      background-color: #E2EEF9 !important;
+    }
+
+    /* Light Mode Blue-Slate Borders & Dividers */
+    #admin-layout-container .border-gray-100,
+    #admin-layout-container .border-slate-100,
+    #admin-layout-container .border-gray-100\/80,
+    #admin-layout-container .border-slate-100\/80 {
+      border-color: #E2EDF7 !important;
+    }
+    #admin-layout-container .border-gray-200,
+    #admin-layout-container .border-slate-200,
+    #admin-layout-container .border-gray-200\/80,
+    #admin-layout-container .border-slate-200\/80,
+    #admin-layout-container .border-gray-200\/60 {
+      border-color: #D6E3F0 !important;
+    }
+    #admin-layout-container .border-gray-300,
+    #admin-layout-container .border-slate-300 {
+      border-color: #CBDDF0 !important;
+    }
+    #admin-layout-container .divide-gray-100,
+    #admin-layout-container .divide-slate-100 {
+      border-color: #E2EDF7 !important;
+    }
+
+    /* Light Mode Rich Navy Text */
+    #admin-layout-container .text-gray-950,
+    #admin-layout-container .text-slate-950,
+    #admin-layout-container .text-gray-900,
+    #admin-layout-container .text-slate-900 {
+      color: #0B1B3D !important;
+    }
+    #admin-layout-container .text-gray-800,
+    #admin-layout-container .text-slate-800 {
+      color: #0E244D !important;
+    }
+    #admin-layout-container .text-gray-700,
+    #admin-layout-container .text-slate-700 {
+      color: #1E3A5F !important;
+    }
+    #admin-layout-container .text-gray-600,
+    #admin-layout-container .text-slate-600,
+    #admin-layout-container .text-gray-500,
+    #admin-layout-container .text-slate-500 {
+      color: #2C4A6F !important;
+    }
+    #admin-layout-container .text-gray-400,
+    #admin-layout-container .text-slate-400 {
+      color: #3A5D88 !important;
+    }
+
+    /* Dark Mode Rich Navy Surfaces & Borders */
+    html.dark #admin-layout-container .bg-white,
+    html.dark #admin-layout-container .bg-slate-900,
+    html.dark #admin-layout-container .bg-slate-950,
+    html.dark #admin-layout-container .bg-\[\#111827\],
+    html.dark #admin-layout-container .bg-\[\#1F2937\],
+    html.dark #admin-layout-container .bg-\[\#0F172A\] {
+      background-color: #0E1B38 !important;
+    }
+    html.dark #admin-layout-container .bg-slate-800,
+    html.dark #admin-layout-container .bg-gray-800 {
+      background-color: #15254A !important;
+    }
+    html.dark #admin-layout-container .border-slate-800,
+    html.dark #admin-layout-container .border-slate-700,
+    html.dark #admin-layout-container .border-gray-800 {
+      border-color: #1E3563 !important;
+    }
+    html.dark #admin-layout-container .hover\:bg-slate-800:hover,
+    html.dark #admin-layout-container .hover\:bg-slate-800\/60:hover,
+    html.dark #admin-layout-container .hover\:bg-slate-800\/50:hover,
+    html.dark #admin-layout-container .hover\:bg-slate-800\/40:hover {
+      background-color: #1C305C !important;
+    }
+    html.dark #admin-layout-container .divide-slate-800 {
+      border-color: #1E3563 !important;
+    }
+
+    /* Dark Mode Crisp Navy-Tinted Text */
+    html.dark #admin-layout-container .text-gray-100,
+    html.dark #admin-layout-container .text-slate-100,
+    html.dark #admin-layout-container .text-gray-200,
+    html.dark #admin-layout-container .text-slate-200 {
+      color: #F0F6FC !important;
+    }
+    html.dark #admin-layout-container .text-gray-300,
+    html.dark #admin-layout-container .text-slate-300 {
+      color: #D6E6F8 !important;
+    }
+    html.dark #admin-layout-container .text-gray-400,
+    html.dark #admin-layout-container .text-slate-400,
+    html.dark #admin-layout-container .text-gray-500,
+    html.dark #admin-layout-container .text-slate-500 {
+      color: #BDD3ED !important;
+    }
+
+    /* Inventory Analytics (~45%) & Stock Needs (~55%) Two-Column Responsive Row */
+    @media (min-width: 1024px) {
+      #inv-analytics-stock-needs-row {
+        grid-template-columns: minmax(0, 45fr) minmax(0, 55fr) !important;
+      }
     }
   </style>
 </head>
-<body class="bg-[#F5F5F5] min-h-screen">
-  <div id="auth-guard-loader" class="fixed inset-0 bg-[#F5F5F5] z-[99999] flex flex-col items-center justify-center font-sans">
+<body class="bg-[#F0F4F9] min-h-screen">
+  <div id="auth-guard-loader" class="fixed inset-0 bg-[#F0F4F9] z-[99999] flex flex-col items-center justify-center font-sans">
     <div class="w-9 h-9 border-3 border-[#1E6C02]/20 border-t-[#1E6C02] rounded-full animate-spin mb-3"></div>
-    <p class="text-xs font-semibold text-gray-700">Verifying administrative access...</p>
+    <p class="text-xs font-semibold text-[#1E3A5F]">Verifying administrative access...</p>
   </div>
 
   <!-- ADMIN LAYOUT WRAPPER -->
@@ -2072,6 +2791,8 @@
       isCancelledOrRejectedOrder,
       isReservationWaitingForReupload,
       getDashboardTotalOrdersData,
+      getDashboardActiveReservationsData,
+      getDashboardTotalReservationsData,
       getDashboardTotalSalesData,
       getDashboardTopRiceProductData,
       getDashboardAvailableStockData,
@@ -2131,36 +2852,75 @@
           <!-- Top Row 4 KPI Cards -->
           <div id="top-kpi-cards-section" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-3.5 items-stretch scroll-mt-6">
             <!-- Box 1: Total Orders -->
-            <div id="dash-kpi-total-orders" class="bg-white dark:bg-[#111827] border border-slate-200/80 dark:border-slate-800 rounded-2xl p-5 shadow-xs flex flex-col justify-between h-full hover:shadow-sm transition-all min-h-[164px] scroll-mt-6">
+            <div id="dash-kpi-total-orders" class="bg-white dark:bg-[#0E1B38] border border-[#D6E3F0] dark:border-[#1E3563] rounded-2xl px-5 py-6 sm:py-6.5 shadow-xs flex flex-col justify-between h-full hover:shadow-sm transition-all min-h-[190px] sm:min-h-[195px] scroll-mt-6">
               <!-- Header: Icon, Title, View button -->
-              <div class="flex items-center justify-between gap-2.5 h-10">
-                <div class="flex items-center gap-2.5 min-w-0">
+              <div class="flex items-start justify-between gap-2 min-h-[44px]">
+                <div class="flex items-center gap-2.5 min-w-0 flex-1">
                   <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0 border border-blue-100 dark:border-blue-800/60 shadow-2xs">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-4.5 h-4.5 sm:w-5 sm:h-5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
                   </div>
-                  <span class="text-[13px] text-slate-800 dark:text-slate-100 font-extrabold uppercase tracking-wider truncate">Total Orders</span>
+                  <div class="min-w-0 flex-1">
+                    <span class="text-[13px] sm:text-[14px] text-[#000000] dark:text-[#D6E6F8] font-extrabold uppercase tracking-wide leading-tight block">Total Orders</span>
+                  </div>
                 </div>
-                <a id="btn-view-total-orders" href="total-orders.html" class="inline-flex items-center gap-1 px-2.5 py-1 sm:px-3 sm:py-1 rounded-xl text-xs font-extrabold transition-all shrink-0 whitespace-nowrap shadow-2xs cursor-pointer" title="View all orders">
+                <a id="btn-view-total-orders" href="total-orders.html" class="inline-flex items-center gap-1 px-2.5 py-1 sm:px-3 sm:py-1 rounded-xl text-xs font-extrabold transition-all shrink-0 whitespace-nowrap shadow-2xs cursor-pointer self-start mt-0.5" title="View all orders">
                   View →
                 </a>
               </div>
 
               <!-- Main value area -->
               <div class="mt-4 min-h-[36px] flex items-center">
-                <p id="dash-total-registered" class="text-[22px] sm:text-[26px] font-black text-slate-950 dark:text-white tracking-tight leading-tight truncate">0 Orders</p>
+                <div class="flex items-baseline gap-1.5 min-w-0 overflow-hidden">
+                  <span id="dash-total-registered" class="text-[22px] sm:text-[26px] font-black text-[#000000] dark:text-white tracking-tight leading-tight shrink-0">0 Orders</span>
+                </div>
               </div>
 
               <!-- Supporting text area -->
               <div class="mt-2 min-h-[36px] flex items-start">
-                <p class="text-[13px] font-bold text-slate-700 dark:text-slate-200 leading-snug">All orders placed</p>
+                <p class="text-[13px] font-normal text-[#000000] dark:text-[#BDD3ED] leading-snug">All orders placed</p>
               </div>
             </div>
 
-            <!-- Box 2: Total Sales -->
-            <div id="dash-kpi-total-sales" class="bg-white dark:bg-[#111827] border border-slate-200/80 dark:border-slate-800 rounded-2xl p-5 shadow-xs flex flex-col justify-between h-full hover:shadow-sm transition-all min-h-[164px] scroll-mt-6">
+            <!-- Box 2: Active Reservations -->
+            <div id="dash-kpi-active-reservations" class="bg-white dark:bg-[#0E1B38] border border-[#D6E3F0] dark:border-[#1E3563] rounded-2xl px-5 py-6 sm:py-6.5 shadow-xs flex flex-col justify-between h-full hover:shadow-sm transition-all min-h-[190px] sm:min-h-[195px] scroll-mt-6">
               <!-- Header: Icon, Title, View button -->
-              <div class="flex items-center justify-between gap-2.5 h-10">
-                <div class="flex items-center gap-2.5 min-w-0">
+              <div class="flex items-start justify-between gap-2 min-h-[44px]">
+                <div class="flex items-center gap-2.5 min-w-0 flex-1">
+                  <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-teal-50 dark:bg-teal-950/60 text-teal-600 dark:text-teal-400 flex items-center justify-center shrink-0 border border-teal-100 dark:border-teal-800/60 shadow-2xs">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4.5 h-4.5 sm:w-5 sm:h-5">
+                      <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                      <line x1="16" y1="2" x2="16" y2="6"></line>
+                      <line x1="8" y1="2" x2="8" y2="6"></line>
+                      <line x1="3" y1="10" x2="21" y2="10"></line>
+                    </svg>
+                  </div>
+                  <div class="min-w-0 flex-1">
+                    <span class="text-[13px] sm:text-[14px] text-[#000000] dark:text-[#D6E6F8] font-extrabold uppercase tracking-wide leading-tight block truncate whitespace-nowrap">Active Reservations</span>
+                  </div>
+                </div>
+                <a id="btn-view-active-reservations" href="reservations.html" class="inline-flex items-center gap-1 px-2.5 py-1 sm:px-3 sm:py-1 rounded-xl text-xs font-extrabold transition-all shrink-0 whitespace-nowrap shadow-2xs cursor-pointer self-start mt-0.5" title="View all reservations">
+                  View →
+                </a>
+              </div>
+
+              <!-- Main value area -->
+              <div class="mt-4 min-h-[36px] flex items-center">
+                <div class="flex items-baseline gap-1.5 min-w-0 overflow-hidden">
+                  <span id="dash-active-reservations" class="text-[22px] sm:text-[26px] font-black text-[#000000] dark:text-white tracking-tight leading-tight shrink-0">0 Reservations</span>
+                </div>
+              </div>
+
+              <!-- Supporting text area -->
+              <div class="mt-2 min-h-[36px] flex items-start">
+                <p id="dash-reservations-sub" class="text-[13px] font-normal text-teal-700 dark:text-teal-300 leading-snug">Active reservations in progress</p>
+              </div>
+            </div>
+
+            <!-- Box 3: Total Sales -->
+            <div id="dash-kpi-total-sales" class="bg-white dark:bg-[#0E1B38] border border-[#D6E3F0] dark:border-[#1E3563] rounded-2xl px-5 py-6 sm:py-6.5 shadow-xs flex flex-col justify-between h-full hover:shadow-sm transition-all min-h-[190px] sm:min-h-[195px] scroll-mt-6">
+              <!-- Header: Icon, Title, View button -->
+              <div class="flex items-start justify-between gap-2 min-h-[44px]">
+                <div class="flex items-center gap-2.5 min-w-0 flex-1">
                   <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-[#1E6C02] dark:text-emerald-400 flex items-center justify-center shrink-0 border border-emerald-100 dark:border-emerald-800/60 shadow-2xs">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-4.5 h-4.5 sm:w-5 sm:h-5">
                       <path d="M7 20V4h5.5a4.5 4.5 0 0 1 0 9H7"></path>
@@ -2168,29 +2928,33 @@
                       <path d="M5 11h10"></path>
                     </svg>
                   </div>
-                  <span class="text-[13px] text-slate-800 dark:text-slate-100 font-extrabold uppercase tracking-wider truncate">Total Sales</span>
+                  <div class="min-w-0 flex-1">
+                    <span class="text-[13px] sm:text-[14px] text-[#000000] dark:text-[#D6E6F8] font-extrabold uppercase tracking-wide leading-tight block">Total Sales</span>
+                  </div>
                 </div>
-                <a id="btn-view-total-sales" href="total-sales.html" class="inline-flex items-center gap-1 px-2.5 py-1 sm:px-3 sm:py-1 rounded-xl text-xs font-extrabold transition-all shrink-0 whitespace-nowrap shadow-2xs cursor-pointer" title="View verified sales">
+                <a id="btn-view-total-sales" href="total-sales.html" class="inline-flex items-center gap-1 px-2.5 py-1 sm:px-3 sm:py-1 rounded-xl text-xs font-extrabold transition-all shrink-0 whitespace-nowrap shadow-2xs cursor-pointer self-start mt-0.5" title="View verified sales">
                   View →
                 </a>
               </div>
 
               <!-- Main value area -->
               <div class="mt-4 min-h-[36px] flex items-center">
-                <p id="dash-validated-revenue" class="text-[22px] sm:text-[26px] font-black text-slate-950 dark:text-white tracking-tight leading-tight truncate">₱0.00</p>
+                <div class="flex items-baseline gap-1.5 min-w-0 overflow-hidden">
+                  <span id="dash-validated-revenue" class="text-[22px] sm:text-[26px] font-black text-[#000000] dark:text-white tracking-tight leading-tight shrink-0">₱0.00</span>
+                </div>
               </div>
 
               <!-- Supporting text area -->
               <div class="mt-2 min-h-[36px] flex items-start">
-                <p class="text-[13px] font-bold text-[#1E6C02] dark:text-emerald-400 leading-snug">Verified Sales</p>
+                <p class="text-[13px] font-normal text-[#1E6C02] dark:text-emerald-400 leading-snug">Verified Sales</p>
               </div>
             </div>
 
-            <!-- Box 3: Available Stock -->
-            <div id="dash-kpi-available-stock" class="bg-white dark:bg-[#111827] border border-slate-200/80 dark:border-slate-800 rounded-2xl p-5 shadow-xs flex flex-col justify-between h-full hover:shadow-sm transition-all min-h-[164px] scroll-mt-6">
+            <!-- Box 4: Available Stock -->
+            <div id="dash-kpi-available-stock" class="bg-white dark:bg-[#0E1B38] border border-[#D6E3F0] dark:border-[#1E3563] rounded-2xl px-5 py-6 sm:py-6.5 shadow-xs flex flex-col justify-between h-full hover:shadow-sm transition-all min-h-[190px] sm:min-h-[195px] scroll-mt-6">
               <!-- Header: Icon, Title, View button -->
-              <div class="flex items-center justify-between gap-2.5 h-10">
-                <div class="flex items-center gap-2.5 min-w-0">
+              <div class="flex items-start justify-between gap-2 min-h-[44px]">
+                <div class="flex items-center gap-2.5 min-w-0 flex-1">
                   <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0 border border-amber-100 dark:border-amber-800/60 shadow-2xs">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-4.5 h-4.5 sm:w-5 sm:h-5">
                       <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
@@ -2198,9 +2962,11 @@
                       <line x1="12" y1="22.08" x2="12" y2="12"></line>
                     </svg>
                   </div>
-                  <span class="text-[13px] text-slate-800 dark:text-slate-100 font-extrabold uppercase tracking-wider truncate">Available Stock</span>
+                  <div class="min-w-0 flex-1">
+                    <span class="text-[13px] sm:text-[14px] text-[#000000] dark:text-[#D6E6F8] font-extrabold uppercase tracking-wide leading-tight block truncate whitespace-nowrap">Available Stock</span>
+                  </div>
                 </div>
-                <a id="btn-view-available-stock" href="available-stock.html" class="inline-flex items-center gap-1 px-2.5 py-1 sm:px-3 sm:py-1 rounded-xl text-xs font-extrabold transition-all shrink-0 whitespace-nowrap shadow-2xs cursor-pointer" title="View available stock">
+                <a id="btn-view-available-stock" href="available-stock.html" class="inline-flex items-center gap-1 px-2.5 py-1 sm:px-3 sm:py-1 rounded-xl text-xs font-extrabold transition-all shrink-0 whitespace-nowrap shadow-2xs cursor-pointer self-start mt-0.5" title="View available stock">
                   View →
                 </a>
               </div>
@@ -2208,41 +2974,15 @@
               <!-- Main value area: Sacks and kg side-by-side on the same line with / separator -->
               <div class="mt-4 min-h-[36px] flex items-center">
                 <div class="flex items-baseline gap-1.5 min-w-0 overflow-hidden">
-                  <span id="dash-available-sacks" class="text-[22px] sm:text-[26px] font-black text-slate-950 dark:text-white tracking-tight leading-tight shrink-0">0 sacks</span>
-                  <span class="text-base sm:text-lg font-bold text-slate-600 dark:text-slate-300 shrink-0">/</span>
+                  <span id="dash-available-sacks" class="text-[22px] sm:text-[26px] font-black text-[#000000] dark:text-white tracking-tight leading-tight shrink-0">0 sacks</span>
+                  <span class="text-base sm:text-lg font-bold text-[#000000] dark:text-slate-300 shrink-0">/</span>
                   <span id="dash-available-kg" class="text-sm sm:text-base font-bold text-amber-800 dark:text-amber-300 tracking-tight truncate">0 kg</span>
                 </div>
               </div>
 
               <!-- Supporting text area -->
               <div class="mt-2 min-h-[36px] flex items-start">
-                <p class="text-[13px] font-bold text-slate-700 dark:text-slate-200 leading-snug">Ready for orders and reservations</p>
-              </div>
-            </div>
-
-            <!-- Box 4: Top Rice Product -->
-            <div id="dash-kpi-top-product" class="bg-white dark:bg-[#111827] border border-slate-200/80 dark:border-slate-800 rounded-2xl p-5 shadow-xs flex flex-col justify-between h-full hover:shadow-sm transition-all min-h-[164px] scroll-mt-6">
-              <!-- Header: Icon, Title, View button -->
-              <div class="flex items-center justify-between gap-2.5 h-10">
-                <div class="flex items-center gap-2.5 min-w-0">
-                  <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 flex items-center justify-center shrink-0 border border-purple-100 dark:border-purple-800/60 shadow-2xs">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-4.5 h-4.5 sm:w-5 sm:h-5"><path d="M12 2L2 7l10 5 10-5-10-5z"></path><path d="M2 17l10 5 10-5"></path><path d="M2 12l10 5 10-5"></path></svg>
-                  </div>
-                  <span class="text-[13px] text-slate-800 dark:text-slate-100 font-extrabold uppercase tracking-wider truncate">Top Rice Product</span>
-                </div>
-                <a id="btn-view-top-product" href="top-product.html" class="inline-flex items-center gap-1 px-2.5 py-1 sm:px-3 sm:py-1 rounded-xl text-xs font-extrabold transition-all shrink-0 whitespace-nowrap shadow-2xs cursor-pointer" title="View top rice product sales">
-                  View →
-                </a>
-              </div>
-
-              <!-- Main value area -->
-              <div class="mt-4 min-h-[36px] flex items-center">
-                <p id="dash-top-product-name" class="text-[22px] sm:text-[26px] font-black text-slate-950 dark:text-white tracking-tight leading-tight truncate" title="Top Rice Product">N/A</p>
-              </div>
-
-              <!-- Supporting text area -->
-              <div class="mt-2 min-h-[36px] flex items-start">
-                <p id="dash-top-product-vol" class="text-[13px] font-bold text-purple-800 dark:text-purple-300 leading-snug">0 sacks sold</p>
+                <p class="text-[13px] font-normal text-[#000000] dark:text-slate-200 leading-snug">Ready for orders and reservations</p>
               </div>
             </div>
           </div>
@@ -2253,10 +2993,10 @@
             <!-- Left Column (span 3): Compact rectangular Sales Overview -->
             <div class="lg:col-span-3 flex flex-col h-full">
               <!-- Compact rectangular Sales Overview preview card -->
-              <div id="sales-overview-section" class="w-full bg-white dark:bg-[#0F172A] p-4 sm:p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col justify-between h-full scroll-mt-6">
+              <div id="sales-overview-section" class="w-full bg-white dark:bg-[#0E1B38] p-5 sm:p-6 rounded-2xl border border-[#D6E3F0] dark:border-[#1E3563] shadow-xs flex flex-col justify-between h-full scroll-mt-6 min-h-[310px] sm:min-h-[335px]">
                 <!-- Header & View More → Button -->
-                <div class="flex items-center justify-between gap-3 pb-2.5 border-b border-slate-100 dark:border-slate-800 shrink-0">
-                  <div class="flex items-center gap-2.5 min-w-0">
+                <div class="flex items-center justify-between gap-3 pb-3 sm:pb-3.5 border-b border-[#E2EDF7] dark:border-[#1E3563] shrink-0">
+                  <div class="flex items-center gap-3 min-w-0">
                     <div class="so-header-icon w-8 h-8 rounded-lg flex items-center justify-center shrink-0 shadow-2xs">
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4">
                         <line x1="18" y1="20" x2="18" y2="10"></line>
@@ -2265,8 +3005,8 @@
                       </svg>
                     </div>
                     <div class="min-w-0">
-                      <h4 class="so-text-main font-bold text-sm sm:text-base tracking-tight leading-none">Sales Overview</h4>
-                      <p class="so-text-sub text-[11px] font-semibold mt-0.5 leading-none">Verified sales over time</p>
+                      <h4 class="so-text-main font-bold text-base sm:text-[17px] tracking-tight leading-snug">Sales Overview</h4>
+                      <p class="so-text-sub text-xs sm:text-[13px] font-normal text-[#000000] dark:text-[#BDD3ED] mt-0.5 leading-tight">Verified sales over time</p>
                     </div>
                   </div>
 
@@ -2276,7 +3016,7 @@
                 </div>
 
                 <!-- BarChart Stage & Injection Point: Sleek, compact & horizontal -->
-                <div class="so-chart-stage p-3 sm:p-3.5 rounded-xl mt-3 flex-1 flex flex-col justify-center min-h-[140px] sm:min-h-[155px]">
+                <div class="so-chart-stage p-3.5 sm:p-4 rounded-xl mt-3.5 sm:mt-4 flex-1 flex flex-col justify-center min-h-[175px] sm:min-h-[195px]">
                   <div id="sales-barchart-inner" class="flex flex-col flex-1 w-full justify-center"></div>
                 </div>
               </div>
@@ -2284,12 +3024,12 @@
 
             <!-- Right Column: Order Summary piechart (span 2) -->
             <div class="lg:col-span-2 flex flex-col h-full">
-              <div id="order-summary-section" class="w-full bg-white dark:bg-[#111827] p-4 sm:p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col justify-between h-full scroll-mt-6">
+              <div id="order-summary-section" class="w-full bg-white dark:bg-[#0E1B38] p-5 sm:p-6 rounded-2xl border border-[#D6E3F0] dark:border-[#1E3563] shadow-xs flex flex-col justify-between h-full scroll-mt-6 min-h-[310px] sm:min-h-[335px]">
                 <!-- Header & View More → Button -->
-                <div class="flex items-center justify-between gap-3 pb-2.5 border-b border-slate-100 dark:border-slate-800 shrink-0">
+                <div class="flex items-center justify-between gap-3 pb-3 sm:pb-3.5 border-b border-[#E2EDF7] dark:border-[#1E3563] shrink-0">
                   <div class="min-w-0">
-                    <h4 class="font-bold text-gray-900 dark:text-white text-sm sm:text-base tracking-tight leading-none">Order Summary</h4>
-                    <p class="text-xs text-gray-500 dark:text-gray-400 font-normal mt-0.5 leading-none">Distribution across primary order statuses</p>
+                    <h4 class="font-bold text-[#0B1B3D] dark:text-white text-base sm:text-[17px] tracking-tight leading-snug">Order Summary</h4>
+                    <p class="text-xs sm:text-[13px] text-[#2C4A6F] dark:text-[#BDD3ED] font-medium mt-0.5 leading-tight">Distribution across primary order statuses</p>
                   </div>
 
                   <a id="btn-view-order-summary" href="orders.html" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 whitespace-nowrap shadow-2xs cursor-pointer hover:shadow-xs" title="Open full Orders page">
@@ -2298,44 +3038,67 @@
                 </div>
 
                 <!-- Draw circles chart inner -->
-                <div id="piechart-container-inner" class="flex-1 flex items-center justify-between mt-2.5 sm:mt-3 min-h-0 w-full">
+                <div id="piechart-container-inner" class="flex-1 flex items-center justify-between mt-3.5 sm:mt-4 min-h-0 w-full">
                   <!-- Dynamically written -->
                 </div>
               </div>
             </div>
           </div>
 
-          <!-- Inventory Health (LEFT) & Stock Replenishment (RIGHT) Row -->
-          <div class="grid grid-cols-1 lg:grid-cols-5 gap-3.5 sm:gap-4 items-stretch">
-            <!-- Left Column: Inventory Health (span 2) -->
-            <div class="lg:col-span-2 flex flex-col h-full">
-              <!-- Inventory Health (directly underneath Sales Overview) -->
-              <div id="inventory-health-section" class="w-full bg-white dark:bg-[#111827] p-4 sm:p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col justify-between h-full scroll-mt-6">
+          <!-- Inventory Analytics (LEFT, ~45%) & Stock Needs (RIGHT, ~55%) Row -->
+          <div id="inv-analytics-stock-needs-row" class="grid grid-cols-1 lg:grid-cols-[minmax(0,45fr)_minmax(0,55fr)] gap-6 items-stretch">
+            <!-- Left Column: Inventory Analytics (~45% width) -->
+            <div class="flex flex-col h-full min-w-0">
+              <!-- Inventory Analytics (positioned on the LEFT side of the row below Sales Overview) -->
+              <div id="inventory-analytics-section" class="w-full bg-white dark:bg-[#0E1B38] p-5 sm:p-6 rounded-2xl border border-[#D6E3F0] dark:border-[#1E3563] shadow-xs flex flex-col justify-between h-full scroll-mt-6 min-h-[310px] sm:min-h-[335px]">
                 <!-- Header & View More → Button -->
-                <div class="flex items-center justify-between gap-3 pb-2.5 border-b border-slate-100 dark:border-slate-800 shrink-0">
-                  <div class="min-w-0">
-                    <h4 class="font-bold text-slate-900 dark:text-white text-sm sm:text-base tracking-tight leading-none">Inventory Health</h4>
-                    <p class="text-xs text-slate-700 dark:text-slate-200 font-semibold mt-0.5 leading-none">Current warehouse stock status</p>
+                <div class="flex items-center justify-between gap-3 pb-3 sm:pb-3.5 border-b border-[#E2EDF7] dark:border-[#1E3563] shrink-0">
+                  <div class="flex items-center gap-2.5 min-w-0">
+                    <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-teal-50 dark:bg-teal-950/60 border border-teal-200 dark:border-teal-800/60 text-teal-600 dark:text-teal-400 flex items-center justify-center shrink-0 shadow-2xs">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="w-4.5 h-4.5 sm:w-5 sm:h-5">
+                        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                      </svg>
+                    </div>
+                    <div class="min-w-0">
+                      <h4 class="font-bold text-[#0B1B3D] dark:text-white text-base sm:text-[17px] tracking-tight leading-snug">Inventory Analytics</h4>
+                      <p class="text-xs sm:text-[13px] text-[#2C4A6F] dark:text-[#BDD3ED] font-medium mt-0.5 leading-tight">Stock movement trend</p>
+                    </div>
                   </div>
 
-                  <a id="btn-view-inventory-health" href="products.html" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 whitespace-nowrap shadow-2xs cursor-pointer hover:shadow-xs" title="Open full Products catalog">
+                  <a id="btn-view-inventory-analytics" href="inventory-analytics.html" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 whitespace-nowrap shadow-2xs cursor-pointer hover:shadow-xs" title="Open full Inventory Analytics page">
                     View More →
                   </a>
                 </div>
 
-                <!-- Two-Column Body: Left Circular Donut, Right Status Categories -->
-                <div id="inv-health-container-inner" class="flex-1 flex items-center justify-between mt-2.5 sm:mt-3 min-h-0 w-full">
-                  <!-- Dynamically written -->
+                <!-- Body: Line Chart Only (Full Width) -->
+                <div class="flex-1 flex flex-col justify-between mt-3.5 min-h-0 w-full">
+                  <!-- Legend row -->
+                  <div id="dash-inv-legend" class="flex items-center gap-5 sm:gap-6 text-[13.5px] font-medium text-[#000000] dark:text-[#D6E6F8] mb-2 shrink-0 flex-nowrap">
+                    <span class="inline-flex items-center gap-2 text-[13.5px] font-medium text-[#000000] dark:text-[#D6E6F8]">
+                      <span class="w-2.5 h-2.5 rounded-full shadow-xs shrink-0 bg-[#16A34A]" style="background-color: #16A34A;"></span> Added
+                    </span>
+                    <span class="inline-flex items-center gap-2 text-[13.5px] font-medium text-[#000000] dark:text-[#D6E6F8]">
+                      <span class="w-2.5 h-2.5 rounded-full shadow-xs shrink-0 bg-[#2563EB]" style="background-color: #2563EB;"></span> Allocated
+                    </span>
+                    <span class="inline-flex items-center gap-2 text-[13.5px] font-medium text-[#000000] dark:text-[#D6E6F8]">
+                      <span class="w-2.5 h-2.5 rounded-full shadow-xs shrink-0 bg-[#D97706]" style="background-color: #D97706;"></span> Delivered
+                    </span>
+                  </div>
+
+                  <!-- SVG Line Chart Canvas Container -->
+                  <div id="dash-inv-chart-container" class="flex-1 w-full min-h-[185px] sm:min-h-[205px] flex items-center justify-center">
+                    <!-- Dynamically rendered SVG Line Chart -->
+                  </div>
                 </div>
               </div>
             </div>
 
-            <!-- Right Column: Stock Replenishment Card (span 3, occupying remaining horizontal space) -->
-            <div class="lg:col-span-3 flex flex-col h-full">
-              <!-- Stock Replenishment Card (Compact Analytics Card matching Reference) -->
-              <div id="stock-replenishment-guide-section" class="w-full bg-white dark:bg-[#111827] p-4 sm:p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col justify-between h-full scroll-mt-6">
+            <!-- Right Column: Stock Needs Card (~55% width, visibly wider) -->
+            <div class="flex flex-col h-full min-w-0">
+              <!-- Stock Needs Card (Compact Analytics Card matching Reference) -->
+              <div id="stock-replenishment-guide-section" class="w-full bg-white dark:bg-[#0E1B38] p-5 sm:p-6 rounded-2xl border border-[#D6E3F0] dark:border-[#1E3563] shadow-xs flex flex-col justify-between h-full scroll-mt-6 min-h-[310px] sm:min-h-[335px]">
                 <!-- Top Area: Icon, Title, Subtitle, and View More → Button -->
-                <div class="flex items-center justify-between gap-3 pb-2.5 border-b border-slate-100 dark:border-slate-800 shrink-0">
+                <div class="flex items-center justify-between gap-3 pb-3 sm:pb-3.5 border-b border-[#E2EDF7] dark:border-[#1E3563] shrink-0">
                   <div class="flex items-center gap-2.5 min-w-0">
                     <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800/60 text-[#1E6C02] dark:text-emerald-400 flex items-center justify-center shrink-0 shadow-2xs">
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="w-4.5 h-4.5 sm:w-5 sm:h-5">
@@ -2345,8 +3108,8 @@
                       </svg>
                     </div>
                     <div class="min-w-0">
-                      <h4 class="font-bold text-gray-900 dark:text-white text-sm sm:text-base tracking-tight leading-none">Stock Needs</h4>
-                      <p class="text-xs text-slate-800 dark:text-slate-100 font-semibold mt-1 leading-none">Current stock levels and what to prepare next</p>
+                      <h4 class="font-bold text-[#0B1B3D] dark:text-white text-base sm:text-[17px] tracking-tight leading-snug">Stock Needs</h4>
+                      <p class="text-xs sm:text-[13px] text-[#0E244D] dark:text-[#D6E6F8] font-medium mt-0.5 leading-tight">Current stock levels and what to prepare next</p>
                     </div>
                   </div>
 
@@ -2356,165 +3119,27 @@
                 </div>
 
                 <!-- Main Content: Horizontal Progress Bar Rows -->
-                <div id="srg-dashboard-summary-list" class="flex flex-col gap-1.5 py-1 overflow-y-auto replenish-table-scroll-container flex-1 min-h-0 mt-1 max-h-[160px] sm:max-h-[170px]">
+                <div id="srg-dashboard-summary-list" class="flex flex-col gap-2 py-1.5 overflow-y-auto replenish-table-scroll-container flex-1 min-h-0 mt-3 max-h-[220px] sm:max-h-[240px]">
                   <!-- Dynamically populated rows -->
                 </div>
               </div>
             </div>
           </div>
 
-          <!-- Row: Inventory Analytics (LEFT) & Reservation Analytics (RIGHT) -->
-          <div class="grid grid-cols-1 lg:grid-cols-2 gap-3.5 sm:gap-4 items-stretch">
-            <!-- Left Column: Inventory Analytics Compact Card -->
-            <div class="flex flex-col h-full">
-              <div id="inventory-analytics-section" class="w-full bg-white dark:bg-[#111827] p-4 sm:p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col justify-between h-full scroll-mt-6">
-                <!-- Header & View More → Button -->
-                <div class="flex items-center justify-between gap-3 pb-3 border-b border-slate-100 dark:border-slate-800 shrink-0">
-                  <div class="flex items-center gap-2.5 min-w-0">
-                    <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-teal-50 dark:bg-teal-950/60 border border-teal-200 dark:border-teal-800/60 text-teal-600 dark:text-teal-400 flex items-center justify-center shrink-0 shadow-2xs">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="w-4.5 h-4.5 sm:w-5 sm:h-5">
-                        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
-                      </svg>
-                    </div>
-                    <div class="min-w-0">
-                      <h4 class="font-bold text-gray-900 dark:text-white text-sm sm:text-base tracking-tight leading-none">Inventory Analytics</h4>
-                      <p class="text-xs text-gray-500 dark:text-gray-400 font-normal mt-1 leading-none">Stock movement trend</p>
-                    </div>
-                  </div>
-
-                  <a id="btn-view-inventory-analytics" href="inventory-analytics.html" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold transition-all shrink-0 whitespace-nowrap border border-slate-200 dark:border-slate-700 bg-transparent cursor-pointer shadow-2xs" title="Open full Inventory Analytics page">
-                    View More →
-                  </a>
-                </div>
-
-                <!-- Body: Two-Column Composition (Left: Line Chart, Right: Stacked Summary Items) -->
-                <div class="flex-1 grid grid-cols-1 md:grid-cols-12 gap-3.5 sm:gap-4 mt-3.5 min-h-0 items-stretch">
-                  <!-- LEFT: Compact Line Chart (span 7) -->
-                  <div class="md:col-span-7 flex flex-col justify-between">
-                    <!-- Legend row -->
-                    <div class="flex items-center gap-3.5 text-[11px] font-semibold text-gray-600 dark:text-gray-300 mb-1.5">
-                      <span class="inline-flex items-center gap-1.5">
-                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-xs"></span> Added
-                      </span>
-                      <span class="inline-flex items-center gap-1.5">
-                        <span class="w-2.5 h-2.5 rounded-full bg-sky-500 shadow-xs"></span> Allocated
-                      </span>
-                      <span class="inline-flex items-center gap-1.5">
-                        <span class="w-2.5 h-2.5 rounded-full bg-teal-500 shadow-xs"></span> Delivered
-                      </span>
-                    </div>
-
-                    <!-- SVG Line Chart Canvas Container -->
-                    <div id="dash-inv-chart-container" class="flex-1 w-full min-h-[170px] sm:min-h-[185px] flex items-center justify-center">
-                      <!-- Dynamically rendered SVG Line Chart -->
-                    </div>
-                  </div>
-
-                  <!-- RIGHT: Compact Stacked Summary Items (span 5) -->
-                  <div class="md:col-span-5 flex flex-col justify-between gap-2">
-                    <!-- Stock Added Item -->
-                    <div class="p-2 sm:p-2.5 rounded-xl border border-slate-200/70 dark:border-slate-800/80 bg-slate-50/70 dark:bg-slate-800/40 flex items-center justify-between gap-2 shadow-2xs">
-                      <div class="min-w-0">
-                        <span class="text-[11px] font-semibold text-gray-500 dark:text-gray-400 block truncate">Stock Added</span>
-                        <p id="dash-inv-val-added" class="text-xs sm:text-[13px] font-black tabular-nums tracking-tight text-gray-900 dark:text-white leading-tight truncate">0 sacks</p>
-                      </div>
-                      <span class="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/80 border border-emerald-200 dark:border-emerald-800/60 px-1.5 py-0.5 rounded-md shrink-0">↑ Inflow</span>
-                    </div>
-
-                    <!-- Stock Set Aside Item -->
-                    <div class="p-2 sm:p-2.5 rounded-xl border border-slate-200/70 dark:border-slate-800/80 bg-slate-50/70 dark:bg-slate-800/40 flex items-center justify-between gap-2 shadow-2xs">
-                      <div class="min-w-0">
-                        <span class="text-[11px] font-semibold text-gray-500 dark:text-gray-400 block truncate">Stock Set Aside</span>
-                        <p id="dash-inv-val-deducted" class="text-xs sm:text-[13px] font-black tabular-nums tracking-tight text-gray-900 dark:text-white leading-tight truncate">0 sacks</p>
-                      </div>
-                      <span class="text-[10px] font-bold text-sky-600 dark:text-sky-400 bg-sky-50 dark:bg-sky-950/80 border border-sky-200 dark:border-sky-800/60 px-1.5 py-0.5 rounded-md shrink-0">↑ Allocated</span>
-                    </div>
-
-                    <!-- Stock Delivered Item -->
-                    <div class="p-2 sm:p-2.5 rounded-xl border border-slate-200/70 dark:border-slate-800/80 bg-slate-50/70 dark:bg-slate-800/40 flex items-center justify-between gap-2 shadow-2xs">
-                      <div class="min-w-0">
-                        <span class="text-[11px] font-semibold text-gray-500 dark:text-gray-400 block truncate">Stock Delivered</span>
-                        <p id="dash-inv-val-delivered" class="text-xs sm:text-[13px] font-black tabular-nums tracking-tight text-gray-900 dark:text-white leading-tight truncate">0 sacks</p>
-                      </div>
-                      <span class="text-[10px] font-bold text-teal-600 dark:text-teal-400 bg-teal-50 dark:bg-teal-950/80 border border-teal-200 dark:border-teal-800/60 px-1.5 py-0.5 rounded-md shrink-0">✓ Delivered</span>
-                    </div>
-
-                    <!-- Available Stock Item -->
-                    <div class="p-2 sm:p-2.5 rounded-xl border border-slate-200/70 dark:border-slate-800/80 bg-slate-50/70 dark:bg-slate-800/40 flex items-center justify-between gap-2 shadow-2xs">
-                      <div class="min-w-0">
-                        <span class="text-[11px] font-semibold text-gray-500 dark:text-gray-400 block truncate">Available Stock</span>
-                        <p id="dash-inv-val-total" class="text-xs sm:text-[13px] font-black tabular-nums tracking-tight text-gray-900 dark:text-white leading-tight truncate">0 sacks</p>
-                      </div>
-                      <span class="text-[10px] font-bold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/80 border border-amber-200 dark:border-amber-800/60 px-1.5 py-0.5 rounded-md shrink-0">Available</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Right Column: Reservation Analytics Compact Card -->
-            <div class="flex flex-col h-full">
-              <div id="reservation-analytics-section" class="w-full bg-white dark:bg-[#111827] p-4 sm:p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col justify-between h-full scroll-mt-6">
-                <!-- Header & View More → Button -->
-                <div class="flex items-center justify-between gap-3 pb-3 border-b border-slate-100 dark:border-slate-800 shrink-0">
-                  <div class="flex items-center gap-2.5 min-w-0">
-                    <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-teal-50 dark:bg-teal-950/60 border border-teal-200 dark:border-teal-800/60 text-teal-600 dark:text-teal-400 flex items-center justify-center shrink-0 shadow-2xs">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="w-4.5 h-4.5 sm:w-5 sm:h-5">
-                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                        <line x1="16" y1="2" x2="16" y2="6"></line>
-                        <line x1="8" y1="2" x2="8" y2="6"></line>
-                        <line x1="3" y1="10" x2="21" y2="10"></line>
-                      </svg>
-                    </div>
-                    <div class="min-w-0">
-                      <h4 class="font-extrabold text-slate-950 dark:text-white text-sm sm:text-base tracking-tight leading-none">Reservation Analytics</h4>
-                      <p class="text-xs text-slate-800 dark:text-slate-200 font-bold mt-1 leading-none">Waiting Orders &amp; Demand</p>
-                    </div>
-                  </div>
-
-                  <a id="btn-view-reservation-analytics" href="reservation-analytics.html" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-extrabold transition-all shrink-0 whitespace-nowrap border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white bg-slate-50 dark:bg-slate-800/80 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer shadow-2xs" title="Open full Reservation Analytics page">
-                    View More →
-                  </a>
-                </div>
-
-                <!-- Body: Two-Column Composition (Left: Donut Status Breakdown, Right: Reserved Demand By Product) -->
-                <div class="flex-1 grid grid-cols-1 md:grid-cols-12 gap-3.5 sm:gap-4 mt-3.5 min-h-0 items-stretch">
-                  <!-- LEFT: Reservation Status Breakdown (span 6) -->
-                  <div class="md:col-span-6 flex flex-col justify-between">
-                    <h5 class="text-xs font-black text-slate-950 dark:text-white tracking-tight mb-2">Reservation Status</h5>
-                    
-                    <div id="dash-res-donut-container" class="flex-1 flex items-center justify-between gap-2.5 min-h-[160px] py-1">
-                      <!-- Donut chart with center total + Legend list with percentages -->
-                    </div>
-                  </div>
-
-                  <!-- RIGHT: Reserved Demand by Product (span 6) -->
-                  <div class="md:col-span-6 flex flex-col justify-between border border-slate-200/80 dark:border-slate-800 rounded-xl p-2.5 sm:p-3 bg-slate-50/70 dark:bg-slate-800/40 shadow-2xs">
-                    <h5 class="text-xs font-black text-slate-950 dark:text-white tracking-tight mb-2">Reserved Rice Needed</h5>
-
-                    <div id="dash-res-demand-list" class="flex-1 flex flex-col justify-around gap-1.5 min-h-[160px] overflow-y-auto">
-                      <!-- Dynamically populated product demand rows with pill progress bars -->
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
           <!-- Recent Orders Section -->
-          <div id="recent-orders-section" class="bg-white dark:bg-[#111827] rounded-2xl border border-slate-200/80 dark:border-slate-800 p-6 shadow-xs scroll-mt-6">
-            <div class="flex justify-between items-center pb-4 border-b border-gray-100 dark:border-slate-800 mb-4">
+          <div id="recent-orders-section" class="bg-white dark:bg-[#0E1B38] rounded-2xl border border-[#D6E3F0] dark:border-[#1E3563] p-6 shadow-xs scroll-mt-6">
+            <div class="flex justify-between items-center pb-4 border-b border-[#E2EDF7] dark:border-[#1E3563] mb-4">
               <div>
-                <h4 class="font-bold text-gray-900 dark:text-white text-base">Recent Orders</h4>
-                <p class="text-xs text-gray-500 dark:text-gray-400 font-normal mt-0.5">Most recent order activity</p>
+                <h4 class="font-bold text-[#0B1B3D] dark:text-white text-base">Recent Orders</h4>
+                <p class="text-xs text-[#2C4A6F] dark:text-[#BDD3ED] font-normal mt-0.5">Most recent order activity</p>
               </div>
-              <a id="btn-view-all-orders" href="orders.html" class="px-3.5 py-1.5 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold uppercase tracking-wider text-[#14532D] dark:text-white hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">View All Orders</a>
+              <a id="btn-view-all-orders" href="orders.html" class="px-3.5 py-1.5 border border-[#D6E3F0] dark:border-[#1E3563] rounded-xl text-xs font-bold uppercase tracking-wider text-[#14532D] dark:text-white hover:bg-[#E2EEF9] dark:hover:bg-[#15254A] transition-colors">View All Orders</a>
             </div>
 
-            <div class="overflow-x-auto overflow-y-visible border border-slate-200/80 dark:border-slate-700 rounded-xl shadow-2xs">
-              <table class="w-full text-left text-sm font-normal text-gray-900 dark:text-gray-100 min-w-[700px]">
+            <div class="overflow-x-auto overflow-y-visible border border-[#D6E3F0] dark:border-[#1E3563] rounded-xl shadow-2xs">
+              <table class="w-full text-left text-sm font-normal text-[#0B1B3D] dark:text-white min-w-[700px]">
                 <thead>
-                  <tr class="border-b border-slate-200 dark:border-slate-700 bg-slate-50/80 dark:bg-slate-800/90 text-slate-700 dark:text-slate-300 font-bold text-xs uppercase tracking-wider">
+                  <tr class="border-b border-[#D6E3F0] dark:border-[#1E3563] bg-[#EBF2F9] dark:bg-[#15254A] text-[#1E3A5F] dark:text-[#D6E6F8] font-bold text-xs uppercase tracking-wider">
                     <th class="py-3.5 px-3.5">Order ID</th>
                     <th class="py-3.5 px-3.5">Customer Name</th>
                     <th class="py-3.5 px-3.5">Items</th>
@@ -2864,6 +3489,8 @@
         }
 
         let displayTotalOrders = 0;
+        let displayActiveReservations = 0;
+        let displayTotalReservations = 0;
         let displayTotalSales = 0;
         let displayTopProductName = 'N/A';
         let displayTopProductVol = 0;
@@ -2948,6 +3575,19 @@
           }
         }
 
+        const activeReservationsData = getDashboardActiveReservationsData({
+          ...totalOrdersFilterState,
+          liveOrders,
+          productsList
+        });
+        displayActiveReservations = activeReservationsData.count;
+        displayTotalReservations = activeReservationsData.count;
+
+        const btnViewActiveReservations = document.getElementById('btn-view-active-reservations') || document.getElementById('btn-view-total-reservations');
+        if (btnViewActiveReservations) {
+          btnViewActiveReservations.setAttribute('href', 'reservations.html');
+        }
+
         const topRiceProductData = getDashboardTopRiceProductData({
           ...totalOrdersFilterState,
           liveOrders,
@@ -2983,8 +3623,10 @@
           }
         }
 
-        // Update top 4 summary cards (Total Orders, Total Sales, Available Stock, Top Rice Product)
+        // Update top 4 summary cards (Total Orders, Active Reservations, Total Sales, Available Stock)
         const topTotalOrdersEl = document.getElementById('dash-total-registered');
+        const topActiveReservationsEl = document.getElementById('dash-active-reservations') || document.getElementById('dash-total-reservations');
+        const topReservationsSubEl = document.getElementById('dash-reservations-sub');
         const topTotalSalesEl = document.getElementById('dash-validated-revenue');
         const topAvailableSacksEl = document.getElementById('dash-available-sacks');
         const topAvailableKgEl = document.getElementById('dash-available-kg');
@@ -2995,6 +3637,12 @@
 
         if (topTotalOrdersEl) {
           topTotalOrdersEl.textContent = `${displayTotalOrders} Order${displayTotalOrders !== 1 ? 's' : ''}`;
+        }
+        if (topActiveReservationsEl) {
+          topActiveReservationsEl.textContent = `${displayActiveReservations} Reservation${displayActiveReservations !== 1 ? 's' : ''}`;
+        }
+        if (topReservationsSubEl) {
+          topReservationsSubEl.textContent = activeReservationsData.isFilterActive ? 'Filtered active reservations' : 'Active reservations in progress';
         }
         if (topTotalSalesEl) {
           topTotalSalesEl.textContent = `₱${displayTotalSales.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -3154,23 +3802,23 @@
         if (barChartContainer) {
           const hasAnySep = buckets.some(bk => bk.label && (bk.label.toLowerCase().includes('sep') || bk.label.toLowerCase().includes('sept')));
           barChartContainer.innerHTML = `
-            <div class="flex flex-col pt-1.5 pb-5 w-full">
-              <div class="h-32 sm:h-36 flex items-end gap-2.5 sm:gap-3.5 pl-14 sm:pl-16 pr-2 border-b so-chart-gridline relative">
+            <div class="flex flex-col pt-2 pb-7 sm:pb-8 w-full">
+              <div class="h-40 sm:h-44 flex items-end gap-2.5 sm:gap-3.5 pl-16 sm:pl-20 pr-3 sm:pr-4 border-b so-chart-gridline relative">
                 <!-- Grid Lines -->
-                <div class="so-chart-gridline absolute inset-x-0 top-0 border-t border-dashed flex items-center pointer-events-none pl-1.5 sm:pl-2">
-                  <span class="so-chart-axis-pill text-[9px] sm:text-[10px] font-extrabold tabular-nums px-1.5 py-0.5 rounded-md shadow-2xs -translate-y-1/2">${formatRevenueAxis(maxSalesVal)}</span>
+                <div class="so-chart-gridline absolute inset-x-0 top-0 border-t border-dashed flex items-center pointer-events-none pl-2 sm:pl-2.5">
+                  <span class="so-chart-axis-pill text-[#000000] dark:text-[#D6E6F8] text-[10.5px] sm:text-[11.5px] font-semibold tabular-nums px-1.5 py-0.5 rounded-md -translate-y-1/2">${formatRevenueAxis(maxSalesVal)}</span>
                 </div>
-                <div class="so-chart-gridline absolute inset-x-0 top-1/4 border-t border-dashed flex items-center pointer-events-none pl-1.5 sm:pl-2">
-                  <span class="so-chart-axis-pill text-[9px] sm:text-[10px] font-extrabold tabular-nums px-1.5 py-0.5 rounded-md shadow-2xs -translate-y-1/2">${formatRevenueAxis(maxSalesVal * 0.75)}</span>
+                <div class="so-chart-gridline absolute inset-x-0 top-1/4 border-t border-dashed flex items-center pointer-events-none pl-2 sm:pl-2.5">
+                  <span class="so-chart-axis-pill text-[#000000] dark:text-[#D6E6F8] text-[10.5px] sm:text-[11.5px] font-semibold tabular-nums px-1.5 py-0.5 rounded-md -translate-y-1/2">${formatRevenueAxis(maxSalesVal * 0.75)}</span>
                 </div>
-                <div class="so-chart-gridline absolute inset-x-0 top-1/2 border-t border-dashed flex items-center pointer-events-none pl-1.5 sm:pl-2">
-                  <span class="so-chart-axis-pill text-[9px] sm:text-[10px] font-extrabold tabular-nums px-1.5 py-0.5 rounded-md shadow-2xs -translate-y-1/2">${formatRevenueAxis(maxSalesVal * 0.5)}</span>
+                <div class="so-chart-gridline absolute inset-x-0 top-1/2 border-t border-dashed flex items-center pointer-events-none pl-2 sm:pl-2.5">
+                  <span class="so-chart-axis-pill text-[#000000] dark:text-[#D6E6F8] text-[10.5px] sm:text-[11.5px] font-semibold tabular-nums px-1.5 py-0.5 rounded-md -translate-y-1/2">${formatRevenueAxis(maxSalesVal * 0.5)}</span>
                 </div>
-                <div class="so-chart-gridline absolute inset-x-0 top-3/4 border-t border-dashed flex items-center pointer-events-none pl-1.5 sm:pl-2">
-                  <span class="so-chart-axis-pill text-[9px] sm:text-[10px] font-extrabold tabular-nums px-1.5 py-0.5 rounded-md shadow-2xs -translate-y-1/2">${formatRevenueAxis(maxSalesVal * 0.25)}</span>
+                <div class="so-chart-gridline absolute inset-x-0 top-3/4 border-t border-dashed flex items-center pointer-events-none pl-2 sm:pl-2.5">
+                  <span class="so-chart-axis-pill text-[#000000] dark:text-[#D6E6F8] text-[10.5px] sm:text-[11.5px] font-semibold tabular-nums px-1.5 py-0.5 rounded-md -translate-y-1/2">${formatRevenueAxis(maxSalesVal * 0.25)}</span>
                 </div>
-                <div class="so-chart-gridline absolute inset-x-0 bottom-0 flex items-center pointer-events-none pl-1.5 sm:pl-2">
-                  <span class="so-chart-axis-pill text-[9px] sm:text-[10px] font-extrabold tabular-nums px-1.5 py-0.5 rounded-md shadow-2xs translate-y-1/2">₱0</span>
+                <div class="so-chart-gridline absolute inset-x-0 bottom-0 flex items-center pointer-events-none pl-2 sm:pl-2.5">
+                  <span class="so-chart-axis-pill text-[#000000] dark:text-[#D6E6F8] text-[10.5px] sm:text-[11.5px] font-semibold tabular-nums px-1.5 py-0.5 rounded-md translate-y-1/2">₱0</span>
                 </div>
 
                 <!-- Dynamic bars -->
@@ -3182,16 +3830,16 @@
                     ? 'bg-[#1E6C02] hover:bg-[#145001] dark:bg-emerald-500 dark:hover:bg-emerald-400 so-bar-sep shadow-xs'
                     : 'bg-[#6366F1] hover:bg-[#4F46E5] dark:bg-[#6366F1] dark:hover:bg-[#818CF8] so-bar-default shadow-xs';
                   const labelClass = isHighlighted
-                    ? 'so-text-main text-[10px] sm:text-[11px] font-black absolute top-full mt-2 truncate w-full text-center tracking-tight text-[#1E6C02] dark:text-emerald-400 so-bar-label-sep'
-                    : 'so-text-main text-[10px] sm:text-[11px] font-extrabold absolute top-full mt-2 truncate w-full text-center tracking-tight';
+                    ? 'so-text-main text-[11.5px] sm:text-[12px] font-bold absolute top-full mt-2.5 truncate w-full text-center tracking-tight text-[#15803D] dark:text-emerald-400 so-bar-label-sep'
+                    : 'so-text-main text-[11.5px] sm:text-[12px] font-semibold absolute top-full mt-2.5 truncate w-full text-center tracking-tight text-[#000000] dark:text-[#D6E6F8]';
                   return `
                     <div class="flex-1 flex flex-col items-center group relative h-full justify-end cursor-pointer z-10 self-stretch">
                       <!-- Tooltip -->
-                      <div class="absolute bottom-full mb-2 bg-white dark:bg-slate-900 text-slate-950 dark:text-white text-[11px] font-bold py-1.5 px-3 rounded-xl border border-slate-300 dark:border-slate-700 opacity-0 group-hover:opacity-100 pointer-events-none transition-all z-30 whitespace-nowrap shadow-xl">
-                        <span class="text-[#14532D] dark:text-emerald-400 font-black">${b.label}:</span> <span class="text-slate-950 dark:text-white font-black">₱${formattedSales}</span> <span class="text-slate-800 dark:text-slate-100 font-semibold">(${b.sacks} Sacks · ${b.orders} Order${b.orders !== 1 ? 's' : ''})</span>
+                      <div class="absolute bottom-full mb-2 bg-white dark:bg-[#0E1B38] text-[#000000] dark:text-white text-[11px] font-bold py-1.5 px-3 rounded-xl border border-[#CBDDF0] dark:border-[#1E3563] opacity-0 group-hover:opacity-100 pointer-events-none transition-all z-30 whitespace-nowrap shadow-xl">
+                        <span class="text-[#14532D] dark:text-emerald-400 font-black">${b.label}:</span> <span class="text-[#000000] dark:text-white font-black">₱${formattedSales}</span> <span class="text-[#000000] dark:text-[#D6E6F8] font-semibold">(${b.sacks} Sacks · ${b.orders} Order${b.orders !== 1 ? 's' : ''})</span>
                       </div>
                       <!-- Bar item -->
-                      <div class="${barColorClass} rounded-t-sm transition-all w-full max-w-[32px]" style="height: ${heightPercent}%; ${b.sales > 0 ? 'min-height: 4px;' : ''}"></div>
+                      <div class="${barColorClass} rounded-t-[3px] transition-all w-full max-w-[32px] sm:max-w-[36px]" style="height: ${heightPercent}%; ${b.sales > 0 ? 'min-height: 4px;' : ''}"></div>
                       <span class="${labelClass}" title="${b.label}">${b.label}</span>
                     </div>
                   `;
@@ -3210,7 +3858,7 @@
           { key: 'delivered', label: 'Delivered', color: '#14B8A6' },
           { key: 'issue-reported', label: 'Issue Reported', color: '#EF4444' },
           { key: 'completed', label: 'Completed', color: '#1E6C02' },
-          { key: 'cancelled', label: 'Cancelled', color: '#6B7280' }
+          { key: 'cancelled', label: 'Cancelled', color: '#BE123C' }
         ];
 
         const categoryCounts = {
@@ -3297,37 +3945,37 @@
         const pieChartContainer = document.getElementById('piechart-container-inner');
         if (pieChartContainer) {
           pieChartContainer.innerHTML = `
-            <div class="flex items-center justify-between w-full h-full gap-2 sm:gap-3">
-              <!-- LEFT SIDE — Main visual (roughly 45–50%) -->
-              <div class="w-[46%] sm:w-[48%] flex items-center justify-center shrink-0 py-0.5">
+            <div class="flex items-center justify-between w-full h-full gap-2.5 sm:gap-4 lg:gap-5">
+              <!-- LEFT SIDE — Main visual (roughly 47–48%) -->
+              <div class="w-[47%] sm:w-[48%] flex items-center justify-center shrink-0 py-1">
                 <div class="relative flex items-center justify-center">
-                  <svg viewBox="-50 -50 100 100" class="w-[150px] h-[150px] sm:w-[172px] sm:h-[172px] transform -rotate-90">
+                  <svg viewBox="-50 -50 100 100" class="w-[174px] h-[174px] sm:w-[198px] sm:h-[198px] transform -rotate-90">
                     ${totalCountedOrders === 0 ? `
-                      <circle cx="0" cy="0" r="34" fill="none" stroke="#E2E8F0" class="dark:stroke-slate-700" stroke-width="14" />
+                      <circle cx="0" cy="0" r="34" fill="none" stroke="#DCE5EF" class="dark:stroke-[#1E3563]" stroke-width="14" />
                     ` : svgSlices.join('')}
                   </svg>
                   <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none text-center">
-                    <p class="text-3xl sm:text-[34px] font-black text-gray-950 dark:text-white leading-none tracking-tight">${totalCountedOrders}</p>
-                    <p class="text-[10.5px] sm:text-[11px] font-extrabold text-gray-500 dark:text-gray-400 uppercase tracking-wider mt-1">${totalCountedOrders === 1 ? 'Order' : 'Orders'}</p>
+                    <p class="text-3xl sm:text-[34px] font-bold text-gray-950 dark:text-white leading-none tracking-tight">${totalCountedOrders}</p>
+                    <p class="text-[11px] sm:text-[11.5px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mt-1">${totalCountedOrders === 1 ? 'Order' : 'Orders'}</p>
                   </div>
                 </div>
               </div>
 
-              <!-- RIGHT SIDE — Order status details (roughly 50–55%) -->
-              <div class="w-[54%] sm:w-[52%] flex-1 min-w-0 flex flex-col justify-center space-y-0.5">
+              <!-- RIGHT SIDE — Order status details (roughly 52–53%) -->
+              <div class="w-[53%] sm:w-[52%] flex-1 min-w-0 flex flex-col justify-center space-y-0.5 sm:space-y-1">
                 ${statusCategories.map(cat => {
                   const count = categoryCounts[cat.key] || 0;
                   const pct = totalCountedOrders > 0 ? (count / totalCountedOrders) * 100 : 0;
                   const pctStr = pct % 1 === 0 ? pct.toFixed(0) : pct.toFixed(1);
                   return `
-                    <div class="flex items-center justify-between gap-1.5 py-0.5 px-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors">
+                    <div class="order-summary-row flex items-center justify-between gap-1.5 sm:gap-2 py-1 sm:py-1.5 px-2 sm:px-2.5 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors">
                       <div class="flex items-center gap-2 min-w-0">
                         <span class="w-2.5 h-2.5 rounded-full shrink-0 shadow-2xs" style="background-color: ${cat.color};"></span>
-                        <span class="font-semibold text-gray-700 dark:text-gray-200 text-xs sm:text-[12.5px] truncate leading-tight" title="${cat.label}">${cat.label}</span>
+                        <span class="font-medium text-slate-700 dark:text-slate-200 text-xs sm:text-[12.5px] truncate leading-snug" title="${cat.label}">${cat.label}</span>
                       </div>
                       <div class="flex items-center gap-1 shrink-0 text-right">
-                        <span class="font-extrabold text-gray-950 dark:text-white text-xs sm:text-[12.5px] tabular-nums leading-tight">${count}</span>
-                        <span class="text-gray-500 dark:text-gray-400 font-semibold text-[10.5px] sm:text-[11px] tabular-nums leading-tight">(${pctStr}%)</span>
+                        <span class="font-bold text-slate-900 dark:text-white text-xs sm:text-[12.5px] tabular-nums leading-snug">${count}</span>
+                        <span class="text-slate-500 dark:text-slate-400 font-medium text-[10.5px] sm:text-[11px] tabular-nums leading-snug">(${pctStr}%)</span>
                       </div>
                     </div>
                   `;
@@ -3348,9 +3996,11 @@
         const orderCard = document.getElementById('order-summary-section');
         const invCard = document.getElementById('inventory-health-section');
         const srgCard = document.getElementById('stock-replenishment-guide-section');
+        const invAnalyticsCard = document.getElementById('inventory-analytics-section');
         if (orderCard && orderCard.style.height) orderCard.style.height = '';
         if (invCard && invCard.style.height) invCard.style.height = '';
         if (srgCard && srgCard.style.height) srgCard.style.height = '';
+        if (invAnalyticsCard && invAnalyticsCard.style.height) invAnalyticsCard.style.height = '';
       }
 
       function syncOrderSummaryHeight() {
@@ -3517,7 +4167,7 @@
             return tB - tA;
           });
 
-          const recentOrders = sortedOrders.slice(0, 6);
+          const recentOrders = sortedOrders.slice(0, 4);
 
           if (recentOrders.length === 0) {
             tbody.innerHTML = `<tr><td colspan="5" class="py-6 text-center text-gray-600 dark:text-gray-300 font-medium text-xs">No recent orders found</td></tr>`;
@@ -3902,7 +4552,7 @@
         if (summaryListContainer) {
           if (rows.length === 0) {
             summaryListContainer.innerHTML = `
-              <div class="py-6 text-center text-xs font-semibold text-slate-700 dark:text-slate-200">
+              <div class="py-6 text-center text-xs font-semibold text-[#000000] dark:text-slate-200">
                 No active rice products found in catalog.
               </div>
             `;
@@ -3950,9 +4600,9 @@
               }
 
               return `
-                <div class="flex items-center gap-3 sm:gap-4 py-2 sm:py-2.5 px-2 hover:bg-slate-50/80 dark:hover:bg-slate-800/40 rounded-xl transition-all border-b border-slate-100/80 dark:border-slate-800/70 last:border-b-0">
+                <div class="flex items-center gap-3 sm:gap-4 py-2.5 px-2.5 hover:bg-slate-50/80 dark:hover:bg-slate-800/40 rounded-xl transition-all border-b border-slate-100/80 dark:border-slate-800/70 last:border-b-0">
                   <!-- Product Name -->
-                  <div class="w-32 sm:w-40 md:w-44 shrink-0 truncate text-xs sm:text-[13px] font-bold text-slate-900 dark:text-white tracking-tight" title="${pName}">
+                  <div class="srg-dash-product-name w-32 sm:w-40 md:w-44 shrink-0 truncate text-[14.5px] font-medium text-[#000000] dark:text-white tracking-normal leading-normal" title="${pName}">
                     ${pName}
                   </div>
 
@@ -3962,13 +4612,13 @@
                   </div>
 
                   <!-- Existing Quantity -->
-                  <div class="w-14 sm:w-16 shrink-0 text-right font-mono tabular-nums text-xs sm:text-[13px] font-extrabold text-slate-900 dark:text-white tracking-tight" title="${stockVal.toLocaleString('en-US')} sacks">
+                  <div class="w-14 sm:w-16 shrink-0 text-right font-mono tabular-nums text-xs sm:text-[13px] font-bold text-[#000000] dark:text-white tracking-tight" title="${stockVal.toLocaleString('en-US')} sacks">
                     ${stockVal.toLocaleString('en-US')}
                   </div>
 
                   <!-- Status Badge Pill with High-Contrast Text on Colored Background -->
-                  <div class="w-28 sm:w-32 shrink-0 text-right">
-                    <span class="inline-flex items-center justify-center px-2.5 py-0.5 rounded-full text-[11px] font-bold tracking-tight shadow-2xs whitespace-nowrap ${badgeClass}">
+                  <div class="w-32 sm:w-36 shrink-0 text-right">
+                    <span class="srg-dash-status-pill inline-flex items-center justify-center px-2.5 py-0.5 rounded-full text-[12.5px] font-medium tracking-normal shadow-2xs whitespace-nowrap ${badgeClass}">
                       ${displayStatus}
                     </span>
                   </div>
@@ -4217,7 +4867,7 @@
                 <div class="relative flex items-center justify-center">
                   <svg viewBox="-50 -50 100 100" class="w-[146px] h-[146px] sm:w-[164px] sm:h-[164px] transform -rotate-90">
                     ${totalActive === 0 ? `
-                      <circle cx="0" cy="0" r="34" fill="none" stroke="#CBD5E1" class="dark:stroke-slate-700" stroke-width="14" />
+                      <circle cx="0" cy="0" r="34" fill="none" stroke="#DCE5EF" class="dark:stroke-[#1E3563]" stroke-width="14" />
                     ` : invSvgSlices.join('')}
                   </svg>
                   <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none text-center">
@@ -4584,16 +5234,16 @@
 
         // Update Dashboard Compact Inventory Analytics stacked summary items
         const valAddedEl = document.getElementById('dash-inv-val-added');
-        if (valAddedEl) valAddedEl.innerHTML = `${Number(totalAdded || 0).toLocaleString()} sacks <span class="text-gray-400 dark:text-gray-500 font-normal">/</span> <span class="text-[11px] font-semibold text-gray-500 dark:text-gray-400">${Number(totalAddedKg || 0).toLocaleString()} kg</span>`;
+        if (valAddedEl) valAddedEl.innerHTML = `${Number(totalAdded || 0).toLocaleString()} sacks <span class="text-[#000000] dark:text-gray-400 font-normal">/</span> <span class="text-[11px] font-semibold text-[#000000] dark:text-gray-300">${Number(totalAddedKg || 0).toLocaleString()} kg</span>`;
 
         const valDeductedEl = document.getElementById('dash-inv-val-deducted');
-        if (valDeductedEl) valDeductedEl.innerHTML = `${Number(totalDeducted || 0).toLocaleString()} sacks <span class="text-gray-400 dark:text-gray-500 font-normal">/</span> <span class="text-[11px] font-semibold text-gray-500 dark:text-gray-400">${Number(totalDeductedKg || 0).toLocaleString()} kg</span>`;
+        if (valDeductedEl) valDeductedEl.innerHTML = `${Number(totalDeducted || 0).toLocaleString()} sacks <span class="text-[#000000] dark:text-gray-400 font-normal">/</span> <span class="text-[11px] font-semibold text-[#000000] dark:text-gray-300">${Number(totalDeductedKg || 0).toLocaleString()} kg</span>`;
 
         const valDeliveredEl = document.getElementById('dash-inv-val-delivered');
-        if (valDeliveredEl) valDeliveredEl.innerHTML = `${Number(deliveredSacks || 0).toLocaleString()} sacks <span class="text-gray-400 dark:text-gray-500 font-normal">/</span> <span class="text-[11px] font-semibold text-gray-500 dark:text-gray-400">${Number(deliveredKg || 0).toLocaleString()} kg</span>`;
+        if (valDeliveredEl) valDeliveredEl.innerHTML = `${Number(deliveredSacks || 0).toLocaleString()} sacks <span class="text-[#000000] dark:text-gray-400 font-normal">/</span> <span class="text-[11px] font-semibold text-[#000000] dark:text-gray-300">${Number(deliveredKg || 0).toLocaleString()} kg</span>`;
 
         const valTotalEl = document.getElementById('dash-inv-val-total');
-        if (valTotalEl) valTotalEl.innerHTML = `${Number(availableStockData.totalAvailableSacks || 0).toLocaleString()} sacks <span class="text-gray-400 dark:text-gray-500 font-normal">/</span> <span class="text-[11px] font-semibold text-gray-500 dark:text-gray-400">${Number(availableStockData.totalAvailableKg || 0).toLocaleString()} kg</span>`;
+        if (valTotalEl) valTotalEl.innerHTML = `${Number(availableStockData.totalAvailableSacks || 0).toLocaleString()} sacks <span class="text-[#000000] dark:text-gray-400 font-normal">/</span> <span class="text-[11px] font-semibold text-[#000000] dark:text-gray-300">${Number(availableStockData.totalAvailableKg || 0).toLocaleString()} kg</span>`;
 
         // Render Reference-Style Smooth SVG Line Chart (LEFT portion of card)
         const invChartEl = document.getElementById('dash-inv-chart-container');
@@ -4660,10 +5310,10 @@
           else if (rawMax <= 600) niceMax = 600;
           else niceMax = Math.ceil(rawMax / 100) * 100;
 
-          const width = 310;
-          const height = 150;
-          const padLeft = 32;
-          const padRight = 14;
+          const width = 500;
+          const height = 180;
+          const padLeft = 34;
+          const padRight = 18;
           const padTop = 16;
           const padBottom = 26;
           const plotW = width - padLeft - padRight;
@@ -4711,28 +5361,28 @@
             <svg viewBox="0 0 ${width} ${height}" class="w-full h-full overflow-visible select-none">
               <defs>
                 <linearGradient id="grad-added" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stop-color="#10B981" stop-opacity="0.32" />
-                  <stop offset="100%" stop-color="#10B981" stop-opacity="0.0" />
+                  <stop offset="0%" stop-color="#16A34A" stop-opacity="0.32" />
+                  <stop offset="100%" stop-color="#16A34A" stop-opacity="0.0" />
                 </linearGradient>
                 <linearGradient id="grad-allocated" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stop-color="#0EA5E9" stop-opacity="0.25" />
-                  <stop offset="100%" stop-color="#0EA5E9" stop-opacity="0.0" />
+                  <stop offset="0%" stop-color="#2563EB" stop-opacity="0.25" />
+                  <stop offset="100%" stop-color="#2563EB" stop-opacity="0.0" />
                 </linearGradient>
                 <linearGradient id="grad-delivered" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stop-color="#14B8A6" stop-opacity="0.25" />
-                  <stop offset="100%" stop-color="#14B8A6" stop-opacity="0.0" />
+                  <stop offset="0%" stop-color="#D97706" stop-opacity="0.25" />
+                  <stop offset="100%" stop-color="#D97706" stop-opacity="0.0" />
                 </linearGradient>
               </defs>
 
               <!-- Gridlines & Y-Axis Labels -->
-              <line x1="${padLeft}" y1="${yTop}" x2="${width - padRight}" y2="${yTop}" stroke="#94A3B8" stroke-opacity="0.25" stroke-dasharray="3 3" />
-              <text x="${padLeft - 5}" y="${yTop + 3.5}" text-anchor="end" class="text-[9px] font-bold fill-gray-400 dark:fill-gray-500 tabular-nums">${niceMax}</text>
+              <line x1="${padLeft}" y1="${yTop}" x2="${width - padRight}" y2="${yTop}" stroke="currentColor" class="text-[#D6E3F0] dark:text-[#1E3563]" stroke-dasharray="3 3" />
+              <text x="${padLeft - 5}" y="${yTop + 3.5}" text-anchor="end" class="text-[10px] font-medium fill-[#000000] dark:fill-[#BDD3ED] tabular-nums">${niceMax}</text>
 
-              <line x1="${padLeft}" y1="${yMid}" x2="${width - padRight}" y2="${yMid}" stroke="#94A3B8" stroke-opacity="0.25" stroke-dasharray="3 3" />
-              <text x="${padLeft - 5}" y="${yMid + 3.5}" text-anchor="end" class="text-[9px] font-bold fill-gray-400 dark:fill-gray-500 tabular-nums">${yMidVal}</text>
+              <line x1="${padLeft}" y1="${yMid}" x2="${width - padRight}" y2="${yMid}" stroke="currentColor" class="text-[#D6E3F0] dark:text-[#1E3563]" stroke-dasharray="3 3" />
+              <text x="${padLeft - 5}" y="${yMid + 3.5}" text-anchor="end" class="text-[10px] font-medium fill-[#000000] dark:fill-[#BDD3ED] tabular-nums">${yMidVal}</text>
 
-              <line x1="${padLeft}" y1="${yBot}" x2="${width - padRight}" y2="${yBot}" stroke="#94A3B8" stroke-opacity="0.4" stroke-width="1.2" />
-              <text x="${padLeft - 5}" y="${yBot + 3.5}" text-anchor="end" class="text-[9px] font-bold fill-gray-400 dark:fill-gray-500 tabular-nums">0</text>
+              <line x1="${padLeft}" y1="${yBot}" x2="${width - padRight}" y2="${yBot}" stroke="currentColor" class="text-[#D6E3F0] dark:text-[#1E3563]" stroke-width="1.2" />
+              <text x="${padLeft - 5}" y="${yBot + 3.5}" text-anchor="end" class="text-[10px] font-medium fill-[#000000] dark:fill-[#BDD3ED] tabular-nums">0</text>
 
               <!-- Area Fills -->
               <path d="${areaDelivered}" fill="url(#grad-delivered)" />
@@ -4740,34 +5390,34 @@
               <path d="${areaAdded}" fill="url(#grad-added)" />
 
               <!-- Spline Strokes -->
-              <path d="${pathDelivered}" fill="none" stroke="#14B8A6" stroke-width="2.2" stroke-linecap="round" />
-              <path d="${pathAllocated}" fill="none" stroke="#0EA5E9" stroke-width="2.2" stroke-linecap="round" />
-              <path d="${pathAdded}" fill="none" stroke="#10B981" stroke-width="2.4" stroke-linecap="round" />
+              <path d="${pathDelivered}" fill="none" stroke="#D97706" stroke-width="2.2" stroke-linecap="round" />
+              <path d="${pathAllocated}" fill="none" stroke="#2563EB" stroke-width="2.2" stroke-linecap="round" />
+              <path d="${pathAdded}" fill="none" stroke="#16A34A" stroke-width="2.4" stroke-linecap="round" />
 
-              <!-- Markers & Tooltips for Delivered (Teal) -->
+              <!-- Markers & Tooltips for Delivered (Amber) -->
               ${deliveredPts.map(pt => `
-                <circle cx="${pt.x.toFixed(1)}" cy="${pt.y.toFixed(1)}" r="3" fill="#14B8A6" stroke="#0F172A" stroke-width="1.8" class="cursor-pointer transition-transform hover:scale-125">
+                <circle cx="${pt.x.toFixed(1)}" cy="${pt.y.toFixed(1)}" r="3" fill="#D97706" stroke="white" class="dark:stroke-[#0E1B38]" stroke-width="1.8" class="cursor-pointer transition-transform hover:scale-125">
                   <title>${pt.label}: ${pt.val} sacks delivered</title>
                 </circle>
               `).join('')}
 
-              <!-- Markers & Tooltips for Allocated (Sky Blue) -->
+              <!-- Markers & Tooltips for Allocated (Blue) -->
               ${allocatedPts.map(pt => `
-                <circle cx="${pt.x.toFixed(1)}" cy="${pt.y.toFixed(1)}" r="3.2" fill="#0EA5E9" stroke="#0F172A" stroke-width="1.8" class="cursor-pointer transition-transform hover:scale-125">
+                <circle cx="${pt.x.toFixed(1)}" cy="${pt.y.toFixed(1)}" r="3.2" fill="#2563EB" stroke="white" class="dark:stroke-[#0E1B38]" stroke-width="1.8" class="cursor-pointer transition-transform hover:scale-125">
                   <title>${pt.label}: ${pt.val} sacks allocated</title>
                 </circle>
               `).join('')}
 
               <!-- Markers & Tooltips for Added (Green) -->
               ${addedPts.map(pt => `
-                <circle cx="${pt.x.toFixed(1)}" cy="${pt.y.toFixed(1)}" r="3.5" fill="#10B981" stroke="#0F172A" stroke-width="2" class="cursor-pointer transition-transform hover:scale-125">
+                <circle cx="${pt.x.toFixed(1)}" cy="${pt.y.toFixed(1)}" r="3.5" fill="#16A34A" stroke="white" class="dark:stroke-[#0E1B38]" stroke-width="2" class="cursor-pointer transition-transform hover:scale-125">
                   <title>${pt.label}: ${pt.val} sacks added</title>
                 </circle>
               `).join('')}
 
               <!-- X-Axis Month Labels -->
               ${lineBuckets.map((b, idx) => `
-                <text x="${getX(idx).toFixed(1)}" y="${height - 6}" text-anchor="middle" class="text-[10px] font-bold fill-gray-500 dark:fill-gray-400">${b.label}</text>
+                <text x="${getX(idx).toFixed(1)}" y="${height - 6}" text-anchor="middle" class="text-[11px] font-medium fill-[#000000] dark:fill-[#BDD3ED]">${b.label}</text>
               `).join('')}
             </svg>
           `;
@@ -5011,6 +5661,7 @@
       }
 
       function renderReservationAnalytics() {
+        if (!document.getElementById('reservation-analytics-section')) return;
         const orders = typeof getAllOrders === 'function' ? getAllOrders() : [];
         const productsList = typeof getProducts === 'function' ? getProducts() : [];
         const activeProducts = productsList.filter(p => !p.isArchived && !p.archived);
@@ -5251,14 +5902,14 @@
                 cumPct += s.pct;
                 return `<circle cx="50" cy="50" r="${radius}" fill="transparent" stroke="${s.color}" stroke-width="11" stroke-dasharray="${dashLen.toFixed(1)} ${circ.toFixed(1)}" stroke-dashoffset="${dashOffset.toFixed(1)}" stroke-linecap="butt"></circle>`;
               }).join('')
-            : `<circle cx="50" cy="50" r="${radius}" fill="transparent" stroke="#334155" stroke-opacity="0.3" stroke-width="11"></circle>`;
+            : `<circle cx="50" cy="50" r="${radius}" fill="transparent" stroke="#1E3563" stroke-opacity="0.3" stroke-width="11"></circle>`;
 
           resDonutContainer.innerHTML = `
             <div class="flex items-center justify-between w-full h-full gap-2.5 sm:gap-3.5 py-1">
               <!-- Donut Visual (Left) - Comfortably fits Total Reservations -->
               <div class="relative w-36 h-36 sm:w-40 sm:h-40 shrink-0 flex items-center justify-center">
                 <svg viewBox="0 0 100 100" class="w-full h-full -rotate-90 overflow-visible">
-                  <circle cx="50" cy="50" r="${radius}" fill="transparent" stroke="currentColor" class="text-slate-200 dark:text-slate-800" stroke-width="11"></circle>
+                  <circle cx="50" cy="50" r="${radius}" fill="transparent" stroke="currentColor" class="text-[#DCE5EF] dark:text-[#1E3563]" stroke-width="11"></circle>
                   ${donutSvg}
                 </svg>
                 <div class="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none px-2.5">
@@ -5316,9 +5967,9 @@
               label: 'Cancelled',
               count: cancelledCount,
               sacks: cancelledSacks,
-              color: '#64748B',
-              bgClass: 'bg-slate-400',
-              badgeClass: 'bg-slate-100 text-slate-700 border-slate-300'
+              color: '#BE123C',
+              bgClass: 'bg-rose-600',
+              badgeClass: 'bg-rose-50 text-rose-800 border-rose-200'
             }
           ];
 
@@ -5495,7 +6146,7 @@
                   let barColor = '#10B981';
                   if (item.reservedSacks === 0) {
                     badge = `<span class="ra-badge-none text-[10px] font-extrabold px-2.5 py-0.5 rounded-full shrink-0">No Active Demand</span>`;
-                    barColor = '#64748B';
+                    barColor = '#93C5FD';
                   } else if (isHealthy) {
                     badge = `<span class="ra-badge-sufficient text-[10px] font-extrabold px-2.5 py-0.5 rounded-full shrink-0">✓ Stock Sufficient</span>`;
                     barColor = '#10B981';
@@ -6732,8 +7383,13 @@
         'stock-replenishment-guide-section': 'stock-replenishment-guide-section',
         'inventory-analytics': 'inventory-analytics-section',
         'inventory-analytics-section': 'inventory-analytics-section',
-        'reservation-analytics': 'reservation-analytics-section',
-        'reservation-analytics-section': 'reservation-analytics-section',
+        'active-reservations': 'dash-kpi-active-reservations',
+        'dash-kpi-active-reservations': 'dash-kpi-active-reservations',
+        'reservation-analytics': 'dash-kpi-active-reservations',
+        'reservation-analytics-section': 'dash-kpi-active-reservations',
+        'total-reservations': 'dash-kpi-active-reservations',
+        'dash-kpi-total-reservations': 'dash-kpi-active-reservations',
+        'reservations': 'dash-kpi-active-reservations',
         'total-orders': 'dash-kpi-total-orders',
         'dash-kpi-total-orders': 'dash-kpi-total-orders',
         'total-sales': 'dash-kpi-total-sales',
@@ -6822,8 +7478,8 @@
 
         const section = link.closest(
           '#sales-overview-section, #order-summary-section, #inventory-health-section, ' +
-          '#stock-replenishment-guide-section, #inventory-analytics-section, #reservation-analytics-section, ' +
-          '#dash-kpi-total-orders, #dash-kpi-total-sales, #dash-kpi-available-stock, #dash-kpi-top-product, ' +
+          '#stock-replenishment-guide-section, #inventory-analytics-section, ' +
+          '#dash-kpi-total-orders, #dash-kpi-active-reservations, #dash-kpi-total-reservations, #dash-kpi-total-sales, #dash-kpi-available-stock, #dash-kpi-top-product, ' +
           '#top-kpi-cards-section, #recent-orders-section'
         );
 
@@ -6842,8 +7498,9 @@
         { btnId: 'dash-out-stock-btn', sectionId: 'inventory-health-section' },
         { btnId: 'btn-view-stock-replenishment', sectionId: 'stock-replenishment-guide-section' },
         { btnId: 'btn-view-inventory-analytics', sectionId: 'inventory-analytics-section' },
-        { btnId: 'btn-view-reservation-analytics', sectionId: 'reservation-analytics-section' },
         { btnId: 'btn-view-total-orders', sectionId: 'dash-kpi-total-orders' },
+        { btnId: 'btn-view-active-reservations', sectionId: 'dash-kpi-active-reservations' },
+        { btnId: 'btn-view-total-reservations', sectionId: 'dash-kpi-active-reservations' },
         { btnId: 'btn-view-total-sales', sectionId: 'dash-kpi-total-sales' },
         { btnId: 'btn-view-available-stock', sectionId: 'dash-kpi-available-stock' },
         { btnId: 'btn-view-top-product', sectionId: 'dash-kpi-top-product' },

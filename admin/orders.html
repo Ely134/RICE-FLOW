@@ -14,6 +14,9 @@
       } catch (e) {}
     })();
   </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Source+Sans+3:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400;1,600&display=swap" rel="stylesheet">
   <style id="riceflow-theme-init">
     html { background-color: #F5F5F5; color-scheme: light; }
     html.dark { background-color: #1F2937 !important; color-scheme: dark; }
@@ -38,15 +41,511 @@
     }
   </style>
   <link rel="stylesheet" href="../src/styles/index.css">
-  <style>
+  <style id="admin-orders-typography-and-colors">
+    /* ==========================================================================
+       ADMIN ORDERS PAGE READABILITY & APPROVED TYPOGRAPHY SYSTEM
+       - Inter: Page Headings, Section Headings, Important Numbers, Counts,
+                Buttons, Action Triggers, Table Headers, Navigation
+       - Source Sans 3: Descriptions, Table Content, Customer & Order Details,
+                        Labels, Form Inputs, Filters, Supporting Text
+       - Solid Black (#000000): In Day/Light mode for all readable text
+       ========================================================================== */
+
+    /* 1. Base typography: Default body, workspace, content, and modals to Source Sans 3 */
+    body,
+    #admin-layout-container,
+    #admin-main-content,
+    body > div[id$="-modal"],
+    #customer-qr-popup {
+      font-family: 'Source Sans 3', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* 2. PRIMARY FONT: INTER
+          - Page headings & section titles
+          - Table column headers (th)
+          - Action buttons, modal buttons, filter buttons, triggers
+          - Navigation links & sidebar controls
+          - Counts, statistics, badges, and key numbers */
+    #admin-right-workspace header h2,
+    #admin-layout-container h1,
+    #admin-layout-container h2,
+    #admin-layout-container h3,
+    #admin-layout-container h4,
+    #admin-layout-container h5,
+    #admin-main-content h1,
+    #admin-main-content h2,
+    #admin-main-content h3,
+    #admin-main-content h4,
+    #admin-main-content h5,
+    body > div[id$="-modal"] h1,
+    body > div[id$="-modal"] h2,
+    body > div[id$="-modal"] h3,
+    body > div[id$="-modal"] h4,
+    body > div[id$="-modal"] h5,
+    #customer-qr-popup h3,
+    #lbl-details-title,
+    /* Table headers */
+    #admin-layout-container table thead th,
+    #admin-layout-container table thead th *,
+    #admin-layout-container thead th,
+    #admin-layout-container thead th *,
+    table thead th,
+    table thead th *,
+    /* All buttons across workspace and modals */
+    #admin-layout-container button:not(.font-mono),
+    #admin-main-content button:not(.font-mono),
+    body > div[id$="-modal"] button:not(.font-mono),
+    #customer-qr-popup button:not(.font-mono),
+    button:not(.font-mono),
+    .filter-tab-btn,
+    #btn-scan-qr-trigger,
+    .btn-grid-action-trigger,
+    .btn-trigger-verify-cash-badge,
+    .btn-trigger-finalize-order,
+    #btn-verify-selected-payments,
+    #btn-undo-batch-verify,
+    #admin-sidebar-toggle,
+    /* Important numbers, statistics, counts, priorities, and order IDs */
+    #batch-modal-orders-count,
+    #batch-modal-total-cash,
+    .order-count-badge,
+    .kpi-stat-number,
+    #admin-layout-container table tbody td:first-child,
+    table tbody td:first-child,
+    [id*="queue-modal-position"],
+    [id*="order-count"] {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+    }
+
+    /* 3. Strict Tabular Monospace for Order IDs, Tokens, Verification codes */
+    .font-mono,
+    [class*="font-mono"],
+    #popup-customer-qr-code,
+    #reject-modal-order-id,
+    #verify-cash-modal-order-id,
+    #match-order-id {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace !important;
+    }
+
+    /* 4. SECONDARY FONT: SOURCE SANS 3
+          - Table cells & order content
+          - Descriptions, instructions, and notices
+          - Customer details & names
+          - Form labels, inputs, selects, textareas */
+    #admin-layout-container table tbody td,
+    #admin-layout-container table tbody td *:not(button):not(.font-mono):not(th),
+    table tbody td,
+    table tbody td *:not(button):not(.font-mono):not(th),
+    #admin-layout-container label,
+    #admin-main-content label,
+    body > div[id$="-modal"] label,
+    #customer-qr-popup label,
+    label,
+    #admin-layout-container input,
+    #admin-main-content input,
+    body > div[id$="-modal"] input,
+    #customer-qr-popup input,
+    input,
+    #admin-layout-container select,
+    #admin-main-content select,
+    body > div[id$="-modal"] select,
+    #customer-qr-popup select,
+    select,
+    #admin-layout-container textarea,
+    #admin-main-content textarea,
+    body > div[id$="-modal"] textarea,
+    #customer-qr-popup textarea,
+    textarea,
+    #admin-layout-container p,
+    #admin-main-content p,
+    body > div[id$="-modal"] p,
+    #customer-qr-popup p,
+    #admin-layout-container span:not(button *):not(.order-count-badge):not(.font-mono):not(thead *),
+    body > div[id$="-modal"] span:not(button *):not(.order-count-badge):not(.font-mono) {
+      font-family: 'Source Sans 3', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+    }
+
+    /* Font sizing and comfortable spacing */
+    #admin-right-workspace header h2 {
+      font-size: 1.75rem !important; /* 28px */
+      line-height: 2.125rem !important;
+      font-weight: 700 !important;
+      letter-spacing: -0.025em !important;
+    }
+    #admin-main-content h3 {
+      font-size: 1.25rem !important; /* 20px */
+      line-height: 1.75rem !important;
+      font-weight: 700 !important;
+      letter-spacing: -0.015em !important;
+    }
+    table thead th {
+      font-size: 1rem !important; /* 16px - balanced header hierarchy */
+      font-weight: 700 !important;
+      letter-spacing: 0.02em !important;
+      padding-top: 1.125rem !important;
+      padding-bottom: 1.125rem !important;
+    }
+    table tbody td {
+      font-size: 1.03125rem !important; /* ~16.5px (1-2px increase for comfortable readability) */
+      line-height: 1.48 !important;
+      padding-top: 1.125rem !important;
+      padding-bottom: 1.125rem !important;
+    }
+    .filter-tab-btn {
+      font-size: 0.9375rem !important; /* 15px */
+      font-weight: 600 !important;
+      line-height: 1.35 !important;
+    }
+    #btn-scan-qr-trigger {
+      font-size: 0.9375rem !important; /* 15px */
+      font-weight: 700 !important;
+      letter-spacing: 0.02em !important;
+    }
+    label, input, select, textarea {
+      font-size: 0.9375rem !important; /* 15px */
+      line-height: 1.4 !important;
+    }
+
+    /* ==========================================================================
+       SOLID BLACK (#000000) TEXT ENFORCEMENT IN DAY/LIGHT MODE
+       Replaces all gray readable text with crisp, solid black #000000
+       ========================================================================== */
+
+    /* 1. Page and section headings: Solid Black */
+    html:not(.dark) #admin-right-workspace header h2,
+    html:not(.dark) #admin-layout-container h1,
+    html:not(.dark) #admin-layout-container h2,
+    html:not(.dark) #admin-layout-container h3,
+    html:not(.dark) #admin-layout-container h4,
+    html:not(.dark) #admin-layout-container h5,
+    html:not(.dark) #admin-main-content h1,
+    html:not(.dark) #admin-main-content h2,
+    html:not(.dark) #admin-main-content h3,
+    html:not(.dark) #admin-main-content h4,
+    html:not(.dark) #admin-main-content h5,
+    html:not(.dark) body > div[id$="-modal"] h1,
+    html:not(.dark) body > div[id$="-modal"] h2,
+    html:not(.dark) body > div[id$="-modal"] h3,
+    html:not(.dark) body > div[id$="-modal"] h4,
+    html:not(.dark) body > div[id$="-modal"] h5,
+    html:not(.dark) #customer-qr-popup h3,
+    html:not(.dark) #lbl-details-title {
+      color: #000000 !important;
+    }
+
+    /* 2. Table Headers, Table Cells, Customer Names, and Row Content: Solid Black */
+    html:not(.dark) table thead tr,
+    html:not(.dark) table thead th,
+    html:not(.dark) table thead th span,
+    html:not(.dark) table tbody tr,
+    html:not(.dark) table tbody td {
+      color: #000000 !important;
+    }
+    html:not(.dark) table thead tr {
+      background-color: #F8FAFC !important;
+      border-bottom: 1px solid #E2E8F0 !important;
+    }
+    html:not(.dark) table tbody td p,
+    html:not(.dark) table tbody td div,
+    html:not(.dark) table tbody td span:not([class*="text-white"]):not([class*="text-red-"]):not([class*="text-emerald-"]):not([class*="text-green-"]):not([class*="text-amber-"]):not([class*="text-blue-"]):not([class*="text-purple-"]) {
+      color: #000000 !important;
+    }
+
+    /* 3. Filter controls, labels, search fields, form inputs, and counts: Solid Black */
+    html:not(.dark) .filter-tab-btn:not(.bg-\[\#1E6C02\]),
+    html:not(.dark) #status-filters-stack button:not(.bg-\[\#1E6C02\]),
+    html:not(.dark) .order-count-badge,
+    html:not(.dark) label,
+    html:not(.dark) input:not([type="checkbox"]):not([type="radio"]),
+    html:not(.dark) select,
+    html:not(.dark) textarea {
+      color: #000000 !important;
+    }
+    html:not(.dark) .filter-tab-btn:not(.bg-\[\#1E6C02\]) {
+      background-color: #F3F4F6 !important;
+      border: 1px solid #D1D5DB !important;
+      color: #000000 !important;
+    }
+    html:not(.dark) .filter-tab-btn:not(.bg-\[\#1E6C02\]):hover {
+      background-color: #E5E7EB !important;
+      color: #000000 !important;
+    }
+    html:not(.dark) input::placeholder,
+    html:not(.dark) textarea::placeholder {
+      color: #4B5563 !important;
+    }
+
+    /* 4. Comprehensive replacement of Tailwind gray & slate text classes across Admin Orders */
+    html:not(.dark) .text-gray-400:not([class*="text-white"]):not([class*="text-red-"]):not([class*="text-emerald-"]):not([class*="text-green-"]):not([class*="text-amber-"]):not([class*="text-blue-"]):not([class*="text-purple-"]):not([class*="text-\[\#1E6C02\]"]),
+    html:not(.dark) .text-gray-500:not([class*="text-white"]):not([class*="text-red-"]):not([class*="text-emerald-"]):not([class*="text-green-"]):not([class*="text-amber-"]):not([class*="text-blue-"]):not([class*="text-purple-"]):not([class*="text-\[\#1E6C02\]"]),
+    html:not(.dark) .text-gray-550:not([class*="text-white"]):not([class*="text-red-"]):not([class*="text-emerald-"]):not([class*="text-green-"]):not([class*="text-amber-"]):not([class*="text-blue-"]):not([class*="text-purple-"]):not([class*="text-\[\#1E6C02\]"]),
+    html:not(.dark) .text-gray-600:not([class*="text-white"]):not([class*="text-red-"]):not([class*="text-emerald-"]):not([class*="text-green-"]):not([class*="text-amber-"]):not([class*="text-blue-"]):not([class*="text-purple-"]):not([class*="text-\[\#1E6C02\]"]),
+    html:not(.dark) .text-gray-650:not([class*="text-white"]):not([class*="text-red-"]):not([class*="text-emerald-"]):not([class*="text-green-"]):not([class*="text-amber-"]):not([class*="text-blue-"]):not([class*="text-purple-"]):not([class*="text-\[\#1E6C02\]"]),
+    html:not(.dark) .text-gray-700:not([class*="text-white"]):not([class*="text-red-"]):not([class*="text-emerald-"]):not([class*="text-green-"]):not([class*="text-amber-"]):not([class*="text-blue-"]):not([class*="text-purple-"]):not([class*="text-\[\#1E6C02\]"]),
+    html:not(.dark) .text-gray-800:not([class*="text-white"]):not([class*="text-red-"]):not([class*="text-emerald-"]):not([class*="text-green-"]):not([class*="text-amber-"]):not([class*="text-blue-"]):not([class*="text-purple-"]):not([class*="text-\[\#1E6C02\]"]),
+    html:not(.dark) .text-gray-900:not([class*="text-white"]):not([class*="text-red-"]):not([class*="text-emerald-"]):not([class*="text-green-"]):not([class*="text-amber-"]):not([class*="text-blue-"]):not([class*="text-purple-"]):not([class*="text-\[\#1E6C02\]"]),
+    html:not(.dark) .text-gray-950:not([class*="text-white"]):not([class*="text-red-"]):not([class*="text-emerald-"]):not([class*="text-green-"]):not([class*="text-amber-"]):not([class*="text-blue-"]):not([class*="text-purple-"]):not([class*="text-\[\#1E6C02\]"]),
+    html:not(.dark) .text-slate-400:not([class*="text-white"]):not([class*="text-red-"]):not([class*="text-emerald-"]):not([class*="text-green-"]):not([class*="text-amber-"]):not([class*="text-blue-"]):not([class*="text-purple-"]):not([class*="text-\[\#1E6C02\]"]),
+    html:not(.dark) .text-slate-500:not([class*="text-white"]):not([class*="text-red-"]):not([class*="text-emerald-"]):not([class*="text-green-"]):not([class*="text-amber-"]):not([class*="text-blue-"]):not([class*="text-purple-"]):not([class*="text-\[\#1E6C02\]"]),
+    html:not(.dark) .text-slate-600:not([class*="text-white"]):not([class*="text-red-"]):not([class*="text-emerald-"]):not([class*="text-green-"]):not([class*="text-amber-"]):not([class*="text-blue-"]):not([class*="text-purple-"]):not([class*="text-\[\#1E6C02\]"]),
+    html:not(.dark) .text-slate-700:not([class*="text-white"]):not([class*="text-red-"]):not([class*="text-emerald-"]):not([class*="text-green-"]):not([class*="text-amber-"]):not([class*="text-blue-"]):not([class*="text-purple-"]):not([class*="text-\[\#1E6C02\]"]),
+    html:not(.dark) .text-slate-800:not([class*="text-white"]):not([class*="text-red-"]):not([class*="text-emerald-"]):not([class*="text-green-"]):not([class*="text-amber-"]):not([class*="text-blue-"]):not([class*="text-purple-"]):not([class*="text-\[\#1E6C02\]"]),
+    html:not(.dark) .text-slate-900:not([class*="text-white"]):not([class*="text-red-"]):not([class*="text-emerald-"]):not([class*="text-green-"]):not([class*="text-amber-"]):not([class*="text-blue-"]):not([class*="text-purple-"]):not([class*="text-\[\#1E6C02\]"]),
+    html:not(.dark) [class*="text-gray-"]:not([class*="text-white"]):not([class*="text-red-"]):not([class*="text-emerald-"]):not([class*="text-green-"]):not([class*="text-amber-"]):not([class*="text-blue-"]):not([class*="text-purple-"]):not([class*="text-\[\#1E6C02\]"]),
+    html:not(.dark) [class*="text-slate-"]:not([class*="text-white"]):not([class*="text-red-"]):not([class*="text-emerald-"]):not([class*="text-green-"]):not([class*="text-amber-"]):not([class*="text-blue-"]):not([class*="text-purple-"]):not([class*="text-\[\#1E6C02\]"]) {
+      color: #000000 !important;
+    }
+
+    /* 5. Cancel, Close, and Secondary buttons: solid black text */
+    html:not(.dark) #btn-cancel-scanner-modal,
+    html:not(.dark) #btn-manual-failed-close,
+    html:not(.dark) #btn-confirm-receipt-cancel,
+    html:not(.dark) #btn-refund-confirm-cancel,
+    html:not(.dark) #btn-accept-confirm-cancel,
+    html:not(.dark) #btn-reject-confirm-cancel,
+    html:not(.dark) #btn-prepare-confirm-cancel,
+    html:not(.dark) #btn-verify-cash-cancel,
+    html:not(.dark) #btn-batch-verify-cancel,
+    html:not(.dark) #btn-finalize-order-cancel,
+    html:not(.dark) #btn-queue-modal-close,
+    html:not(.dark) #btn-issue-approve-cancel,
+    html:not(.dark) #btn-issue-reject-cancel,
+    html:not(.dark) #btn-details-close-modal,
+    html:not(.dark) #btn-stop-camera,
+    html:not(.dark) #btn-switch-camera,
+    html:not(.dark) #btn-manual-clear,
+    html:not(.dark) #btn-close-customer-qr-popup,
+    html:not(.dark) #close-qr-scanner-btn,
+    html:not(.dark) #close-customer-qr-popup-btn,
+    html:not(.dark) #close-batch-verify-modal-x,
+    html:not(.dark) #close-lightbox-btn,
+    html:not(.dark) #close-details-modal-btn {
+      color: #000000 !important;
+    }
+
+    /* 6. Preservation of Meaningful Functional and Status Colors */
+    .text-red-500, .text-red-600, .text-red-700, .text-red-800, .text-red-900 {
+      color: rgb(185 28 28) !important;
+    }
+    .text-emerald-600, .text-emerald-700, .text-emerald-800, .text-emerald-900, .text-\[\#1E6C02\] {
+      color: #1E6C02 !important;
+    }
+    .text-amber-600, .text-amber-700, .text-amber-800, .text-amber-900 {
+      color: rgb(180 83 9) !important;
+    }
+    .text-blue-600, .text-blue-700, .text-blue-800, .text-blue-900 {
+      color: rgb(29 78 216) !important;
+    }
+    .text-purple-600, .text-purple-700, .text-purple-800, .text-purple-900 {
+      color: rgb(107 33 168) !important;
+    }
+
+    /* 7. Action buttons with primary dark/green/red background: maintain white text */
+    button.bg-\[\#1E6C02\],
+    button[class*="bg-emerald-"],
+    button[class*="bg-green-"],
+    button[class*="bg-red-"]:not([class*="bg-red-50"]):not([class*="bg-red-100"]):not([class*="bg-red-200"]),
+    button[class*="bg-blue-"],
+    button[class*="bg-purple-"],
+    .filter-tab-btn.bg-\[\#1E6C02\] {
+      color: #FFFFFF !important;
+    }
+
+    /* 8. Reject Order button in details modal: restore original high-contrast styling */
+    #btn-det-action-reject:not(:disabled) {
+      color: #991B1B !important;
+      background-color: #FEF2F2 !important;
+      border: 1px solid #FCA5A5 !important;
+    }
+    #btn-det-action-reject:not(:disabled):hover {
+      color: #7F1D1D !important;
+      background-color: #FEE2E2 !important;
+      border-color: #F87171 !important;
+    }
+    html.dark #btn-det-action-reject:not(:disabled) {
+      color: #FCA5A5 !important;
+      background-color: rgba(127, 29, 29, 0.25) !important;
+      border-color: #991B1B !important;
+    }
+    html.dark #btn-det-action-reject:not(:disabled):hover {
+      color: #FECACA !important;
+      background-color: rgba(127, 29, 29, 0.4) !important;
+      border-color: #EF4444 !important;
+    }
+
+    /* ==========================================================================
+       DARK MODE PRESERVATION
+       ========================================================================== */
+    html.dark #admin-layout-container,
+    html.dark #admin-layout-container h1,
+    html.dark #admin-layout-container h2,
+    html.dark #admin-layout-container h3,
+    html.dark #admin-layout-container h4,
+    html.dark body > div[id$="-modal"] h1,
+    html.dark body > div[id$="-modal"] h2,
+    html.dark body > div[id$="-modal"] h3,
+    html.dark body > div[id$="-modal"] h4,
+    html.dark #customer-qr-popup h3 {
+      color: #F9FAFB !important;
+    }
+    html.dark table thead th {
+      color: #F3F4F6 !important;
+      background-color: #1F2937 !important;
+      border-bottom-color: #374151 !important;
+    }
+    html.dark table tbody td {
+      color: #E5E7EB !important;
+      border-bottom-color: #374151 !important;
+    }
+    html.dark .filter-tab-btn:not(.bg-\[\#1E6C02\]) {
+      color: #F3F4F6 !important;
+      background-color: #1F2937 !important;
+      border-color: #374151 !important;
+    }
+
+    /* Clean horizontal scrollbar styling and comfortable spacing */
     .top-scrollbar-container {
       overflow-x: auto !important;
       overflow-y: visible !important;
       transform: rotateX(180deg);
+      scrollbar-width: thin;
+      scrollbar-color: #CBD5E1 #F1F5F9;
+      border-radius: 1rem;
+      -webkit-overflow-scrolling: touch;
+      padding-top: 4px;
+    }
+    html.dark .top-scrollbar-container {
+      scrollbar-color: #4B5563 #1F2937;
+    }
+    .top-scrollbar-container::-webkit-scrollbar {
+      height: 8px;
+    }
+    .top-scrollbar-container::-webkit-scrollbar-track {
+      background: #F1F5F9;
+      border-radius: 9999px;
+    }
+    html.dark .top-scrollbar-container::-webkit-scrollbar-track {
+      background: #1F2937;
+      border-radius: 9999px;
+    }
+    .top-scrollbar-container::-webkit-scrollbar-thumb {
+      background: #CBD5E1;
+      border-radius: 9999px;
+      transition: background 0.2s ease;
+    }
+    .top-scrollbar-container::-webkit-scrollbar-thumb:hover {
+      background: #94A3B8;
+    }
+    html.dark .top-scrollbar-container::-webkit-scrollbar-thumb {
+      background: #4B5563;
+    }
+    html.dark .top-scrollbar-container::-webkit-scrollbar-thumb:hover {
+      background: #6B7280;
     }
     .top-scrollbar-container > table {
       transform: rotateX(180deg);
     }
+
+    /* Table row subtle alternating backgrounds and hover highlights */
+    html:not(.dark) table tbody tr.order-row-even {
+      background-color: #FFFFFF !important;
+    }
+    html:not(.dark) table tbody tr.order-row-odd {
+      background-color: #F8FAFC !important;
+    }
+    html:not(.dark) table tbody tr:hover {
+      background-color: #F0FDF4 !important;
+    }
+    html.dark table tbody tr.order-row-even {
+      background-color: #111827 !important;
+    }
+    html.dark table tbody tr.order-row-odd {
+      background-color: #162032 !important;
+    }
+    html.dark table tbody tr:hover {
+      background-color: #1E293B !important;
+    }
+
+    /* Polished Primary Order Action Buttons (Matching Stock Allocated Badge Style) */
+    #admin-layout-container .btn-order-action,
+    html:not(.dark) #admin-layout-container .btn-order-action,
+    #admin-layout-container .btn-trigger-verify-cash-badge.btn-order-action,
+    html:not(.dark) #admin-layout-container .btn-trigger-verify-cash-badge.btn-order-action,
+    #admin-layout-container .btn-trigger-finalize-order.btn-order-action,
+    html:not(.dark) #admin-layout-container .btn-trigger-finalize-order.btn-order-action {
+      background-color: #d1fae5 !important; /* bg-emerald-100: same light green as Stock Allocated badge */
+      color: #064e3b !important; /* text-emerald-900: same dark green text as Stock Allocated badge */
+      border: 1px solid #6ee7b7 !important; /* border-emerald-300: same subtle green border */
+      box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05) !important;
+      transition: all 0.15s ease-in-out !important;
+    }
+    #admin-layout-container .btn-order-action:hover:not(:disabled),
+    html:not(.dark) #admin-layout-container .btn-order-action:hover:not(:disabled),
+    #admin-layout-container .btn-trigger-verify-cash-badge.btn-order-action:hover:not(:disabled),
+    html:not(.dark) #admin-layout-container .btn-trigger-verify-cash-badge.btn-order-action:hover:not(:disabled),
+    #admin-layout-container .btn-trigger-finalize-order.btn-order-action:hover:not(:disabled),
+    html:not(.dark) #admin-layout-container .btn-trigger-finalize-order.btn-order-action:hover:not(:disabled) {
+      background-color: #1E6C02 !important; /* RiceFlow primary solid green */
+      border-color: #145001 !important;
+      color: #FFFFFF !important;
+      box-shadow: 0 2px 5px -1px rgba(30, 108, 2, 0.3) !important;
+    }
+    html.dark #admin-layout-container .btn-order-action,
+    html.dark #admin-layout-container .btn-trigger-verify-cash-badge.btn-order-action,
+    html.dark #admin-layout-container .btn-trigger-finalize-order.btn-order-action {
+      background-color: rgba(6, 78, 59, 0.6) !important; /* dark:bg-emerald-950/60 */
+      color: #a7f3d0 !important; /* dark:text-emerald-200 */
+      border: 1px solid #047857 !important; /* dark:border-emerald-700 */
+      box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.2) !important;
+      transition: all 0.15s ease-in-out !important;
+    }
+    html.dark #admin-layout-container .btn-order-action:hover:not(:disabled),
+    html.dark #admin-layout-container .btn-trigger-verify-cash-badge.btn-order-action:hover:not(:disabled),
+    html.dark #admin-layout-container .btn-trigger-finalize-order.btn-order-action:hover:not(:disabled) {
+      background-color: #1E6C02 !important;
+      border-color: #145001 !important;
+      color: #FFFFFF !important;
+      box-shadow: 0 2px 6px -1px rgba(16, 185, 129, 0.3) !important;
+    }
+    #admin-layout-container .btn-order-action *,
+    html:not(.dark) #admin-layout-container .btn-order-action * {
+      color: inherit !important;
+    }
+    #admin-layout-container .btn-order-action:hover:not(:disabled) *,
+    html:not(.dark) #admin-layout-container .btn-order-action:hover:not(:disabled) *,
+    html.dark #admin-layout-container .btn-order-action:hover:not(:disabled) * {
+      color: #FFFFFF !important;
+    }
+    #admin-layout-container .btn-order-action:focus-visible,
+    html.dark #admin-layout-container .btn-order-action:focus-visible {
+      outline: 2px solid #1E6C02 !important;
+      outline-offset: 2px !important;
+      box-shadow: 0 0 0 2px rgba(30, 108, 2, 0.35) !important;
+    }
+    #admin-layout-container .btn-order-action:disabled,
+    html.dark #admin-layout-container .btn-order-action:disabled {
+      opacity: 0.5 !important;
+      cursor: not-allowed !important;
+      pointer-events: none !important;
+    }
+
+    /* Fallback for other solid buttons (such as batch verify) */
+    .btn-grid-action-trigger.bg-\[\#1E6C02\],
+    .btn-trigger-verify-cash-badge.bg-\[\#1E6C02\],
+    .btn-trigger-finalize-order.bg-\[\#1E6C02\] {
+      background-color: #1E6C02 !important;
+      color: #FFFFFF !important;
+      opacity: 1 !important;
+    }
+    .btn-grid-action-trigger.bg-\[\#1E6C02\]:hover,
+    .btn-trigger-verify-cash-badge.bg-\[\#1E6C02\]:hover,
+    .btn-trigger-finalize-order.bg-\[\#1E6C02\]:hover {
+      background-color: #145001 !important;
+      color: #FFFFFF !important;
+    }
+
     /* QR Scanner Video Display Fix */
     #qr-reader {
       position: relative;
@@ -133,7 +632,7 @@
 
   <!-- MAIN QR CODE SCANNER MODAL (REDESIGNED MULTI-METHOD VERIFICATION) -->
   <div id="qr-scanner-modal" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden">
-    <div class="bg-white rounded-3xl max-w-5xl w-full shadow-2xl p-6 md:p-8 border border-gray-150 overflow-y-auto max-h-[95vh] animate-in fade-in zoom-in duration-200" style="font-family: system-ui, -apple-system, sans-serif;">
+    <div class="bg-white rounded-3xl max-w-5xl w-full shadow-2xl p-6 md:p-8 border border-gray-150 overflow-y-auto max-h-[95vh] animate-in fade-in zoom-in duration-200" >
       
       <!-- Close Header -->
       <div class="flex justify-between items-center pb-4 border-b border-gray-100 mb-4">
@@ -380,7 +879,7 @@
   </div>
 
   <!-- CAMERA PERMISSION REQUIRED MODAL -->
-  <div id="camera-permission-modal" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-[60] flex items-center justify-center p-4 hidden" style="font-family: system-ui, -apple-system, sans-serif;">
+  <div id="camera-permission-modal" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-[60] flex items-center justify-center p-4 hidden" >
     <div class="bg-white rounded-3xl max-w-sm w-full shadow-2xl p-7 border border-gray-150 animate-in fade-in zoom-in duration-200 text-center">
       <div class="mx-auto w-12 h-12 bg-green-50 text-[#1E6C02] rounded-full flex items-center justify-center text-xl mb-4 font-bold">
         📷
@@ -409,7 +908,7 @@
   </div>
 
   <!-- MANUAL VERIFICATION FAILED MODAL -->
-  <div id="manual-verification-failed-modal" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-[60] flex items-center justify-center p-4 hidden" style="font-family: system-ui, -apple-system, sans-serif;">
+  <div id="manual-verification-failed-modal" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-[60] flex items-center justify-center p-4 hidden" >
     <div class="bg-white rounded-3xl max-w-sm w-full shadow-2xl p-7 border border-gray-200 animate-in fade-in zoom-in duration-200 text-center">
       <div class="mx-auto w-12 h-12 rounded-full flex items-center justify-center text-2xl mb-4 font-bold" style="background-color: #FEE2E2; color: #DC2626;">
         ⚠️
@@ -435,7 +934,7 @@
   </div>
 
   <!-- CONFIRM ORDER RECEIPT MODAL -->
-  <div id="confirm-order-receipt-modal" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-[70] flex items-center justify-center p-4 hidden" style="font-family: system-ui, -apple-system, sans-serif;">
+  <div id="confirm-order-receipt-modal" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-[70] flex items-center justify-center p-4 hidden" >
     <div class="bg-white rounded-3xl max-w-md w-full shadow-2xl p-7 border border-gray-200 animate-in fade-in zoom-in duration-200 text-center">
       <div class="mx-auto w-12 h-12 bg-green-50 text-[#1E6C02] rounded-full flex items-center justify-center text-2xl mb-4 font-bold">
         ✓
@@ -471,7 +970,7 @@
   </div>
 
   <!-- REDESIGNED INVALID QR MODAL (STANDALONE VISUAL ALERT) -->
-  <div id="qr-invalid-modal" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-[60] flex items-center justify-center p-4 hidden" style="font-family: system-ui, -apple-system, sans-serif;">
+  <div id="qr-invalid-modal" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-[60] flex items-center justify-center p-4 hidden" >
     <div class="bg-white rounded-3xl max-w-sm w-full shadow-2xl p-7 border border-gray-200 animate-in fade-in zoom-in duration-200 text-center">
       <div class="mx-auto w-12 h-12 rounded-full flex items-center justify-center text-2xl mb-4 font-bold" style="background-color: #FEE2E2; color: #DC2626;">
         ⚠️
@@ -488,7 +987,7 @@
   </div>
 
   <!-- REDESIGNED DUPLICATE SCAN MODAL (STANDALONE SECURITY BARRIER) -->
-  <div id="qr-duplicate-modal" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-[60] flex items-center justify-center p-4 hidden" style="font-family: system-ui, -apple-system, sans-serif;">
+  <div id="qr-duplicate-modal" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-[60] flex items-center justify-center p-4 hidden" >
     <div class="bg-white rounded-3xl max-w-md w-full shadow-2xl p-7 border border-gray-200 animate-in fade-in zoom-in duration-200 text-center">
       <div class="mx-auto w-12 h-12 bg-amber-50 text-amber-600 rounded-full flex items-center justify-center text-2xl mb-4 font-bold">
         🔒
@@ -557,7 +1056,7 @@
   </div>
 
   <!-- REFUND COMPLETED CONFIRMATION MODAL -->
-  <div id="refund-complete-confirm-modal" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-[80] flex items-center justify-center p-4 hidden" style="font-family: system-ui, -apple-system, sans-serif;">
+  <div id="refund-complete-confirm-modal" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-[80] flex items-center justify-center p-4 hidden" >
     <div class="bg-white dark:bg-slate-900 rounded-3xl max-w-md w-full shadow-2xl p-7 border border-gray-200 dark:border-slate-700 animate-in fade-in zoom-in duration-200">
       <div class="flex items-center gap-3.5 pb-3 border-b border-gray-200 dark:border-slate-800">
         <div class="w-11 h-11 rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-[#1E6C02] dark:text-emerald-400 flex items-center justify-center text-2xl font-bold shrink-0">
@@ -585,7 +1084,7 @@
   </div>
 
   <!-- ACCEPT ORDER CONFIRMATION MODAL -->
-  <div id="accept-confirm-modal" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-[80] flex items-center justify-center p-4 hidden" style="font-family: system-ui, -apple-system, sans-serif;">
+  <div id="accept-confirm-modal" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-[80] flex items-center justify-center p-4 hidden" >
     <div class="bg-white rounded-3xl max-w-md w-full shadow-2xl p-7 border border-gray-200 animate-in fade-in zoom-in duration-200">
       <div class="flex items-center gap-3.5 pb-3 border-b border-gray-200">
         <div class="w-11 h-11 rounded-full bg-emerald-50 text-[#1E6C02] flex items-center justify-center text-2xl font-bold">
@@ -624,7 +1123,7 @@
   </div>
 
   <!-- REJECT ORDER CONFIRMATION MODAL -->
-  <div id="reject-confirm-modal" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-[80] flex items-center justify-center p-4 hidden" style="font-family: system-ui, -apple-system, sans-serif;">
+  <div id="reject-confirm-modal" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-[80] flex items-center justify-center p-4 hidden" >
     <div class="bg-white dark:bg-slate-900 rounded-3xl max-w-lg w-full shadow-2xl p-6 sm:p-7 border border-gray-200 dark:border-slate-700 overflow-y-auto max-h-[92vh] animate-in fade-in zoom-in duration-200">
       <div class="flex items-center gap-3.5 pb-3 border-b border-gray-200 dark:border-slate-800">
         <div class="w-11 h-11 rounded-full bg-red-50 dark:bg-red-950/60 text-red-650 dark:text-red-400 flex items-center justify-center text-2xl font-bold shrink-0">
@@ -717,7 +1216,7 @@
   </div>
 
   <!-- PREPARE ORDER CONFIRMATION MODAL -->
-  <div id="prepare-confirm-modal" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-[80] flex items-center justify-center p-4 hidden" style="font-family: system-ui, -apple-system, sans-serif;">
+  <div id="prepare-confirm-modal" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-[80] flex items-center justify-center p-4 hidden" >
     <div class="bg-white rounded-3xl max-w-md w-full shadow-2xl p-7 border border-gray-200 animate-in fade-in zoom-in duration-200">
       <div class="flex items-center gap-3.5 pb-3 border-b border-gray-200">
         <div class="w-11 h-11 rounded-full bg-emerald-50 text-[#1E6C02] flex items-center justify-center text-2xl font-bold">
@@ -771,7 +1270,7 @@
   </div>
 
   <!-- VERIFY CASH TURNOVER CONFIRMATION MODAL -->
-  <div id="verify-cash-turnover-confirm-modal" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-[85] flex items-center justify-center p-4 hidden" style="font-family: system-ui, -apple-system, sans-serif;">
+  <div id="verify-cash-turnover-confirm-modal" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-[85] flex items-center justify-center p-4 hidden" >
     <div class="bg-white rounded-3xl max-w-md w-full shadow-2xl p-6 border border-gray-150 animate-in fade-in zoom-in duration-200 text-left space-y-4">
       <div class="flex items-center gap-3 pb-3 border-b border-gray-100">
         <div class="w-10 h-10 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center text-xl shrink-0 font-bold">
@@ -818,7 +1317,7 @@
   </div>
 
   <!-- BATCH VERIFY CASH TURNOVER CONFIRMATION MODAL -->
-  <div id="batch-verify-cash-modal" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-[90] flex items-center justify-center p-4 hidden" style="font-family: system-ui, -apple-system, sans-serif;">
+  <div id="batch-verify-cash-modal" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-[90] flex items-center justify-center p-4 hidden" >
     <div class="bg-white rounded-3xl max-w-md w-full shadow-2xl p-6 border border-gray-200 text-left space-y-5 animate-in fade-in zoom-in duration-200">
       <div class="flex justify-between items-start pb-3 border-b border-gray-100">
         <div class="flex items-center gap-3">
@@ -863,7 +1362,7 @@
   </div>
 
   <!-- FINALIZE ORDER CONFIRMATION MODAL -->
-  <div id="finalize-order-confirm-modal" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-[85] flex items-center justify-center p-4 hidden" style="font-family: system-ui, -apple-system, sans-serif;">
+  <div id="finalize-order-confirm-modal" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-[85] flex items-center justify-center p-4 hidden" >
     <div class="bg-white rounded-3xl max-w-md w-full shadow-2xl p-6 border border-gray-150 animate-in fade-in zoom-in duration-200 text-left">
       <div class="flex items-center gap-3 pb-3 border-b border-gray-100 mb-4">
         <div class="w-10 h-10 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center text-xl shrink-0 font-bold">
@@ -895,7 +1394,7 @@
   </div>
 
   <!-- RESERVATION QUEUE STATUS MODAL -->
-  <div id="queue-status-modal" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-[80] flex items-center justify-center p-4 hidden" style="font-family: system-ui, -apple-system, sans-serif;">
+  <div id="queue-status-modal" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-[80] flex items-center justify-center p-4 hidden" >
     <div class="bg-white rounded-3xl max-w-md w-full shadow-2xl p-7 border border-gray-200 animate-in fade-in zoom-in duration-200">
       <div class="flex items-center gap-3.5 pb-3 border-b border-gray-200">
         <div class="w-11 h-11 rounded-full bg-purple-50 text-purple-700 flex items-center justify-center text-2xl font-bold">
@@ -957,7 +1456,7 @@
   </div>
 
   <!-- CUSTOM OVERLAYS FOR ISSUE CLAIM APPROVE/REJECT -->
-  <div id="admin-issue-approve-modal" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-[80] flex items-center justify-center p-4 hidden" style="font-family: system-ui, -apple-system, sans-serif;">
+  <div id="admin-issue-approve-modal" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-[80] flex items-center justify-center p-4 hidden" >
     <div class="bg-white rounded-3xl max-w-md w-full shadow-2xl p-7 border border-gray-200 animate-in fade-in zoom-in duration-200">
       <div class="flex items-center gap-3.5 pb-3 border-b border-gray-200">
         <div class="w-11 h-11 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center text-2xl font-bold">
@@ -987,7 +1486,7 @@
     </div>
   </div>
 
-  <div id="admin-issue-reject-modal" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-[80] flex items-center justify-center p-4 hidden" style="font-family: system-ui, -apple-system, sans-serif;">
+  <div id="admin-issue-reject-modal" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-[80] flex items-center justify-center p-4 hidden" >
     <div class="bg-white rounded-3xl max-w-md w-full shadow-2xl p-7 border border-gray-200 animate-in fade-in zoom-in duration-200">
       <div class="flex items-center gap-3.5 pb-3 border-b border-gray-200">
         <div class="w-11 h-11 rounded-full bg-red-50 text-red-650 flex items-center justify-center text-2xl font-bold">
@@ -1720,9 +2219,9 @@
             <div class="space-y-6">
               
               <!-- Filter by Status Block Section Card -->
-              <div class="bg-white rounded-3xl p-6 border border-gray-200 shadow-xs flex flex-col md:flex-row md:items-end justify-between gap-6 text-left">
+              <div class="bg-white dark:bg-[#111827] rounded-3xl p-6 border border-gray-200 dark:border-gray-800 shadow-xs flex flex-col md:flex-row md:items-end justify-between gap-6 text-left">
                 <div class="space-y-4 flex-1 min-w-0">
-                  <div class="text-gray-900 font-extrabold text-base tracking-tight flex items-center gap-2">
+                  <div class="text-black dark:text-white font-extrabold text-base tracking-tight flex items-center gap-2">
                     <svg class="w-4.5 h-4.5 text-[#1E6C02]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
                       <path d="M22 3H2m0 0l7 9.18V19a1 1 0 00.5.87l4 2.5a1 1 0 001.5-.87v-11.3L22 3z" stroke-linecap="round" stroke-linejoin="round"></path>
                     </svg>
@@ -1744,7 +2243,7 @@
                       const isActive = statusFilter === tab.value;
                       const btnClasses = isActive 
                         ? 'bg-[#1E6C02] text-white shadow-xs font-extrabold' 
-                        : 'bg-[#F5F5F5] hover:bg-gray-200 text-gray-700 font-bold';
+                        : 'bg-[#F5F5F5] hover:bg-gray-200 text-black dark:text-white font-bold border border-gray-300 dark:border-gray-700';
                       return `
                         <button 
                           data-status="${tab.value}"
@@ -1781,40 +2280,41 @@
               </div>
 
               <!-- Issue Reported Orders Management Box -->
-              <div class="bg-white rounded-3xl border border-gray-200 p-6 shadow-sm space-y-5">
-                <div class="flex items-center justify-between pb-3.5 border-b border-gray-100">
-                  <h3 class="text-xl font-black text-gray-950">Issue Reported Orders</h3>
-                  <span class="text-[15px] font-bold text-black bg-gray-50 px-3.5 py-1.5 rounded-lg border border-gray-300">Count: ${filtered.length} Reports</span>
+              <div class="bg-white dark:bg-[#111827] rounded-3xl border border-gray-200 dark:border-gray-800 p-6 shadow-sm space-y-5">
+                <div class="flex items-center justify-between pb-3.5 border-b border-gray-100 dark:border-gray-800">
+                  <h3 class="text-xl font-black text-black dark:text-white">Issue Reported Orders</h3>
+                  <span class="order-count-badge text-[15px] font-bold text-black dark:text-white bg-gray-50 dark:bg-gray-800 px-3.5 py-1.5 rounded-lg border border-gray-300 dark:border-gray-700">Count: ${filtered.length} Reports</span>
                 </div>
 
                 <div class="top-scrollbar-container">
-                  <table class="w-full text-center text-[15px] font-semibold text-gray-700 border-collapse min-w-[1000px]">
+                  <table class="w-full text-center text-[16px] font-semibold text-black dark:text-gray-200 border-collapse min-w-[1180px]">
                     <thead>
-                      <tr class="border-b border-gray-100 text-black font-extrabold text-[15px] tracking-wider bg-gray-50/50">
-                        <th class="py-5 px-4 text-center rounded-tl-xl">Order #</th>
-                        <th class="py-5 px-4 text-center">Customer</th>
-                        <th class="py-5 px-4 text-center">Product Name</th>
-                        <th class="py-5 px-4 text-center">Quantities (Ord, Rec, Mis)</th>
-                        <th class="py-5 px-4 text-center">Issue Type</th>
-                        <th class="py-5 px-4 text-center">Date Reported</th>
-                        <th class="py-5 px-4 text-center">Status</th>
-                        <th class="py-5 px-4 text-center rounded-tr-xl">Actions</th>
+                      <tr class="border-b border-gray-200 dark:border-gray-800 text-black dark:text-white font-extrabold text-[16px] tracking-wider bg-gray-50/70 dark:bg-gray-800">
+                        <th class="py-4.5 px-4 text-center rounded-tl-xl min-w-[115px]">Order #</th>
+                        <th class="py-4.5 px-4 text-center min-w-[155px]">Customer</th>
+                        <th class="py-4.5 px-5 text-center min-w-[215px]">Product Name</th>
+                        <th class="py-4.5 px-4 text-center min-w-[170px]">Quantities (Ord, Rec, Mis)</th>
+                        <th class="py-4.5 px-4 text-center min-w-[150px]">Issue Type</th>
+                        <th class="py-4.5 px-4 text-center min-w-[135px]">Date Reported</th>
+                        <th class="py-4.5 px-4 text-center min-w-[150px]">Status</th>
+                        <th class="py-4.5 px-4 text-center min-w-[140px] rounded-tr-xl">Actions</th>
                       </tr>
                     </thead>
-                    <tbody class="divide-y divide-gray-100">
+                    <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
                       ${filtered.map((order, idx) => {
                         const issue = order.reportedIssue || {};
                         const dateString = issue.reportedAt 
                           ? new Date(issue.reportedAt).toLocaleDateString(undefined, {month: 'short', day: 'numeric', year: 'numeric'}) 
                           : 'N/A';
                         
+                        const issueBadgeClass = 'min-w-[128px] h-9 px-3.5 rounded-xl text-xs font-bold uppercase inline-flex items-center justify-center tracking-wide whitespace-nowrap shadow-xs';
                         let subStatusBadge = '';
                         if (issue.status === 'pending-review') {
-                          subStatusBadge = `<span class="px-2.5 py-1.5 rounded-lg text-xs font-bold uppercase bg-amber-50 text-amber-700 border border-amber-200">Pending Review</span>`;
+                          subStatusBadge = `<span class="${issueBadgeClass} bg-amber-50 text-amber-700 border border-amber-200">Pending Review</span>`;
                         } else if (issue.status === 'approved') {
-                          subStatusBadge = `<span class="px-2.5 py-1.5 rounded-lg text-xs font-bold uppercase bg-green-50 text-green-700 border border-green-200">Claim Approved</span>`;
+                          subStatusBadge = `<span class="${issueBadgeClass} bg-green-50 text-green-700 border border-green-200">Claim Approved</span>`;
                         } else {
-                          subStatusBadge = `<span class="px-2.5 py-1.5 rounded-lg text-xs font-bold uppercase bg-red-50 text-red-700 border border-red-200">Claim Rejected</span>`;
+                          subStatusBadge = `<span class="${issueBadgeClass} bg-red-50 text-red-700 border border-red-200">Claim Rejected</span>`;
                         }
 
                         const quantitiesLabel = (issue.issueType === 'Missing Quantity')
@@ -1824,16 +2324,16 @@
                         const itemsText = (order.items || []).map(i => i.product?.name || 'Rice Product').join(', ');
 
                         return `
-                          <tr id="order-row-${order.id}" class="transition-colors ${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/20'} hover:bg-gray-50/65">
-                            <td class="py-5 px-4 font-bold text-black text-[16px] text-center align-middle">#${order.id}</td>
-                            <td class="py-5 px-4 text-center align-middle font-normal text-black text-[16px]">${order.fullName || 'N/A'}</td>
-                            <td class="py-5 px-4 text-center align-middle font-normal text-black text-[15px] max-w-[200px] truncate">${itemsText}</td>
-                            <td class="py-5 px-4 text-center align-middle font-extrabold text-gray-800 text-[14px]">${quantitiesLabel}</td>
-                            <td class="py-5 px-4 text-center align-middle font-extrabold text-[#1E6C02] text-[14px]">${issue.issueType || 'Wrong Variety'}</td>
-                            <td class="py-5 px-4 text-center align-middle font-normal text-black text-[15px]">${dateString}</td>
-                            <td class="py-5 px-4 text-center align-middle">${subStatusBadge}</td>
-                            <td class="py-5 px-4 text-center align-middle">
-                              <button data-id="${order.id}" class="btn-grid-action-trigger bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg px-4.5 py-2.5 transition-all duration-250 cursor-pointer shadow-xs text-[15px] whitespace-nowrap">
+                          <tr id="order-row-${order.id}" class="order-row-${idx % 2 === 0 ? 'even' : 'odd'} transition-colors duration-150 ${idx % 2 === 0 ? 'bg-white dark:bg-[#111827]' : 'bg-[#F8FAFC] dark:bg-[#162032]'} hover:bg-[#F0FDF4] dark:hover:bg-[#1E293B]">
+                            <td class="py-4.5 px-4 font-bold text-black dark:text-white text-[17px] text-center align-middle whitespace-nowrap">#${order.id}</td>
+                            <td class="py-4.5 px-4 text-center align-middle font-normal text-black dark:text-white text-[17px]">${order.fullName || 'N/A'}</td>
+                            <td class="py-4.5 px-5 text-center align-middle font-normal text-black dark:text-white text-[16px] max-w-[220px] truncate leading-relaxed">${itemsText}</td>
+                            <td class="py-4.5 px-4 text-center align-middle font-extrabold text-black dark:text-white text-[15px] whitespace-nowrap">${quantitiesLabel}</td>
+                            <td class="py-4.5 px-4 text-center align-middle font-extrabold text-[#1E6C02] text-[15px] whitespace-nowrap">${issue.issueType || 'Wrong Variety'}</td>
+                            <td class="py-4.5 px-4 text-center align-middle font-normal text-black dark:text-white text-[16px] whitespace-nowrap">${dateString}</td>
+                            <td class="py-4.5 px-4 text-center align-middle">${subStatusBadge}</td>
+                            <td class="py-4.5 px-4 text-center align-middle">
+                              <button data-id="${order.id}" class="btn-grid-action-trigger inline-flex items-center justify-center min-w-[136px] h-10 px-4 rounded-xl text-white font-bold text-[15px] transition-all duration-200 cursor-pointer shadow-xs whitespace-nowrap hover:shadow-sm active:scale-[0.98] bg-red-600 hover:bg-red-700">
                                 Review Issue
                               </button>
                             </td>
@@ -1843,7 +2343,7 @@
 
                       ${filtered.length === 0 ? `
                         <tr>
-                          <td colspan="8" class="py-16 text-center text-gray-400 font-bold text-sm bg-gray-50/20">
+                          <td colspan="8" class="py-16 text-center text-black dark:text-gray-300 font-bold text-sm bg-gray-50/20 dark:bg-gray-800/30">
                             <p class="text-2xl mb-2">📁</p>
                             No issue reports logged at this moment.
                           </td>
@@ -1872,9 +2372,9 @@
           <div class="space-y-6">
             
             <!-- Filter by Status Block Section Card -->
-            <div class="bg-white rounded-3xl p-6 border border-gray-200 shadow-xs flex flex-col md:flex-row md:items-end justify-between gap-6 text-left">
+            <div class="bg-white dark:bg-[#111827] rounded-3xl p-6 border border-gray-200 dark:border-gray-800 shadow-xs flex flex-col md:flex-row md:items-end justify-between gap-6 text-left">
               <div class="space-y-4 flex-1 min-w-0">
-                <div class="text-gray-900 font-extrabold text-base tracking-tight flex items-center gap-2">
+                <div class="text-black dark:text-white font-extrabold text-base tracking-tight flex items-center gap-2">
                   <svg class="w-4.5 h-4.5 text-[#1E6C02]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
                     <path d="M22 3H2m0 0l7 9.18V19a1 1 0 00.5.87l4 2.5a1 1 0 001.5-.87v-11.3L22 3z" stroke-linecap="round" stroke-linejoin="round"></path>
                   </svg>
@@ -1896,7 +2396,7 @@
                     const isActive = statusFilter === tab.value;
                     const btnClasses = isActive 
                       ? 'bg-[#1E6C02] text-white shadow-xs font-extrabold' 
-                      : 'bg-[#F5F5F5] hover:bg-gray-200 text-black dark:text-white font-bold';
+                      : 'bg-[#F5F5F5] hover:bg-gray-200 text-black dark:text-white font-bold border border-gray-300 dark:border-gray-700';
                     return `
                       <button 
                         data-status="${tab.value}"
@@ -1934,18 +2434,18 @@
 
             ${statusFilter === 'delivered' && ((typeof getCurrentAdmin === 'function' ? getCurrentAdmin() : window.RiceFlow?.getCurrentAdmin?.())?.role === 'admin') ? `
               <!-- PAYMENT SUMMARY PANEL & BATCH ACTIONS (ADMIN ONLY) -->
-              <div class="bg-emerald-50/80 border border-emerald-200/90 rounded-2xl p-5 mb-5 shadow-xs flex flex-wrap items-center justify-between gap-4 text-left">
+              <div class="bg-emerald-50/80 dark:bg-emerald-950/40 border border-emerald-200/90 dark:border-emerald-800 rounded-2xl p-5 mb-5 shadow-xs flex flex-wrap items-center justify-between gap-4 text-left">
                 <div class="flex items-center gap-6">
                   <div>
-                    <span class="text-xs font-black uppercase tracking-wider text-emerald-950 block">Pending Cash Audit</span>
+                    <span class="text-xs font-black uppercase tracking-wider text-emerald-950 dark:text-emerald-200 block">Pending Cash Audit</span>
                     <div class="flex items-baseline gap-6 mt-1.5">
                       <div>
-                        <span class="text-xs font-bold text-gray-600 uppercase block">Orders Pending</span>
-                        <span class="text-2xl font-black text-gray-900">${pendingDeliveredOrders.length}</span>
+                        <span class="text-xs font-bold text-black dark:text-gray-300 uppercase block">Orders Pending</span>
+                        <span class="text-2xl font-black text-black dark:text-white">${pendingDeliveredOrders.length}</span>
                       </div>
-                      <div class="border-l border-emerald-200 pl-6">
-                        <span class="text-xs font-bold text-gray-600 uppercase block">Expected Cash Turnover</span>
-                        <span class="text-2xl font-black text-[#1E6C02]">₱${totalPendingCashToAudit.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                      <div class="border-l border-emerald-200 dark:border-emerald-800 pl-6">
+                        <span class="text-xs font-bold text-black dark:text-gray-300 uppercase block">Expected Cash Turnover</span>
+                        <span class="text-2xl font-black text-[#1E6C02] dark:text-emerald-400">₱${totalPendingCashToAudit.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                       </div>
                     </div>
                   </div>
@@ -1957,10 +2457,10 @@
                       <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v6h6"></path><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"></path></svg>
                       <span>Undo</span>
                     </button>
-                    <span class="text-gray-300 font-bold select-none">|</span>
+                    <span class="text-black dark:text-gray-400 font-bold select-none">|</span>
                   ` : ''}
 
-                  <label class="inline-flex items-center gap-2 bg-white px-3.5 py-2.5 rounded-xl border border-gray-200 font-bold text-xs text-gray-800 cursor-pointer hover:bg-gray-50 select-none shadow-2xs">
+                  <label class="inline-flex items-center gap-2 bg-white dark:bg-slate-800 px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-slate-700 font-bold text-xs text-black dark:text-white cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-700 select-none shadow-2xs">
                     <input type="checkbox" id="chk-select-all-pending-btn" class="w-4 h-4 rounded text-[#1E6C02] cursor-pointer" ${isAllPendingSelected ? 'checked' : ''} />
                     <span>Select All Pending</span>
                   </label>
@@ -1973,35 +2473,33 @@
             ` : ''}
 
             <!-- Redesigned Order Management Box -->
-            <div class="bg-white rounded-3xl border border-gray-200 p-6 shadow-sm space-y-5">
-              <div class="flex items-center justify-between pb-3.5 border-b border-gray-100">
-                <h3 class="text-xl font-black text-gray-950">Order Management</h3>
-                <span class="text-[15px] font-bold text-black bg-gray-50 px-3.5 py-1.5 rounded-lg border border-gray-300">Count: ${filtered.length} Orders</span>
+            <div class="bg-white dark:bg-[#111827] rounded-3xl border border-gray-200 dark:border-gray-800 p-6 shadow-sm space-y-5">
+              <div class="flex items-center justify-between pb-3.5 border-b border-gray-100 dark:border-gray-800">
+                <h3 class="text-xl font-black text-black dark:text-white">Order Management</h3>
+                <span class="order-count-badge text-[15px] font-bold text-black dark:text-white bg-gray-50 dark:bg-gray-800 px-3.5 py-1.5 rounded-lg border border-gray-300 dark:border-gray-700">Count: ${filtered.length} Orders</span>
               </div>
 
               <div class="top-scrollbar-container">
-                <table class="w-full text-center text-[15px] font-semibold text-gray-700 border-collapse min-w-[1000px]">
+                <table class="w-full text-center text-[16px] font-semibold text-black dark:text-gray-200 border-collapse min-w-[1000px]">
                   <thead>
-                    <tr class="border-b border-gray-100 text-black font-extrabold text-[15px] tracking-wider bg-gray-50/50">
+                    <tr class="border-b border-gray-200 dark:border-gray-800 text-black dark:text-white font-extrabold text-[16px] tracking-wider bg-gray-50/70 dark:bg-gray-800">
                       ${statusFilter === 'delivered' ? `
-                        <th class="py-5 px-4 text-center rounded-tl-xl w-12">
+                        <th class="py-4.5 px-3 text-center rounded-tl-xl w-12">
                           <input type="checkbox" id="chk-select-all-pending-header" class="w-4 h-4 rounded text-[#1E6C02] cursor-pointer" ${isAllPendingSelected ? 'checked' : ''} />
                         </th>
                       ` : ''}
-                      <th class="py-5 px-4 text-center ${statusFilter === 'delivered' ? '' : 'rounded-tl-xl'}">Order ID</th>
-                      <th class="py-5 px-4 text-center">Customer</th>
-                      <th class="py-5 px-4 text-center">Rice Variety</th>
-                      <th class="py-5 px-4 text-center">${statusFilter === 'delivered' ? 'Cash to Audit' : 'Total'}</th>
-                      <th class="py-5 px-4 text-center">Payment</th>
-                      <th class="py-5 px-4 text-center font-bold text-gray-900 text-base">Status</th>
-                      <th class="py-5 px-4 text-center font-bold text-gray-900 text-base">${statusFilter === 'delivered' ? 'Verified Payment' : 'Delivery Priority'}</th>
-                      <th class="py-5 px-4 text-center rounded-tr-xl">Actions</th>
+                      <th class="py-4.5 px-3 text-center min-w-[115px] ${statusFilter === 'delivered' ? '' : 'rounded-tl-xl'}">Order ID</th>
+                      <th class="py-4.5 px-4 text-center min-w-[160px]">Customer</th>
+                      <th class="py-4.5 px-5 text-center min-w-[240px]">Rice Variety</th>
+                      <th class="py-4.5 px-4 text-center min-w-[170px] font-bold text-black dark:text-white text-base">Status</th>
+                      <th class="py-4.5 px-4 text-center min-w-[170px] font-bold text-black dark:text-white text-base">${statusFilter === 'delivered' ? 'Verified Payment' : 'Delivery Priority'}</th>
+                      <th class="py-4.5 px-4 text-center min-w-[165px] rounded-tr-xl">Actions</th>
                     </tr>
                   </thead>
-                  <tbody class="divide-y divide-gray-100">
+                  <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
                     ${filtered.map((order, idx) => {
                       // Standard badge class matching Review Order button dimensions exactly
-                      const bClass = 'min-w-[150px] px-4.5 py-2.5 rounded-lg text-[16px] font-bold inline-flex items-center justify-center text-center whitespace-nowrap shadow-xs';
+                      const bClass = 'min-w-[148px] h-10 px-4 rounded-xl text-[15.5px] font-bold inline-flex items-center justify-center text-center whitespace-nowrap shadow-xs transition-colors';
 
                       // Generate specific badges following requirements
                       let statusBadge = '';
@@ -2049,7 +2547,7 @@
                         const displayRefundLabel = rawRefundStatus ? (refundDisplayMap[rawRefundStatus] || '') : '';
 
                         if (displayRefundLabel) {
-                          let refundBadgeStyle = 'bg-gray-100 text-gray-800 border-gray-300 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700';
+                          let refundBadgeStyle = 'bg-gray-100 text-black border-gray-300 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700';
                           if (rawRefundStatus === 'Refund Information Needed' || rawRefundStatus === 'Refund Required') {
                             refundBadgeStyle = 'bg-amber-100 text-amber-900 border-amber-300 dark:bg-amber-950/70 dark:text-amber-200 dark:border-amber-700';
                           } else if (rawRefundStatus === 'Refund Information Submitted' || rawRefundStatus === 'Refund Processing') {
@@ -2057,12 +2555,12 @@
                           } else if (rawRefundStatus === 'Refunded') {
                             refundBadgeStyle = 'bg-emerald-100 text-emerald-900 border-emerald-300 dark:bg-emerald-950/70 dark:text-emerald-200 dark:border-emerald-700';
                           } else if (rawRefundStatus === 'No Refund Needed') {
-                            refundBadgeStyle = 'bg-gray-100 text-gray-800 border-gray-300 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700';
+                            refundBadgeStyle = 'bg-gray-100 text-black border-gray-300 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700';
                           }
 
                           statusBadge = `
                             <span class="${bClass} bg-red-100 text-red-900 border border-red-300">Cancelled</span>
-                            <span class="inline-flex items-center justify-center px-3 py-1 rounded-md text-[13px] font-bold border tracking-normal shadow-xs ${refundBadgeStyle} text-center leading-tight">
+                            <span class="inline-flex items-center justify-center px-3 py-1 rounded-lg text-[13px] font-bold border tracking-normal shadow-xs ${refundBadgeStyle} text-center leading-tight">
                               ${displayRefundLabel}
                             </span>
                           `;
@@ -2079,7 +2577,7 @@
                           statusBadge = `<span class="${bClass} bg-red-100 text-red-900 border border-red-300">❌ Claim Rejected</span>`;
                         }
                       } else {
-                        statusBadge = `<span class="${bClass} bg-gray-100 text-gray-800 border border-gray-300">${order.status}</span>`;
+                        statusBadge = `<span class="${bClass} bg-gray-100 text-black border border-gray-300 dark:bg-gray-800 dark:text-white">${order.status}</span>`;
                       }
 
                       // Check verification & confirmation status
@@ -2091,7 +2589,7 @@
                       const isCustConfirmed = Boolean(order.customerConfirmation === true || order.customerConfirmation === 'Confirmed');
 
                       // Column 7 Badge (Verified Payment for Delivered, or Priority for Active Stages)
-                      let column7CellHtml = '<span class="text-gray-400 font-semibold text-xs">-</span>';
+                      let column7CellHtml = '<span class="text-black dark:text-gray-400 font-semibold text-xs">-</span>';
 
                       if (order.status === 'delivered') {
                         if (isFinVerified) {
@@ -2128,14 +2626,14 @@
 
                           if (rank > 0) {
                             column7CellHtml = `
-                              <span class="${bClass} bg-slate-100 border border-slate-300 text-slate-800 font-bold text-[16px]">
+                              <span class="${bClass} bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-black dark:text-white font-bold text-[16px]">
                                 Priority #${rank}
                               </span>
                             `;
                           }
                         } else {
                           // Finished stages (completed, cancelled, issue-reported) do not display Priority badges
-                          column7CellHtml = '<span class="text-gray-400 font-semibold text-xs">-</span>';
+                          column7CellHtml = '<span class="text-black dark:text-gray-400 font-semibold text-xs">-</span>';
                         }
                       }
 
@@ -2143,7 +2641,7 @@
                       const paymentMethodLabel = (order.paymentMethod || '').toLowerCase() === 'gcash' ? 'GCash' : 'CASH';
                       const paymentTypeLabel = (order.paymentType === 'full') ? 'Full Payment' : '30% Down Payment';
                       const paymentSummary = `
-                        <div class="text-[15px] font-normal text-black">${paymentMethodLabel} • ${paymentTypeLabel}</div>
+                        <div class="text-[16px] font-normal text-black dark:text-white">${paymentMethodLabel} • ${paymentTypeLabel}</div>
                       `;
 
                       // Calculate dynamic total for orders
@@ -2156,28 +2654,29 @@
                       let displayedTotal = orderTotal;
 
                       // Actions column buttons strip builder
+                      const btnActionClass = 'btn-grid-action-trigger btn-order-action inline-flex items-center justify-center min-w-[140px] h-10 px-4 rounded-xl font-semibold text-[14px] sm:text-[14.5px] transition-all duration-150 cursor-pointer shadow-xs whitespace-nowrap active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed';
                       let actionButton = '';
                       if (order.status === 'to-pay' || order.status === 'pending_verification' || order.status === 'payment_verification') {
                         actionButton = `
-                          <button data-id="${order.id}" class="btn-grid-action-trigger bg-[#1E6C02] hover:bg-[#145001] text-white font-bold rounded-lg px-4.5 py-2.5 transition-all duration-250 cursor-pointer shadow-xs text-[15px] whitespace-nowrap">
+                          <button data-id="${order.id}" class="${btnActionClass}">
                             Review Order
                           </button>
                         `;
                       } else if (order.status === 'processing') {
                         actionButton = `
-                          <button data-id="${order.id}" class="btn-grid-action-trigger bg-[#1E6C02] hover:bg-[#145001] text-white font-bold rounded-lg px-4.5 py-2.5 transition-all duration-250 cursor-pointer shadow-xs text-[15px] whitespace-nowrap">
+                          <button data-id="${order.id}" class="${btnActionClass}">
                             Prepare Order
                           </button>
                         `;
                       } else if (order.status === 'to-ship') {
                         actionButton = `
-                          <button data-id="${order.id}" class="btn-grid-action-trigger bg-[#1E6C02] hover:bg-[#145001] text-white font-bold rounded-lg px-4.5 py-2.5 transition-all duration-250 cursor-pointer shadow-xs text-[15px] whitespace-nowrap">
+                          <button data-id="${order.id}" class="${btnActionClass}">
                             Prepare Shipment
                           </button>
                         `;
                       } else if (order.status === 'pre-order' || order.status === 'pre_order') {
                         actionButton = `
-                          <button data-id="${order.id}" class="btn-grid-action-trigger bg-[#1E6C02] hover:bg-[#145001] text-white font-bold rounded-lg px-4.5 py-2.5 transition-all duration-250 cursor-pointer shadow-xs text-[15px] whitespace-nowrap">
+                          <button data-id="${order.id}" class="${btnActionClass}">
                             Manage Reservation
                           </button>
                         `;
@@ -2185,51 +2684,51 @@
                         const isPickup = order.deliveryOption === 'pickup';
                         const btnLabel = isPickup ? 'Verify Pickup' : 'Verify Delivery';
                         actionButton = `
-                          <button data-id="${order.id}" class="btn-grid-action-trigger bg-[#1E6C02] hover:bg-[#145001] text-white font-bold rounded-lg px-4.5 py-2.5 transition-all duration-250 cursor-pointer shadow-xs text-[15px] whitespace-nowrap">
+                          <button data-id="${order.id}" class="${btnActionClass}">
                             ${btnLabel}
                           </button>
                         `;
                       } else if (order.status === 'delivered') {
                         if (!isFinVerified) {
                           actionButton = `
-                            <button data-id="${order.id}" class="btn-trigger-verify-cash-badge bg-[#1E6C02] hover:bg-[#145001] text-white font-bold rounded-lg px-4.5 py-2.5 transition-all duration-250 cursor-pointer shadow-xs text-[15px] whitespace-nowrap">
+                            <button data-id="${order.id}" class="btn-trigger-verify-cash-badge btn-order-action inline-flex items-center justify-center min-w-[140px] h-10 px-4 rounded-xl font-semibold text-[14px] sm:text-[14.5px] transition-all duration-150 cursor-pointer shadow-xs whitespace-nowrap active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed">
                               Audit
                             </button>
                           `;
                         } else if (isCustConfirmed && isFinVerified) {
                           actionButton = `
-                            <button data-id="${order.id}" class="btn-trigger-finalize-order bg-[#1E6C02] hover:bg-[#145001] text-white font-bold rounded-lg px-4.5 py-2.5 transition-all duration-250 cursor-pointer shadow-xs text-[15px] whitespace-nowrap">
+                            <button data-id="${order.id}" class="btn-trigger-finalize-order btn-order-action inline-flex items-center justify-center min-w-[140px] h-10 px-4 rounded-xl font-semibold text-[14px] sm:text-[14.5px] transition-all duration-150 cursor-pointer shadow-xs whitespace-nowrap active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed">
                               Finalize Order
                             </button>
                           `;
                         } else {
                           actionButton = `
-                            <button data-id="${order.id}" class="btn-grid-action-trigger bg-gray-500 hover:bg-gray-600 text-white font-bold rounded-lg px-4.5 py-2.5 transition-all duration-250 cursor-pointer shadow-xs text-[15px] whitespace-nowrap" title="Financial audit verified. Awaiting customer confirmation.">
+                            <button data-id="${order.id}" class="btn-grid-action-trigger inline-flex items-center justify-center min-w-[140px] h-10 px-4 rounded-xl text-white font-semibold text-[14px] sm:text-[14.5px] bg-gray-500 hover:bg-gray-600 transition-all duration-150 cursor-pointer shadow-xs whitespace-nowrap active:scale-[0.98]" title="Financial audit verified. Awaiting customer confirmation.">
                               Delivered / Awaiting
                             </button>
                           `;
                         }
                       } else if (order.status === 'completed') {
                         actionButton = `
-                          <button data-id="${order.id}" class="btn-grid-action-trigger bg-[#1E6C02] hover:bg-[#145001] text-white font-bold rounded-lg px-4.5 py-2.5 transition-all duration-250 cursor-pointer shadow-xs text-[15px] whitespace-nowrap">
+                          <button data-id="${order.id}" class="${btnActionClass}">
                             View Record
                           </button>
                         `;
                       } else if (order.status === 'cancelled') {
                         actionButton = `
-                          <button data-id="${order.id}" class="btn-grid-action-trigger bg-[#1E6C02] hover:bg-[#145001] text-white font-bold rounded-lg px-4.5 py-2.5 transition-all duration-250 cursor-pointer shadow-xs text-[15px] whitespace-nowrap">
+                          <button data-id="${order.id}" class="${btnActionClass}">
                             View Cancellation
                           </button>
                         `;
                       } else if (order.status === 'issue-reported') {
                         actionButton = `
-                          <button data-id="${order.id}" class="btn-grid-action-trigger bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg px-4.5 py-2.5 transition-all duration-250 cursor-pointer shadow-xs text-[15px] whitespace-nowrap">
+                          <button data-id="${order.id}" class="btn-grid-action-trigger inline-flex items-center justify-center min-w-[140px] h-10 px-4 rounded-xl text-white font-semibold text-[14px] sm:text-[14.5px] bg-red-600 hover:bg-red-700 transition-all duration-150 cursor-pointer shadow-xs whitespace-nowrap active:scale-[0.98]">
                             Review Issue
                           </button>
                         `;
                       } else {
                         actionButton = `
-                          <button data-id="${order.id}" class="btn-grid-action-trigger bg-[#1E6C02] hover:bg-[#145001] text-white font-bold rounded-lg px-4.5 py-2.5 transition-all duration-250 cursor-pointer shadow-xs text-[15px] whitespace-nowrap">
+                          <button data-id="${order.id}" class="${btnActionClass}">
                             View Record
                           </button>
                         `;
@@ -2239,60 +2738,47 @@
                       const isReplacementOrder = Boolean(order.isReplacement || order.replacementDelivery || order.financialStatus === 'No Cash Collection Required' || order.amountPaid === 'Original Payment');
 
                       return `
-                        <tr id="order-row-${order.id}" class="transition-colors ${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/20'} hover:bg-gray-50/65">
+                        <tr id="order-row-${order.id}" class="order-row-${idx % 2 === 0 ? 'even' : 'odd'} transition-colors duration-150 ${idx % 2 === 0 ? 'bg-white dark:bg-[#111827]' : 'bg-[#F8FAFC] dark:bg-[#162032]'} hover:bg-[#F0FDF4] dark:hover:bg-[#1E293B]">
                           ${statusFilter === 'delivered' ? `
-                            <td class="py-5 px-4 text-center align-middle">
+                            <td class="py-4.5 px-3 text-center align-middle">
                               ${!isFinVerified ? `
                                 <input type="checkbox" class="chk-select-delivered-order w-4 h-4 rounded text-[#1E6C02] cursor-pointer" data-id="${order.id}" ${selectedDeliveredOrderIds.has(String(order.id)) ? 'checked' : ''} />
                               ` : `
-                                <span class="text-gray-300 font-bold text-xs" title="Already Verified">✔</span>
+                                <span class="text-black dark:text-gray-300 font-bold text-xs" title="Already Verified">✔</span>
                               `}
                             </td>
                           ` : ''}
 
                           <!-- Order ID -->
-                          <td class="py-5 px-4 font-bold text-black text-[16px] text-center align-middle">
+                          <td class="py-4.5 px-3 font-bold text-black dark:text-white text-[17px] text-center align-middle whitespace-nowrap">
                             #${order.id}
                           </td>
                           
                           <!-- Customer -->
-                          <td class="py-5 px-4 text-center align-middle">
-                            <p class="font-normal text-black text-[16px]">${order.fullName}</p>
+                          <td class="py-4.5 px-4 text-center align-middle min-w-[160px]">
+                            <p class="font-normal text-black dark:text-white text-[17px] leading-snug">${order.fullName}</p>
                           </td>
                           
-                          <!-- Items -->
-                          <td class="py-5 px-4 font-normal text-black text-center align-middle">
-                            ${order.items.map(item => `<div class="text-[15px] font-normal text-black">${item.product?.name || 'Rice Product'} <span class="text-black font-normal">× ${item.quantity || 0}</span></div>`).join('')}
+                          <!-- Items / Rice Variety -->
+                          <td class="py-4.5 px-5 font-normal text-black dark:text-white text-center align-middle min-w-[240px]">
+                            ${order.items.map(item => `<div class="text-[16px] font-normal text-black dark:text-white leading-relaxed">${item.product?.name || 'Rice Product'} <span class="text-black dark:text-white font-semibold text-[16px]">× ${item.quantity || 0}</span></div>`).join('')}
                           </td>
-                          
-                          <!-- Total or Cash to Audit -->
-                          <td class="py-5 px-4 text-center align-middle font-normal text-black text-[16px]">
-                            ${statusFilter === 'delivered' ? `
-                              <p class="text-black font-extrabold text-[16px]">₱${cashToAuditVal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
-                              ${isReplacementOrder ? '<span class="text-[11px] font-bold text-amber-800 block">Replacement Delivery</span>' : ''}
-                            ` : `
-                              <p class="text-black font-normal">₱${Number(displayedTotal).toLocaleString()}.00</p>
-                            `}
-                          </td>
-                          
-                          <!-- Payment summary -->
-                          <td class="py-5 px-4 font-normal text-black text-center align-middle">${paymentSummary}</td>
                           
                           <!-- Status badge -->
-                          <td class="py-5 px-4 text-center align-middle">
+                          <td class="py-4.5 px-4 text-center align-middle min-w-[170px]">
                             <div class="flex flex-col items-center justify-center gap-1.5">
                               ${statusBadge}
                             </div>
                           </td>
                           
                           <!-- Delivery Priority / Verified Payment -->
-                          <td class="py-5 px-4 text-center align-middle">
+                          <td class="py-4.5 px-4 text-center align-middle min-w-[170px]">
                             ${column7CellHtml}
                           </td>
                           
                           <!-- Actions -->
-                          <td class="py-5 px-4 text-center align-middle">
-                            <div class="flex gap-1.5 justify-center items-center">
+                          <td class="py-4.5 px-4 text-center align-middle min-w-[150px]">
+                            <div class="flex gap-2 justify-center items-center">
                               ${actionButton}
                             </div>
                           </td>
@@ -2302,7 +2788,7 @@
 
                     ${filtered.length === 0 ? `
                       <tr>
-                        <td colspan="8" class="py-16 text-center text-gray-400 font-bold text-sm bg-gray-50/20">
+                        <td colspan="${statusFilter === 'delivered' ? 7 : 6}" class="py-16 text-center text-black dark:text-gray-300 font-bold text-sm bg-gray-50/20 dark:bg-gray-800/30">
                           <p class="text-2xl mb-2">📁</p>
                           No customer orders logged under the select criteria.
                         </td>
@@ -3899,7 +4385,7 @@
                   <button id="btn-det-action-reject" disabled class="hidden px-5 py-3 text-[15px] font-bold bg-gray-100 text-gray-400 border border-gray-200 rounded-xl cursor-not-allowed opacity-50">Reject Order</button>
                   <button id="btn-det-action-accept" disabled class="hidden px-6 py-3 text-[15px] font-black bg-gray-200 text-gray-400 rounded-xl cursor-not-allowed opacity-50">Approve Order</button>
                 ` : `
-                  <button id="btn-det-action-reject" class="px-5 py-3 text-[15px] font-bold bg-red-50 hover:bg-red-100 border border-red-200 text-red-700 rounded-xl cursor-pointer transition-colors">Reject Order</button>
+                  <button id="btn-det-action-reject" class="px-5 py-3 text-[15px] font-bold bg-red-50 hover:bg-red-100 border border-red-300 text-red-800 dark:bg-red-950/40 dark:border-red-800 dark:text-red-300 rounded-xl cursor-pointer transition-colors shadow-xs">Reject Order</button>
                   <button id="btn-det-action-accept" class="px-6 py-3 text-[15px] font-black bg-[#1E6C02] text-white hover:bg-[#145001] rounded-xl cursor-pointer transition-colors shadow-xs">Approve Order</button>
                 `}
               </div>

@@ -10742,6 +10742,65 @@ export function renderAdminLayout(activeTabId) {
         max-width: 100% !important;
         width: 100% !important;
       }
+
+      /* ========================================================================
+         AUTHORITATIVE SIDEBAR NAVIGATION TYPOGRAPHY (CONSISTENT ACROSS ALL PAGES)
+         - Font: Inter
+         - Size: 16px (1rem)
+         - Inactive item: regular weight (400), clean readable contrast
+         - Active item: medium weight (500) with primary green background & white text
+         ======================================================================== */
+      #admin-sidebar,
+      #admin-sidebar nav,
+      #admin-sidebar nav a,
+      #admin-sidebar-logout {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+      }
+
+      /* Navigation items default font size and alignment */
+      #admin-sidebar nav a {
+        font-size: 1rem !important; /* 16px */
+        line-height: 1.5 !important;
+        letter-spacing: normal !important;
+      }
+
+      /* Inactive navigation items: Regular weight (400), solid dark contrast in light mode */
+      #admin-sidebar nav a:not(.bg-\[\#1E6C02\]) {
+        font-weight: 400 !important;
+        color: #111827 !important;
+      }
+      html:not(.dark) #admin-sidebar nav a:not(.bg-\[\#1E6C02\]):hover {
+        background-color: #F3F4F6 !important;
+        color: #000000 !important;
+        font-weight: 400 !important;
+      }
+
+      /* Active navigation items: Preserved solid green background (#1E6C02), white text, medium weight (500) */
+      #admin-sidebar nav a.bg-\[\#1E6C02\] {
+        background-color: #1E6C02 !important;
+        color: #FFFFFF !important;
+        font-weight: 500 !important;
+      }
+      #admin-sidebar nav a.bg-\[\#1E6C02\] svg {
+        color: #FFFFFF !important;
+        stroke: #FFFFFF !important;
+      }
+
+      /* Dark mode contrast for navigation links */
+      html.dark #admin-sidebar nav a:not(.bg-\[\#1E6C02\]) {
+        color: #E5E7EB !important;
+      }
+      html.dark #admin-sidebar nav a:not(.bg-\[\#1E6C02\]):hover {
+        background-color: #1F2937 !important;
+        color: #FFFFFF !important;
+        font-weight: 400 !important;
+      }
+
+      /* Sidebar Logout button */
+      #admin-sidebar-logout {
+        font-size: 1rem !important; /* 16px */
+        font-weight: 600 !important;
+      }
     </style>
     <!-- Mobile header bar -->
     <div class="md:hidden flex items-center justify-between px-6 py-4 bg-white border-b border-gray-200 w-full sticky top-0 z-40">
@@ -12255,6 +12314,184 @@ export function getDashboardAvailableStockData(options = {}) {
     varieties: enrichedVarieties,
     activeCount: enrichedVarieties.length
   };
+}
+
+export function isActiveReservation(order) {
+  if (!order) return false;
+  if (!isReservationOrder(order)) return false;
+
+  const rawStatus = String(order.status || '').toLowerCase().trim();
+  const statusClean = rawStatus.replace(/[\s_]+/g, '-');
+
+  // Exclude completed or fulfilled reservations
+  if (statusClean === 'completed' || statusClean === 'fulfilled') {
+    return false;
+  }
+
+  // Exclude cancelled, rejected, and expired reservations
+  if (
+    statusClean === 'cancelled' ||
+    statusClean === 'rejected' ||
+    statusClean === 'expired' ||
+    order.cancelled === true ||
+    order.status === 'Cancelled' ||
+    order.paymentStatus === 'rejected_expired' ||
+    order.autoCancelledDueToRejectionDeadline === true ||
+    order.autoCancelledDueToPaymentDeadline === true
+  ) {
+    return false;
+  }
+
+  // If payment was rejected and the reservation is NOT waiting for re-upload, it is excluded
+  if (order.paymentRejected === true && (typeof isReservationWaitingForReupload !== 'function' || !isReservationWaitingForReupload(order))) {
+    return false;
+  }
+
+  // Active reservations awaiting payment verification, stock availability, preparation, pickup, or delivery
+  // In RiceFlow, delivered orders remain active awaiting completion (customer confirmation + cash audit)
+  return true;
+}
+
+export function getDashboardActiveReservationsData(options = {}) {
+  const liveOrders = Array.isArray(options.liveOrders)
+    ? options.liveOrders
+    : (typeof getAllOrders === 'function' ? getAllOrders() : []);
+  const productsList = Array.isArray(options.productsList)
+    ? options.productsList
+    : (typeof getProducts === 'function' ? getProducts() : []);
+
+  const currentRange = options.currentRange || 'all';
+  const currentProd = options.currentProd || 'all';
+  const salesCustomStart = options.salesCustomStart || '';
+  const salesCustomEnd = options.salesCustomEnd || '';
+  const hasUserAppliedFilter = Boolean(options.hasUserAppliedFilter);
+
+  let selectedSalesDate = null;
+  if (options.selectedSalesDate instanceof Date && !isNaN(options.selectedSalesDate.getTime())) {
+    selectedSalesDate = options.selectedSalesDate;
+  } else if (typeof options.selectedSalesDate === 'string' && options.selectedSalesDate.trim()) {
+    const parts = options.selectedSalesDate.trim().split('-').map(Number);
+    if (parts.length === 3 && parts[0] && parts[1] && parts[2]) {
+      const parsed = new Date(parts[0], parts[1] - 1, parts[2], 0, 0, 0, 0);
+      if (!isNaN(parsed.getTime())) selectedSalesDate = parsed;
+    }
+  }
+
+  const now = new Date();
+  const endOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+
+  let rangeStart;
+  let rangeEnd = endOfToday;
+  let rangeLabel = 'All Time';
+
+  if (selectedSalesDate) {
+    const selY = selectedSalesDate.getFullYear();
+    const selM = selectedSalesDate.getMonth();
+    const selD = selectedSalesDate.getDate();
+    rangeStart = new Date(selY, selM, selD, 0, 0, 0, 0);
+    rangeEnd = new Date(selY, selM, selD, 23, 59, 59, 999);
+    rangeLabel = selectedSalesDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  } else if (currentRange === 'custom' && salesCustomStart && salesCustomEnd) {
+    const [sY, sM, sD] = salesCustomStart.split('-').map(Number);
+    const [eY, eM, eD] = salesCustomEnd.split('-').map(Number);
+    rangeStart = new Date(sY, sM - 1, sD, 0, 0, 0, 0);
+    rangeEnd = new Date(eY, eM - 1, eD, 23, 59, 59, 999);
+    const sameYear = rangeStart.getFullYear() === rangeEnd.getFullYear();
+    const sFormatted = rangeStart.toLocaleDateString('en-US', sameYear ? { month: 'short', day: 'numeric' } : { month: 'short', day: 'numeric', year: 'numeric' });
+    const eFormatted = rangeEnd.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    rangeLabel = salesCustomStart === salesCustomEnd ? eFormatted : `${sFormatted} – ${eFormatted}`;
+  } else if (currentRange === '1week') {
+    rangeStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 6, 0, 0, 0, 0);
+    rangeLabel = '1 Week';
+  } else if (currentRange === '1month') {
+    rangeStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 29, 0, 0, 0, 0);
+    rangeLabel = '1 Month';
+  } else if (currentRange === '3months') {
+    rangeStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 89, 0, 0, 0, 0);
+    rangeLabel = '3 Months';
+  } else if (currentRange === '6months') {
+    rangeStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 179, 0, 0, 0, 0);
+    rangeLabel = '6 Months';
+  } else if (currentRange === '1year') {
+    rangeStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 364, 0, 0, 0, 0);
+    rangeLabel = '1 Year';
+  } else {
+    rangeStart = new Date(now.getFullYear(), now.getMonth() - 5, 1, 0, 0, 0, 0);
+    rangeLabel = 'All Time';
+  }
+
+  let activeVarietyLabel = 'All Grains';
+  let matchedProdName = '';
+  if (currentProd !== 'all') {
+    const matchedProdObj = productsList.find(p => String(p.id) === String(currentProd));
+    if (matchedProdObj) {
+      activeVarietyLabel = matchedProdObj.name;
+      matchedProdName = matchedProdObj.name;
+    } else {
+      activeVarietyLabel = currentProd;
+      matchedProdName = currentProd;
+    }
+  }
+
+  function itemMatchesVariety(item) {
+    if (!item) return false;
+    if (currentProd === 'all') return true;
+    const pId = String(item.product?.id || item.productId || item.id || '');
+    const pName = String(item.product?.name || item.name || item.productName || '').trim().toLowerCase();
+    if (pId && pId === String(currentProd)) return true;
+    if (matchedProdName && pName && pName === matchedProdName.trim().toLowerCase()) return true;
+    return false;
+  }
+
+  const isDateOrRangeFiltered = Boolean(selectedSalesDate || currentRange !== 'all');
+  const isFilterActive = Boolean(selectedSalesDate || (hasUserAppliedFilter && (currentRange !== 'all' || currentProd !== 'all')));
+
+  // Deduplicate reservations to prevent double-counting across linked order records
+  const seenIds = new Set();
+  const allActiveReservations = [];
+
+  liveOrders.forEach(o => {
+    if (!o || !isActiveReservation(o)) return;
+    const id = String(o.id || '').trim();
+    if (!id || seenIds.has(id)) return;
+    // If order is a parent order of a split reservation (isPreOrder: false), do not double count
+    if (o.linkedReservationId && o.isPreOrder === false) return;
+    seenIds.add(id);
+    allActiveReservations.push(o);
+  });
+
+  let reservations = [];
+  if (!isFilterActive) {
+    reservations = allActiveReservations;
+  } else {
+    reservations = allActiveReservations.filter(o => {
+      if (isDateOrRangeFiltered) {
+        const d = parseDashboardOrderDate(o);
+        if (d < rangeStart || d > rangeEnd) return false;
+      }
+      if (currentProd !== 'all') {
+        return (o.items || []).some(item => itemMatchesVariety(item));
+      }
+      return true;
+    });
+  }
+
+  return {
+    reservations,
+    count: reservations.length,
+    isFilterActive,
+    isDateOrRangeFiltered,
+    rangeStart,
+    rangeEnd,
+    rangeLabel,
+    activeVarietyLabel,
+    currentRange,
+    currentProd
+  };
+}
+
+export function getDashboardTotalReservationsData(options = {}) {
+  return getDashboardActiveReservationsData(options);
 }
 
 // Automatically apply dark mode at load time on all pages to prevent theme flashing
