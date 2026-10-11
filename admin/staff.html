@@ -39,6 +39,412 @@
   </style>
   <link rel="stylesheet" href="../src/styles/index.css">
   <style id="auth-guard-style">body { visibility: hidden !important; }</style>
+  <style id="admin-staff-typography-and-colors">
+    /* ==========================================================================
+       ADMIN MANAGE STAFF PAGE READABILITY & APPROVED TYPOGRAPHY SYSTEM
+       - Inter: Page Headings, Section & Card Headings, Table Column Headers,
+                Buttons, Action Badges/Controls
+       - Source Sans 3: Staff Names & Details, Email Addresses, Phone Numbers,
+                        Role Descriptions, Table Body Text, Form Labels, Inputs,
+                        Modals & Supporting Information
+       - Solid Black (#000000): In Day/Light mode for all ordinary readable text
+       - Clear Font Weight Hierarchy: No hairline-thin or overly heavy text
+       - Dark Mode Readability & Status Color Preservation
+       ========================================================================== */
+
+    /* 1. BASE TYPOGRAPHY: Default workspace and tables to Source Sans 3 */
+    body,
+    #admin-main-content,
+    #staff-modal,
+    #save-confirm-modal,
+    #archive-confirm-modal,
+    #restore-confirm-modal,
+    #staff-history-modal {
+      font-family: 'Source Sans 3', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* 2. PRIMARY FONT: INTER
+          - Page headings & section / card titles
+          - Table column headers (th)
+          - Action buttons & controls */
+    #admin-right-workspace header h2,
+    #admin-layout-container h1,
+    #admin-layout-container h2,
+    #admin-layout-container h3,
+    #admin-layout-container h4,
+    #admin-main-content h1,
+    #admin-main-content h2,
+    #admin-main-content h3,
+    #admin-main-content h4,
+    #staff-modal-title,
+    #save-confirm-title,
+    #archive-confirm-modal h4,
+    #restore-confirm-modal h4,
+    #history-staff-name,
+    /* Table column headers */
+    #admin-main-content table thead th,
+    #admin-main-content table thead th *,
+    #staff-history-modal table thead th,
+    #staff-history-modal table thead th *,
+    /* Buttons & controls */
+    #admin-main-content button,
+    #staff-modal button,
+    #save-confirm-modal button,
+    #archive-confirm-modal button,
+    #restore-confirm-modal button,
+    #staff-history-modal button,
+    .btn-staff-restore,
+    .btn-staff-history {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+    }
+
+    /* 3. SECONDARY FONT: SOURCE SANS 3
+          - Staff names & details, emails, phone numbers
+          - Role descriptions & table body text
+          - Form labels, inputs, modal messages & supporting text */
+    #admin-main-content table tbody td,
+    #admin-main-content table tbody td *:not(button):not(svg):not(path),
+    #staff-history-modal table tbody td,
+    #staff-history-modal table tbody td *:not(button):not(svg):not(path),
+    #admin-main-content p,
+    #admin-main-content label,
+    #admin-main-content input,
+    #admin-main-content select,
+    #admin-main-content span:not(button *):not(thead *),
+    #staff-modal label,
+    #staff-modal input,
+    #staff-modal select,
+    #staff-modal p,
+    #save-confirm-modal p,
+    #save-confirm-modal span,
+    #save-confirm-modal a,
+    #archive-confirm-modal p,
+    #restore-confirm-modal p,
+    #history-staff-sub {
+      font-family: 'Source Sans 3', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+    }
+
+    /* 4. BALANCED FONT SIZING & COMFORTABLE HIERARCHY */
+    /* Page Title: 24–28px (semibold 600) */
+    #admin-right-workspace header h2 {
+      font-size: 1.625rem !important; /* 26px */
+      line-height: 2rem !important;
+      font-weight: 600 !important;
+      letter-spacing: -0.025em !important;
+    }
+
+    /* Section & Card Headings: 16–18px (medium/semibold 600) */
+    #admin-main-content h3,
+    #table-card-title {
+      font-size: 1.125rem !important; /* 18px */
+      line-height: 1.5rem !important;
+      font-weight: 600 !important;
+      letter-spacing: -0.015em !important;
+    }
+
+    /* Table Column Headers: 13–14px (medium/semibold 600) */
+    #admin-main-content table thead th,
+    #staff-history-modal table thead th {
+      font-size: 0.875rem !important; /* 14px */
+      font-weight: 600 !important;
+      letter-spacing: 0.03em !important;
+      padding-top: 0.95rem !important;
+      padding-bottom: 0.95rem !important;
+    }
+
+    /* Staff Names & Table Body Text: 15–16px */
+    .staff-row-name {
+      font-size: 1rem !important; /* 16px */
+      font-weight: 500 !important;
+      line-height: 1.35 !important;
+      letter-spacing: -0.01em !important;
+    }
+
+    #admin-main-content table tbody td {
+      font-size: 0.96875rem !important; /* 15.5px */
+      line-height: 1.45 !important;
+      font-weight: 400 !important;
+    }
+
+    /* Email addresses & other staff details: 14–15px */
+    .staff-row-email {
+      font-size: 0.9375rem !important; /* 15px */
+      font-weight: 400 !important;
+      line-height: 1.35 !important;
+    }
+    .staff-row-phone {
+      font-size: 0.875rem !important; /* 14px */
+      font-weight: 400 !important;
+      line-height: 1.35 !important;
+    }
+    .staff-row-role {
+      font-size: 0.9375rem !important; /* 15px */
+      font-weight: 500 !important;
+    }
+
+    /* Form labels & supporting text: 14–15px */
+    #staff-modal label,
+    .staff-form-label {
+      font-size: 0.9375rem !important; /* 15px */
+      font-weight: 500 !important;
+      line-height: 1.35 !important;
+    }
+    #staff-modal-subtitle,
+    .staff-supporting-desc {
+      font-size: 0.9375rem !important; /* 15px */
+      font-weight: 400 !important;
+      line-height: 1.4 !important;
+    }
+
+    /* Form inputs and select dropdowns: 14–15px */
+    #staff-form input,
+    #staff-form select,
+    #staff-search-input {
+      font-size: 0.9375rem !important; /* 15px */
+      font-weight: 400 !important;
+      line-height: 1.4 !important;
+    }
+
+    /* Button labels: 14–15px (medium/semibold) */
+    #btn-toggle-archived-staff,
+    #btn-open-create-staff,
+    #btn-staff-cancel,
+    #staff-form button[type="submit"],
+    #btn-cancel-save-confirm,
+    #btn-confirm-save-confirm,
+    #btn-cancel-archive-confirm,
+    #btn-confirm-archive-confirm,
+    #btn-cancel-restore-confirm,
+    #btn-confirm-restore-confirm,
+    #btn-close-history-modal {
+      font-size: 0.90625rem !important; /* 14.5px */
+      font-weight: 600 !important;
+      letter-spacing: 0.02em !important;
+    }
+    .btn-staff-restore,
+    .btn-staff-history {
+      font-size: 0.84375rem !important; /* 13.5px */
+      font-weight: 600 !important;
+    }
+
+    /* Small helper text: preferably at least 13-14px */
+    .staff-helper-text,
+    #photo-upload-zone p,
+    #history-staff-sub {
+      font-size: 0.84375rem !important; /* 13.5px */
+      font-weight: 400 !important;
+    }
+
+    /* Modals dialog titles & texts */
+    #staff-modal-title {
+      font-size: 1.375rem !important; /* 22px */
+      font-weight: 600 !important;
+    }
+    #save-confirm-title,
+    #archive-confirm-modal h4,
+    #restore-confirm-modal h4 {
+      font-size: 1.1875rem !important; /* 19px */
+      font-weight: 600 !important;
+    }
+    #save-confirm-message,
+    #archive-confirm-message,
+    #restore-confirm-message {
+      font-size: 0.9375rem !important; /* 15px */
+      font-weight: 400 !important;
+      line-height: 1.5 !important;
+    }
+
+    /* 5. STANDARDIZE TEXT COLORS IN DAY/LIGHT MODE TO SOLID BLACK (#000000) */
+    html:not(.dark) #admin-right-workspace header h2,
+    html:not(.dark) #admin-layout-container h1,
+    html:not(.dark) #admin-layout-container h2,
+    html:not(.dark) #admin-layout-container h3,
+    html:not(.dark) #admin-main-content h3,
+    html:not(.dark) #table-card-title {
+      color: #000000 !important;
+    }
+
+    /* Table column headers: Solid Black */
+    html:not(.dark) #admin-main-content table thead th,
+    html:not(.dark) #admin-main-content table thead th *,
+    html:not(.dark) #staff-history-modal table thead th,
+    html:not(.dark) #staff-history-modal table thead th * {
+      color: #000000 !important;
+    }
+
+    /* Staff names, table cells, email, contact: Solid Black */
+    html:not(.dark) .staff-row-name,
+    html:not(.dark) .staff-row-email,
+    html:not(.dark) .staff-row-phone,
+    html:not(.dark) .staff-row-role,
+    html:not(.dark) #admin-main-content table tbody td:not(.status-col):not(.action-col) {
+      color: #000000 !important;
+    }
+
+    /* Subtitle & Header description: Solid Black */
+    html:not(.dark) #admin-main-content .staff-header-desc,
+    html:not(.dark) #staff-modal-subtitle {
+      color: #000000 !important;
+    }
+
+    /* Form labels & inputs: Solid Black text */
+    html:not(.dark) #staff-modal label,
+    html:not(.dark) #staff-form input,
+    html:not(.dark) #staff-form select,
+    html:not(.dark) #staff-search-input {
+      color: #000000 !important;
+    }
+    html:not(.dark) #staff-search-input::placeholder,
+    html:not(.dark) #staff-form input::placeholder {
+      color: #4B5563 !important;
+    }
+
+    /* Modal messages and details in Light Mode */
+    html:not(.dark) #save-confirm-message,
+    html:not(.dark) #archive-confirm-message,
+    html:not(.dark) #restore-confirm-message,
+    html:not(.dark) #history-staff-name,
+    html:not(.dark) #history-staff-sub,
+    html:not(.dark) .staff-detail-label {
+      color: #000000 !important;
+    }
+    html:not(.dark) #save-confirm-detail-name {
+      color: #000000 !important;
+    }
+
+    /* Reusable button text colors in Light Mode */
+    html:not(.dark) #btn-toggle-archived-staff {
+      color: #000000 !important;
+    }
+    html:not(.dark) #btn-staff-cancel,
+    html:not(.dark) #btn-cancel-save-confirm,
+    html:not(.dark) #btn-cancel-archive-confirm,
+    html:not(.dark) #btn-cancel-restore-confirm,
+    html:not(.dark) #btn-close-history-modal {
+      color: #000000 !important;
+    }
+
+    /* Replace faded gray/low-contrast text classes on ordinary text elements */
+    html:not(.dark) #admin-main-content .text-gray-400:not([class*="text-white"]):not([class*="text-red-"]):not([class*="text-emerald-"]):not([class*="text-green-"]):not([class*="text-blue-"]):not([class*="text-orange-"]):not([class*="text-\[\#1E6C02\]"]),
+    html:not(.dark) #admin-main-content .text-gray-500:not([class*="text-white"]):not([class*="text-red-"]):not([class*="text-emerald-"]):not([class*="text-green-"]):not([class*="text-blue-"]):not([class*="text-orange-"]):not([class*="text-\[\#1E6C02\]"]),
+    html:not(.dark) #admin-main-content .text-gray-600:not([class*="text-white"]):not([class*="text-red-"]):not([class*="text-emerald-"]):not([class*="text-green-"]):not([class*="text-blue-"]):not([class*="text-orange-"]):not([class*="text-\[\#1E6C02\]"]),
+    html:not(.dark) #admin-main-content .text-gray-700:not([class*="text-white"]):not([class*="text-red-"]):not([class*="text-emerald-"]):not([class*="text-green-"]):not([class*="text-blue-"]):not([class*="text-orange-"]):not([class*="text-\[\#1E6C02\]"]),
+    html:not(.dark) #admin-main-content .text-gray-800:not([class*="text-white"]):not([class*="text-red-"]):not([class*="text-emerald-"]):not([class*="text-green-"]):not([class*="text-blue-"]):not([class*="text-orange-"]):not([class*="text-\[\#1E6C02\]"]),
+    html:not(.dark) #admin-main-content .text-gray-900:not([class*="text-white"]):not([class*="text-red-"]):not([class*="text-emerald-"]):not([class*="text-green-"]):not([class*="text-blue-"]):not([class*="text-orange-"]):not([class*="text-\[\#1E6C02\]"]) {
+      color: #000000 !important;
+    }
+
+    /* 6. PRESERVE MEANINGFUL STATUS & ACTION COLORS */
+    /* Primary buttons with green/red backgrounds retain white text */
+    #btn-open-create-staff,
+    #staff-form button[type="submit"],
+    #btn-confirm-save-confirm,
+    #btn-confirm-restore-confirm,
+    #btn-confirm-archive-confirm {
+      color: #FFFFFF !important;
+    }
+
+    /* Role badges */
+    .role-badge-admin {
+      background-color: #ECFDF5 !important;
+      color: #047857 !important;
+      border-color: #A7F3D0 !important;
+    }
+    .role-badge-staff {
+      background-color: #EFF6FF !important;
+      color: #1D4ED8 !important;
+      border-color: #BFDBFE !important;
+    }
+
+    /* Status badges */
+    .status-badge-active {
+      background-color: #E8F8EE !important;
+      color: #047857 !important;
+      border-color: #A7F3D0 !important;
+    }
+    .status-badge-archived {
+      background-color: #F3F4F6 !important;
+      color: #374151 !important;
+      border-color: #E5E7EB !important;
+    }
+    .status-badge-suspended,
+    .status-badge-inactive {
+      background-color: #FEF2F2 !important;
+      color: #B91C1C !important;
+      border-color: #FECACA !important;
+    }
+
+    /* 7. DARK MODE READABILITY PRESERVATION */
+    html.dark #admin-right-workspace header h2,
+    html.dark #admin-layout-container h1,
+    html.dark #admin-layout-container h2,
+    html.dark #admin-layout-container h3,
+    html.dark #admin-main-content h3,
+    html.dark #table-card-title,
+    html.dark #history-staff-name {
+      color: #FFFFFF !important;
+    }
+    html.dark #admin-main-content table thead th,
+    html.dark #staff-history-modal table thead th {
+      color: #F3F4F6 !important;
+      background-color: #1F2937 !important;
+    }
+    html.dark #admin-main-content table tbody td,
+    html.dark #staff-history-modal table tbody td {
+      color: #E5E7EB !important;
+    }
+    html.dark .staff-row-name {
+      color: #FFFFFF !important;
+    }
+    html.dark .staff-row-email,
+    html.dark .staff-row-phone,
+    html.dark .staff-row-role {
+      color: #E5E7EB !important;
+    }
+    html.dark #admin-main-content .staff-header-desc {
+      color: #D1D5DB !important;
+    }
+    html.dark #staff-search-input {
+      background-color: #1F2937 !important;
+      border-color: #374151 !important;
+      color: #FFFFFF !important;
+    }
+    html.dark #btn-toggle-archived-staff {
+      background-color: #1F2937 !important;
+      border-color: #374151 !important;
+      color: #F9FAFB !important;
+    }
+    html.dark #staff-modal-panel,
+    html.dark #save-confirm-modal-panel,
+    html.dark #archive-confirm-modal-panel,
+    html.dark #restore-confirm-modal-panel,
+    html.dark #staff-history-modal-panel {
+      background-color: #111827 !important;
+      color: #F9FAFB !important;
+      border-color: #374151 !important;
+    }
+    html.dark #staff-modal-panel header,
+    html.dark #staff-modal-panel > div:first-child,
+    html.dark #staff-history-modal-panel > div:first-child {
+      background-color: #111827 !important;
+      border-color: #374151 !important;
+    }
+    html.dark #staff-modal-subtitle,
+    html.dark #history-staff-sub {
+      color: #9CA3AF !important;
+    }
+    html.dark #staff-form input,
+    html.dark #staff-form select {
+      background-color: #1F2937 !important;
+      border-color: #374151 !important;
+      color: #FFFFFF !important;
+    }
+    html.dark #staff-modal label {
+      color: #E5E7EB !important;
+    }
+  </style>
 </head>
 <body class="bg-[#F5F5F5] min-h-screen">
   <div id="auth-guard-loader" class="fixed inset-0 bg-[#F5F5F5] z-[99999] flex flex-col items-center justify-center font-sans">
@@ -56,10 +462,10 @@
       <!-- Fixed Header -->
       <div class="flex justify-between items-start p-6 pb-4 border-b border-gray-100 bg-white">
         <div>
-          <h3 class="text-2xl font-bold text-[#1E6C02] tracking-tight" id="staff-modal-title">Add Staff Member</h3>
-          <p class="text-sm text-black font-medium mt-1" id="staff-modal-subtitle">Create a new staff account for your team member.</p>
+          <h3 class="text-xl font-semibold text-[#1E6C02] tracking-tight" id="staff-modal-title">Add Staff Member</h3>
+          <p class="staff-supporting-desc text-[15px] text-black font-normal mt-1" id="staff-modal-subtitle">Create a new staff account for your team member.</p>
         </div>
-        <button id="close-staff-modal" class="text-black hover:text-gray-900 transition-colors cursor-pointer text-xl font-bold p-1 select-none">
+        <button id="close-staff-modal" class="text-black hover:text-gray-900 transition-colors cursor-pointer text-xl font-semibold p-1 select-none">
           ✕
         </button>
       </div>
@@ -69,14 +475,14 @@
         <div class="p-6 space-y-5 overflow-y-auto max-h-[60vh] pr-4">
           <!-- Profile Photo Section -->
           <div class="space-y-2">
-            <label class="text-sm font-semibold text-gray-900 block">Profile Picture</label>
+            <label class="staff-form-label text-[15px] font-medium text-black block">Profile Picture</label>
             <div id="photo-upload-zone" class="flex items-center gap-4 cursor-pointer select-none">
               <input type="file" id="staff-inp-photo" class="hidden" accept="image/png, image/jpeg, image/gif" />
               
               <!-- Left: Circle Image / Placeholder -->
               <div class="w-16 h-16 rounded-full bg-[#EAECEF] border border-gray-200 flex items-center justify-center overflow-hidden shrink-0 shadow-inner relative group">
                 <!-- Default Placeholder Icon -->
-                <div id="photo-placeholder" class="text-gray-400 flex items-center justify-center">
+                <div id="photo-placeholder" class="text-gray-500 flex items-center justify-center">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-6 h-6"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
                 </div>
                 <!-- Loaded Image Preview inside the circle -->
@@ -87,27 +493,27 @@
               <div class="space-y-1">
                 <div class="flex items-center gap-2">
                   <div id="photo-placeholder-btn-only" class="inline-block">
-                    <button type="button" class="px-4 py-2 bg-white hover:bg-gray-50 border border-gray-200 text-gray-800 font-bold text-xs uppercase tracking-wider rounded-xl transition-all cursor-pointer shadow-xs flex items-center gap-2">
+                    <button type="button" class="px-4 py-2 bg-white hover:bg-gray-50 border border-gray-200 text-black font-semibold text-xs uppercase tracking-wider rounded-xl transition-all cursor-pointer shadow-xs flex items-center gap-2">
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-3.5 h-3.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
                       Upload Photo
                     </button>
                   </div>
                   <div id="photo-preview-container" class="hidden inline-block">
-                    <button type="button" id="btn-remove-photo" class="px-3 py-2 bg-red-50 hover:bg-red-100 text-red-650 font-bold text-xs uppercase tracking-wider rounded-xl transition-all cursor-pointer border border-red-100">
+                    <button type="button" id="btn-remove-photo" class="px-3 py-2 bg-red-50 hover:bg-red-100 text-red-650 font-semibold text-xs uppercase tracking-wider rounded-xl transition-all cursor-pointer border border-red-100">
                       Remove
                     </button>
                   </div>
                 </div>
-                <p class="text-xs text-black font-medium">JPG, PNG or GIF (max. 2MB)</p>
+                <p class="staff-helper-text text-[13.5px] text-black font-normal">JPG, PNG or GIF (max. 2MB)</p>
               </div>
             </div>
           </div>
 
           <!-- User Role Dropdown -->
           <div class="space-y-1.5">
-            <label class="text-sm font-semibold text-gray-900 block">User Role *</label>
+            <label class="staff-form-label text-[15px] font-medium text-black block">User Role *</label>
             <div class="relative">
-              <select id="staff-inp-role" class="w-full bg-gray-50 border border-gray-200 text-sm font-medium text-gray-950 px-4 py-3.5 rounded-xl outline-none focus:bg-white focus:border-[#1E6C02] focus:ring-1 focus:ring-[#1E6C02] transition-colors appearance-none cursor-pointer">
+              <select id="staff-inp-role" class="w-full bg-gray-50 border border-gray-200 text-[15px] font-normal text-black px-4 py-3.5 rounded-xl outline-none focus:bg-white focus:border-[#1E6C02] focus:ring-1 focus:ring-[#1E6C02] transition-colors appearance-none cursor-pointer">
                 <option value="Staff">Staff</option>
                 <option value="Administrator">Administrator</option>
               </select>
@@ -120,29 +526,29 @@
 
           <!-- Full Name -->
           <div class="space-y-1.5">
-            <label class="text-sm font-semibold text-gray-900 block">Full Name *</label>
-            <input required type="text" id="staff-inp-name" placeholder="Enter full name" class="w-full bg-gray-50 border border-gray-200 text-sm font-medium text-gray-955 px-4 py-3.5 rounded-xl outline-none focus:bg-white focus:border-[#1E6C02] focus:ring-1 focus:ring-[#1E6C02] transition-colors" />
+            <label class="staff-form-label text-[15px] font-medium text-black block">Full Name *</label>
+            <input required type="text" id="staff-inp-name" placeholder="Enter full name" class="w-full bg-gray-50 border border-gray-200 text-[15px] font-normal text-black px-4 py-3.5 rounded-xl outline-none focus:bg-white focus:border-[#1E6C02] focus:ring-1 focus:ring-[#1E6C02] transition-colors" />
           </div>
 
           <!-- Email Address -->
           <div class="space-y-1.5">
-            <label class="text-sm font-semibold text-gray-900 block">Email Address *</label>
-            <input required type="email" id="staff-inp-email" placeholder="Enter email address" class="w-full bg-gray-50 border border-gray-200 text-sm font-medium text-gray-955 px-4 py-3.5 rounded-xl outline-none focus:bg-white focus:border-[#1E6C02] focus:ring-1 focus:ring-[#1E6C02] transition-colors" />
+            <label class="staff-form-label text-[15px] font-medium text-black block">Email Address *</label>
+            <input required type="email" id="staff-inp-email" placeholder="Enter email address" class="w-full bg-gray-50 border border-gray-200 text-[15px] font-normal text-black px-4 py-3.5 rounded-xl outline-none focus:bg-white focus:border-[#1E6C02] focus:ring-1 focus:ring-[#1E6C02] transition-colors" />
           </div>
 
           <!-- Contact Number -->
           <div class="space-y-1.5">
-            <label class="text-sm font-semibold text-gray-900 block">Contact Number *</label>
-            <input required type="text" id="staff-inp-phone" value="+63 " placeholder="+63 912 345 6789" class="w-full bg-gray-50 border border-gray-200 text-sm font-medium text-gray-955 px-4 py-3.5 rounded-xl outline-none focus:bg-white focus:border-[#1E6C02] focus:ring-1 focus:ring-[#1E6C02] transition-colors" />
+            <label class="staff-form-label text-[15px] font-medium text-black block">Contact Number *</label>
+            <input required type="text" id="staff-inp-phone" value="+63 " placeholder="+63 912 345 6789" class="w-full bg-gray-50 border border-gray-200 text-[15px] font-normal text-black px-4 py-3.5 rounded-xl outline-none focus:bg-white focus:border-[#1E6C02] focus:ring-1 focus:ring-[#1E6C02] transition-colors" />
           </div>
 
           <!-- Password block stacked vertically -->
           <div class="space-y-5" id="staff-passwords-row">
             <!-- Password -->
             <div class="space-y-1.5">
-              <label class="text-sm font-semibold text-gray-900 block" id="lbl-staff-password">Password *</label>
+              <label class="staff-form-label text-[15px] font-medium text-black block" id="lbl-staff-password">Password *</label>
               <div class="relative">
-                <input type="password" id="staff-inp-password" placeholder="Enter password (min. 8 characters)" class="w-full bg-gray-50 border border-gray-200 text-sm font-medium text-gray-955 px-4 py-3.5 pr-10 rounded-xl outline-none focus:bg-white focus:border-[#1E6C02] focus:ring-1 focus:ring-[#1E6C02] transition-colors" />
+                <input type="password" id="staff-inp-password" placeholder="Enter password (min. 8 characters)" class="w-full bg-gray-50 border border-gray-200 text-[15px] font-normal text-black px-4 py-3.5 pr-10 rounded-xl outline-none focus:bg-white focus:border-[#1E6C02] focus:ring-1 focus:ring-[#1E6C02] transition-colors" />
                 <button type="button" class="btn-toggle-password absolute right-3 top-1/2 -translate-y-1/2 text-black hover:text-gray-900 p-1 cursor-pointer select-none transition-colors">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-4.5 h-4.5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
                 </button>
@@ -151,9 +557,9 @@
 
             <!-- Confirm Password -->
             <div class="space-y-1.5">
-              <label class="text-sm font-semibold text-gray-900 block">Confirm Password *</label>
+              <label class="staff-form-label text-[15px] font-medium text-black block">Confirm Password *</label>
               <div class="relative">
-                <input type="password" id="staff-inp-confirm" placeholder="Re-enter password" class="w-full bg-gray-50 border border-gray-200 text-sm font-medium text-gray-955 px-4 py-3.5 pr-10 rounded-xl outline-none focus:bg-white focus:border-[#1E6C02] focus:ring-1 focus:ring-[#1E6C02] transition-colors" />
+                <input type="password" id="staff-inp-confirm" placeholder="Re-enter password" class="w-full bg-gray-50 border border-gray-200 text-[15px] font-normal text-black px-4 py-3.5 pr-10 rounded-xl outline-none focus:bg-white focus:border-[#1E6C02] focus:ring-1 focus:ring-[#1E6C02] transition-colors" />
                 <button type="button" class="btn-toggle-password absolute right-3 top-1/2 -translate-y-1/2 text-black hover:text-gray-900 p-1 cursor-pointer select-none transition-colors">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-4.5 h-4.5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
                 </button>
@@ -164,10 +570,10 @@
 
         <!-- Fixed Footer -->
         <div class="flex items-center justify-end gap-3 p-6 border-t border-gray-100 bg-gray-50/50">
-          <button type="button" id="btn-staff-cancel" class="px-5 py-2.5 bg-white hover:bg-gray-100 border border-gray-200 text-black font-bold text-xs uppercase tracking-wider rounded-xl cursor-pointer transition-colors select-none">
+          <button type="button" id="btn-staff-cancel" class="px-5 py-2.5 bg-white hover:bg-gray-100 border border-gray-200 text-black font-semibold text-xs uppercase tracking-wider rounded-xl cursor-pointer transition-colors select-none">
             Cancel
           </button>
-          <button type="submit" class="px-6 py-2.5 bg-[#1E6C02] hover:bg-[#145001] active:scale-[0.98] text-white font-bold text-xs uppercase tracking-wider rounded-xl cursor-pointer shadow-md transition-all select-none">
+          <button type="submit" class="px-6 py-2.5 bg-[#1E6C02] hover:bg-[#145001] active:scale-[0.98] text-white font-semibold text-xs uppercase tracking-wider rounded-xl cursor-pointer shadow-md transition-all select-none">
             Save
           </button>
         </div>
@@ -180,35 +586,35 @@
     <div class="bg-white rounded-3xl max-w-md w-full shadow-2xl p-8 border border-gray-150 relative transform scale-95 opacity-0 transition-all duration-300 animate-in fade-in zoom-in-95" id="save-confirm-modal-panel">
       <div class="space-y-5">
         <div class="flex items-center justify-between pb-3 border-b border-gray-100">
-          <h4 class="text-xl font-bold text-gray-950 tracking-tight" id="save-confirm-title">Create Staff Account</h4>
-          <button id="close-save-confirm-modal-x" class="text-black hover:text-gray-900 font-bold text-sm p-1 cursor-pointer select-none">✕</button>
+          <h4 class="text-lg font-semibold text-black tracking-tight" id="save-confirm-title">Create Staff Account</h4>
+          <button id="close-save-confirm-modal-x" class="text-black hover:text-gray-900 font-semibold text-sm p-1 cursor-pointer select-none">✕</button>
         </div>
         
-        <p id="save-confirm-message" class="text-sm text-black font-medium leading-relaxed">
+        <p id="save-confirm-message" class="text-[15px] text-black font-normal leading-relaxed">
           Are you sure you want to create this new staff account?<br><br>The selected role will immediately gain access to the system using the credentials provided.
         </p>
 
         <!-- Detailed Card -->
-        <div class="bg-[#F8FAF8] rounded-2xl p-5 border border-emerald-50 space-y-3 text-sm">
+        <div class="bg-[#F8FAF8] rounded-2xl p-5 border border-emerald-50 space-y-3 text-[14px]">
           <div class="flex justify-between items-center py-0.5 border-b border-gray-100/50">
-            <span class="text-black font-semibold">Role:</span>
-            <span id="save-confirm-detail-role" class="text-gray-900 font-bold bg-green-50 px-2.5 py-1 rounded-full text-xs">Staff</span>
+            <span class="staff-detail-label text-black font-medium">Role:</span>
+            <span id="save-confirm-detail-role" class="role-badge-staff text-blue-700 font-semibold bg-blue-50 px-2.5 py-1 rounded-full text-xs">Staff</span>
           </div>
           <div class="flex justify-between items-center py-0.5 border-b border-gray-100/50">
-            <span class="text-black font-semibold">Name:</span>
-            <span id="save-confirm-detail-name" class="text-gray-900 font-bold">Juan Dela Cruz</span>
+            <span class="staff-detail-label text-black font-medium">Name:</span>
+            <span id="save-confirm-detail-name" class="text-black font-semibold">Juan Dela Cruz</span>
           </div>
           <div class="flex justify-between items-center py-0.5">
-            <span class="text-black font-semibold">Email:</span>
-            <a id="save-confirm-detail-email" href="#" class="text-emerald-700 hover:underline font-bold" target="_blank">juan.staff@gmail.com</a>
+            <span class="staff-detail-label text-black font-medium">Email:</span>
+            <a id="save-confirm-detail-email" href="#" class="text-emerald-700 hover:underline font-semibold" target="_blank">juan.staff@gmail.com</a>
           </div>
         </div>
         
         <div class="flex items-center justify-end gap-3 pt-4 border-t border-gray-100">
-          <button id="btn-cancel-save-confirm" class="px-5 py-2.5 bg-gray-100 hover:bg-gray-200 text-black font-bold text-xs uppercase tracking-wider rounded-xl cursor-pointer transition-colors select-none">
+          <button id="btn-cancel-save-confirm" class="px-5 py-2.5 bg-gray-100 hover:bg-gray-200 text-black font-semibold text-xs uppercase tracking-wider rounded-xl cursor-pointer transition-colors select-none">
             No, Cancel
           </button>
-          <button id="btn-confirm-save-confirm" class="px-5 py-2.5 bg-[#1E6C02] hover:bg-[#145001] active:scale-[0.98] text-white font-bold text-xs uppercase tracking-wider rounded-xl cursor-pointer shadow-md transition-all select-none">
+          <button id="btn-confirm-save-confirm" class="px-5 py-2.5 bg-[#1E6C02] hover:bg-[#145001] active:scale-[0.98] text-white font-semibold text-xs uppercase tracking-wider rounded-xl cursor-pointer shadow-md transition-all select-none">
             Yes, Create Account
           </button>
         </div>
@@ -225,21 +631,21 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-5 h-5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
         </div>
         <div>
-          <h4 class="text-lg font-bold text-red-700 tracking-tight">Archive Staff Account</h4>
+          <h4 class="text-lg font-semibold text-red-700 tracking-tight">Archive Staff Account</h4>
         </div>
-        <button id="close-archive-confirm-modal-x" class="text-red-400 hover:text-red-650 font-bold text-sm ml-auto p-1 cursor-pointer select-none">✕</button>
+        <button id="close-archive-confirm-modal-x" class="text-red-400 hover:text-red-650 font-semibold text-sm ml-auto p-1 cursor-pointer select-none">✕</button>
       </div>
       
       <div class="p-6 space-y-5">
-        <p id="archive-confirm-message" class="text-sm text-black font-medium leading-relaxed">
-          Are you sure you want to archive <strong id="archive-staff-name" class="text-red-750 font-extrabold">Admin User</strong>?<br><br>Archived staff accounts cannot access the system, but their records will be preserved.
+        <p id="archive-confirm-message" class="text-[15px] text-black font-normal leading-relaxed">
+          Are you sure you want to archive <strong id="archive-staff-name" class="text-black font-semibold">Admin User</strong>?<br><br>Archived staff accounts cannot access the system, but their records will be preserved.
         </p>
         
         <div class="flex items-center justify-end gap-3 pt-4 border-t border-gray-100">
-          <button id="btn-cancel-archive-confirm" class="px-5 py-2.5 bg-gray-100 hover:bg-gray-200 text-black font-bold text-xs uppercase tracking-wider rounded-xl cursor-pointer transition-colors select-none">
+          <button id="btn-cancel-archive-confirm" class="px-5 py-2.5 bg-gray-100 hover:bg-gray-200 text-black font-semibold text-xs uppercase tracking-wider rounded-xl cursor-pointer transition-colors select-none">
             Cancel
           </button>
-          <button id="btn-confirm-archive-confirm" class="px-5 py-2.5 bg-red-600 hover:bg-red-700 active:scale-[0.98] text-white font-bold text-xs uppercase tracking-wider rounded-xl cursor-pointer shadow-md transition-all select-none">
+          <button id="btn-confirm-archive-confirm" class="px-5 py-2.5 bg-red-600 hover:bg-red-700 active:scale-[0.98] text-white font-semibold text-xs uppercase tracking-wider rounded-xl cursor-pointer shadow-md transition-all select-none">
             Yes, Archive
           </button>
         </div>
@@ -252,19 +658,19 @@
     <div class="bg-white rounded-3xl max-w-md w-full shadow-2xl p-8 border border-gray-150 relative transform scale-95 opacity-0 transition-all duration-300" id="restore-confirm-modal-panel">
       <div class="space-y-5">
         <div class="flex items-center justify-between pb-3 border-b border-gray-100">
-          <h4 class="text-xl font-black text-gray-955 tracking-tight">Restore Staff Account</h4>
-          <button id="close-restore-confirm-modal-x" class="text-black hover:text-gray-900 font-extrabold text-sm p-1 cursor-pointer select-none">✕</button>
+          <h4 class="text-lg font-semibold text-black tracking-tight">Restore Staff Account</h4>
+          <button id="close-restore-confirm-modal-x" class="text-black hover:text-gray-900 font-semibold text-sm p-1 cursor-pointer select-none">✕</button>
         </div>
         
-        <p id="restore-confirm-message" class="text-sm text-black font-bold leading-relaxed">
+        <p id="restore-confirm-message" class="text-[15px] text-black font-normal leading-relaxed">
           Are you sure you want to restore this staff account?<br><br>The staff member will regain access to the system.
         </p>
         
         <div class="flex items-center justify-end gap-3 pt-4 border-t border-gray-100">
-          <button id="btn-cancel-restore-confirm" class="px-5 py-3 bg-gray-100 hover:bg-gray-200 text-black font-black text-xs uppercase tracking-wider rounded-xl cursor-pointer transition-colors select-none">
+          <button id="btn-cancel-restore-confirm" class="px-5 py-2.5 bg-gray-100 hover:bg-gray-200 text-black font-semibold text-xs uppercase tracking-wider rounded-xl cursor-pointer transition-colors select-none">
             Cancel
           </button>
-          <button id="btn-confirm-restore-confirm" class="px-5 py-3 bg-[#1E6C02] hover:bg-[#145001] active:scale-[0.98] text-white font-black text-xs uppercase tracking-wider rounded-xl cursor-pointer shadow-md transition-all select-none">
+          <button id="btn-confirm-restore-confirm" class="px-5 py-2.5 bg-[#1E6C02] hover:bg-[#145001] active:scale-[0.98] text-white font-semibold text-xs uppercase tracking-wider rounded-xl cursor-pointer shadow-md transition-all select-none">
             Yes, Restore
           </button>
         </div>
@@ -278,15 +684,15 @@
       <!-- Fixed Header -->
       <div class="flex justify-between items-start p-6 pb-4 border-b border-gray-100 bg-white">
         <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-2xl bg-emerald-50 text-[#1E6C02] flex items-center justify-center text-xl font-bold border border-emerald-100">
+          <div class="w-10 h-10 rounded-2xl bg-emerald-50 text-[#1E6C02] flex items-center justify-center text-xl font-semibold border border-emerald-100">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-5 h-5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
           </div>
           <div>
-            <h3 id="history-staff-name" class="text-xl font-black text-gray-950 tracking-tight">Staff Name</h3>
-            <p id="history-staff-sub" class="text-xs text-gray-500 font-semibold mt-0.5">Staff Activity History</p>
+            <h3 id="history-staff-name" class="text-lg font-semibold text-black tracking-tight">Staff Name</h3>
+            <p id="history-staff-sub" class="text-[13.5px] text-black font-normal mt-0.5">Staff Activity History</p>
           </div>
         </div>
-        <button id="close-history-modal-x" class="text-black hover:text-gray-900 transition-colors cursor-pointer text-xl font-bold p-1 select-none">
+        <button id="close-history-modal-x" class="text-black hover:text-gray-900 transition-colors cursor-pointer text-xl font-semibold p-1 select-none">
           ✕
         </button>
       </div>
@@ -294,9 +700,9 @@
       <!-- Scrollable Body -->
       <div class="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
         <div class="overflow-x-auto w-full rounded-2xl border border-gray-200">
-          <table class="w-full text-left text-xs font-medium text-gray-700 border-collapse">
+          <table class="w-full text-left text-[14px] font-normal text-black border-collapse">
             <thead>
-              <tr class="bg-gray-50 border-b border-gray-200 text-gray-900 font-bold uppercase text-[11px] tracking-wider">
+              <tr class="bg-gray-50 border-b border-gray-200 text-black font-semibold uppercase text-xs tracking-wider">
                 <th class="py-3 px-4">Date & Time</th>
                 <th class="py-3 px-4">Action</th>
                 <th class="py-3 px-4">Module</th>
@@ -314,7 +720,7 @@
 
       <!-- Footer Button -->
       <div class="flex items-center justify-end p-4 border-t border-gray-100 bg-gray-50/50">
-        <button type="button" id="btn-close-history-modal" class="px-5 py-2 bg-gray-200 hover:bg-gray-300 text-gray-900 font-bold text-xs uppercase tracking-wider rounded-xl cursor-pointer transition-colors select-none">
+        <button type="button" id="btn-close-history-modal" class="px-5 py-2 bg-gray-200 hover:bg-gray-300 text-black font-semibold text-xs uppercase tracking-wider rounded-xl cursor-pointer transition-colors select-none">
           Close
         </button>
       </div>
@@ -477,15 +883,15 @@
             <!-- Page Header Container matching layout from reference image -->
             <div class="bg-white rounded-3xl p-8 border border-gray-150 shadow-sm flex flex-col md:flex-row gap-6 items-center justify-between">
               <div class="space-y-1 text-center md:text-left">
-                <p class="text-base text-black font-bold">Manage your team members and their roles.</p>
+                <p class="staff-header-desc text-base text-black font-normal">Manage your team members and their roles.</p>
               </div>
 
               <div class="flex flex-wrap items-center justify-center gap-4 w-full md:w-auto shrink-0">
-                <button id="btn-toggle-archived-staff" class="flex items-center gap-2 px-6 py-4 bg-white border-2 border-gray-200 text-gray-850 hover:bg-gray-50/80 font-black text-sm uppercase tracking-wider rounded-xl cursor-pointer shadow-xs transition-all active:scale-95 select-none">
+                <button id="btn-toggle-archived-staff" class="flex items-center gap-2 px-6 py-3.5 bg-white border-2 border-gray-200 text-black hover:bg-gray-50/80 font-semibold text-[14.5px] uppercase tracking-wider rounded-xl cursor-pointer shadow-xs transition-all active:scale-95 select-none">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 text-black"><polyline points="21 8 21 21 3 21 3 8"></polyline><rect x="1" y="3" width="22" height="5"></rect><line x1="10" y1="12" x2="14" y2="12"></line></svg>
                   <span>${showArchived ? 'View Active' : 'View Archived'}</span>
                 </button>
-                <button id="btn-open-create-staff" class="flex items-center gap-2.5 px-6 py-4 bg-[#1E6C02] hover:bg-[#145001] active:scale-95 text-white font-black text-sm uppercase tracking-wider rounded-xl cursor-pointer shadow-md transition-all hover:scale-[1.01] select-none">
+                <button id="btn-open-create-staff" class="flex items-center gap-2.5 px-6 py-3.5 bg-[#1E6C02] hover:bg-[#145001] active:scale-95 text-white font-semibold text-[14.5px] uppercase tracking-wider rounded-xl cursor-pointer shadow-md transition-all hover:scale-[1.01] select-none">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                   <span>Add Staff Member</span>
                 </button>
@@ -497,20 +903,20 @@
               
               <!-- Action header bar with Title and instant search bar -->
               <div class="flex flex-col lg:flex-row gap-5 items-start lg:items-center justify-between">
-                <h3 class="text-2xl font-black text-gray-955 tracking-tight" id="table-card-title">
+                <h3 class="text-lg font-semibold text-black tracking-tight" id="table-card-title">
                   ${showArchived ? 'Archived Staff' : 'Active Staff'}
                 </h3>
                 
                 <!-- Instant search bar -->
                 <div class="relative w-full lg:max-w-md">
-                  <span class="absolute left-4 top-1/2 -translate-y-1/2 text-black font-bold select-none">
+                  <span class="absolute left-4 top-1/2 -translate-y-1/2 text-black font-medium select-none">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
                   </span>
                   <input 
                     type="text" 
                     id="staff-search-input" 
                     placeholder="Search by name, email, contact, role..." 
-                    class="w-full pl-12 pr-10 py-3.5 bg-gray-50 border-2 border-gray-150 rounded-2xl font-bold text-sm outline-none text-gray-900 focus:bg-white focus:border-[#1E6C02] transition-colors shadow-inner" 
+                    class="w-full pl-12 pr-10 py-3.5 bg-gray-50 border-2 border-gray-150 rounded-2xl font-normal text-[15px] outline-none text-black focus:bg-white focus:border-[#1E6C02] transition-colors shadow-inner" 
                   />
                   <button 
                     id="btn-clear-search" 
@@ -523,20 +929,20 @@
 
               <!-- Main Table responsive viewport -->
               <div class="overflow-x-auto w-full rounded-2xl border border-gray-100">
-                <table class="w-full text-left text-sm font-semibold text-gray-700 min-w-[750px] border-collapse">
+                <table class="w-full text-left text-[14px] font-semibold text-black min-w-[750px] border-collapse">
                   <thead>
-                    <tr class="border-b border-gray-150 text-gray-900 font-bold text-sm select-none">
-                      <th class="py-5 px-6 font-bold text-gray-900">Name</th>
+                    <tr class="border-b border-gray-150 text-black font-semibold text-[14px] select-none">
+                      <th class="py-4.5 px-6 font-semibold text-black">Name</th>
                       ${showArchived ? `
-                        <th class="py-5 px-6 font-bold text-gray-900">Role</th>
-                        <th class="py-5 px-6 font-bold text-gray-900">Archived Date</th>
-                        <th class="py-5 px-6 font-bold text-gray-900">Account Status</th>
+                        <th class="py-4.5 px-6 font-semibold text-black">Role</th>
+                        <th class="py-4.5 px-6 font-semibold text-black">Archived Date</th>
+                        <th class="py-4.5 px-6 font-semibold text-black">Account Status</th>
                       ` : `
-                        <th class="py-5 px-6 font-bold text-gray-900">Contact Details</th>
-                        <th class="py-5 px-6 font-bold text-gray-900">Role</th>
-                        <th class="py-5 px-6 font-bold text-gray-900">Account Status</th>
+                        <th class="py-4.5 px-6 font-semibold text-black">Contact Details</th>
+                        <th class="py-4.5 px-6 font-semibold text-black">Role</th>
+                        <th class="py-4.5 px-6 font-semibold text-black">Account Status</th>
                       `}
-                      <th class="py-5 px-6 font-bold text-gray-900 text-right">Actions</th>
+                      <th class="py-4.5 px-6 font-semibold text-black text-right">Actions</th>
                     </tr>
                   </thead>
                   <tbody class="divide-y divide-gray-100" id="staff-table-body">
@@ -582,7 +988,7 @@
         if (filtered.length === 0) {
           tbody.innerHTML = `
             <tr>
-              <td colspan="${showArchived ? '5' : '5'}" class="py-16 text-center text-black font-extrabold text-base">
+              <td colspan="${showArchived ? '5' : '5'}" class="py-16 text-center text-black font-medium text-[15px]">
                 <div class="flex flex-col items-center justify-center gap-3">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-8 h-8 text-gray-400"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>
                   <span>No matches found inside database.</span>
@@ -603,27 +1009,27 @@
             </div>
           `;
 
-          // Pill Badge styling
+          // Role badge styling
           const roleBadgeHTML = member.role === 'Administrator' ? `
-            <span class="inline-flex items-center px-3.5 py-1 rounded-full text-xs font-bold bg-green-50 text-green-700 border border-green-200 select-none animate-in zoom-in-95">
+            <span class="role-badge-admin inline-flex items-center px-3.5 py-1 rounded-full text-xs font-semibold bg-green-50 text-green-700 border border-green-200 select-none animate-in zoom-in-95">
               Administrator
             </span>
           ` : `
-            <span class="inline-flex items-center px-3.5 py-1 rounded-full text-xs font-bold bg-blue-50 text-blue-700 border border-blue-200 select-none animate-in zoom-in-95">
+            <span class="role-badge-staff inline-flex items-center px-3.5 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200 select-none animate-in zoom-in-95">
               Staff
             </span>
           `;
 
           const statusBadgeHTML = member.isArchived ? `
-            <span class="inline-flex items-center px-3.5 py-1 rounded-full text-xs font-bold bg-gray-100 text-black border border-gray-200 select-none animate-in zoom-in-95">
+            <span class="status-badge-archived inline-flex items-center px-3.5 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-800 border border-gray-200 select-none animate-in zoom-in-95">
               Archived
             </span>
           ` : (member.status === 'Suspended' || member.status === 'Inactive' ? `
-            <span class="inline-flex items-center px-3.5 py-1 rounded-full text-xs font-bold bg-red-50 text-red-700 border border-red-200 select-none animate-in zoom-in-95">
+            <span class="status-badge-suspended inline-flex items-center px-3.5 py-1 rounded-full text-xs font-semibold bg-red-50 text-red-700 border border-red-200 select-none animate-in zoom-in-95">
               ${member.status}
             </span>
           ` : `
-            <span class="inline-flex items-center px-3.5 py-1 rounded-full text-xs font-bold bg-[#E8F8EE] text-emerald-700 border border-emerald-100 select-none animate-in zoom-in-95">
+            <span class="status-badge-active inline-flex items-center px-3.5 py-1 rounded-full text-xs font-semibold bg-[#E8F8EE] text-emerald-700 border border-emerald-100 select-none animate-in zoom-in-95">
               Active
             </span>
           `);
@@ -633,25 +1039,25 @@
             const archivedDateString = member.archivedDate || 'N/A';
             return `
               <tr class="hover:bg-gray-50/50 transition-all duration-155 animate-in fade-in-50 border-b border-gray-100">
-                <td class="py-5 px-6">
+                <td class="py-4.5 px-6">
                   <div class="flex items-center gap-3.5">
                     ${avatarHTML}
-                    <span class="font-extrabold text-black text-base tracking-tight">${member.name}</span>
+                    <span class="staff-row-name font-medium text-black text-base tracking-tight">${member.name}</span>
                   </div>
                 </td>
-                <td class="py-5 px-6">
+                <td class="py-4.5 px-6">
                   ${roleBadgeHTML}
                 </td>
-                <td class="py-5 px-6 font-bold text-black text-sm">
+                <td class="py-4.5 px-6 font-normal text-black text-sm">
                   ${archivedDateString}
                 </td>
-                <td class="py-5 px-6">
+                <td class="py-4.5 px-6 status-col">
                   ${statusBadgeHTML}
                 </td>
-                <td class="py-5 px-6 text-right">
+                <td class="py-4.5 px-6 text-right action-col">
                   <button 
                     data-id="${member.id}"
-                    class="btn-staff-restore px-4 py-2 bg-white hover:bg-green-50 border-2 border-[#1E6C02] text-[#1E6C02] font-extrabold text-xs uppercase tracking-wider rounded-xl cursor-pointer shadow-xs transition-all active:scale-95 select-none inline-flex items-center gap-1.5"
+                    class="btn-staff-restore px-4 py-2 bg-white hover:bg-green-50 border-2 border-[#1E6C02] text-[#1E6C02] font-semibold text-xs uppercase tracking-wider rounded-xl cursor-pointer shadow-xs transition-all active:scale-95 select-none inline-flex items-center gap-1.5"
                   >
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-4 h-4"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
                     <span>Restore</span>
@@ -663,29 +1069,29 @@
             // Active staff layout
             return `
               <tr class="hover:bg-gray-50/50 transition-all duration-155 animate-in fade-in-50 border-b border-gray-100">
-                <td class="py-5 px-6">
+                <td class="py-4.5 px-6">
                   <div class="flex items-center gap-3.5">
                     ${avatarHTML}
-                    <span class="font-bold text-black text-base tracking-tight">${member.name}</span>
+                    <span class="staff-row-name font-medium text-black text-base tracking-tight">${member.name}</span>
                   </div>
                 </td>
-                <td class="py-5 px-6 font-medium text-black dark:text-white text-sm">
-                  <div class="font-bold text-black dark:text-white">${member.email}</div>
-                  <div class="text-xs text-black dark:text-white font-semibold tracking-wide mt-0.5">${member.contactNumber || 'N/A'}</div>
+                <td class="py-4.5 px-6 font-normal text-black text-sm">
+                  <div class="staff-row-email font-normal text-black">${member.email}</div>
+                  <div class="staff-row-phone text-xs text-black font-normal tracking-wide mt-0.5">${member.contactNumber || 'N/A'}</div>
                 </td>
-                <td class="py-5 px-6">
-                  <span class="text-black dark:text-white font-bold text-sm">${member.role}</span>
+                <td class="py-4.5 px-6">
+                  <span class="staff-row-role text-black font-medium text-sm">${member.role}</span>
                 </td>
-                <td class="py-5 px-6">
+                <td class="py-4.5 px-6 status-col">
                   ${statusBadgeHTML}
                 </td>
-                <td class="py-5 px-6 text-right">
+                <td class="py-4.5 px-6 text-right action-col">
                   <div class="flex gap-2.5 justify-end items-center">
                     <!-- View Activities Logs Button -->
                     <button 
                       data-id="${member.id}"
                       title="View Activities Logs"
-                      class="btn-staff-history text-[#1E6C02] hover:text-emerald-800 cursor-pointer transition-all active:scale-95 flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 rounded-xl font-bold text-xs border border-emerald-200 shadow-2xs select-none"
+                      class="btn-staff-history text-[#1E6C02] hover:text-emerald-800 cursor-pointer transition-all active:scale-95 flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 rounded-xl font-semibold text-xs border border-emerald-200 shadow-2xs select-none"
                     >
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-4 h-4"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
                       <span>View Activities Logs</span>
@@ -811,7 +1217,7 @@
             if (memberLogs.length === 0) {
               tbody.innerHTML = `
                 <tr>
-                  <td colspan="6" class="py-12 text-center text-gray-500 font-extrabold text-sm">
+                  <td colspan="6" class="py-12 text-center text-black font-medium text-[14.5px]">
                     No activity logs found for this staff member.
                   </td>
                 </tr>
@@ -873,19 +1279,19 @@
 
                 return `
                   <tr class="hover:bg-gray-50/80 transition-colors border-b border-gray-100">
-                    <td class="py-3.5 px-4 text-xs font-bold text-gray-900 whitespace-nowrap">
+                    <td class="py-3.5 px-4 text-[14px] font-normal text-black whitespace-nowrap">
                       <div>${dateStr}</div>
-                      <div class="text-[11px] text-gray-500 font-semibold">${timeStr}</div>
+                      <div class="text-[13px] text-black font-normal">${timeStr}</div>
                     </td>
-                    <td class="py-3.5 px-4 text-xs font-black text-gray-950">${action}</td>
-                    <td class="py-3.5 px-4 text-xs font-bold">
-                      <span class="inline-block px-2.5 py-1 rounded-lg bg-gray-100 text-gray-800 border border-gray-200">
+                    <td class="py-3.5 px-4 text-[14.5px] font-medium text-black">${action}</td>
+                    <td class="py-3.5 px-4 text-[13.5px]">
+                      <span class="inline-block px-2.5 py-1 rounded-lg bg-gray-100 text-black border border-gray-200 font-medium">
                         ${category}
                       </span>
                     </td>
-                    <td class="py-3.5 px-4 text-xs font-medium text-gray-700">${target}</td>
-                    <td class="py-3.5 px-4 text-xs font-black text-[#1E6C02] whitespace-nowrap">${affectedOrder}</td>
-                    <td class="py-3.5 px-4 text-xs font-bold text-gray-900 whitespace-nowrap">${customer}</td>
+                    <td class="py-3.5 px-4 text-[14px] font-normal text-black">${target}</td>
+                    <td class="py-3.5 px-4 text-[14px] font-medium text-[#1E6C02] whitespace-nowrap">${affectedOrder}</td>
+                    <td class="py-3.5 px-4 text-[14px] font-normal text-black whitespace-nowrap">${customer}</td>
                   </tr>
                 `;
               }).join('');

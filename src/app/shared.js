@@ -1090,6 +1090,14 @@ export function addInventoryHistory(entry, bypassRoleCheck = false) {
   };
   if (pId) newEntry.productId = String(pId);
   if (entry.type) newEntry.type = entry.type;
+  if (entry.type === 'restock_delivery') {
+    if (entry.supplierName && String(entry.supplierName).trim()) {
+      newEntry.supplierName = String(entry.supplierName).trim();
+    }
+    if (entry.reorderedAt && String(entry.reorderedAt).trim()) {
+      newEntry.reorderedAt = String(entry.reorderedAt).trim();
+    }
+  }
 
   history.unshift(newEntry);
   saveInventoryHistory(history, { colName: 'inventoryHistory', docId: newEntry.id, docData: newEntry });
@@ -2455,9 +2463,6 @@ export async function registerUser(userData) {
   if (!phone) {
     throw new Error('Please enter your Contact Number.');
   }
-  if (!address) {
-    throw new Error('Please enter your Address.');
-  }
   if (!gender) {
     throw new Error('Please select your Gender.');
   }
@@ -2678,6 +2683,9 @@ export function logoutUser() {
   localStorage.removeItem('riceflow_customer_active_order_id');
   sessionStorage.removeItem('riceflow_customer_active_tab');
   localStorage.removeItem('riceflow_customer_active_tab');
+  sessionStorage.removeItem('riceflow-active-checkout-address');
+  sessionStorage.removeItem('riceflow-checkout-context');
+  sessionStorage.removeItem('riceflow-proceed-from-guide');
 
   // Immediately refresh customer header/account UI to logged-out Login state
   if (typeof document !== 'undefined' && document.getElementById('navbar-container')) {
@@ -2865,6 +2873,13 @@ export async function updateUser(updatedFields) {
     if (key === 'profilePicture' || key === 'avatar') {
       // Preserve base64 image data strings and URLs without corrupting forward slashes via HTML entity escaping
       sanitizedFields[key] = updatedFields[key];
+    } else if (key === 'coordinates' || key === 'deliveryLocation') {
+      const c = updatedFields[key];
+      if (c && typeof c === 'object' && !isNaN(Number(c.lat)) && !isNaN(Number(c.lng))) {
+        sanitizedFields[key] = { lat: Number(c.lat), lng: Number(c.lng) };
+      } else if (c === null) {
+        sanitizedFields[key] = null;
+      }
     } else if (typeof updatedFields[key] === 'string') {
       sanitizedFields[key] = sanitizeInput(updatedFields[key]);
     } else {
@@ -2878,6 +2893,16 @@ export async function updateUser(updatedFields) {
     user.profilePicture
   ) {
     sanitizedFields.profilePicture = user.profilePicture;
+  }
+
+  // Prevent stale coordinates when customer address text is modified without new explicit coordinates
+  if (
+    sanitizedFields.address !== undefined &&
+    user.address &&
+    sanitizedFields.address.trim() !== user.address.trim() &&
+    updatedFields.coordinates === undefined
+  ) {
+    sanitizedFields.coordinates = null;
   }
 
   const updatedAt = new Date().toISOString();
@@ -2937,6 +2962,7 @@ export async function updateUser(updatedFields) {
           gender: sanitizedFields.gender || c.gender,
           shippingAddress: sanitizedFields.address !== undefined ? sanitizedFields.address : (sanitizedFields.shippingAddress !== undefined ? sanitizedFields.shippingAddress : c.shippingAddress),
           address: sanitizedFields.address !== undefined ? sanitizedFields.address : (sanitizedFields.shippingAddress !== undefined ? sanitizedFields.shippingAddress : (c.address || c.shippingAddress)),
+          coordinates: sanitizedFields.coordinates !== undefined ? sanitizedFields.coordinates : (c.coordinates || null),
           profilePicture: sanitizedFields.profilePicture !== undefined ? sanitizedFields.profilePicture : c.profilePicture,
           updatedAt
         };
@@ -3647,6 +3673,7 @@ export function evaluateOrderPaymentRejectionDeadline(order) {
                     productId: currentProducts[pIdx].id,
                     productName: currentProducts[pIdx].name,
                     quantityAdded: qty,
+                    type: 'cancellation_return',
                     remarks: `Returned/Restored from cancelled order #${order.id}`
                   }, true);
                   prodsChanged = true;
@@ -4574,6 +4601,7 @@ export function checkAndAutoCompleteOrders() {
                     addInventoryHistory({
                       productName: currentProducts[pIdx].name,
                       quantityAdded: -qty,
+                      type: 'order_fulfillment',
                       remarks: `Fulfillment release for order #${order.id}`
                     }, true);
                   }
@@ -5606,6 +5634,11 @@ export async function addOrderAtomic(orderData) {
   const startStatus = orderData.status || 'to-pay';
   const now = new Date();
 
+  // Validate numeric coordinates if provided for delivery destination
+  const validatedOrderCoordinates = (orderData.coordinates && typeof orderData.coordinates === 'object' && !isNaN(Number(orderData.coordinates.lat)) && !isNaN(Number(orderData.coordinates.lng)))
+    ? { lat: Number(orderData.coordinates.lat), lng: Number(orderData.coordinates.lng) }
+    : null;
+
   const clonedItems = orderData.items ? JSON.parse(JSON.stringify(orderData.items)) : [];
   if (clonedItems.length === 0) {
     throw new Error("Order items cannot be empty.");
@@ -5826,6 +5859,8 @@ export async function addOrderAtomic(orderData) {
               email: customerEmail,
               deliveryOption: orderData.deliveryOption || 'delivery',
               address: orderData.address || '',
+              coordinates: (orderData.deliveryOption !== 'pickup' && validatedOrderCoordinates) ? validatedOrderCoordinates : null,
+              addressDetails: (orderData.deliveryOption !== 'pickup' && orderData.addressDetails) ? orderData.addressDetails : null,
               pickupNotes: orderData.pickupNotes || '',
               deliveryNotes: orderData.deliveryNotes || '',
               notes: orderData.notes || orderData.pickupNotes || orderData.deliveryNotes || '',
@@ -5917,6 +5952,8 @@ export async function addOrderAtomic(orderData) {
       phone: orderData.phone || '',
       deliveryOption: orderData.deliveryOption || 'delivery',
       address: orderData.address || '',
+      coordinates: (orderData.deliveryOption !== 'pickup' && validatedOrderCoordinates) ? validatedOrderCoordinates : null,
+      addressDetails: (orderData.deliveryOption !== 'pickup' && orderData.addressDetails) ? orderData.addressDetails : null,
       pickupNotes: orderData.pickupNotes || '',
       deliveryNotes: orderData.deliveryNotes || '',
       notes: orderData.notes || orderData.pickupNotes || orderData.deliveryNotes || '',
@@ -6050,6 +6087,7 @@ export async function addOrderAtomic(orderData) {
         productId: d.productId,
         productName: d.productName,
         quantityAdded: -d.qty,
+        type: 'order_placed_deduction',
         remarks: d.remarks
       }, true);
     }
@@ -6224,6 +6262,7 @@ export function addOrder(orderData) {
           productId: p.id,
           productName: p.name,
           quantityAdded: -qty,
+          type: 'order_placed_deduction',
           remarks: `Order placed: #${finalOrder.id}`
         }, true);
         prodsChanged = true;
@@ -6611,6 +6650,7 @@ export function updateOrderStatus(orderId, status, note = '', extraFields = {}) 
                   addInventoryHistory({
                     productName: currentProducts[pIdx].name,
                     quantityAdded: -qty,
+                    type: 'order_fulfillment',
                     remarks: `Fulfillment release for order #${order.id}`
                   }, true);
                 }
@@ -6653,6 +6693,7 @@ export function updateOrderStatus(orderId, status, note = '', extraFields = {}) 
                   addInventoryHistory({
                     productName: currentProducts[pIdx].name,
                     quantityAdded: qty,
+                    type: 'cancellation_return',
                     remarks: `Returned/Restored from cancelled order #${order.id}`
                   }, true);
                 }
@@ -7252,6 +7293,7 @@ const availStock = Math.max(
             productId: String(p.id),
             productName: p.name,
             quantityAdded: -approvedQty,
+            type: 'order_placed_deduction',
             remarks: `Order placed (partial split): #${order.id}`
           }, true);
 
@@ -7264,15 +7306,6 @@ const availStock = Math.max(
             const rd = new Date(p.restockDate);
             if (!isNaN(rd.getTime()) && rd >= new Date()) {
               estDate = p.restockDate;
-            }
-          }
-          if (!estDate && typeof getRestockPrediction === 'function') {
-            const pred = getRestockPrediction(p.id);
-            if (pred && pred !== 'Unknown') {
-              const pd = new Date(pred);
-              if (!isNaN(pd.getTime()) && pd >= new Date()) {
-                estDate = pred;
-              }
             }
           }
 
@@ -7361,15 +7394,6 @@ const availStock = Math.max(
               estDate = p.restockDate;
             }
           }
-          if (!estDate && typeof getRestockPrediction === 'function') {
-            const pred = getRestockPrediction(p.id);
-            if (pred && pred !== 'Unknown') {
-              const pd = new Date(pred);
-              if (!isNaN(pd.getTime()) && pd >= new Date()) {
-                estDate = pred;
-              }
-            }
-          }
           order.estimatedRestockDate = estDate;
 
           const initialPreOrderEst = getEstimatedArrivalDate(order);
@@ -7411,6 +7435,7 @@ const availStock = Math.max(
             productId: String(p.id),
             productName: p.name,
             quantityAdded: -requestedQty,
+            type: 'order_placed_deduction',
             remarks: `Order placed: #${order.id}`
           }, true);
         }
@@ -8715,6 +8740,9 @@ if (typeof window !== 'undefined') {
     calculateReservationFulfillmentRestockDate,
     getAuthoritativeDeliveredDate,
     getEstimatedArrivalDate,
+    predictStockAvailability,
+    predictServiceReadinessTime,
+    getRestockPrediction,
     getContactMessages,
     saveContactMessage,
     getIssueReports,
@@ -9490,6 +9518,298 @@ export function getEstimatedArrivalDate(order) {
 
   // When no reliable estimated restock date can be calculated from available data or deferred beyond predictable restocks
   return 'Waiting for Restock';
+}
+
+// ---------------------- AI-BASED PREDICTION CAPABILITIES (PHASE 3) ----------------------
+
+/**
+ * AI-Based Stock Availability Prediction
+ * 
+ * Predicts the upcoming replenishment window for a given rice variety based strictly
+ * on genuine historical inventory records (prioritizing 'restock_delivery' logs).
+ * 
+ * Method: Empirical Inter-Arrival Analysis with FIFO Queue Absorption Modeling
+ * - Calculates inter-delivery intervals from genuine historical restocks (if available).
+ * - Projects the next physical restock delivery window.
+ * - Evaluates active FIFO reservation queue depth against average batch size to distinguish
+ *   physical supplier arrival from general-public stock availability.
+ * - Never invents lead times, restock dates, or synthetic records.
+ * - Gracefully falls back to "Waiting for Restock" if observations are insufficient.
+ *
+ * @param {string|number} productIdOrName - Target rice variety identifier or name
+ * @param {Object} [options] - Optional context parameters
+ * @returns {Object} Structured prediction result with metadata, intervals, and fallback state
+ */
+export function predictStockAvailability(productIdOrName, options = {}) {
+  const fallbackResult = {
+    status: 'insufficient_history',
+    displayDate: 'Waiting for Restock',
+    predictedDate: null,
+    predictedWindowStart: null,
+    predictedWindowEnd: null,
+    isPreliminary: true,
+    observationCount: 0,
+    intervalCount: 0,
+    averageIntervalDays: null,
+    method: 'Historical Restock Interval Analysis',
+    targetVariety: String(productIdOrName || 'Unknown'),
+    publicAvailabilityStatus: 'Awaiting Physical Restock Delivery',
+    reservedQueueSacks: 0,
+    avgBatchSacks: 0,
+    confidenceNote: 'Preliminary: Insufficient genuine restock intervals recorded for this variety. Awaiting genuine restock deliveries.'
+  };
+
+  if (!productIdOrName) return fallbackResult;
+
+  const products = typeof getProducts === 'function' ? getProducts() : [];
+  const product = products.find(p => String(p.id) === String(productIdOrName)) || 
+                  products.find(p => matchesProductVariety(p, { name: productIdOrName }, products));
+  const pId = product ? String(product.id) : String(productIdOrName);
+  const pName = product ? product.name : String(productIdOrName);
+  fallbackResult.targetVariety = pName;
+
+  // 1. Fetch genuine inventory history
+  const allHistory = typeof getInventoryHistory === 'function' ? getInventoryHistory() : [];
+  const matchingHistory = allHistory.filter(h => 
+    h && matchesProductVariety({ id: pId, name: pName }, h, products) && Number(h.quantityAdded || 0) > 0
+  );
+
+  // Only genuine physical restock delivery records contribute to physical restock intervals
+  const restockDeliveries = matchingHistory.filter(h => h.type === 'restock_delivery');
+
+  if (restockDeliveries.length < 2) {
+    fallbackResult.observationCount = restockDeliveries.length;
+    return fallbackResult;
+  }
+
+  const usableHistory = restockDeliveries;
+
+  // 2. Sort chronologically ascending
+  const sorted = [...usableHistory].sort((a, b) => {
+    const tA = new Date(a.timestamp || `${a.date}T${a.time || '00:00'}`).getTime();
+    const tB = new Date(b.timestamp || `${b.date}T${b.time || '00:00'}`).getTime();
+    return tA - tB;
+  });
+
+  // 3. Compute empirical intervals between consecutive restocks
+  const intervalsInDays = [];
+  for (let i = 1; i < sorted.length; i++) {
+    const prev = new Date(sorted[i - 1].timestamp || `${sorted[i - 1].date}T${sorted[i - 1].time || '00:00'}`).getTime();
+    const curr = new Date(sorted[i].timestamp || `${sorted[i].date}T${sorted[i].time || '00:00'}`).getTime();
+    if (!isNaN(prev) && !isNaN(curr)) {
+      const diffDays = (curr - prev) / (1000 * 60 * 60 * 24);
+      if (diffDays > 0.1) intervalsInDays.push(diffDays);
+    }
+  }
+
+  if (intervalsInDays.length === 0) {
+    fallbackResult.observationCount = sorted.length;
+    return fallbackResult;
+  }
+
+  // 4. Calculate empirical summary statistics
+  intervalsInDays.sort((a, b) => a - b);
+  const medianInterval = intervalsInDays[Math.floor(intervalsInDays.length / 2)];
+  const minInterval = intervalsInDays[0];
+  const maxInterval = intervalsInDays[intervalsInDays.length - 1];
+  const stepDays = Math.max(1, Math.round(medianInterval));
+
+  // 5. Project next physical delivery date from the latest actual restock
+  const lastEntry = sorted[sorted.length - 1];
+  const lastDate = new Date(lastEntry.timestamp || `${lastEntry.date}T${lastEntry.time || '00:00'}`);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  let projectedArrival = new Date(lastDate.getTime() + stepDays * 24 * 60 * 60 * 1000);
+  while (projectedArrival < today) {
+    projectedArrival = new Date(projectedArrival.getTime() + stepDays * 24 * 60 * 60 * 1000);
+  }
+
+  // 6. Define prediction window based on empirical variance
+  const windowPaddingDays = Math.max(1, Math.round((maxInterval - minInterval) / 2) || 2);
+  const windowStart = new Date(projectedArrival.getTime() - Math.min(windowPaddingDays, 2) * 24 * 60 * 60 * 1000);
+  if (windowStart < today) windowStart.setTime(today.getTime());
+  const windowEnd = new Date(projectedArrival.getTime() + windowPaddingDays * 24 * 60 * 60 * 1000);
+
+  // 7. Account for active FIFO reservation queue demand vs incoming batch size
+  const allOrders = typeof getOrders === 'function' ? getOrders() : [];
+  const pendingReservations = allOrders.filter(o => {
+    if (!o || o.status === 'cancelled' || o.status === 'completed') return false;
+    const isRes = o.isPreOrder || o.status === 'pre-order' || (Array.isArray(o.items) && o.items.some(it => it && it.isReservation));
+    if (!isRes) return false;
+    return Array.isArray(o.items) && o.items.some(it => 
+      matchesProductVariety({ id: it.productId || it.product?.id, name: it.productName || it.product?.name }, { id: pId, name: pName }, products)
+    );
+  });
+
+  const reservedSacksQueue = pendingReservations.reduce((sum, o) => {
+    const item = (o.items || []).find(it => 
+      matchesProductVariety({ id: it.productId || it.product?.id, name: it.productName || it.product?.name }, { id: pId, name: pName }, products)
+    );
+    return sum + (Number(item?.quantity) || 0);
+  }, 0);
+
+  const avgBatchSize = Math.round(sorted.reduce((s, h) => s + (Number(h.quantityAdded) || 0), 0) / sorted.length);
+
+  let publicStatus = 'Projected Available for Public Purchase';
+  if (avgBatchSize > 0 && reservedSacksQueue >= avgBatchSize) {
+    publicStatus = `FIFO Queue Priority: Incoming batch (~${avgBatchSize} sacks) projected to be absorbed by ${reservedSacksQueue} queued pre-order sacks`;
+  } else if (reservedSacksQueue > 0) {
+    publicStatus = `Partial Queue Allocation: ${reservedSacksQueue} sacks allocated to queue; surplus (~${Math.max(0, avgBatchSize - reservedSacksQueue)} sacks) for public checkout`;
+  }
+
+  const formatDate = d => d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  const displayDate = windowStart.getTime() === windowEnd.getTime()
+    ? formatDate(projectedArrival)
+    : `${formatDate(windowStart)} – ${formatDate(windowEnd)}`;
+
+  return {
+    status: 'predicted',
+    displayDate,
+    predictedDate: projectedArrival.toISOString().split('T')[0],
+    predictedWindowStart: windowStart.toISOString().split('T')[0],
+    predictedWindowEnd: windowEnd.toISOString().split('T')[0],
+    isPreliminary: sorted.length < 5,
+    observationCount: sorted.length,
+    intervalCount: intervalsInDays.length,
+    averageIntervalDays: Math.round(medianInterval * 10) / 10,
+    method: 'Historical Restock Interval Analysis',
+    targetVariety: pName,
+    publicAvailabilityStatus: publicStatus,
+    reservedQueueSacks: reservedSacksQueue,
+    avgBatchSacks: avgBatchSize,
+    confidenceNote: sorted.length < 5
+      ? `Preliminary estimate based on ${intervalsInDays.length} observed interval(s). Not statistically guaranteed.`
+      : `Empirical estimate based on ${intervalsInDays.length} observed restock intervals.`
+  };
+}
+
+/**
+ * AI-Based Service Time Prediction
+ * 
+ * Estimates the warehouse preparation readiness lead time (moment the order is staged
+ * and marked ready for customer pickup or courier dispatch).
+ * 
+ * Method: Empirical Lead-Time Analysis
+ * - Evaluates historical elapsed time between order placement and administrative readiness (preparedAt).
+ * - Filters out anomalies (< 2 mins for batch clicks, > 5 days for administrative holds).
+ * - Distinguishes pickup vs. delivery fulfillment modes.
+ * - Specifically avoids labeling the output as physical bagging duration.
+ * - Falls back to operational baseline if genuine historical records are sparse.
+ *
+ * @param {Object} [orderOrOrderData] - Target order object or parameters
+ * @returns {Object} Structured readiness prediction with metadata, lead time, and method disclosure
+ */
+export function predictServiceReadinessTime(orderOrOrderData = {}) {
+  const fallbackDisplay = (orderOrOrderData && typeof getEstimatedArrivalDate === 'function')
+    ? getEstimatedArrivalDate(orderOrOrderData)
+    : '1 to 2 business days';
+
+  const fallbackResult = {
+    status: 'baseline_fallback',
+    displayTime: fallbackDisplay,
+    predictedHours: null,
+    p25Hours: null,
+    p75Hours: null,
+    isPreliminary: true,
+    observationCount: 0,
+    excludedBatchClicks: 0,
+    excludedHolds: 0,
+    method: 'Baseline Operational Fallback',
+    targetMetric: 'Warehouse Readiness Lead Time (Staging for Pickup/Dispatch)',
+    confidenceNote: 'Preliminary baseline. Genuine staging timestamps are accumulating in the system.'
+  };
+
+  const allOrders = typeof getOrders === 'function' ? getOrders() : [];
+  const preparationRecords = [];
+  let excludedBatchClicks = 0;
+  let excludedHolds = 0;
+
+  allOrders.forEach(o => {
+    if (!o || o.status === 'cancelled') return;
+    if (!o.preparedAt) return;
+    const tPrepared = new Date(o.preparedAt).getTime();
+    const tCreated = new Date(o.createdAt || o.date || o.timestamp).getTime();
+    if (isNaN(tPrepared) || isNaN(tCreated)) return;
+    const durationHours = (tPrepared - tCreated) / (1000 * 60 * 60);
+
+    // Anomaly filtering:
+    // < 0.033 hrs (2 mins) = Batch administrative click
+    // > 120 hrs (5 days) = Administrative hold / forgotten click
+    if (durationHours < 0.033) {
+      excludedBatchClicks++;
+      return;
+    }
+    if (durationHours > 120) {
+      excludedHolds++;
+      return;
+    }
+
+    preparationRecords.push({
+      durationHours,
+      deliveryOption: o.deliveryOption || 'delivery',
+      sackCount: Array.isArray(o.items) ? o.items.reduce((s, it) => s + (Number(it.quantity) || 1), 0) : 1
+    });
+  });
+
+  if (preparationRecords.length < 5) {
+    fallbackResult.observationCount = preparationRecords.length;
+    fallbackResult.excludedBatchClicks = excludedBatchClicks;
+    fallbackResult.excludedHolds = excludedHolds;
+    return fallbackResult;
+  }
+
+  // Segment by target delivery option if specified
+  const isPickup = orderOrOrderData?.deliveryOption === 'pickup';
+  const targetOption = isPickup ? 'pickup' : 'delivery';
+  let optionMatches = preparationRecords.filter(r => r.deliveryOption === targetOption);
+  if (optionMatches.length < 2) optionMatches = preparationRecords;
+
+  const durations = optionMatches.map(r => r.durationHours).sort((a, b) => a - b);
+  const medianHours = durations[Math.floor(durations.length / 2)];
+  const p25Hours = durations[Math.floor(durations.length * 0.25)] || durations[0];
+  const p75Hours = durations[Math.floor(durations.length * 0.75)] || durations[durations.length - 1];
+
+  let displayLeadTime;
+  if (medianHours < 24) {
+    const minHrs = Math.max(1, Math.round(p25Hours));
+    const maxHrs = Math.max(minHrs, Math.round(p75Hours));
+    displayLeadTime = minHrs === maxHrs ? `~${minHrs} hours` : `${minHrs} to ${maxHrs} hours`;
+  } else {
+    const minDays = Math.max(1, Math.round(p25Hours / 24));
+    const maxDays = Math.max(minDays, Math.round(p75Hours / 24));
+    displayLeadTime = minDays === maxDays ? `~${minDays} business day` : `${minDays} to ${maxDays} business days`;
+  }
+
+  return {
+    status: 'predicted',
+    displayTime: displayLeadTime,
+    predictedHours: Math.round(medianHours * 10) / 10,
+    p25Hours: Math.round(p25Hours * 10) / 10,
+    p75Hours: Math.round(p75Hours * 10) / 10,
+    isPreliminary: preparationRecords.length < 10,
+    observationCount: preparationRecords.length,
+    excludedBatchClicks,
+    excludedHolds,
+    method: 'Empirical Lead-Time Analysis',
+    targetMetric: 'Warehouse Readiness Lead Time (Staging for Pickup/Dispatch)',
+    confidenceNote: preparationRecords.length < 10
+      ? `Preliminary estimate based on ${preparationRecords.length} staging observations. Not statistically guaranteed.`
+      : `Empirical estimate derived from ${preparationRecords.length} staging observations.`
+  };
+}
+
+/**
+ * Restock prediction lookup alias for existing internal reservation callers
+ * @param {string|number} productIdOrName
+ * @returns {string|null} ISO date string if a defensible future prediction is available, else null
+ */
+export function getRestockPrediction(productIdOrName) {
+  const res = predictStockAvailability(productIdOrName);
+  if (res && res.status === 'predicted' && res.predictedDate) {
+    return res.predictedDate;
+  }
+  return null;
 }
 
 // ---------------------- ISSUE REPORTING, REPLACEMENT & NOTIFICATIONS ----------------------
@@ -10764,19 +11084,27 @@ export function renderAdminLayout(activeTabId) {
         letter-spacing: normal !important;
       }
 
-      /* Inactive navigation items: Regular weight (400), solid dark contrast in light mode */
+      /* Inactive navigation items: Regular weight (400), solid dark contrast in light mode with smooth transition */
       #admin-sidebar nav a:not(.bg-\[\#1E6C02\]) {
         font-weight: 400 !important;
         color: #111827 !important;
+        transition: background 250ms cubic-bezier(0.4, 0, 0.2, 1), background-color 250ms cubic-bezier(0.4, 0, 0.2, 1), color 250ms cubic-bezier(0.4, 0, 0.2, 1), border-color 250ms cubic-bezier(0.4, 0, 0.2, 1) !important;
       }
+      /* Day Mode: Subtle light-green gradient hover highlight on inactive sidebar menu items */
       html:not(.dark) #admin-sidebar nav a:not(.bg-\[\#1E6C02\]):hover {
-        background-color: #F3F4F6 !important;
-        color: #000000 !important;
-        font-weight: 400 !important;
+        background: linear-gradient(135deg, #F0FDF4 0%, #DCFCE7 100%) !important;
+        background-color: #DCFCE7 !important;
+        color: #14532D !important; /* deep legible dark green */
+        font-weight: 500 !important;
+      }
+      html:not(.dark) #admin-sidebar nav a:not(.bg-\[\#1E6C02\]):hover svg {
+        color: #166534 !important;
+        stroke: #166534 !important;
       }
 
       /* Active navigation items: Preserved solid green background (#1E6C02), white text, medium weight (500) */
       #admin-sidebar nav a.bg-\[\#1E6C02\] {
+        background: #1E6C02 !important;
         background-color: #1E6C02 !important;
         color: #FFFFFF !important;
         font-weight: 500 !important;
@@ -10791,6 +11119,7 @@ export function renderAdminLayout(activeTabId) {
         color: #E5E7EB !important;
       }
       html.dark #admin-sidebar nav a:not(.bg-\[\#1E6C02\]):hover {
+        background: #1F2937 !important;
         background-color: #1F2937 !important;
         color: #FFFFFF !important;
         font-weight: 400 !important;

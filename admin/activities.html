@@ -65,6 +65,276 @@
       scrollbar-width: none;
     }
   </style>
+  <style id="admin-activities-typography-and-colors">
+    /* ==========================================================================
+       ADMIN ACTIVITY LOGS PAGE READABILITY & APPROVED TYPOGRAPHY SYSTEM
+       - Inter: Page Headings, Section Headings, Table Column Headers, Buttons,
+                Tabs, Filter Controls, Counts & Numbers
+       - Source Sans 3: Activity Descriptions, User Names, Roles, Timestamps,
+                        Target Reference Details, Table Body Text, Form Labels,
+                        Inputs, and Supporting Information
+       - Solid Black (#000000): In Day/Light mode for all ordinary readable text
+       - Sidebar Isolation: Preserves standard sidebar typography from shared.js
+       ========================================================================== */
+
+    /* 1. Base typography: Default workspace, tables to Source Sans 3 */
+    body,
+    #admin-main-content {
+      font-family: 'Source Sans 3', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* 2. PRIMARY FONT: INTER
+          - Page headings & section titles
+          - Table column headers (th)
+          - Action buttons and filter dropdowns
+          - Metric counts & numbers */
+    #admin-right-workspace header h2,
+    #admin-layout-container h1,
+    #admin-layout-container h2,
+    #admin-layout-container h3,
+    #admin-layout-container h4,
+    #admin-main-content h1,
+    #admin-main-content h2,
+    #admin-main-content h3,
+    #admin-main-content h4,
+    /* Table column headers */
+    #admin-main-content table thead th,
+    #admin-main-content table thead th *,
+    /* Buttons & controls */
+    #admin-main-content button,
+    .btn-page-num,
+    #btn-prev-page,
+    #btn-next-page,
+    /* Summary card metric numbers */
+    .activity-metric-count {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+    }
+
+    /* 3. SECONDARY FONT: SOURCE SANS 3
+          - Activity descriptions & table body text
+          - User names & roles
+          - Timestamps & dates
+          - Search inputs, select dropdown options, filter labels
+          - Supporting counter text & notes */
+    #admin-main-content table tbody td,
+    #admin-main-content table tbody td *:not(button):not(.font-mono),
+    #admin-main-content p,
+    #admin-main-content label,
+    #admin-main-content input,
+    #admin-main-content select,
+    #admin-main-content span:not(button *):not(.activity-metric-count):not(.font-mono):not(thead *) {
+      font-family: 'Source Sans 3', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+    }
+
+    /* Target references: monospace */
+    .activity-target-code,
+    #admin-main-content .font-mono {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace !important;
+    }
+
+    /* 4. BALANCED FONT SIZING & HIERARCHY */
+    /* Page Title: 24–28px (semibold) */
+    #admin-right-workspace header h2 {
+      font-size: 1.625rem !important; /* 26px */
+      line-height: 2rem !important;
+      font-weight: 600 !important;
+      letter-spacing: -0.025em !important;
+    }
+
+    /* Section Headings: 16–18px (medium/semibold) */
+    #admin-main-content h3 {
+      font-size: 1.125rem !important; /* 18px */
+      line-height: 1.5rem !important;
+      font-weight: 600 !important;
+      letter-spacing: -0.015em !important;
+    }
+
+    /* Table Column Headers: 13–14px (medium/semibold) */
+    #admin-main-content table thead th {
+      font-size: 0.875rem !important; /* 14px */
+      font-weight: 600 !important;
+      letter-spacing: 0.03em !important;
+      padding-top: 0.875rem !important;
+      padding-bottom: 0.875rem !important;
+    }
+
+    /* Activity descriptions & table body text: 15–16px (regular 400) */
+    #admin-main-content table tbody td {
+      font-size: 0.96875rem !important; /* 15.5px */
+      line-height: 1.45 !important;
+      padding-top: 0.9rem !important;
+      padding-bottom: 0.9rem !important;
+      font-weight: 400 !important;
+    }
+
+    /* User names & important activity details: 15–16px (medium 500) */
+    .activity-user-name {
+      font-size: 0.96875rem !important; /* 15.5px */
+      font-weight: 500 !important;
+      line-height: 1.3 !important;
+    }
+
+    /* Timestamps and secondary info: 14–15px (regular 400) */
+    .activity-timestamp {
+      font-size: 0.90625rem !important; /* 14.5px */
+      font-weight: 400 !important;
+      line-height: 1.35 !important;
+    }
+
+    /* Filter labels & button text: 14–15px */
+    .filter-label-text {
+      font-size: 0.875rem !important; /* 14px */
+      font-weight: 600 !important;
+      letter-spacing: 0.04em !important;
+    }
+    #inp-search-logs,
+    #sel-logs-category,
+    #sel-logs-period {
+      font-size: 0.9375rem !important; /* 15px */
+      font-weight: 400 !important;
+    }
+    #btn-prev-page,
+    #btn-next-page,
+    .btn-page-num {
+      font-size: 0.90625rem !important; /* 14.5px */
+      font-weight: 500 !important;
+    }
+
+    /* Summary Card Labels (15px) & Metric Numbers (26-28px) */
+    .activity-card-title {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+      font-size: 0.9375rem !important; /* 15px */
+      font-weight: 600 !important;
+      line-height: 1.25 !important;
+    }
+    .activity-metric-count {
+      font-size: 1.75rem !important; /* 28px */
+      font-weight: 600 !important;
+      line-height: 1.15 !important;
+      letter-spacing: -0.02em !important;
+    }
+
+    /* Small supporting text (at least 13-14px) */
+    #logs-counter-text,
+    .activity-supporting-text {
+      font-size: 0.875rem !important; /* 14px */
+      font-weight: 400 !important;
+    }
+
+    /* 5. SOLID BLACK (#000000) TEXT ENFORCEMENT IN DAY/LIGHT MODE */
+    html:not(.dark) #admin-right-workspace header h2,
+    html:not(.dark) #admin-layout-container h1,
+    html:not(.dark) #admin-layout-container h2,
+    html:not(.dark) #admin-layout-container h3,
+    html:not(.dark) #admin-main-content h3 {
+      color: #000000 !important;
+    }
+
+    /* Table column headers: Solid Black */
+    html:not(.dark) #admin-main-content table thead th,
+    html:not(.dark) #admin-main-content table thead th * {
+      color: #000000 !important;
+    }
+
+    /* Ordinary table cells, descriptions, user names, timestamps: Solid Black */
+    html:not(.dark) #admin-main-content table tbody td {
+      color: #000000 !important;
+    }
+    html:not(.dark) .activity-user-name,
+    html:not(.dark) .activity-timestamp,
+    html:not(.dark) .activity-action-desc {
+      color: #000000 !important;
+    }
+
+    /* Filters, search, selects, and labels: Solid Black */
+    html:not(.dark) .filter-label-text,
+    html:not(.dark) #inp-search-logs,
+    html:not(.dark) #sel-logs-category,
+    html:not(.dark) #sel-logs-period {
+      color: #000000 !important;
+    }
+    html:not(.dark) #inp-search-logs::placeholder {
+      color: #4B5563 !important;
+    }
+
+    /* Summary cards: Solid Black */
+    html:not(.dark) .activity-card-title,
+    html:not(.dark) .activity-metric-count {
+      color: #000000 !important;
+    }
+
+    /* Pagination controls & counter: Solid Black */
+    html:not(.dark) #logs-counter-text,
+    html:not(.dark) .activity-supporting-text,
+    html:not(.dark) #btn-prev-page:not(:disabled),
+    html:not(.dark) #btn-next-page:not(:disabled),
+    html:not(.dark) .btn-page-num:not(.bg-\[\#1E6C02\]) {
+      color: #000000 !important;
+    }
+
+    /* Replace low-opacity / faded gray text on ordinary elements in light mode */
+    html:not(.dark) #admin-main-content .text-gray-400:not([class*="text-white"]):not([class*="text-red-"]):not([class*="text-emerald-"]):not([class*="text-green-"]):not([class*="text-amber-"]):not([class*="text-blue-"]):not([class*="text-purple-"]):not([class*="text-orange-"]):not([class*="text-teal-"]):not([class*="text-\[\#1E6C02\]"]),
+    html:not(.dark) #admin-main-content .text-gray-500:not([class*="text-white"]):not([class*="text-red-"]):not([class*="text-emerald-"]):not([class*="text-green-"]):not([class*="text-amber-"]):not([class*="text-blue-"]):not([class*="text-purple-"]):not([class*="text-orange-"]):not([class*="text-teal-"]):not([class*="text-\[\#1E6C02\]"]),
+    html:not(.dark) #admin-main-content .text-gray-600:not([class*="text-white"]):not([class*="text-red-"]):not([class*="text-emerald-"]):not([class*="text-green-"]):not([class*="text-amber-"]):not([class*="text-blue-"]):not([class*="text-purple-"]):not([class*="text-orange-"]):not([class*="text-teal-"]):not([class*="text-\[\#1E6C02\]"]),
+    html:not(.dark) #admin-main-content .text-gray-700:not([class*="text-white"]):not([class*="text-red-"]):not([class*="text-emerald-"]):not([class*="text-green-"]):not([class*="text-amber-"]):not([class*="text-blue-"]):not([class*="text-purple-"]):not([class*="text-orange-"]):not([class*="text-teal-"]):not([class*="text-\[\#1E6C02\]"]),
+    html:not(.dark) #admin-main-content .text-slate-500:not([class*="text-white"]):not([class*="text-red-"]):not([class*="text-emerald-"]):not([class*="text-green-"]):not([class*="text-amber-"]):not([class*="text-blue-"]):not([class*="text-purple-"]):not([class*="text-orange-"]):not([class*="text-teal-"]):not([class*="text-\[\#1E6C02\]"]) {
+      color: #000000 !important;
+    }
+
+    /* 6. DARK MODE READABILITY PRESERVATION */
+    html.dark #admin-right-workspace header h2,
+    html.dark #admin-layout-container h1,
+    html.dark #admin-layout-container h2,
+    html.dark #admin-layout-container h3,
+    html.dark #admin-main-content h3 {
+      color: #FFFFFF !important;
+    }
+    html.dark #admin-main-content table thead th {
+      color: #F3F4F6 !important;
+      background-color: #1F2937 !important;
+    }
+    html.dark #admin-main-content table tbody td {
+      color: #E5E7EB !important;
+    }
+    html.dark .activity-user-name,
+    html.dark .activity-card-title,
+    html.dark .activity-metric-count {
+      color: #FFFFFF !important;
+    }
+    html.dark .activity-timestamp,
+    html.dark .activity-action-desc,
+    html.dark #logs-counter-text,
+    html.dark .activity-supporting-text {
+      color: #E5E7EB !important;
+    }
+    html.dark .filter-label-text {
+      color: #D1D5DB !important;
+    }
+    html.dark #inp-search-logs,
+    html.dark #sel-logs-category,
+    html.dark #sel-logs-period {
+      background-color: #1F2937 !important;
+      border-color: #374151 !important;
+      color: #FFFFFF !important;
+    }
+    html.dark #inp-search-logs::placeholder {
+      color: #9CA3AF !important;
+    }
+    html.dark #btn-prev-page,
+    html.dark #btn-next-page,
+    html.dark .btn-page-num:not(.bg-\[\#1E6C02\]) {
+      background-color: #1F2937 !important;
+      border-color: #374151 !important;
+      color: #FFFFFF !important;
+    }
+    html.dark .activity-target-code {
+      background-color: #374151 !important;
+      border-color: #4B5563 !important;
+      color: #E5E7EB !important;
+    }
+  </style>
   <style id="auth-guard-style">body { visibility: hidden !important; }</style>
 </head>
 <body class="bg-[#F5F5F5] min-h-screen text-black">
@@ -321,7 +591,7 @@
 
                 <!-- Category select -->
                 <div class="w-full md:w-64 flex flex-col gap-2">
-                  <span class="text-xs font-bold text-black uppercase tracking-wider">Category</span>
+                  <span class="filter-label-text text-xs font-bold text-black uppercase tracking-wider">Category</span>
                   <div class="relative">
                     <select id="sel-logs-category" class="w-full bg-white border border-gray-300 text-[16px] font-normal text-black pl-4 pr-10 py-3.5 rounded-2xl outline-none cursor-pointer focus:border-[#1E6C02] transition-all appearance-none">
                       <option value="all" ${categoryFilter === 'all' ? 'selected' : ''}>All Categories</option>
@@ -342,7 +612,7 @@
 
                 <!-- Time Period select -->
                 <div class="w-full md:w-64 flex flex-col gap-2">
-                  <span class="text-xs font-bold text-black uppercase tracking-wider">Time Period</span>
+                  <span class="filter-label-text text-xs font-bold text-black uppercase tracking-wider">Time Period</span>
                   <div class="relative">
                     <select id="sel-logs-period" class="w-full bg-white border border-gray-300 text-[16px] font-normal text-black pl-4 pr-10 py-3.5 rounded-2xl outline-none cursor-pointer focus:border-[#1E6C02] transition-all appearance-none">
                       <option value="all" ${timeFilter === 'all' ? 'selected' : ''}>All Time</option>
@@ -379,8 +649,8 @@
                   </svg>
                 </div>
                 <div class="flex flex-col text-left">
-                  <span class="text-[15px] font-bold text-black leading-tight">Today's Actions</span>
-                  <span class="text-[28px] font-normal text-black mt-1 leading-none">${todayCount}</span>
+                  <span class="activity-card-title text-[15px] font-bold text-black leading-tight">Today's Actions</span>
+                  <span class="activity-metric-count text-[28px] font-normal text-black mt-1 leading-none">${todayCount}</span>
                 </div>
               </div>
 
@@ -392,8 +662,8 @@
                   </svg>
                 </div>
                 <div class="flex flex-col text-left">
-                  <span class="text-[15px] font-bold text-black leading-tight">Inventory Updates</span>
-                  <span class="text-[28px] font-normal text-black mt-1 leading-none">${inventoryCount}</span>
+                  <span class="activity-card-title text-[15px] font-bold text-black leading-tight">Inventory Updates</span>
+                  <span class="activity-metric-count text-[28px] font-normal text-black mt-1 leading-none">${inventoryCount}</span>
                 </div>
               </div>
 
@@ -405,8 +675,8 @@
                   </svg>
                 </div>
                 <div class="flex flex-col text-left">
-                  <span class="text-[15px] font-bold text-black leading-tight">Order Processing</span>
-                  <span class="text-[28px] font-normal text-black mt-1 leading-none">${ordersCount}</span>
+                  <span class="activity-card-title text-[15px] font-bold text-black leading-tight">Order Processing</span>
+                  <span class="activity-metric-count text-[28px] font-normal text-black mt-1 leading-none">${ordersCount}</span>
                 </div>
               </div>
 
@@ -418,8 +688,8 @@
                   </svg>
                 </div>
                 <div class="flex flex-col text-left">
-                  <span class="text-[15px] font-bold text-black leading-tight">Total Logs</span>
-                  <span class="text-[28px] font-normal text-black mt-1 leading-none">${totalLogsCount}</span>
+                  <span class="activity-card-title text-[15px] font-bold text-black leading-tight">Total Logs</span>
+                  <span class="activity-metric-count text-[28px] font-normal text-black mt-1 leading-none">${totalLogsCount}</span>
                 </div>
               </div>
             </div>
@@ -471,14 +741,14 @@
                             <td class="py-4.5 px-5 text-left align-middle text-black font-normal text-[15px] whitespace-nowrap">
                               <div class="inline-flex items-center gap-2">
                                 <svg class="w-4.5 h-4.5 text-black shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                <span>${formatTimestamp(log.timestamp)}</span>
+                                <span class="activity-timestamp">${formatTimestamp(log.timestamp)}</span>
                               </div>
                             </td>
                             
                             <!-- User -->
                             <td class="py-4.5 px-5 text-center align-middle whitespace-nowrap">
                               <div class="inline-flex flex-col items-center">
-                                <p class="font-bold text-black text-[15px] leading-tight">${userName}</p>
+                                <p class="activity-user-name font-medium text-black text-[15px] leading-tight">${userName}</p>
                                 <span class="mt-1.5 px-3 py-0.5 rounded text-[11px] font-bold uppercase tracking-wider ${String(userRole || '').toLowerCase() === 'admin' ? 'bg-purple-100 text-black border border-purple-300' : 'bg-blue-100 text-black border border-blue-300'}">
                                   ${userRole}
                                 </span>
@@ -493,12 +763,12 @@
                             </td>
                             
                             <!-- Action -->
-                            <td class="py-4.5 px-5 text-center align-middle text-black font-normal text-[15px] leading-relaxed max-w-[400px] break-words">${action}</td>
+                            <td class="activity-action-desc py-4.5 px-5 text-center align-middle text-black font-normal text-[15px] leading-relaxed max-w-[400px] break-words">${action}</td>
                             
                             <!-- Target -->
                             <td class="py-4.5 px-5 text-center align-middle text-black font-normal text-[15px] whitespace-nowrap">
                               ${target ? `
-                                <span class="px-3 py-1.5 rounded-lg bg-gray-100 text-black border border-gray-300 font-mono text-xs font-semibold">${target}</span>
+                                <span class="activity-target-code px-3 py-1.5 rounded-lg bg-gray-100 text-black border border-gray-300 font-mono text-xs font-semibold">${target}</span>
                               ` : `<span class="text-black font-bold">—</span>`}
                             </td>
                           </tr>

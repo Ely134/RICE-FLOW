@@ -1560,6 +1560,7 @@
             productId: newProduct.id,
             productName: name,
             quantityAdded: stock,
+            type: 'initial_stock',
             remarks: 'Initial stock seeding for new variety'
           });
 
@@ -1681,6 +1682,7 @@
               productId: selectedProductInModal.id,
               productName: name,
               quantityAdded: stockDiff,
+              type: 'admin_stock_adjustment',
               remarks: `Physical stock updated via product editing`
             });
           }
@@ -1792,6 +1794,7 @@
           productId: selectedProductInModal.id,
           productName: selectedProductInModal.name,
           quantityAdded: delta,
+          type: stockOperation === 'add' ? 'manual_stock_addition' : 'manual_deduction',
           remarks: `Manual stock ${stockOperation === 'add' ? 'replenishment' : 'deduction'}`
         });
 

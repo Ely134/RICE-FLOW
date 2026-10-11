@@ -2148,6 +2148,11 @@ export async function fetchCustomerProfileFromFirestore(email, firebaseUid, user
       if (!address && (docItem.address || docItem.shippingAddress)) {
         address = docItem.address || docItem.shippingAddress;
       }
+      if (!coordinates && docItem.coordinates && typeof docItem.coordinates === 'object' && !isNaN(Number(docItem.coordinates.lat)) && !isNaN(Number(docItem.coordinates.lng))) {
+        coordinates = { lat: Number(docItem.coordinates.lat), lng: Number(docItem.coordinates.lng) };
+      } else if (!coordinates && !isNaN(Number(docItem.latitude)) && !isNaN(Number(docItem.longitude))) {
+        coordinates = { lat: Number(docItem.latitude), lng: Number(docItem.longitude) };
+      }
       if (!gender && docItem.gender) gender = docItem.gender;
       if (!profilePicture && docItem.profilePicture) profilePicture = docItem.profilePicture;
       if (!emailVal && docItem.email) emailVal = String(docItem.email).trim().toLowerCase();
@@ -2182,6 +2187,7 @@ export async function fetchCustomerProfileFromFirestore(email, firebaseUid, user
       phoneVerified,
       address,
       shippingAddress: address,
+      coordinates: coordinates || null,
       gender,
       profilePicture,
       totalSpent,
@@ -2214,6 +2220,14 @@ export async function saveCustomerProfileToFirestore(profileData) {
 
   const updatedAt = profileData.updatedAt || new Date().toISOString();
 
+  let validCoordinates = null;
+  if (profileData.coordinates && typeof profileData.coordinates === 'object' && !isNaN(Number(profileData.coordinates.lat)) && !isNaN(Number(profileData.coordinates.lng))) {
+    validCoordinates = {
+      lat: Number(profileData.coordinates.lat),
+      lng: Number(profileData.coordinates.lng)
+    };
+  }
+
   const userPayload = {
     id: cleanId || (cleanUid ? `user-${cleanUid}` : undefined),
     firebaseUid: cleanUid || undefined,
@@ -2224,6 +2238,8 @@ export async function saveCustomerProfileToFirestore(profileData) {
     phoneE164: profileData.phoneE164 || '',
     phoneVerified: profileData.phoneVerified ?? false,
     address: profileData.address || profileData.shippingAddress || '',
+    coordinates: validCoordinates,
+    addressDetails: profileData.addressDetails || null,
     gender: profileData.gender || 'Female',
     profilePicture: profileData.profilePicture || null,
     role: profileData.role || 'customer',
@@ -2242,6 +2258,8 @@ export async function saveCustomerProfileToFirestore(profileData) {
     phoneVerified: profileData.phoneVerified ?? false,
     address: profileData.address || profileData.shippingAddress || '',
     shippingAddress: profileData.address || profileData.shippingAddress || '',
+    coordinates: validCoordinates,
+    addressDetails: profileData.addressDetails || null,
     gender: profileData.gender || 'Female',
     profilePicture: profileData.profilePicture || null,
     updatedAt

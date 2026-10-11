@@ -2267,6 +2267,7 @@
     /* 5. Buttons and Navigation Labels: 14–16px, Medium/Semibold */
     #btn-view-all-orders,
     #btn-view-total-orders,
+    #btn-view-total-reservations,
     #btn-view-active-reservations,
     #btn-view-total-sales,
     #btn-view-available-stock,
@@ -2362,6 +2363,7 @@
     #dash-kpi-available-stock a,
     #dash-kpi-top-product a,
     #btn-view-total-orders,
+    #btn-view-total-reservations,
     #btn-view-active-reservations,
     #btn-view-total-sales,
     #btn-view-available-stock,
@@ -2388,6 +2390,7 @@
     #dash-kpi-available-stock a:hover,
     #dash-kpi-top-product a:hover,
     #btn-view-total-orders:hover,
+    #btn-view-total-reservations:hover,
     #btn-view-active-reservations:hover,
     #btn-view-total-sales:hover,
     #btn-view-available-stock:hover,
@@ -2409,6 +2412,7 @@
     html.dark #dash-kpi-available-stock a,
     html.dark #dash-kpi-top-product a,
     html.dark #btn-view-total-orders,
+    html.dark #btn-view-total-reservations,
     html.dark #btn-view-active-reservations,
     html.dark #btn-view-total-sales,
     html.dark #btn-view-available-stock,
@@ -2424,6 +2428,7 @@
       color: #D6E6F8 !important;
     }
     html.dark #btn-view-total-orders:hover,
+    html.dark #btn-view-total-reservations:hover,
     html.dark #btn-view-active-reservations:hover,
     html.dark #btn-view-total-sales:hover,
     html.dark #btn-view-available-stock:hover,
@@ -2439,6 +2444,7 @@
     }
     html:not(.dark) #top-kpi-cards-section a,
     html:not(.dark) #btn-view-total-orders,
+    html:not(.dark) #btn-view-total-reservations,
     html:not(.dark) #btn-view-active-reservations,
     html:not(.dark) #btn-view-total-sales,
     html:not(.dark) #btn-view-available-stock {
@@ -2881,8 +2887,8 @@
               </div>
             </div>
 
-            <!-- Box 2: Active Reservations -->
-            <div id="dash-kpi-active-reservations" class="bg-white dark:bg-[#0E1B38] border border-[#D6E3F0] dark:border-[#1E3563] rounded-2xl px-5 py-6 sm:py-6.5 shadow-xs flex flex-col justify-between h-full hover:shadow-sm transition-all min-h-[190px] sm:min-h-[195px] scroll-mt-6">
+            <!-- Box 2: Total Reservations -->
+            <div id="dash-kpi-total-reservations" class="bg-white dark:bg-[#0E1B38] border border-[#D6E3F0] dark:border-[#1E3563] rounded-2xl px-5 py-6 sm:py-6.5 shadow-xs flex flex-col justify-between h-full hover:shadow-sm transition-all min-h-[190px] sm:min-h-[195px] scroll-mt-6">
               <!-- Header: Icon, Title, View button -->
               <div class="flex items-start justify-between gap-2 min-h-[44px]">
                 <div class="flex items-center gap-2.5 min-w-0 flex-1">
@@ -2895,10 +2901,10 @@
                     </svg>
                   </div>
                   <div class="min-w-0 flex-1">
-                    <span class="text-[13px] sm:text-[14px] text-[#000000] dark:text-[#D6E6F8] font-extrabold uppercase tracking-wide leading-tight block truncate whitespace-nowrap">Active Reservations</span>
+                    <span class="text-[13px] sm:text-[14px] text-[#000000] dark:text-[#D6E6F8] font-extrabold uppercase tracking-wide leading-tight block truncate whitespace-nowrap">Total Reservations</span>
                   </div>
                 </div>
-                <a id="btn-view-active-reservations" href="reservations.html" class="inline-flex items-center gap-1 px-2.5 py-1 sm:px-3 sm:py-1 rounded-xl text-xs font-extrabold transition-all shrink-0 whitespace-nowrap shadow-2xs cursor-pointer self-start mt-0.5" title="View all reservations">
+                <a id="btn-view-total-reservations" href="reservations.html" class="inline-flex items-center gap-1 px-2.5 py-1 sm:px-3 sm:py-1 rounded-xl text-xs font-extrabold transition-all shrink-0 whitespace-nowrap shadow-2xs cursor-pointer self-start mt-0.5" title="View all reservations">
                   View →
                 </a>
               </div>
@@ -2906,7 +2912,7 @@
               <!-- Main value area -->
               <div class="mt-4 min-h-[36px] flex items-center">
                 <div class="flex items-baseline gap-1.5 min-w-0 overflow-hidden">
-                  <span id="dash-active-reservations" class="text-[22px] sm:text-[26px] font-black text-[#000000] dark:text-white tracking-tight leading-tight shrink-0">0 Reservations</span>
+                  <span id="dash-total-reservations" class="text-[22px] sm:text-[26px] font-black text-[#000000] dark:text-white tracking-tight leading-tight shrink-0">0 Reservations</span>
                 </div>
               </div>
 
@@ -3583,9 +3589,9 @@
         displayActiveReservations = activeReservationsData.count;
         displayTotalReservations = activeReservationsData.count;
 
-        const btnViewActiveReservations = document.getElementById('btn-view-active-reservations') || document.getElementById('btn-view-total-reservations');
-        if (btnViewActiveReservations) {
-          btnViewActiveReservations.setAttribute('href', 'reservations.html');
+        const btnViewTotalReservations = document.getElementById('btn-view-total-reservations') || document.getElementById('btn-view-active-reservations');
+        if (btnViewTotalReservations) {
+          btnViewTotalReservations.setAttribute('href', 'reservations.html');
         }
 
         const topRiceProductData = getDashboardTopRiceProductData({
@@ -3623,9 +3629,10 @@
           }
         }
 
-        // Update top 4 summary cards (Total Orders, Active Reservations, Total Sales, Available Stock)
+        // Update top 4 summary cards (Total Orders, Total Reservations, Total Sales, Available Stock)
         const topTotalOrdersEl = document.getElementById('dash-total-registered');
-        const topActiveReservationsEl = document.getElementById('dash-active-reservations') || document.getElementById('dash-total-reservations');
+        const topTotalReservationsEl = document.getElementById('dash-total-reservations') || document.getElementById('dash-active-reservations');
+        const topActiveReservationsEl = topTotalReservationsEl;
         const topReservationsSubEl = document.getElementById('dash-reservations-sub');
         const topTotalSalesEl = document.getElementById('dash-validated-revenue');
         const topAvailableSacksEl = document.getElementById('dash-available-sacks');
@@ -3638,11 +3645,11 @@
         if (topTotalOrdersEl) {
           topTotalOrdersEl.textContent = `${displayTotalOrders} Order${displayTotalOrders !== 1 ? 's' : ''}`;
         }
-        if (topActiveReservationsEl) {
-          topActiveReservationsEl.textContent = `${displayActiveReservations} Reservation${displayActiveReservations !== 1 ? 's' : ''}`;
+        if (topTotalReservationsEl) {
+          topTotalReservationsEl.textContent = `${displayTotalReservations} Reservation${displayTotalReservations !== 1 ? 's' : ''}`;
         }
         if (topReservationsSubEl) {
-          topReservationsSubEl.textContent = activeReservationsData.isFilterActive ? 'Filtered active reservations' : 'Active reservations in progress';
+          topReservationsSubEl.textContent = activeReservationsData.isFilterActive ? 'Filtered reservations' : 'Active reservations in progress';
         }
         if (topTotalSalesEl) {
           topTotalSalesEl.textContent = `₱${displayTotalSales.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -7499,8 +7506,8 @@
         { btnId: 'btn-view-stock-replenishment', sectionId: 'stock-replenishment-guide-section' },
         { btnId: 'btn-view-inventory-analytics', sectionId: 'inventory-analytics-section' },
         { btnId: 'btn-view-total-orders', sectionId: 'dash-kpi-total-orders' },
-        { btnId: 'btn-view-active-reservations', sectionId: 'dash-kpi-active-reservations' },
-        { btnId: 'btn-view-total-reservations', sectionId: 'dash-kpi-active-reservations' },
+        { btnId: 'btn-view-active-reservations', sectionId: 'dash-kpi-total-reservations' },
+        { btnId: 'btn-view-total-reservations', sectionId: 'dash-kpi-total-reservations' },
         { btnId: 'btn-view-total-sales', sectionId: 'dash-kpi-total-sales' },
         { btnId: 'btn-view-available-stock', sectionId: 'dash-kpi-available-stock' },
         { btnId: 'btn-view-top-product', sectionId: 'dash-kpi-top-product' },

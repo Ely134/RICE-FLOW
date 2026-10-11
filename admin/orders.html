@@ -41,6 +41,9 @@
     }
   </style>
   <link rel="stylesheet" href="../src/styles/index.css">
+  <!-- Leaflet CSS & JS for Smart Delivery Route Planner Map -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
   <style id="admin-orders-typography-and-colors">
     /* ==========================================================================
        ADMIN ORDERS PAGE READABILITY & APPROVED TYPOGRAPHY SYSTEM
@@ -468,33 +471,89 @@
       background-color: #1E293B !important;
     }
 
-    /* Polished Primary Order Action Buttons (Matching Stock Allocated Badge Style) */
-    #admin-layout-container .btn-order-action,
+    /* ==========================================================================
+       GLOSSY GREEN GRADIENT ACTION COLUMN BUTTONS (Day Mode Only)
+       - Non-destructive actions (Review Order, Prepare Order, Prepare Shipment,
+         Manage Reservation, Verify Delivery/Pickup, Audit, Finalize Order, View Record)
+       - Controlled multi-stop green gradient with comfortable brightness
+       - Subtle top translucent highlight overlay
+       - Medium-dark green text (#245C32) with semibold weight (font-weight: 600)
+       - Soft shadow for depth without looking overly 3D
+       - Smooth 250ms hover transition with clear contrast maintained
+       - Day mode only; dark mode & destructive actions (Review Issue, Reject) preserved
+       ========================================================================== */
     html:not(.dark) #admin-layout-container .btn-order-action,
-    #admin-layout-container .btn-trigger-verify-cash-badge.btn-order-action,
     html:not(.dark) #admin-layout-container .btn-trigger-verify-cash-badge.btn-order-action,
-    #admin-layout-container .btn-trigger-finalize-order.btn-order-action,
-    html:not(.dark) #admin-layout-container .btn-trigger-finalize-order.btn-order-action {
-      background-color: #d1fae5 !important; /* bg-emerald-100: same light green as Stock Allocated badge */
-      color: #064e3b !important; /* text-emerald-900: same dark green text as Stock Allocated badge */
-      border: 1px solid #6ee7b7 !important; /* border-emerald-300: same subtle green border */
-      box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05) !important;
-      transition: all 0.15s ease-in-out !important;
+    html:not(.dark) #admin-layout-container .btn-trigger-finalize-order.btn-order-action,
+    html:not(.dark) table td .btn-order-action {
+      position: relative !important;
+      min-width: 148px !important;
+      height: 2.5rem !important; /* 40px - matches Status & Priority badges */
+      padding-left: 1rem !important;
+      padding-right: 1rem !important;
+      font-size: 0.9375rem !important; /* 15px */
+      line-height: 1.25 !important;
+      font-weight: 600 !important;
+      color: #245C32 !important; /* solid, medium-dark green text */
+      /* Multi-stop vertical green gradient with subtle top translucent highlight layer */
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.40) 0%, rgba(255, 255, 255, 0.12) 38%, rgba(255, 255, 255, 0) 48%),
+        linear-gradient(180deg, #62E440 0%, #46D42E 25%, #2EC01F 58%, #1BA813 100%) !important;
+      background-color: #2EC01F !important;
+      border: 1px solid #23A018 !important;
+      border-top-color: #72EC52 !important;
+      border-bottom-color: #158510 !important;
+      border-radius: 0.75rem !important; /* rounded-xl */
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06), 0 2px 4px rgba(27, 168, 19, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.55) !important;
+      text-shadow: 0 1px 0 rgba(255, 255, 255, 0.28) !important;
+      transition: background 250ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 250ms cubic-bezier(0.4, 0, 0.2, 1), border-color 250ms cubic-bezier(0.4, 0, 0.2, 1), transform 150ms ease-in-out !important;
+      overflow: hidden !important;
     }
-    #admin-layout-container .btn-order-action:hover:not(:disabled),
+    html:not(.dark) #admin-layout-container .btn-order-action *,
+    html:not(.dark) #admin-layout-container .btn-trigger-verify-cash-badge.btn-order-action *,
+    html:not(.dark) #admin-layout-container .btn-trigger-finalize-order.btn-order-action *,
+    html:not(.dark) table td .btn-order-action * {
+      color: #245C32 !important;
+    }
     html:not(.dark) #admin-layout-container .btn-order-action:hover:not(:disabled),
-    #admin-layout-container .btn-trigger-verify-cash-badge.btn-order-action:hover:not(:disabled),
     html:not(.dark) #admin-layout-container .btn-trigger-verify-cash-badge.btn-order-action:hover:not(:disabled),
-    #admin-layout-container .btn-trigger-finalize-order.btn-order-action:hover:not(:disabled),
-    html:not(.dark) #admin-layout-container .btn-trigger-finalize-order.btn-order-action:hover:not(:disabled) {
-      background-color: #1E6C02 !important; /* RiceFlow primary solid green */
-      border-color: #145001 !important;
-      color: #FFFFFF !important;
-      box-shadow: 0 2px 5px -1px rgba(30, 108, 2, 0.3) !important;
+    html:not(.dark) #admin-layout-container .btn-trigger-finalize-order.btn-order-action:hover:not(:disabled),
+    html:not(.dark) table td .btn-order-action:hover:not(:disabled) {
+      /* Slightly richer, deeper glossy green gradient on hover with high contrast medium-dark green text */
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.32) 0%, rgba(255, 255, 255, 0.08) 38%, rgba(255, 255, 255, 0) 48%),
+        linear-gradient(180deg, #54DA32 0%, #39C822 25%, #24B216 58%, #14940D 100%) !important;
+      background-color: #24B216 !important;
+      border-color: #1A8A12 !important;
+      border-top-color: #63E444 !important;
+      border-bottom-color: #0E6C08 !important;
+      color: #1A4926 !important; /* solid, medium-dark green on hover */
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.10), 0 3px 6px rgba(20, 148, 13, 0.24), inset 0 1px 0 rgba(255, 255, 255, 0.48) !important;
+      text-shadow: 0 1px 0 rgba(255, 255, 255, 0.22) !important;
+    }
+    html:not(.dark) #admin-layout-container .btn-order-action:hover:not(:disabled) *,
+    html:not(.dark) #admin-layout-container .btn-trigger-verify-cash-badge.btn-order-action:hover:not(:disabled) *,
+    html:not(.dark) #admin-layout-container .btn-trigger-finalize-order.btn-order-action:hover:not(:disabled) *,
+    html:not(.dark) table td .btn-order-action:hover:not(:disabled) * {
+      color: #1A4926 !important;
+    }
+    html:not(.dark) #admin-layout-container .btn-order-action:active:not(:disabled),
+    html:not(.dark) #admin-layout-container .btn-trigger-verify-cash-badge.btn-order-action:active:not(:disabled),
+    html:not(.dark) #admin-layout-container .btn-trigger-finalize-order.btn-order-action:active:not(:disabled),
+    html:not(.dark) table td .btn-order-action:active:not(:disabled) {
+      background:
+        linear-gradient(180deg, #30BA1C 0%, #20A612 40%, #158F0C 100%) !important;
+      box-shadow: inset 0 2px 3px rgba(0, 0, 0, 0.20), 0 1px 2px rgba(0, 0, 0, 0.04) !important;
+      transform: translateY(1px);
     }
     html.dark #admin-layout-container .btn-order-action,
     html.dark #admin-layout-container .btn-trigger-verify-cash-badge.btn-order-action,
     html.dark #admin-layout-container .btn-trigger-finalize-order.btn-order-action {
+      min-width: 148px !important;
+      height: 2.5rem !important;
+      padding-left: 1rem !important;
+      padding-right: 1rem !important;
+      font-size: 0.9375rem !important;
       background-color: rgba(6, 78, 59, 0.6) !important; /* dark:bg-emerald-950/60 */
       color: #a7f3d0 !important; /* dark:text-emerald-200 */
       border: 1px solid #047857 !important; /* dark:border-emerald-700 */
@@ -509,13 +568,14 @@
       color: #FFFFFF !important;
       box-shadow: 0 2px 6px -1px rgba(16, 185, 129, 0.3) !important;
     }
-    #admin-layout-container .btn-order-action *,
-    html:not(.dark) #admin-layout-container .btn-order-action * {
+    html.dark #admin-layout-container .btn-order-action *,
+    html.dark #admin-layout-container .btn-trigger-verify-cash-badge.btn-order-action *,
+    html.dark #admin-layout-container .btn-trigger-finalize-order.btn-order-action * {
       color: inherit !important;
     }
-    #admin-layout-container .btn-order-action:hover:not(:disabled) *,
-    html:not(.dark) #admin-layout-container .btn-order-action:hover:not(:disabled) *,
-    html.dark #admin-layout-container .btn-order-action:hover:not(:disabled) * {
+    html.dark #admin-layout-container .btn-order-action:hover:not(:disabled) *,
+    html.dark #admin-layout-container .btn-trigger-verify-cash-badge.btn-order-action:hover:not(:disabled) *,
+    html.dark #admin-layout-container .btn-trigger-finalize-order.btn-order-action:hover:not(:disabled) * {
       color: #FFFFFF !important;
     }
     #admin-layout-container .btn-order-action:focus-visible,
@@ -1519,11 +1579,167 @@
     </div>
   </div>
 
+  <!-- SMART DELIVERY ROUTE PLANNER MODAL -->
+  <div id="smart-route-planner-modal" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-[85] flex items-center justify-center p-3 sm:p-5 hidden" role="dialog" aria-modal="true" aria-labelledby="route-planner-modal-title">
+    <div class="bg-white dark:bg-gray-900 rounded-3xl max-w-5xl w-full shadow-2xl border border-gray-200 dark:border-gray-850 max-h-[94vh] flex flex-col overflow-hidden animate-in fade-in zoom-in duration-200 text-left">
+      <!-- Modal Header -->
+      <div class="p-5 sm:p-6 border-b border-gray-200 dark:border-gray-800 flex items-start justify-between gap-4 bg-gray-50/70 dark:bg-gray-850/60 shrink-0">
+        <div class="flex items-center gap-3.5">
+          <div class="w-11 h-11 rounded-2xl bg-emerald-100 dark:bg-emerald-950/80 text-[#1E6C02] dark:text-emerald-400 flex items-center justify-center text-2xl font-black shrink-0 border border-emerald-200 dark:border-emerald-800">
+            🚚
+          </div>
+          <div>
+            <div class="flex items-center gap-2.5 flex-wrap">
+              <h3 id="route-planner-modal-title" class="text-xl sm:text-2xl font-black text-black dark:text-white tracking-tight">
+                Smart Delivery Route Planner
+              </h3>
+              <span id="route-planner-status-pill" class="text-xs font-bold px-2.5 py-0.5 rounded-full border bg-emerald-50 text-emerald-800 border-emerald-300 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-700">
+                To Ship Home Deliveries
+              </span>
+            </div>
+            <p class="text-xs sm:text-sm text-gray-700 dark:text-gray-300 font-normal mt-1">
+              Optimizes delivery dispatch stops from the warehouse starting point to reduce backtracking.
+            </p>
+          </div>
+        </div>
+        <button id="btn-close-route-planner-x" class="text-gray-500 hover:text-black dark:text-gray-400 dark:hover:text-white p-2 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors cursor-pointer shrink-0 text-xl font-bold" title="Close Route Planner">
+          ✕
+        </button>
+      </div>
+
+      <!-- Modal Body (Scrollable) -->
+      <div class="p-5 sm:p-6 overflow-y-auto space-y-6 flex-1">
+        <!-- Route Meta & Origin Summary Card -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="p-4 rounded-2xl bg-gray-50 dark:bg-gray-800/80 border border-gray-200 dark:border-gray-700/80 space-y-1">
+            <span class="text-[11px] font-bold uppercase tracking-wider text-gray-700 dark:text-gray-300 block">Warehouse Starting Point</span>
+            <p id="route-planner-origin-name" class="font-extrabold text-black dark:text-white text-sm truncate">Aurora Local Rice Warehouse (Provisional)</p>
+            <p id="route-planner-origin-coords" class="text-xs text-gray-700 dark:text-gray-300 font-mono">7.896128° N, 123.616425° E <span class="text-[11px] text-amber-700 dark:text-amber-400 font-bold block sm:inline sm:ml-1">(Provisional FB Map Pin)</span></p>
+          </div>
+          <div class="p-4 rounded-2xl bg-emerald-50/80 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 space-y-1">
+            <span class="text-[11px] font-bold uppercase tracking-wider text-emerald-900 dark:text-emerald-300 block">Estimated Road Trip</span>
+            <p id="route-planner-trip-distance" class="font-black text-[#1E6C02] dark:text-emerald-400 text-lg">Calculating...</p>
+            <p id="route-planner-trip-time" class="text-xs text-emerald-900 dark:text-emerald-300 font-medium">Estimated driving time</p>
+          </div>
+          <div class="p-4 rounded-2xl bg-blue-50/80 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800 space-y-1">
+            <span class="text-[11px] font-bold uppercase tracking-wider text-blue-900 dark:text-blue-300 block">Routing Engine</span>
+            <p id="route-planner-engine-badge" class="font-bold text-blue-950 dark:text-blue-200 text-sm">OpenStreetMap / OSRM Road Router</p>
+            <p class="text-xs text-blue-800 dark:text-blue-300">Road travel estimates; live traffic not supplied</p>
+          </div>
+        </div>
+
+        <!-- Warehouse Origin Blocker Banner (Displayed when warehouse starting coordinates are unverified) -->
+        <div id="route-planner-origin-blocker" class="hidden p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-800 space-y-1.5 text-xs text-amber-900 dark:text-amber-200">
+          <div class="flex items-center gap-2 font-black text-sm text-amber-950 dark:text-amber-100">
+            <span>⚠️</span>
+            <span>Road Route Optimization Blocked: Warehouse Origin Not Verified</span>
+          </div>
+          <p class="leading-relaxed font-normal">
+            The modal placeholder coordinates (<code class="font-mono font-bold">7.9628° N, 123.5826° E</code>) are default municipal centroid coordinates and are not verified by an authoritative warehouse dispatch location setting in store business data.
+          </p>
+          <p class="leading-relaxed font-normal">
+            To prevent calculating misleading driving times or inaccurate road paths, actual road optimization and turn-by-turn road calculations remain safely blocked until verified warehouse dispatch coordinates are configured in business settings.
+          </p>
+        </div>
+
+        <!-- Interactive Route Map Container -->
+        <div class="rounded-2xl border border-gray-200 dark:border-gray-750 overflow-hidden bg-gray-100 dark:bg-gray-800 relative shadow-inner">
+          <div class="p-3 bg-gray-50 dark:bg-gray-800/90 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between text-xs font-semibold text-gray-800 dark:text-gray-200">
+            <span class="flex items-center gap-1.5">
+              <span>🗺️</span>
+              <span>Road Sequence Overview Map</span>
+            </span>
+            <span class="text-[11px] text-gray-600 dark:text-gray-400 font-normal">© OpenStreetMap contributors · OSRM</span>
+          </div>
+          <div id="route-planner-map-container" class="w-full h-64 sm:h-80 bg-gray-100 dark:bg-gray-900 relative" style="min-height: 260px;"></div>
+          <div id="route-planner-map-fallback" class="hidden absolute inset-0 bg-white/95 dark:bg-gray-900/95 flex flex-col items-center justify-center p-4 text-center z-20">
+            <span class="text-3xl mb-1">🗺️</span>
+            <p class="text-sm font-bold text-gray-900 dark:text-gray-100">Interactive Map Offline or Disabled</p>
+            <p class="text-xs text-gray-650 dark:text-gray-350 mt-1 max-w-md">Detailed sequence table and Google Maps navigation links remain fully active below.</p>
+          </div>
+        </div>
+
+        <!-- Suggested Delivery Stops Table -->
+        <div class="space-y-3">
+          <div class="flex items-center justify-between">
+            <h4 class="text-base font-extrabold text-black dark:text-white flex items-center gap-2">
+              <span>📍</span>
+              <span>Suggested Sequence of Stops (<span id="route-planner-stops-count">0</span>)</span>
+            </h4>
+            <span class="text-xs text-gray-700 dark:text-gray-300 font-medium">Sequential dispatch order</span>
+          </div>
+
+          <div class="overflow-x-auto border border-gray-200 dark:border-gray-750 rounded-2xl">
+            <table class="w-full text-left text-sm border-collapse min-w-[700px]">
+              <thead>
+                <tr class="bg-gray-50/90 dark:bg-gray-800/90 border-b border-gray-200 dark:border-gray-750 text-xs font-extrabold uppercase text-gray-800 dark:text-gray-200">
+                  <th class="py-3 px-3 text-center w-16">Stop #</th>
+                  <th class="py-3 px-4">Order(s) & Priority</th>
+                  <th class="py-3 px-4">Customer & Contact</th>
+                  <th class="py-3 px-4 min-w-[200px]">Delivery Address</th>
+                  <th class="py-3 px-3 text-center">Leg Est.</th>
+                  <th class="py-3 px-3 text-center w-28">Navigation</th>
+                </tr>
+              </thead>
+              <tbody id="route-planner-stops-tbody" class="divide-y divide-gray-100 dark:divide-gray-800">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Excluded / Unroutable Orders Section -->
+        <div id="route-planner-excluded-container" class="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/80 space-y-2 hidden">
+          <div class="flex items-center gap-2 font-bold text-amber-900 dark:text-amber-200 text-sm">
+            <span>⚠️</span>
+            <span>Excluded from Route Optimization (<span id="route-planner-excluded-count">0</span>)</span>
+          </div>
+          <p class="text-xs text-amber-850 dark:text-amber-300">
+            The following orders were excluded because of missing or unconfirmed coordinates, or because they are for store pickup. Their existing order records and manual dispatch controls remain completely unchanged.
+          </p>
+          <ul id="route-planner-excluded-list" class="space-y-1.5 text-xs text-amber-900 dark:text-amber-200 pt-1">
+            <!-- Dynamically populated -->
+          </ul>
+        </div>
+
+        <!-- Staff Confirmation Notice Banner -->
+        <div id="route-planner-review-state-box" class="p-4 rounded-2xl bg-gray-50 dark:bg-gray-800/90 border border-gray-200 dark:border-gray-700 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div class="space-y-0.5">
+            <span class="text-xs font-extrabold text-black dark:text-white uppercase tracking-wider block">Staff Review & Confirmation</span>
+            <p id="route-planner-confirmation-note" class="text-xs text-gray-700 dark:text-gray-300">
+              Staff must review this suggested sequence before dispatch. Confirming preserves the plan in this session without modifying order statuses or payment/inventory records.
+            </p>
+          </div>
+          <div id="route-planner-confirmation-badge" class="shrink-0">
+            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-amber-100 text-amber-900 border border-amber-300 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-700">
+              <span>⏳</span> Pending Staff Review
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="p-4 sm:p-5 border-t border-gray-200 dark:border-gray-800 bg-gray-50/70 dark:bg-gray-850/60 flex flex-wrap items-center justify-between gap-3 shrink-0">
+        <button id="btn-close-route-planner" class="px-5 py-2.5 bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-750 text-gray-800 dark:text-gray-200 border border-gray-200 dark:border-gray-700 font-bold text-sm rounded-xl cursor-pointer transition-colors shadow-2xs">
+          Close
+        </button>
+        <div class="flex items-center gap-2.5">
+          <button id="btn-recalculate-route" class="px-4 py-2.5 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-650 text-black dark:text-white font-bold text-sm rounded-xl cursor-pointer transition-colors shadow-2xs flex items-center gap-1.5">
+            <span>🔄</span> Recalculate
+          </button>
+          <button id="btn-confirm-route-plan" class="px-5 py-2.5 bg-[#1E6C02] hover:bg-[#145001] active:scale-[0.98] text-white font-black text-sm rounded-xl cursor-pointer transition-all shadow-sm flex items-center gap-2">
+            <span>✔</span> Confirm Suggested Route
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script type="module" src="../src/app/shared.js"></script>
 
   <!-- INTERACTION CONTROLLER -->
   <script type="module">
-    import { protectAdminPage, renderAdminLayout, getAllOrders, verifyPayment, updateOrderStatus, addActivityLog, showToast, saveOrders, addNotification, getCashToAudit, evaluateOrderCompletion, verifyCashTurnover, getCurrentAdmin, processOrderStockAndSplitIfNeeded, getEstimatedArrivalDate, getReservationQueuePosition, isReservationOrder, updateOrderRefundStatus } from '../src/app/shared.js';
+    import { protectAdminPage, renderAdminLayout, getAllOrders, verifyPayment, updateOrderStatus, addActivityLog, showToast, saveOrders, addNotification, getCashToAudit, evaluateOrderCompletion, verifyCashTurnover, getCurrentAdmin, processOrderStockAndSplitIfNeeded, getEstimatedArrivalDate, getReservationQueuePosition, isReservationOrder, updateOrderRefundStatus, getStoreSettings } from '../src/app/shared.js';
     import { saveFirestoreDoc } from '../src/lib/firebase.js';
 
     window.getCurrentAdmin = getCurrentAdmin;
@@ -1929,6 +2145,7 @@
           order.verifiedBy = changerName;
           order.verifiedDate = now.toLocaleDateString();
           order.verifiedTime = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+          order.approvedAt = now.toISOString();
           if (isRes) {
             const pId = order.items?.[0]?.product?.id || order.items?.[0]?.productId || order.productId;
             order.queuePosition = getReservationQueuePosition(order, ordersList, pId) || order.queuePosition || 1;
@@ -2109,7 +2326,7 @@
           const changerName = admin ? admin.name : 'System Admin';
 
           order.status = 'to-receive';
-          order.preparedAt = now.toLocaleString();
+          order.preparedAt = now.toISOString();
           order.preparedBy = changerName;
           order.staffName = changerName;
           order.assignedStaff = changerName;
@@ -2409,8 +2626,23 @@
                 </div>
               </div>
 
-              <!-- Scan Order QR Code Button -->
-              <div class="shrink-0 pb-0 md:pb-1">
+              <!-- Action Controls: Route Planner (To Ship) & Scan QR -->
+              <div class="shrink-0 pb-0 md:pb-1 flex items-center gap-2.5 flex-wrap">
+                ${statusFilter === 'to-ship' ? `
+                  <button 
+                    id="btn-open-route-planner" 
+                    class="h-11 px-5 bg-emerald-700 hover:bg-emerald-800 text-white text-sm font-extrabold uppercase tracking-wider rounded-xl transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] flex items-center justify-center gap-2 shadow-sm hover:shadow-md cursor-pointer shrink-0 border border-emerald-600"
+                    title="Plan practical road delivery sequence for ready home deliveries"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 text-white">
+                      <polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"></polygon>
+                      <line x1="9" y1="3" x2="9" y2="18"></line>
+                      <line x1="15" y1="6" x2="15" y2="21"></line>
+                    </svg>
+                    <span>Route Planner</span>
+                  </button>
+                ` : ''}
+
                 <button 
                   id="btn-scan-qr-trigger" 
                   class="h-11 px-6 bg-[#1E6C02] hover:bg-[#145001] text-white text-base font-extrabold uppercase tracking-wider rounded-xl transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] flex items-center justify-center gap-2.5 shadow-sm hover:shadow-md cursor-pointer shrink-0"
@@ -2654,7 +2886,7 @@
                       let displayedTotal = orderTotal;
 
                       // Actions column buttons strip builder
-                      const btnActionClass = 'btn-grid-action-trigger btn-order-action inline-flex items-center justify-center min-w-[140px] h-10 px-4 rounded-xl font-semibold text-[14px] sm:text-[14.5px] transition-all duration-150 cursor-pointer shadow-xs whitespace-nowrap active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed';
+                      const btnActionClass = 'btn-grid-action-trigger btn-order-action inline-flex items-center justify-center min-w-[148px] h-10 px-4 rounded-xl font-semibold text-[15px] transition-all duration-150 cursor-pointer shadow-xs whitespace-nowrap active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed';
                       let actionButton = '';
                       if (order.status === 'to-pay' || order.status === 'pending_verification' || order.status === 'payment_verification') {
                         actionButton = `
@@ -2691,19 +2923,19 @@
                       } else if (order.status === 'delivered') {
                         if (!isFinVerified) {
                           actionButton = `
-                            <button data-id="${order.id}" class="btn-trigger-verify-cash-badge btn-order-action inline-flex items-center justify-center min-w-[140px] h-10 px-4 rounded-xl font-semibold text-[14px] sm:text-[14.5px] transition-all duration-150 cursor-pointer shadow-xs whitespace-nowrap active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed">
+                            <button data-id="${order.id}" class="btn-trigger-verify-cash-badge btn-order-action inline-flex items-center justify-center min-w-[148px] h-10 px-4 rounded-xl font-semibold text-[15px] transition-all duration-150 cursor-pointer shadow-xs whitespace-nowrap active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed">
                               Audit
                             </button>
                           `;
                         } else if (isCustConfirmed && isFinVerified) {
                           actionButton = `
-                            <button data-id="${order.id}" class="btn-trigger-finalize-order btn-order-action inline-flex items-center justify-center min-w-[140px] h-10 px-4 rounded-xl font-semibold text-[14px] sm:text-[14.5px] transition-all duration-150 cursor-pointer shadow-xs whitespace-nowrap active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed">
+                            <button data-id="${order.id}" class="btn-trigger-finalize-order btn-order-action inline-flex items-center justify-center min-w-[148px] h-10 px-4 rounded-xl font-semibold text-[15px] transition-all duration-150 cursor-pointer shadow-xs whitespace-nowrap active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed">
                               Finalize Order
                             </button>
                           `;
                         } else {
                           actionButton = `
-                            <button data-id="${order.id}" class="btn-grid-action-trigger inline-flex items-center justify-center min-w-[140px] h-10 px-4 rounded-xl text-white font-semibold text-[14px] sm:text-[14.5px] bg-gray-500 hover:bg-gray-600 transition-all duration-150 cursor-pointer shadow-xs whitespace-nowrap active:scale-[0.98]" title="Financial audit verified. Awaiting customer confirmation.">
+                            <button data-id="${order.id}" class="btn-grid-action-trigger inline-flex items-center justify-center min-w-[148px] h-10 px-4 rounded-xl text-white font-semibold text-[15px] bg-gray-500 hover:bg-gray-600 transition-all duration-150 cursor-pointer shadow-xs whitespace-nowrap active:scale-[0.98]" title="Financial audit verified. Awaiting customer confirmation.">
                               Delivered / Awaiting
                             </button>
                           `;
@@ -2722,7 +2954,7 @@
                         `;
                       } else if (order.status === 'issue-reported') {
                         actionButton = `
-                          <button data-id="${order.id}" class="btn-grid-action-trigger inline-flex items-center justify-center min-w-[140px] h-10 px-4 rounded-xl text-white font-semibold text-[14px] sm:text-[14.5px] bg-red-600 hover:bg-red-700 transition-all duration-150 cursor-pointer shadow-xs whitespace-nowrap active:scale-[0.98]">
+                          <button data-id="${order.id}" class="btn-grid-action-trigger inline-flex items-center justify-center min-w-[148px] h-10 px-4 rounded-xl text-white font-semibold text-[15px] bg-red-600 hover:bg-red-700 transition-all duration-150 cursor-pointer shadow-xs whitespace-nowrap active:scale-[0.98]">
                             Review Issue
                           </button>
                         `;
@@ -2736,6 +2968,13 @@
 
                       const cashToAuditVal = getCashToAudit(order);
                       const isReplacementOrder = Boolean(order.isReplacement || order.replacementDelivery || order.financialStatus === 'No Cash Collection Required' || order.amountPaid === 'Original Payment');
+                      const fulfillmentInfo = getOrderFulfillmentInfo(order);
+                      const fulfillmentBadgeHtml = `
+                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold border ${fulfillmentInfo.badgeClass} shadow-2xs whitespace-nowrap" title="Fulfillment: ${fulfillmentInfo.label}">
+                          <span>${fulfillmentInfo.icon}</span>
+                          <span>${fulfillmentInfo.label}</span>
+                        </span>
+                      `;
 
                       return `
                         <tr id="order-row-${order.id}" class="order-row-${idx % 2 === 0 ? 'even' : 'odd'} transition-colors duration-150 ${idx % 2 === 0 ? 'bg-white dark:bg-[#111827]' : 'bg-[#F8FAFC] dark:bg-[#162032]'} hover:bg-[#F0FDF4] dark:hover:bg-[#1E293B]">
@@ -2757,6 +2996,9 @@
                           <!-- Customer -->
                           <td class="py-4.5 px-4 text-center align-middle min-w-[160px]">
                             <p class="font-normal text-black dark:text-white text-[17px] leading-snug">${order.fullName}</p>
+                            <div class="mt-1 flex items-center justify-center">
+                              ${fulfillmentBadgeHtml}
+                            </div>
                           </td>
                           
                           <!-- Items / Rice Variety -->
@@ -2820,6 +3062,14 @@
         document.getElementById('btn-scan-qr-trigger').addEventListener('click', () => {
           openCameraPermissionFlow();
         });
+
+        // 2b. Smart Delivery Route Planner Trigger (Available on To Ship status view)
+        const btnOpenPlanner = document.getElementById('btn-open-route-planner');
+        if (btnOpenPlanner) {
+          btnOpenPlanner.addEventListener('click', () => {
+            openSmartRoutePlannerModal();
+          });
+        }
 
         // 3. Grid Row Action Trigger (opens status-specific details modal)
         document.querySelectorAll('.btn-grid-action-trigger').forEach(btn => {
@@ -3903,97 +4153,335 @@
         `;
       }
 
+      function getOrderFulfillmentInfo(order) {
+        if (!order) return { type: 'delivery', label: 'Home Delivery', icon: '🚚', badgeClass: 'bg-emerald-50 text-emerald-800 border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800' };
+
+        const opt = String(
+          order.deliveryOption || 
+          order.fulfillmentOption || 
+          order.fulfillmentMethod || 
+          order.deliveryMethod || 
+          order.shippingMethod || 
+          ''
+        ).toLowerCase().trim();
+
+        let isPickup = false;
+        if (opt === 'pickup' || opt === 'store_pickup' || opt === 'store-pickup' || opt === 'pick-up' || order.isPickup === true || order.pickup === true) {
+          isPickup = true;
+        } else if (opt === 'delivery' || opt === 'home_delivery' || opt === 'home-delivery') {
+          isPickup = false;
+        } else {
+          // Safe fallback for legacy records
+          const addr = String(order.address || order.shippingAddress || order.deliveryAddress || '').toLowerCase().trim();
+          if (addr === 'store warehouse pickup' || addr === 'store pickup' || addr === 'pickup') {
+            isPickup = true;
+          } else if (order.shippingFee !== undefined && Number(order.shippingFee) === 0 && !addr) {
+            isPickup = true;
+          } else {
+            isPickup = false;
+          }
+        }
+
+        return isPickup ? {
+          type: 'pickup',
+          label: 'Store Pickup',
+          icon: '🏬',
+          badgeClass: 'bg-blue-50 text-blue-800 border-blue-200 dark:bg-blue-950/60 dark:text-blue-300 dark:border-blue-800'
+        } : {
+          type: 'delivery',
+          label: 'Home Delivery',
+          icon: '🚚',
+          badgeClass: 'bg-emerald-50 text-emerald-800 border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800'
+        };
+      }
+
+      function parseCoordCandidate(c) {
+        if (!c) return null;
+        let lat = null;
+        let lng = null;
+        if (typeof c === 'object') {
+          lat = Number(c.lat !== undefined ? c.lat : c.latitude);
+          lng = Number(c.lng !== undefined ? c.lng : c.longitude);
+        } else if (typeof c === 'string') {
+          const parts = c.split(',').map(p => Number(p.trim()));
+          if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
+            lat = parts[0];
+            lng = parts[1];
+          }
+        }
+        if (lat !== null && lng !== null && typeof lat === 'number' && typeof lng === 'number' && !isNaN(lat) && !isNaN(lng) && isFinite(lat) && isFinite(lng) && (lat !== 0 || lng !== 0)) {
+          if (lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180) {
+            // Reject western hemisphere / placeholder coordinates (e.g. New York longitude is ~ -74)
+            if (lng < 0) return null;
+            return { lat, lng };
+          }
+        }
+        return null;
+      }
+
+      function getValidOrderCoordinates(order) {
+        if (!order) return null;
+
+        // 1. Direct coordinates on order or structured address details
+        const orderCandidates = [
+          order.coordinates,
+          order.addressDetails && order.addressDetails.coordinates,
+          order.shippingAddressDetails && order.shippingAddressDetails.coordinates,
+          order.deliveryLocation && order.deliveryLocation.coordinates,
+          order.addressCoordinates,
+          (order.latitude !== undefined && order.longitude !== undefined) ? { lat: order.latitude, lng: order.longitude } : null,
+          (order.lat !== undefined && order.lng !== undefined) ? { lat: order.lat, lng: order.lng } : null,
+          order.customer && order.customer.coordinates,
+          order.customer && order.customer.addressDetails && order.customer.addressDetails.coordinates
+        ];
+
+        for (const cand of orderCandidates) {
+          const parsed = parseCoordCandidate(cand);
+          if (parsed) return parsed;
+        }
+
+        // 2. Lookup in customer or user profile if coordinates are not on the immediate order snapshot
+        try {
+          const customers = (typeof getAllCustomers === 'function' ? getAllCustomers() : JSON.parse(localStorage.getItem('aurora-customers') || '[]'));
+          const users = (typeof getAllUsers === 'function' ? getAllUsers() : JSON.parse(localStorage.getItem('aurora-users') || '[]'));
+
+          const targetId = order.userId || order.customerId;
+          const targetEmail = (order.customerEmail || order.email || '').toLowerCase().trim();
+          const targetPhone = (order.phone || '').trim();
+          const targetName = (order.fullName || order.customerName || '').toLowerCase().trim();
+
+          let matchedCust = null;
+          if (targetId) {
+            matchedCust = customers.find(c => String(c.id) === String(targetId) || String(c.customerId) === String(targetId) || String(c.uid) === String(targetId));
+          }
+          if (!matchedCust && targetEmail) {
+            matchedCust = customers.find(c => String(c.email || '').toLowerCase().trim() === targetEmail);
+          }
+          if (!matchedCust && targetPhone) {
+            matchedCust = customers.find(c => String(c.phone || '').trim() === targetPhone);
+          }
+          if (!matchedCust && targetName) {
+            matchedCust = customers.find(c => String(c.name || c.fullName || '').toLowerCase().trim() === targetName);
+          }
+
+          if (matchedCust) {
+            const custCandidates = [
+              matchedCust.coordinates,
+              matchedCust.addressDetails && matchedCust.addressDetails.coordinates,
+              matchedCust.deliveryLocation && matchedCust.deliveryLocation.coordinates
+            ];
+            for (const cand of custCandidates) {
+              const parsed = parseCoordCandidate(cand);
+              if (parsed) return parsed;
+            }
+          }
+
+          let matchedUser = null;
+          if (targetId) {
+            matchedUser = users.find(u => String(u.id) === String(targetId) || String(u.uid) === String(targetId));
+          }
+          if (!matchedUser && targetEmail) {
+            matchedUser = users.find(u => String(u.email || '').toLowerCase().trim() === targetEmail);
+          }
+          if (!matchedUser && targetPhone) {
+            matchedUser = users.find(u => String(u.phone || '').trim() === targetPhone);
+          }
+          if (!matchedUser && targetName) {
+            matchedUser = users.find(u => String(u.fullName || u.name || '').toLowerCase().trim() === targetName);
+          }
+
+          if (matchedUser) {
+            const userCandidates = [
+              matchedUser.coordinates,
+              matchedUser.addressDetails && matchedUser.addressDetails.coordinates,
+              matchedUser.deliveryLocation && matchedUser.deliveryLocation.coordinates
+            ];
+            for (const cand of userCandidates) {
+              const parsed = parseCoordCandidate(cand);
+              if (parsed) return parsed;
+            }
+          }
+        } catch (_) {}
+
+        return null;
+      }
+
+      function renderOrderAddressDetailsHtml(order) {
+        let details = order.addressDetails || order.shippingAddressDetails || null;
+        if (!details) {
+          try {
+            const customers = (typeof getAllCustomers === 'function' ? getAllCustomers() : JSON.parse(localStorage.getItem('aurora-customers') || '[]'));
+            const targetId = order.userId || order.customerId;
+            const targetEmail = (order.customerEmail || order.email || '').toLowerCase().trim();
+            const matched = customers.find(c => (targetId && String(c.id) === String(targetId)) || (targetEmail && String(c.email || '').toLowerCase().trim() === targetEmail));
+            if (matched && matched.addressDetails) details = matched.addressDetails;
+          } catch (_) {}
+        }
+        if (!details) return '';
+        const parts = [];
+        if (details.houseDetails && details.houseDetails !== 'No house number') parts.push(`<span class="font-bold text-gray-700 dark:text-gray-300">House/Bldg:</span> ${details.houseDetails}`);
+        if (details.street) parts.push(`<span class="font-bold text-gray-700 dark:text-gray-300">Street/Purok:</span> ${details.street}`);
+        if (details.barangay) parts.push(`<span class="font-bold text-gray-700 dark:text-gray-300">Brgy:</span> ${details.barangay}`);
+        if (details.city) parts.push(`<span class="font-bold text-gray-700 dark:text-gray-300">City/Mun:</span> ${details.city}`);
+        if (details.province) parts.push(`<span class="font-bold text-gray-700 dark:text-gray-300">Province:</span> ${details.province}`);
+        if (details.region) parts.push(`<span class="font-bold text-gray-700 dark:text-gray-300">Region:</span> ${details.region}`);
+
+        if (parts.length === 0) return '';
+        return `
+          <div class="mt-2 text-xs sm:text-sm text-gray-700 dark:text-gray-300 bg-white/80 dark:bg-slate-800/80 p-2.5 rounded-xl border border-gray-200 dark:border-slate-700 space-y-1">
+            <p class="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1">Address Details:</p>
+            <div class="flex flex-wrap gap-x-3 gap-y-1">
+              ${parts.map(p => `<span>${p}</span>`).join('<span class="text-gray-400">•</span>')}
+            </div>
+          </div>
+        `;
+      }
+
+      function isPlaceholderAddress(raw) {
+        if (!raw || typeof raw !== 'string') return true;
+        const trimmed = raw.trim();
+        if (!trimmed) return true;
+        const lower = trimmed.toLowerCase();
+        if (
+          lower === 'address not provided' ||
+          lower === 'store warehouse pickup' ||
+          lower === 'aurora local region' ||
+          lower === 'house no., street, barangay, aurora, zamboanga del sur' ||
+          lower === 'n/a' ||
+          lower === 'na' ||
+          lower === 'none' ||
+          lower === 'null' ||
+          lower === 'undefined' ||
+          lower === 'new york, usa' ||
+          lower === 'new york' ||
+          lower === 'new york city' ||
+          lower === 'ny, usa' ||
+          lower === 'usa' ||
+          lower.includes('new york')
+        ) {
+          return true;
+        }
+        return false;
+      }
+
+      function formatStructuredAddressDetails(details) {
+        if (!details || typeof details !== 'object') return null;
+        if (details.fullAddress && typeof details.fullAddress === 'string' && !isPlaceholderAddress(details.fullAddress)) {
+          return details.fullAddress.trim();
+        }
+        if (details.address && typeof details.address === 'string' && !isPlaceholderAddress(details.address)) {
+          return details.address.trim();
+        }
+        const parts = [];
+        if (details.houseDetails && details.houseDetails !== 'No house number') parts.push(details.houseDetails);
+        if (details.street) parts.push(details.street);
+        if (details.barangay) parts.push(`Brgy. ${details.barangay}`);
+        if (details.city) parts.push(details.city);
+        if (details.province) parts.push(details.province);
+        if (details.region) parts.push(details.region);
+        if (parts.length > 0) {
+          const constructed = parts.join(', ').trim();
+          if (constructed && !isPlaceholderAddress(constructed)) return constructed;
+        }
+        return null;
+      }
+
       function resolveOrderAddress(order) {
         if (!order) return 'Address not provided';
 
-        // 1. Direct address property from the selected order record
-        let raw = (
-          order.address ||
-          order.shippingAddress ||
-          order.deliveryAddress ||
-          order.customerAddress ||
-          order.delivery_address ||
-          order.shipping_address ||
-          (order.customer && (order.customer.address || order.customer.shippingAddress || order.customer.deliveryAddress))
-        );
-
-        // Filter out any hardcoded generic placeholder strings
-        if (raw && typeof raw === 'string') {
-          const trimmed = raw.trim();
-          if (
-            trimmed.toLowerCase() === 'aurora local region' ||
-            trimmed.toLowerCase() === 'house no., street, barangay, aurora, zamboanga del sur'
-          ) {
-            raw = null;
-          }
-        }
-
-        // 2. If missing on order record, look up in customer records / user profiles
-        if (!raw) {
-          try {
-            const customers = (typeof getAllCustomers === 'function' ? getAllCustomers() : JSON.parse(localStorage.getItem('aurora-customers') || '[]'));
-            const users = (typeof getAllUsers === 'function' ? getAllUsers() : JSON.parse(localStorage.getItem('aurora-users') || '[]'));
-
-            const targetId = order.userId || order.customerId;
-            const targetEmail = (order.customerEmail || order.email || '').toLowerCase().trim();
-            const targetPhone = (order.phone || '').trim();
-            const targetName = (order.fullName || order.customerName || '').toLowerCase().trim();
-
-            let matchedCust = null;
-            if (targetId) {
-              matchedCust = customers.find(c => String(c.id) === String(targetId) || String(c.customerId) === String(targetId) || String(c.uid) === String(targetId));
-            }
-            if (!matchedCust && targetEmail) {
-              matchedCust = customers.find(c => String(c.email || '').toLowerCase().trim() === targetEmail);
-            }
-            if (!matchedCust && targetPhone) {
-              matchedCust = customers.find(c => String(c.phone || '').trim() === targetPhone);
-            }
-            if (!matchedCust && targetName) {
-              matchedCust = customers.find(c => String(c.name || c.fullName || '').toLowerCase().trim() === targetName);
-            }
-
-            if (matchedCust) {
-              raw = matchedCust.shippingAddress || matchedCust.address || matchedCust.deliveryAddress;
-            }
-
-            if (!raw) {
-              let matchedUser = null;
-              if (targetId) {
-                matchedUser = users.find(u => String(u.id) === String(targetId) || String(u.uid) === String(targetId));
-              }
-              if (!matchedUser && targetEmail) {
-                matchedUser = users.find(u => String(u.email || '').toLowerCase().trim() === targetEmail);
-              }
-              if (!matchedUser && targetPhone) {
-                matchedUser = users.find(u => String(u.phone || '').trim() === targetPhone);
-              }
-              if (!matchedUser && targetName) {
-                matchedUser = users.find(u => String(u.fullName || u.name || '').toLowerCase().trim() === targetName);
-              }
-
-              if (matchedUser) {
-                raw = matchedUser.address || matchedUser.shippingAddress;
-              }
-            }
-          } catch (e) {
-            console.warn('Address lookup error:', e);
-          }
-        }
-
-        if (raw && typeof raw === 'string') {
-          const trimmed = raw.trim();
-          if (
-            trimmed &&
-            trimmed.toLowerCase() !== 'aurora local region' &&
-            trimmed.toLowerCase() !== 'house no., street, barangay, aurora, zamboanga del sur'
-          ) {
-            return trimmed;
-          }
-        }
-
         if (order.deliveryOption === 'pickup') {
           return 'Store Warehouse Pickup';
+        }
+
+        // 1. Gather all potential delivery address fields from the order record in priority order
+        const orderCandidates = [
+          formatStructuredAddressDetails(order.addressDetails),
+          formatStructuredAddressDetails(order.shippingAddressDetails),
+          order.deliveryAddress,
+          order.shippingAddress,
+          order.address,
+          order.delivery_address,
+          order.shipping_address,
+          order.customerAddress,
+          formatStructuredAddressDetails(order.customer?.addressDetails),
+          order.customer?.deliveryAddress,
+          order.customer?.shippingAddress,
+          order.customer?.address
+        ];
+
+        for (const cand of orderCandidates) {
+          if (cand && typeof cand === 'string' && !isPlaceholderAddress(cand)) {
+            return cand.trim();
+          }
+        }
+
+        // 2. If missing or placeholder on order record, look up in customer records / user profiles
+        try {
+          const customers = (typeof getAllCustomers === 'function' ? getAllCustomers() : JSON.parse(localStorage.getItem('aurora-customers') || '[]'));
+          const users = (typeof getAllUsers === 'function' ? getAllUsers() : JSON.parse(localStorage.getItem('aurora-users') || '[]'));
+
+          const targetId = order.userId || order.customerId;
+          const targetEmail = (order.customerEmail || order.email || '').toLowerCase().trim();
+          const targetPhone = (order.phone || '').trim();
+          const targetName = (order.fullName || order.customerName || '').toLowerCase().trim();
+
+          let matchedCust = null;
+          if (targetId) {
+            matchedCust = customers.find(c => String(c.id) === String(targetId) || String(c.customerId) === String(targetId) || String(c.uid) === String(targetId));
+          }
+          if (!matchedCust && targetEmail) {
+            matchedCust = customers.find(c => String(c.email || '').toLowerCase().trim() === targetEmail);
+          }
+          if (!matchedCust && targetPhone) {
+            matchedCust = customers.find(c => String(c.phone || '').trim() === targetPhone);
+          }
+          if (!matchedCust && targetName) {
+            matchedCust = customers.find(c => String(c.name || c.fullName || '').toLowerCase().trim() === targetName);
+          }
+
+          if (matchedCust) {
+            const custCandidates = [
+              formatStructuredAddressDetails(matchedCust.addressDetails),
+              matchedCust.deliveryAddress,
+              matchedCust.shippingAddress,
+              matchedCust.address
+            ];
+            for (const cand of custCandidates) {
+              if (cand && typeof cand === 'string' && !isPlaceholderAddress(cand)) {
+                return cand.trim();
+              }
+            }
+          }
+
+          let matchedUser = null;
+          if (targetId) {
+            matchedUser = users.find(u => String(u.id) === String(targetId) || String(u.uid) === String(targetId));
+          }
+          if (!matchedUser && targetEmail) {
+            matchedUser = users.find(u => String(u.email || '').toLowerCase().trim() === targetEmail);
+          }
+          if (!matchedUser && targetPhone) {
+            matchedUser = users.find(u => String(u.phone || '').trim() === targetPhone);
+          }
+          if (!matchedUser && targetName) {
+            matchedUser = users.find(u => String(u.fullName || u.name || '').toLowerCase().trim() === targetName);
+          }
+
+          if (matchedUser) {
+            const userCandidates = [
+              formatStructuredAddressDetails(matchedUser.addressDetails),
+              matchedUser.deliveryAddress,
+              matchedUser.shippingAddress,
+              matchedUser.address
+            ];
+            for (const cand of userCandidates) {
+              if (cand && typeof cand === 'string' && !isPlaceholderAddress(cand)) {
+                return cand.trim();
+              }
+            }
+          }
+        } catch (e) {
+          console.warn('Address lookup error:', e);
         }
 
         return 'Address not provided';
@@ -4004,6 +4492,21 @@
         guaranteeSecurityTokens(order);
 
         const displayAddress = resolveOrderAddress(order);
+        const validCoords = getValidOrderCoordinates(order);
+        const mapLinkHtml = (order.deliveryOption !== 'pickup' && validCoords) ? `
+          <a 
+            href="https://www.google.com/maps?q=${validCoords.lat},${validCoords.lng}" 
+            target="_blank" 
+            rel="noopener noreferrer" 
+            class="inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold text-[#1E6C02] dark:text-emerald-400 hover:text-[#145001] dark:hover:text-emerald-300 hover:underline transition-colors shrink-0"
+            title="Open pinned location in Google Maps (${validCoords.lat.toFixed(5)}, ${validCoords.lng.toFixed(5)})"
+          >
+            <span>📍</span>
+            <span>View on Map ↗</span>
+          </a>
+        ` : '';
+
+        const addressBreakdownHtml = (order.deliveryOption !== 'pickup') ? renderOrderAddressDetailsHtml(order) : '';
 
         const box = document.getElementById('details-modal-box');
         if (!box) return;
@@ -4208,8 +4711,12 @@
                       <p class="font-normal text-black text-[17px] mt-1.5">${order.phone || 'N/A'}</p>
                     </div>
                     <div class="sm:col-span-2 border-t border-gray-200 pt-3.5">
-                      <p class="text-black font-bold text-[16px]">Delivery Address</p>
+                      <div class="flex items-center justify-between">
+                        <p class="text-black font-bold text-[16px]">Delivery Address</p>
+                        ${mapLinkHtml}
+                      </div>
                       <p class="font-normal text-black text-[17px] mt-1.5 leading-relaxed">${displayAddress}</p>
+                      ${addressBreakdownHtml}
                     </div>
                   </div>
                 </div>
@@ -4225,8 +4732,12 @@
                       <p class="font-normal text-black text-[17px] mt-1.5 capitalize">${order.deliveryOption === 'pickup' ? 'Store Pickup' : 'Home Delivery'}</p>
                     </div>
                     <div>
-                      <p class="text-black font-bold text-[16px]">Shipping Address</p>
-                      <p class="font-normal text-black text-[17px] mt-1.5">${displayAddress}</p>
+                      <div class="flex items-center justify-between">
+                        <p class="text-black font-bold text-[16px]">Shipping Address</p>
+                        ${mapLinkHtml}
+                      </div>
+                      <p class="font-normal text-black text-[17px] mt-1.5 leading-relaxed">${displayAddress}</p>
+                      ${addressBreakdownHtml}
                     </div>
                   </div>
                 </div>
@@ -4414,8 +4925,12 @@
                       <p class="font-normal text-black text-[17px] mt-1.5">${order.phone || 'N/A'}</p>
                     </div>
                     <div class="sm:col-span-2 border-t border-gray-200 pt-3.5">
-                      <p class="text-black font-bold text-[16px]">Delivery Address</p>
+                      <div class="flex items-center justify-between">
+                        <p class="text-black font-bold text-[16px]">Delivery Address</p>
+                        ${mapLinkHtml}
+                      </div>
                       <p class="font-normal text-black text-[17px] mt-1.5 leading-relaxed">${displayAddress}</p>
+                      ${addressBreakdownHtml}
                     </div>
                   </div>
                 </div>
@@ -4431,8 +4946,12 @@
                       <p class="font-normal text-black text-[17px] mt-1.5 capitalize">${order.deliveryOption === 'pickup' ? 'Store Pickup' : 'Home Delivery'}</p>
                     </div>
                     <div>
-                      <p class="text-black font-bold text-[16px]">Shipping Address</p>
-                      <p class="font-normal text-black text-[17px] mt-1.5">${displayAddress}</p>
+                      <div class="flex items-center justify-between">
+                        <p class="text-black font-bold text-[16px]">Shipping Address</p>
+                        ${mapLinkHtml}
+                      </div>
+                      <p class="font-normal text-black text-[17px] mt-1.5 leading-relaxed">${displayAddress}</p>
+                      ${addressBreakdownHtml}
                     </div>
                   </div>
                 </div>
@@ -4518,8 +5037,12 @@
                       <p class="font-normal text-black text-[17px] mt-1.5">${order.phone || 'N/A'}</p>
                     </div>
                     <div class="sm:col-span-2 border-t border-gray-200 pt-3.5">
-                      <p class="text-black font-bold text-[16px]">Delivery Address</p>
+                      <div class="flex items-center justify-between">
+                        <p class="text-black font-bold text-[16px]">Delivery Address</p>
+                        ${mapLinkHtml}
+                      </div>
                       <p class="font-normal text-black text-[17px] mt-1.5 leading-relaxed">${displayAddress}</p>
+                      ${addressBreakdownHtml}
                     </div>
                   </div>
                 </div>
@@ -4535,8 +5058,12 @@
                       <p class="font-normal text-black text-[17px] mt-1.5 capitalize">${order.deliveryOption === 'pickup' ? 'Store Pickup' : 'Home Delivery'}</p>
                     </div>
                     <div>
-                      <p class="text-black font-bold text-[16px]">Shipping Address</p>
-                      <p class="font-normal text-black text-[17px] mt-1.5">${displayAddress}</p>
+                      <div class="flex items-center justify-between">
+                        <p class="text-black font-bold text-[16px]">Shipping Address</p>
+                        ${mapLinkHtml}
+                      </div>
+                      <p class="font-normal text-black text-[17px] mt-1.5 leading-relaxed">${displayAddress}</p>
+                      ${addressBreakdownHtml}
                     </div>
                   </div>
                 </div>
@@ -4675,9 +5202,19 @@
                       <p class="font-normal text-black text-[17px] mt-1.5">${order.phone || 'N/A'}</p>
                     </div>
                     <div class="sm:col-span-2 border-t border-gray-200 pt-3.5">
-                      <p class="text-black font-bold text-[16px]">Delivery Method</p>
-                      <p class="font-normal text-black text-[17px] mt-1.5 uppercase">${order.paymentMethod === 'gcash' ? 'GCash' : 'Cash'} • Pickup Reservation</p>
+                      <p class="text-black font-bold text-[16px]">Fulfillment & Payment Method</p>
+                      <p class="font-normal text-black text-[17px] mt-1.5 uppercase">${order.paymentMethod === 'gcash' ? 'GCash' : 'Cash'} • ${order.deliveryOption === 'pickup' ? 'Store Pickup' : 'Home Delivery'}</p>
                     </div>
+                    ${order.deliveryOption !== 'pickup' ? `
+                    <div class="sm:col-span-2 border-t border-gray-200 pt-3.5">
+                      <div class="flex items-center justify-between">
+                        <p class="text-black font-bold text-[16px]">Saved Delivery Address</p>
+                        ${mapLinkHtml}
+                      </div>
+                      <p class="font-normal text-black text-[17px] mt-1.5 leading-relaxed">${displayAddress}</p>
+                      ${addressBreakdownHtml}
+                    </div>
+                    ` : ''}
                   </div>
                 </div>
 
@@ -4786,8 +5323,12 @@
                       <p class="font-normal text-black text-[17px] mt-1.5 capitalize">${order.deliveryOption === 'pickup' ? 'Store Pickup' : 'Home Delivery'}</p>
                     </div>
                     <div>
-                      <p class="text-black font-bold text-[16px]">Shipping Address</p>
-                      <p class="font-normal text-black text-[17px] mt-1.5">${displayAddress}</p>
+                      <div class="flex items-center justify-between">
+                        <p class="text-black font-bold text-[16px]">Shipping Address</p>
+                        ${mapLinkHtml}
+                      </div>
+                      <p class="font-normal text-black text-[17px] mt-1.5 leading-relaxed">${displayAddress}</p>
+                      ${addressBreakdownHtml}
                     </div>
                   </div>
                 </div>
@@ -5172,8 +5713,12 @@
                       <p class="font-extrabold text-black mt-1 text-[15px] capitalize">${order.deliveryOption === 'pickup' ? 'Store Pickup' : 'Home Delivery'}</p>
                     </div>
                     <div class="sm:col-span-2 border-t border-gray-150 pt-3">
-                      <p class="text-gray-500 font-bold">Shipping Address</p>
+                      <div class="flex items-center justify-between">
+                        <p class="text-gray-500 font-bold">Shipping Address</p>
+                        ${mapLinkHtml}
+                      </div>
                       <p class="font-extrabold text-black mt-1 text-[15px] leading-relaxed">${displayAddress}</p>
+                      ${addressBreakdownHtml}
                     </div>
                   </div>
                 </div>
@@ -5349,6 +5894,14 @@
                     <div>
                       <p class="text-black font-bold text-[16px]">Contact Number</p>
                       <p class="font-normal text-black text-[17px] mt-1.5">${order.phone || 'N/A'}</p>
+                    </div>
+                    <div class="sm:col-span-2 border-t border-gray-200 pt-3.5">
+                      <div class="flex items-center justify-between">
+                        <p class="text-black font-bold text-[16px]">Fulfillment & Address</p>
+                        ${mapLinkHtml}
+                      </div>
+                      <p class="font-normal text-black text-[17px] mt-1.5 leading-relaxed"><span class="font-bold">${order.deliveryOption === 'pickup' ? 'Store Pickup' : 'Home Delivery'}:</span> ${displayAddress}</p>
+                      ${addressBreakdownHtml}
                     </div>
                   </div>
                 </div>
@@ -5582,6 +6135,14 @@
                     <div>
                       <p class="text-black dark:text-white font-bold text-[16px]">Phone</p>
                       <p class="font-normal text-slate-800 dark:text-slate-200 text-[17px] mt-1.5">${order.phone || 'N/A'}</p>
+                    </div>
+                    <div class="sm:col-span-2 border-t border-gray-200 dark:border-slate-700 pt-3.5">
+                      <div class="flex items-center justify-between">
+                        <p class="text-black dark:text-white font-bold text-[16px]">Fulfillment & Address</p>
+                        ${mapLinkHtml}
+                      </div>
+                      <p class="font-normal text-slate-800 dark:text-slate-200 text-[17px] mt-1.5 leading-relaxed"><span class="font-bold">${order.deliveryOption === 'pickup' ? 'Store Pickup' : 'Home Delivery'}:</span> ${displayAddress}</p>
+                      ${addressBreakdownHtml}
                     </div>
                   </div>
                 </div>
@@ -5876,6 +6437,8 @@ if (freshEst && freshEst !== 'Waiting for Restock' && freshEst !== 'Not yet sche
               const changer = window.RiceFlow.getCurrentAdmin()?.name || 'Administrator';
               tr.staffName = changer;
               tr.assignedStaff = changer;
+              tr.preparationAuthorizedAt = new Date().toISOString();
+              order.preparationAuthorizedAt = tr.preparationAuthorizedAt;
               if (!tr.statusHistory) tr.statusHistory = [];
               tr.statusHistory.push({
                 id: 'hist-processing-' + Date.now(),
@@ -6266,6 +6829,720 @@ if (freshEst && freshEst !== 'Waiting for Restock' && freshEst !== 'Not yet sche
           };
         }
       }
+
+      // =========================================================================
+      // SMART DELIVERY ROUTE PLANNER CONTROLLER
+      // =========================================================================
+      let routePlannerMap = null;
+      let routePlannerLayersGroup = null;
+      let routePlannerSessionPlan = null;
+      let isRoutePlannerCalculating = false;
+
+      /**
+       * Checks whether the warehouse starting location is verified by an
+       * authoritative business setting or project data.
+       * Uses the client-provided provisional Facebook map coordinates (7.896128, 123.616425)
+       * as the starting point for road-routing requests, clearly labeled as provisional.
+       */
+      function getAuthoritativeWarehouseOrigin() {
+        const settings = typeof getStoreSettings === 'function' ? getStoreSettings() : {};
+        let storeData = null;
+        try {
+          const raw = localStorage.getItem('aurora-store-settings');
+          if (raw) {
+            const parsed = JSON.parse(raw);
+            storeData = Array.isArray(parsed) && parsed.length > 0 ? parsed[0] : parsed;
+          }
+        } catch (_) {}
+
+        let coordsCandidate = null;
+        if (storeData && storeData.warehouseCoordinates) {
+          coordsCandidate = storeData.warehouseCoordinates;
+        } else if (storeData && storeData.warehouseLat !== undefined && storeData.warehouseLng !== undefined) {
+          coordsCandidate = { lat: storeData.warehouseLat, lng: storeData.warehouseLng };
+        } else if (settings && settings.warehouseCoordinates) {
+          coordsCandidate = settings.warehouseCoordinates;
+        } else {
+          try {
+            const explicit = localStorage.getItem('aurora-warehouse-coordinates');
+            if (explicit) coordsCandidate = JSON.parse(explicit);
+          } catch (_) {}
+        }
+
+        if (coordsCandidate && typeof coordsCandidate === 'object') {
+          const lat = Number(coordsCandidate.lat !== undefined ? coordsCandidate.lat : coordsCandidate.latitude);
+          const lng = Number(coordsCandidate.lng !== undefined ? coordsCandidate.lng : coordsCandidate.longitude);
+          if (!isNaN(lat) && !isNaN(lng) && isFinite(lat) && isFinite(lng) && (lat !== 0 || lng !== 0)) {
+            if (lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180) {
+              return {
+                name: (storeData?.warehouseName || (settings?.storeName ? `${settings.storeName} Dispatch Warehouse` : 'Aurora Local Rice Warehouse')),
+                lat,
+                lng,
+                isVerified: true,
+                isProvisional: false,
+                sourceLabel: 'Authoritative Business Settings'
+              };
+            }
+          }
+        }
+
+        // Client-provided provisional warehouse starting point from Facebook map pin
+        const provisionalLat = 7.896128;
+        const provisionalLng = 123.616425;
+        if (typeof provisionalLat === 'number' && typeof provisionalLng === 'number' &&
+            !isNaN(provisionalLat) && !isNaN(provisionalLng) &&
+            isFinite(provisionalLat) && isFinite(provisionalLng) &&
+            provisionalLat >= -90 && provisionalLat <= 90 &&
+            provisionalLng >= -180 && provisionalLng <= 180) {
+          return {
+            name: (storeData?.warehouseName || (settings?.storeName ? `${settings.storeName} Warehouse (Provisional)` : 'Aurora Local Rice Warehouse (Provisional)')),
+            lat: provisionalLat,
+            lng: provisionalLng,
+            isVerified: true,
+            isProvisional: true,
+            sourceLabel: 'Client-Provided Facebook Map Pin (Provisional)'
+          };
+        }
+
+        return null;
+      }
+
+      /**
+       * Collects eligible home-delivery orders from the current "To Ship" queue
+       * and filters out pickup orders, unready orders, and orders without usable coordinates.
+       */
+      function collectRoutePlannerOrders() {
+        const allOrders = getAllOrders();
+
+        // Target: To Ship orders
+        const toShipOrders = allOrders.filter(o => o.status === 'to-ship');
+        // Standard FIFO priority ranking
+        toShipOrders.sort((a, b) => new Date(a.createdAt || a.date || 0) - new Date(b.createdAt || b.date || 0));
+
+        const eligibleOrders = [];
+        const excludedOrders = [];
+
+        toShipOrders.forEach((order, idx) => {
+          const fifoRank = idx + 1;
+          const methodInfo = typeof getDeliveryMethodBadge === 'function' ? getDeliveryMethodBadge(order) : null;
+          const isPickup = (order.deliveryOption === 'pickup') || (methodInfo && methodInfo.type === 'pickup');
+
+          // Exclude pickup orders
+          if (isPickup) {
+            excludedOrders.push({
+              order,
+              customerName: order.fullName || order.customerName || 'Customer',
+              reason: 'Store Pickup Order (Customer will claim directly at store/warehouse)'
+            });
+            return;
+          }
+
+          // Check coordinates
+          const coords = typeof getValidOrderCoordinates === 'function' ? getValidOrderCoordinates(order) : null;
+          if (!coords) {
+            excludedOrders.push({
+              order,
+              customerName: order.fullName || order.customerName || 'Customer',
+              reason: 'Missing or unconfirmed GPS coordinates on delivery address snapshot'
+            });
+            return;
+          }
+
+          // Check address snapshot
+          const addr = typeof resolveOrderAddress === 'function' ? resolveOrderAddress(order) : order.address;
+          if (!addr || addr === 'Address not provided') {
+            excludedOrders.push({
+              order,
+              customerName: order.fullName || order.customerName || 'Customer',
+              reason: 'Missing detailed street or barangay delivery address snapshot'
+            });
+            return;
+          }
+
+          eligibleOrders.push({
+            order,
+            coords,
+            address: addr,
+            fifoRank,
+            customerName: order.fullName || order.customerName || 'Customer',
+            phone: order.phone || 'N/A'
+          });
+        });
+
+        return { eligibleOrders, excludedOrders, toShipOrders };
+      }
+
+      /**
+       * Groups split-order records or orders representing the same physical delivery
+       * into a single stop so a customer location is not visited repeatedly.
+       */
+      function groupOrdersIntoPhysicalStops(eligibleOrders) {
+        const stops = [];
+
+        eligibleOrders.forEach(item => {
+          const { order, coords, address, fifoRank, customerName, phone } = item;
+
+          const matchedStop = stops.find(s => {
+            const dLat = Math.abs(s.lat - coords.lat);
+            const dLng = Math.abs(s.lng - coords.lng);
+            const isSameCoord = dLat < 0.00015 && dLng < 0.00015;
+
+            const isLinked = s.orders.some(o =>
+              (order.linkedOrderId && String(o.id) === String(order.linkedOrderId)) ||
+              (o.linkedOrderId && String(o.linkedOrderId) === String(order.id)) ||
+              (order.originalOrderId && String(o.id) === String(order.originalOrderId)) ||
+              (o.originalOrderId && String(o.originalOrderId) === String(order.id)) ||
+              (order.linkedOrderId && o.linkedOrderId && String(order.linkedOrderId) === String(o.linkedOrderId))
+            );
+
+            const isSameCustAddress = (s.customerName.toLowerCase().trim() === customerName.toLowerCase().trim()) &&
+              (s.address.toLowerCase().trim() === address.toLowerCase().trim());
+
+            return isSameCoord || isLinked || isSameCustAddress;
+          });
+
+          if (matchedStop) {
+            matchedStop.orders.push(order);
+            matchedStop.orderIds.push(order.id);
+            if (fifoRank < matchedStop.bestPriorityRank) {
+              matchedStop.bestPriorityRank = fifoRank;
+            }
+            const dl = order.deliveryDeadline || order.deadline || order.customerConfirmationDeadline;
+            if (dl && (!matchedStop.earliestDeadline || new Date(dl) < new Date(matchedStop.earliestDeadline))) {
+              matchedStop.earliestDeadline = dl;
+            }
+          } else {
+            stops.push({
+              stopId: 'stop-' + (stops.length + 1),
+              lat: coords.lat,
+              lng: coords.lng,
+              customerName,
+              phone,
+              address,
+              orders: [order],
+              orderIds: [order.id],
+              bestPriorityRank: fifoRank,
+              earliestDeadline: order.deliveryDeadline || order.deadline || order.customerConfirmationDeadline || null
+            });
+          }
+        });
+
+        return stops;
+      }
+
+      /**
+       * Calls real OSRM road routing service to obtain driving road distances
+       * and estimated travel times.
+       */
+      async function fetchOSRMRoute(origin, stops) {
+        if (!origin || !origin.isVerified) {
+          throw new Error('Warehouse origin is unverified.');
+        }
+
+        if (!stops || stops.length === 0) {
+          return { stops: [], totalDistance: 0, totalDuration: 0, geometry: null, legs: [] };
+        }
+
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 8000);
+
+        try {
+          if (stops.length === 1) {
+            const url = `https://router.project-osrm.org/route/v1/driving/${origin.lng},${origin.lat};${stops[0].lng},${stops[0].lat}?overview=full&geometries=geojson`;
+            const resp = await fetch(url, { signal: controller.signal });
+            clearTimeout(timeoutId);
+
+            if (!resp.ok) throw new Error(`OSRM HTTP error: ${resp.status}`);
+            const data = await resp.json();
+            if (data.code !== 'Ok' || !data.routes || data.routes.length === 0) {
+              throw new Error(`OSRM returned code: ${data.code || 'Unknown'}`);
+            }
+
+            const route = data.routes[0];
+            const stopWithLeg = { ...stops[0] };
+            if (route.legs && route.legs[0]) {
+              stopWithLeg.legDistanceMeters = route.legs[0].distance;
+              stopWithLeg.legDurationSeconds = route.legs[0].duration;
+            }
+
+            return {
+              stops: [stopWithLeg],
+              totalDistance: route.distance,
+              totalDuration: route.duration,
+              geometry: route.geometry,
+              legs: route.legs || []
+            };
+          } else {
+            // OSRM Trip API with source=first to optimize sequence from warehouse starting point
+            const coordsString = `${origin.lng},${origin.lat};` + stops.map(s => `${s.lng},${s.lat}`).join(';');
+            const url = `https://router.project-osrm.org/trip/v1/driving/${coordsString}?source=first&roundtrip=false&geometries=geojson&overview=full`;
+            const resp = await fetch(url, { signal: controller.signal });
+            clearTimeout(timeoutId);
+
+            if (!resp.ok) throw new Error(`OSRM HTTP error: ${resp.status}`);
+            const data = await resp.json();
+            if (data.code !== 'Ok' || !data.trips || data.trips.length === 0) {
+              throw new Error(`OSRM returned code: ${data.code || 'Unknown'}`);
+            }
+
+            const trip = data.trips[0];
+            const waypoints = data.waypoints || [];
+
+            // In OSRM Trip API, the waypoints array returns elements matching the original input coordinate order:
+            // - waypoints[0] represents origin (input coordinate 0), which has waypoint_index = 0 (visited first).
+            // - waypoints[idx + 1] represents stops[idx] (input coordinate idx + 1).
+            // Each waypoint's `waypoint_index` property represents its sequential visit index in the trip (1, 2, ..., N).
+            // Within trip.legs, leg 0 leads to the stop visited 1st (trip step 1), leg 1 leads to step 2, etc.
+            const stopVisits = stops.map((stop, idx) => {
+              const wp = waypoints[idx + 1];
+              const tripIndex = (wp && typeof wp.waypoint_index === 'number') ? wp.waypoint_index : (idx + 1);
+              return { stop, tripIndex, originalIndex: idx };
+            });
+
+            // Sort stops strictly according to their sequential order in the optimized trip
+            stopVisits.sort((a, b) => a.tripIndex - b.tripIndex);
+
+            const orderedStops = stopVisits.map((item, legIdx) => {
+              const stopObj = { ...item.stop };
+              const leg = trip.legs && trip.legs[legIdx];
+              if (leg) {
+                stopObj.legDistanceMeters = leg.distance;
+                stopObj.legDurationSeconds = leg.duration;
+              }
+              return stopObj;
+            });
+
+            return {
+              stops: orderedStops.length > 0 ? orderedStops : stops,
+              totalDistance: trip.distance,
+              totalDuration: trip.duration,
+              geometry: trip.geometry,
+              legs: trip.legs || []
+            };
+          }
+        } catch (err) {
+          clearTimeout(timeoutId);
+          throw err;
+        }
+      }
+
+      /**
+       * Renders or updates the Leaflet map and layer group.
+       */
+      function renderRoutePlannerMap(origin, stops, geometry) {
+        const container = document.getElementById('route-planner-map-container');
+        const fallback = document.getElementById('route-planner-map-fallback');
+        if (!container) return;
+
+        if (typeof window.L === 'undefined') {
+          if (fallback) fallback.classList.remove('hidden');
+          return;
+        }
+
+        if (fallback) fallback.classList.add('hidden');
+
+        try {
+          if (!routePlannerMap) {
+            routePlannerMap = L.map('route-planner-map-container', {
+              zoomControl: true,
+              scrollWheelZoom: false
+            }).setView([7.896128, 123.616425], 13);
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+              attribution: '© OpenStreetMap contributors · OSRM',
+              maxZoom: 19
+            }).addTo(routePlannerMap);
+
+            routePlannerLayersGroup = L.featureGroup().addTo(routePlannerMap);
+          } else {
+            routePlannerLayersGroup.clearLayers();
+          }
+
+          const boundsPoints = [];
+
+          // 1. Warehouse Origin Marker (only if verified)
+          if (origin && origin.isVerified) {
+            const isProv = !!origin.isProvisional;
+            const whIcon = L.divIcon({
+              className: 'custom-wh-marker',
+              html: `<div style="background-color:#1E6C02;color:white;width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:17px;border:3px solid white;box-shadow:0 3px 6px rgba(0,0,0,0.35);">🏬</div>`,
+              iconSize: [34, 34],
+              iconAnchor: [17, 17]
+            });
+            const subLabel = isProv 
+              ? '<span style="font-size:11px;color:#d97706;font-weight:bold;">Provisional Dispatch Facility (FB Map Pin)</span>'
+              : '<span style="font-size:11px;color:#1E6C02;font-weight:bold;">Dispatch Starting Facility</span>';
+            const whMarker = L.marker([origin.lat, origin.lng], { icon: whIcon })
+              .bindPopup(`<b>${origin.name}</b><br>${subLabel}<br><span style="font-size:10px;color:#666;font-family:monospace;">${origin.lat.toFixed(6)}, ${origin.lng.toFixed(6)}</span>`);
+            routePlannerLayersGroup.addLayer(whMarker);
+            boundsPoints.push([origin.lat, origin.lng]);
+          }
+
+          // 2. Numbered Stop Markers
+          if (stops && stops.length > 0) {
+            stops.forEach((stop, idx) => {
+              const stopNum = idx + 1;
+              const stopIcon = L.divIcon({
+                className: 'custom-stop-marker',
+                html: `<div style="background-color:#0284c7;color:white;width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900;border:2.5px solid white;box-shadow:0 2px 5px rgba(0,0,0,0.3);">${stopNum}</div>`,
+                iconSize: [30, 30],
+                iconAnchor: [15, 15]
+              });
+              const stopMarker = L.marker([stop.lat, stop.lng], { icon: stopIcon })
+                .bindPopup(`<b>Stop #${stopNum}: ${stop.customerName}</b><br>Order(s): ${stop.orderIds.map(id => '#' + id).join(', ')}<br><span style="font-size:11px;color:#555;">${stop.address}</span>`);
+              routePlannerLayersGroup.addLayer(stopMarker);
+              boundsPoints.push([stop.lat, stop.lng]);
+            });
+          }
+
+          // 3. Polyline road path if route geometry was retrieved
+          if (geometry && geometry.coordinates) {
+            const polylineLayer = L.geoJSON(geometry, {
+              style: {
+                color: '#1E6C02',
+                weight: 5,
+                opacity: 0.85
+              }
+            });
+            routePlannerLayersGroup.addLayer(polylineLayer);
+          }
+
+          // Fit bounds
+          if (boundsPoints.length > 0) {
+            routePlannerMap.fitBounds(L.latLngBounds(boundsPoints), { padding: [40, 40], maxZoom: 16 });
+          } else {
+            routePlannerMap.setView([7.896128, 123.616425], 13);
+          }
+
+          setTimeout(() => {
+            if (routePlannerMap) routePlannerMap.invalidateSize();
+          }, 250);
+        } catch (e) {
+          console.warn('Leaflet map error:', e);
+          if (fallback) fallback.classList.remove('hidden');
+        }
+      }
+
+      /**
+       * Main Route Planner calculator and UI renderer.
+       */
+      async function calculateAndRenderRoute(isRecalculate = false) {
+        if (isRoutePlannerCalculating) return;
+        isRoutePlannerCalculating = true;
+
+        const originCardName = document.getElementById('route-planner-origin-name');
+        const originCardCoords = document.getElementById('route-planner-origin-coords');
+        const blockerBanner = document.getElementById('route-planner-origin-blocker');
+        const tripDistanceEl = document.getElementById('route-planner-trip-distance');
+        const tripTimeEl = document.getElementById('route-planner-trip-time');
+        const stopsCountEl = document.getElementById('route-planner-stops-count');
+        const stopsTbody = document.getElementById('route-planner-stops-tbody');
+        const excludedContainer = document.getElementById('route-planner-excluded-container');
+        const excludedCountEl = document.getElementById('route-planner-excluded-count');
+        const excludedListEl = document.getElementById('route-planner-excluded-list');
+        const reviewBadge = document.getElementById('route-planner-confirmation-badge');
+        const reviewNote = document.getElementById('route-planner-confirmation-note');
+
+        if (isRecalculate) {
+          routePlannerSessionPlan = null;
+          if (reviewBadge) {
+            reviewBadge.innerHTML = `
+              <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-amber-100 text-amber-900 border border-amber-300 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-700">
+                <span>⏳</span> Pending Staff Review
+              </span>
+            `;
+          }
+          if (reviewNote) {
+            reviewNote.textContent = 'Staff must review this suggested sequence before dispatch. Confirming preserves the plan in this session without modifying order statuses or payment/inventory records.';
+          }
+        }
+
+        // 1. Verify warehouse origin
+        const warehouseOrigin = getAuthoritativeWarehouseOrigin();
+
+        // 2. Collect eligible and excluded orders
+        const { eligibleOrders, excludedOrders, toShipOrders } = collectRoutePlannerOrders();
+
+        // 3. Cluster into physical stops
+        const clusteredStops = groupOrdersIntoPhysicalStops(eligibleOrders);
+
+        // Render Excluded Orders list
+        if (excludedContainer && excludedCountEl && excludedListEl) {
+          excludedCountEl.textContent = excludedOrders.length;
+          if (excludedOrders.length > 0) {
+            excludedListEl.innerHTML = excludedOrders.map(item => `
+              <li class="flex items-start gap-2 bg-white/70 dark:bg-gray-900/60 p-2.5 rounded-xl border border-amber-200/80 dark:border-amber-800/60 text-xs">
+                <span class="font-bold shrink-0 text-black dark:text-white">#${item.order.id}</span>
+                <span class="text-gray-700 dark:text-gray-300 shrink-0">(${item.customerName})</span>
+                <span class="font-semibold text-amber-900 dark:text-amber-200 ml-auto text-right">— ${item.reason}</span>
+              </li>
+            `).join('');
+            excludedContainer.classList.remove('hidden');
+          } else {
+            excludedListEl.innerHTML = '';
+            excludedContainer.classList.add('hidden');
+          }
+        }
+
+        // Handle case when origin is UNVERIFIED
+        if (!warehouseOrigin) {
+          // Blocker state
+          if (originCardName) originCardName.textContent = 'Aurora Local Rice Warehouse (Unverified Location)';
+          if (originCardCoords) {
+            originCardCoords.innerHTML = `<span class="text-amber-700 dark:text-amber-400 font-bold flex items-center gap-1">⚠️ 7.9628° N, 123.5826° E (Unverified Municipal Default)</span>`;
+          }
+          if (blockerBanner) blockerBanner.classList.remove('hidden');
+          if (tripDistanceEl) {
+            tripDistanceEl.innerHTML = `<span class="text-amber-700 dark:text-amber-400 text-base font-bold">Road Routing Blocked</span>`;
+          }
+          if (tripTimeEl) {
+            tripTimeEl.textContent = 'Awaiting verified warehouse location in business settings';
+          }
+
+          // Order stops by standard FIFO priority / deadlines for staging review
+          clusteredStops.sort((a, b) => {
+            if (a.earliestDeadline && b.earliestDeadline) return new Date(a.earliestDeadline) - new Date(b.earliestDeadline);
+            if (a.earliestDeadline) return -1;
+            if (b.earliestDeadline) return 1;
+            return a.bestPriorityRank - b.bestPriorityRank;
+          });
+
+          renderStopsTable(clusteredStops, false);
+          renderRoutePlannerMap(null, clusteredStops, null);
+
+          isRoutePlannerCalculating = false;
+          if (isRecalculate) {
+            showToast('Route re-evaluated. Road calculation remains safely blocked due to unverified warehouse origin.', 'info');
+          }
+          return;
+        }
+
+        // Warehouse Origin IS verified / provisional
+        if (blockerBanner) blockerBanner.classList.add('hidden');
+        if (originCardName) originCardName.textContent = warehouseOrigin.name;
+        if (originCardCoords) {
+          originCardCoords.innerHTML = warehouseOrigin.isProvisional
+            ? `<span class="font-mono text-black dark:text-white font-bold">${warehouseOrigin.lat.toFixed(6)}° N, ${warehouseOrigin.lng.toFixed(6)}° E</span> <span class="text-[11px] font-bold text-amber-700 dark:text-amber-400 block sm:inline sm:ml-1">(Provisional FB Map Pin)</span>`
+            : `<span class="font-mono text-black dark:text-white font-bold">${warehouseOrigin.lat.toFixed(6)}° N, ${warehouseOrigin.lng.toFixed(6)}° E</span>`;
+        }
+
+        if (clusteredStops.length === 0) {
+          if (tripDistanceEl) tripDistanceEl.textContent = '0 km (0 stops)';
+          if (tripTimeEl) tripTimeEl.textContent = 'No eligible home deliveries to route';
+          renderStopsTable([], true);
+          renderRoutePlannerMap(warehouseOrigin, [], null);
+          isRoutePlannerCalculating = false;
+          return;
+        }
+
+        if (tripDistanceEl) tripDistanceEl.textContent = 'Contacting road router...';
+        if (tripTimeEl) tripTimeEl.textContent = 'Evaluating road network distances...';
+
+        try {
+          const routeResult = await fetchOSRMRoute(warehouseOrigin, clusteredStops);
+
+          // Total distance & duration
+          const distKm = (routeResult.totalDistance / 1000).toFixed(1);
+          const totalSec = Math.round(routeResult.totalDuration);
+          const durHours = Math.floor(totalSec / 3600);
+          const durMins = Math.round((totalSec % 3600) / 60);
+          const timeStr = durHours > 0 ? `${durHours}h ${durMins}m` : `${durMins} mins`;
+
+          if (tripDistanceEl) tripDistanceEl.textContent = `${distKm} km total`;
+          if (tripTimeEl) tripTimeEl.textContent = `Est. driving time: ~${timeStr} (no live traffic)`;
+
+          renderStopsTable(routeResult.stops, true);
+          renderRoutePlannerMap(warehouseOrigin, routeResult.stops, routeResult.geometry);
+
+          if (isRecalculate) {
+            showToast('Route successfully recalculated using road routing service.', 'success');
+          }
+        } catch (routeErr) {
+          console.warn('OSRM Route Planner error:', routeErr);
+          if (tripDistanceEl) {
+            tripDistanceEl.innerHTML = `<span class="text-red-600 dark:text-red-400 text-base font-bold">Routing Service Unavailable</span>`;
+          }
+          if (tripTimeEl) {
+            tripTimeEl.textContent = 'OSRM request failed or timed out. Please retry with Recalculate.';
+          }
+
+          // Fallback sequence table ordered by FIFO priority
+          clusteredStops.sort((a, b) => a.bestPriorityRank - b.bestPriorityRank);
+          renderStopsTable(clusteredStops, false);
+          renderRoutePlannerMap(warehouseOrigin, clusteredStops, null);
+
+          if (isRecalculate) {
+            showToast('OSRM service unavailable. Please retry shortly.', 'error');
+          }
+        } finally {
+          isRoutePlannerCalculating = false;
+        }
+      }
+
+      /**
+       * Helper to render the suggested stops table body.
+       */
+      function renderStopsTable(stops, hasLegEstimates) {
+        const stopsCountEl = document.getElementById('route-planner-stops-count');
+        const stopsTbody = document.getElementById('route-planner-stops-tbody');
+        if (stopsCountEl) stopsCountEl.textContent = stops.length;
+        if (!stopsTbody) return;
+
+        if (stops.length === 0) {
+          stopsTbody.innerHTML = `
+            <tr>
+              <td colspan="6" class="py-8 text-center text-gray-500 dark:text-gray-400 text-sm font-medium">
+                No eligible home delivery orders currently ready for dispatch in "To Ship".
+              </td>
+            </tr>
+          `;
+          return;
+        }
+
+        stopsTbody.innerHTML = stops.map((stop, idx) => {
+          const stopNum = idx + 1;
+          const ordersHtml = stop.orders.map(o => {
+            const fifoRank = stop.bestPriorityRank;
+            return `
+              <div class="flex items-center gap-1.5 flex-wrap">
+                <span class="font-extrabold text-black dark:text-white">#${o.id}</span>
+                <span class="px-2 py-0.5 rounded-md text-[11px] font-bold bg-slate-100 dark:bg-slate-800 text-black dark:text-white border border-slate-300 dark:border-slate-700">
+                  Priority #${fifoRank}
+                </span>
+                ${(o.isReplacement || o.replacementDelivery) ? '<span class="px-2 py-0.5 rounded-md text-[10px] font-black bg-amber-100 text-amber-900 border border-amber-300">Replacement</span>' : ''}
+              </div>
+            `;
+          }).join('');
+
+          let legEstimateHtml = '';
+          if (hasLegEstimates && stop.legDistanceMeters !== undefined && stop.legDistanceMeters !== null) {
+            const legKm = (stop.legDistanceMeters / 1000).toFixed(1);
+            const legMins = Math.max(1, Math.round(stop.legDurationSeconds / 60));
+            legEstimateHtml = `<span class="font-bold text-[#1E6C02] dark:text-emerald-400 text-xs">+${legKm} km • ~${legMins}m</span>`;
+          } else {
+            legEstimateHtml = `<span class="text-xs text-amber-700 dark:text-amber-400 font-semibold" title="Requires verified warehouse dispatch origin">Origin Unverified</span>`;
+          }
+
+          const gMapsNavUrl = `https://www.google.com/maps/dir/?api=1&destination=${stop.lat},${stop.lng}`;
+
+          return `
+            <tr class="hover:bg-gray-50/70 dark:hover:bg-gray-800/50 transition-colors">
+              <td class="py-3 px-3 text-center align-middle">
+                <span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-emerald-700 text-white font-black text-xs shadow-xs">
+                  #${stopNum}
+                </span>
+              </td>
+              <td class="py-3 px-4 align-middle space-y-1">
+                ${ordersHtml}
+                ${stop.earliestDeadline ? `<p class="text-[11px] text-red-600 font-bold">⏱️ Deadline: ${new Date(stop.earliestDeadline).toLocaleDateString()}</p>` : ''}
+              </td>
+              <td class="py-3 px-4 align-middle">
+                <p class="font-bold text-black dark:text-white text-sm">${stop.customerName}</p>
+                <p class="text-xs text-gray-700 dark:text-gray-300 font-mono mt-0.5">${stop.phone}</p>
+              </td>
+              <td class="py-3 px-4 align-middle">
+                <p class="text-xs text-gray-900 dark:text-gray-100 leading-relaxed font-normal">${stop.address}</p>
+              </td>
+              <td class="py-3 px-3 text-center align-middle">
+                ${legEstimateHtml}
+              </td>
+              <td class="py-3 px-3 text-center align-middle">
+                <a
+                  href="${gMapsNavUrl}"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-bold bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-750 text-black dark:text-white rounded-xl transition-all border border-gray-300 dark:border-gray-700 shadow-2xs hover:scale-102"
+                  title="Open navigation in Google Maps (${stop.lat.toFixed(4)}, ${stop.lng.toFixed(4)})"
+                >
+                  <span>🧭</span>
+                  <span>Navigate ↗</span>
+                </a>
+              </td>
+            </tr>
+          `;
+        }).join('');
+      }
+
+      /**
+       * Staff confirmation of the suggested route.
+       * Preserves the plan in current session memory without touching Firestore,
+       * order statuses, payments, or inventory.
+       */
+      function confirmSuggestedRoutePlan() {
+        const { eligibleOrders } = collectRoutePlannerOrders();
+        const clusteredStops = groupOrdersIntoPhysicalStops(eligibleOrders);
+
+        routePlannerSessionPlan = {
+          confirmedAt: new Date().toISOString(),
+          confirmedBy: getCurrentAdmin()?.name || 'Staff Member',
+          stopsCount: clusteredStops.length,
+          orderIds: clusteredStops.flatMap(s => s.orderIds)
+        };
+
+        const reviewBadge = document.getElementById('route-planner-confirmation-badge');
+        const reviewNote = document.getElementById('route-planner-confirmation-note');
+
+        if (reviewBadge) {
+          reviewBadge.innerHTML = `
+            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-emerald-100 text-emerald-900 border border-emerald-300 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-700">
+              <span>✔</span> Confirmed for Current Session
+            </span>
+          `;
+        }
+        if (reviewNote) {
+          reviewNote.textContent = 'Staff confirmed this suggested sequence for the current active session (held in session memory; no order records or statuses were altered).';
+        }
+
+        showToast('Route sequence approved and confirmed for current session.', 'success');
+      }
+
+      function openSmartRoutePlannerModal() {
+        const modal = document.getElementById('smart-route-planner-modal');
+        if (modal) {
+          modal.classList.remove('hidden');
+          calculateAndRenderRoute();
+          setTimeout(() => {
+            if (routePlannerMap) routePlannerMap.invalidateSize();
+          }, 200);
+        }
+      }
+
+      function closeSmartRoutePlannerModal() {
+        const modal = document.getElementById('smart-route-planner-modal');
+        if (modal) modal.classList.add('hidden');
+      }
+
+      function initSmartRoutePlannerEvents() {
+        // Modal close buttons
+        document.getElementById('btn-close-route-planner-x')?.addEventListener('click', closeSmartRoutePlannerModal);
+        document.getElementById('btn-close-route-planner')?.addEventListener('click', closeSmartRoutePlannerModal);
+
+        // Click outside modal to close
+        const modal = document.getElementById('smart-route-planner-modal');
+        if (modal) {
+          modal.addEventListener('click', (e) => {
+            if (e.target === modal) closeSmartRoutePlannerModal();
+          });
+        }
+
+        // Escape key to close
+        document.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape' && modal && !modal.classList.contains('hidden')) {
+            closeSmartRoutePlannerModal();
+          }
+        });
+
+        // Recalculate button
+        document.getElementById('btn-recalculate-route')?.addEventListener('click', () => {
+          calculateAndRenderRoute(true);
+        });
+
+        // Confirm button
+        document.getElementById('btn-confirm-route-plan')?.addEventListener('click', confirmSuggestedRoutePlan);
+      }
+
+      // Initialize route planner events once
+      initSmartRoutePlannerEvents();
 
       // Initial page renders
       renderOrdersBoard();

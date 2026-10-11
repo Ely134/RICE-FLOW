@@ -1007,7 +1007,20 @@
         document.getElementById('modal-info-email').textContent = match.email || 'N/A';
         document.getElementById('modal-info-phone').textContent = match.phone || 'N/A';
         document.getElementById('modal-info-gender').textContent = inferGender(match.name, match.gender);
-        document.getElementById('modal-info-address').textContent = match.shippingAddress || 'No address on file';
+
+        const resolveCustomerAddress = (c) => {
+          if (!c) return 'No address on file';
+          const addr = c.shippingAddress || c.address || c.deliveryAddress || (c.addressDetails && (c.addressDetails.fullAddress || c.addressDetails.address)) || '';
+          if (typeof addr === 'string') {
+            const trimmed = addr.trim();
+            if (trimmed && trimmed.toLowerCase() !== 'aurora local region' && trimmed.toLowerCase() !== 'house no., street, barangay, aurora, zamboanga del sur') {
+              return trimmed;
+            }
+          }
+          return 'No address on file';
+        };
+
+        document.getElementById('modal-info-address').textContent = resolveCustomerAddress(match);
 
         // Populate Customer Stats
         document.getElementById('modal-stat-total-spent').textContent = `₱${totalSpentAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -1343,7 +1356,16 @@
             name: client.name || client.fullName || 'Customer',
             email: client.email || 'N/A',
             phone: client.phone || client.phoneNumber || 'N/A',
-            deliveryAddress: client.shippingAddress || client.address || client.deliveryAddress || 'No address on file',
+            deliveryAddress: (() => {
+              const raw = client.shippingAddress || client.address || client.deliveryAddress || (client.addressDetails && (client.addressDetails.fullAddress || client.addressDetails.address)) || '';
+              if (typeof raw === 'string') {
+                const trimmed = raw.trim();
+                if (trimmed && trimmed.toLowerCase() !== 'aurora local region' && trimmed.toLowerCase() !== 'house no., street, barangay, aurora, zamboanga del sur') {
+                  return trimmed;
+                }
+              }
+              return 'No address on file';
+            })(),
             gender: inferGender(client.name, client.gender),
             totalSpent: Number(Number(totalSpentAmount || 0).toFixed(2)),
             totalOrders: Number(totalOrdersCount || 0),

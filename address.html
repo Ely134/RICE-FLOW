@@ -1,0 +1,1376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Delivery Address | RiceFlow</title>
+  <script>
+    (function() {
+      try {
+        var d = document.documentElement;
+        var isDark = localStorage.getItem('aurora-dark-mode') === 'true';
+        d.classList.toggle('dark', isDark);
+        d.style.colorScheme = isDark ? 'dark' : 'light';
+      } catch (e) {}
+    })();
+  </script>
+  <style id="riceflow-theme-init">
+    html { background-color: #F5F5F5; color-scheme: light; }
+    #navbar-container { min-height: 5rem; background-color: #FFFFFF; border-bottom: 1px solid #F3F4F6; }
+    html.dark { background-color: #0F172A !important; color-scheme: dark; }
+    html.dark body,
+    html.dark main,
+    html.dark section,
+    html.dark #navbar-container,
+    html.dark #footer-container {
+      background-color: #0F172A;
+      background-image: none;
+      color: #FFFFFF;
+    }
+    html.dark #auth-guard-loader {
+      background-color: #0F172A !important;
+      color: #FFFFFF !important;
+    }
+    html.dark #navbar-container {
+      border-bottom-color: rgba(255, 255, 255, 0.15);
+    }
+    html.dark .bg-white,
+    html.dark .bg-gray-50,
+    html.dark .bg-slate-50 {
+      background-color: #111827;
+      color: #FFFFFF;
+    }
+  </style>
+  <link rel="stylesheet" href="src/styles/index.css">
+  <!-- Leaflet CSS & JS for Interactive Map Pinning -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <style id="auth-guard-style">body { visibility: hidden !important; }</style>
+</head>
+<body class="bg-[#F5F5F7] min-h-screen font-sans text-gray-900 dark:text-gray-100">
+  <div id="auth-guard-loader" class="fixed inset-0 bg-[#F5F5F5] z-[99999] flex flex-col items-center justify-center font-sans">
+    <div class="w-9 h-9 border-3 border-[#1E6C02]/20 border-t-[#1E6C02] rounded-full animate-spin mb-3"></div>
+    <p class="text-xs font-semibold text-gray-900 dark:text-gray-100">Verifying account access...</p>
+  </div>
+
+  <!-- Dynamic Header Bar -->
+  <div id="navbar-container"></div>
+
+  <!-- MAIN WRAPPER -->
+  <main class="py-8 max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 min-h-screen">
+    
+    <!-- Top Navigation Bar (Back Link & Page Title) -->
+    <div class="mb-6 flex flex-wrap items-center justify-between gap-3 border-b border-gray-200 dark:border-slate-800 pb-4">
+      <div class="flex items-center gap-3">
+        <a id="btn-back-nav" href="checkout.html" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-xs font-bold text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-slate-700 transition-all cursor-pointer shadow-xs">
+          <span>←</span>
+          <span id="back-nav-label">Back to Checkout</span>
+        </a>
+        <div>
+          <h1 class="text-xl sm:text-2xl font-black tracking-tight text-gray-950 dark:text-white flex items-center gap-2">
+            <span>📍</span>
+            <span>Delivery Address</span>
+          </h1>
+          <p class="text-xs text-gray-600 dark:text-gray-400 mt-0.5">
+            Shopee-style location selection with Philippine administrative registry and confirmed map pin.
+          </p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2 text-xs font-medium text-slate-500 dark:text-slate-400">
+        <span>PSGC Registry</span>
+        <span aria-hidden="true">·</span>
+        <span>OSM Tile Attribution</span>
+      </div>
+    </div>
+
+    <!-- MAIN FORM CONTAINER -->
+    <form id="address-form" novalidate class="space-y-6">
+
+      <!-- 1. Contact / Recipient Information -->
+      <section class="bg-white dark:bg-slate-800/90 rounded-2xl border border-gray-200/90 dark:border-slate-700 p-5 shadow-xs space-y-4">
+        <div class="flex items-center gap-2 border-b border-gray-100 dark:border-slate-700 pb-2.5">
+          <span class="text-sm font-black text-[#1E6C02] dark:text-emerald-400">1</span>
+          <h2 class="text-sm font-black uppercase tracking-wider text-gray-900 dark:text-gray-100">Recipient Information</h2>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div class="space-y-1.5">
+            <label class="text-xs font-bold text-gray-800 dark:text-gray-200">Customer Name</label>
+            <input type="text" id="recipient-name" readonly class="w-full bg-[#F8F9FA] dark:bg-slate-900 border border-gray-200 dark:border-slate-700 text-sm font-semibold text-gray-900 dark:text-gray-100 px-3.5 h-11 rounded-xl outline-none" />
+          </div>
+          <div class="space-y-1.5">
+            <label class="text-xs font-bold text-gray-800 dark:text-gray-200">Contact Number</label>
+            <input type="text" id="recipient-phone" readonly class="w-full bg-[#F8F9FA] dark:bg-slate-900 border border-gray-200 dark:border-slate-700 text-sm font-semibold text-gray-900 dark:text-gray-100 px-3.5 h-11 rounded-xl outline-none font-mono" />
+          </div>
+        </div>
+        <p class="text-[11px] text-gray-600 dark:text-gray-400">
+          Delivery coordination and dispatch SMS notifications are sent to this account profile.
+        </p>
+      </section>
+
+      <!-- 2. Administrative Location (Dependent Philippine Dropdowns) -->
+      <section class="bg-white dark:bg-slate-800/90 rounded-2xl border border-gray-200/90 dark:border-slate-700 p-5 shadow-xs space-y-4">
+        <div class="flex items-center justify-between border-b border-gray-100 dark:border-slate-700 pb-2.5">
+          <div class="flex items-center gap-2">
+            <span class="text-sm font-black text-[#1E6C02] dark:text-emerald-400">2</span>
+            <h2 class="text-sm font-black uppercase tracking-wider text-gray-900 dark:text-gray-100">Administrative Location</h2>
+          </div>
+          <span class="text-[11px] text-gray-600 dark:text-gray-400">Step-by-step cascading selection</span>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+          <!-- FIELD 1: REGION -->
+          <div class="space-y-1.5 relative">
+            <label for="btn-dropdown-region" class="text-xs font-bold text-gray-900 dark:text-gray-100 flex items-center justify-between">
+              <span>Region <span class="text-red-500">*</span></span>
+              <span id="region-loading" class="hidden text-[10px] text-[#1E6C02] animate-pulse">Loading...</span>
+            </label>
+            <button type="button" id="btn-dropdown-region" class="w-full text-left bg-[#F8F9FA] dark:bg-slate-900 border border-gray-200 dark:border-slate-700 text-sm font-medium text-gray-900 dark:text-gray-100 px-3.5 h-11 rounded-xl outline-none focus:ring-2 focus:ring-[#1E6C02] transition-all flex items-center justify-between cursor-pointer">
+              <span id="label-region" class="truncate text-gray-700 dark:text-gray-300">Select Region</span>
+              <span class="text-xs text-gray-600 dark:text-gray-400 ml-2">▼</span>
+            </button>
+            <p id="err-region" class="hidden text-[11px] font-bold text-red-600 dark:text-red-400"></p>
+
+            <!-- Searchable Dropdown Popover -->
+            <div id="popover-region" class="hidden absolute top-full left-0 right-0 mt-1 z-50 bg-white dark:bg-slate-900 rounded-xl border border-gray-200 dark:border-slate-700 shadow-xl p-2 space-y-2">
+              <input type="text" id="search-region" placeholder="🔍 Search region (e.g. Region IX, Region VII)..." class="w-full bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-xs px-3 h-9 rounded-lg outline-none focus:ring-1 focus:ring-[#1E6C02]" autocomplete="off" />
+              <div id="list-region" class="max-h-56 overflow-y-auto space-y-0.5 text-xs"></div>
+            </div>
+          </div>
+
+          <!-- FIELD 2: PROVINCE -->
+          <div class="space-y-1.5 relative">
+            <label for="btn-dropdown-province" class="text-xs font-bold text-gray-900 dark:text-gray-100 flex items-center justify-between">
+              <span>Province <span class="text-red-500">*</span></span>
+              <span id="province-loading" class="hidden text-[10px] text-[#1E6C02] animate-pulse">Loading...</span>
+            </label>
+            <button type="button" id="btn-dropdown-province" disabled class="w-full text-left bg-[#F8F9FA] dark:bg-slate-900 border border-gray-200 dark:border-slate-700 text-sm font-medium text-gray-900 dark:text-gray-100 px-3.5 h-11 rounded-xl outline-none transition-all flex items-center justify-between opacity-60 cursor-not-allowed">
+              <span id="label-province" class="truncate text-gray-700 dark:text-gray-300">Select Province (Choose region first)</span>
+              <span class="text-xs text-gray-600 dark:text-gray-400 ml-2">▼</span>
+            </button>
+            <p id="err-province" class="hidden text-[11px] font-bold text-red-600 dark:text-red-400"></p>
+
+            <!-- Searchable Dropdown Popover -->
+            <div id="popover-province" class="hidden absolute top-full left-0 right-0 mt-1 z-50 bg-white dark:bg-slate-900 rounded-xl border border-gray-200 dark:border-slate-700 shadow-xl p-2 space-y-2">
+              <input type="text" id="search-province" placeholder="🔍 Search province..." class="w-full bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-xs px-3 h-9 rounded-lg outline-none focus:ring-1 focus:ring-[#1E6C02]" autocomplete="off" />
+              <div id="list-province" class="max-h-56 overflow-y-auto space-y-0.5 text-xs"></div>
+            </div>
+          </div>
+
+          <!-- FIELD 3: CITY / MUNICIPALITY -->
+          <div class="space-y-1.5 relative">
+            <label for="btn-dropdown-city" class="text-xs font-bold text-gray-900 dark:text-gray-100 flex items-center justify-between">
+              <span>City / Municipality <span class="text-red-500">*</span></span>
+              <span id="city-loading" class="hidden text-[10px] text-[#1E6C02] animate-pulse">Loading...</span>
+            </label>
+            <button type="button" id="btn-dropdown-city" disabled class="w-full text-left bg-[#F8F9FA] dark:bg-slate-900 border border-gray-200 dark:border-slate-700 text-sm font-medium text-gray-900 dark:text-gray-100 px-3.5 h-11 rounded-xl outline-none transition-all flex items-center justify-between opacity-60 cursor-not-allowed">
+              <span id="label-city" class="truncate text-gray-700 dark:text-gray-300">Select City / Municipality</span>
+              <span class="text-xs text-gray-600 dark:text-gray-400 ml-2">▼</span>
+            </button>
+            <p id="err-city" class="hidden text-[11px] font-bold text-red-600 dark:text-red-400"></p>
+
+            <!-- Searchable Dropdown Popover -->
+            <div id="popover-city" class="hidden absolute top-full left-0 right-0 mt-1 z-50 bg-white dark:bg-slate-900 rounded-xl border border-gray-200 dark:border-slate-700 shadow-xl p-2 space-y-2">
+              <input type="text" id="search-city" placeholder="🔍 Search city or municipality..." class="w-full bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-xs px-3 h-9 rounded-lg outline-none focus:ring-1 focus:ring-[#1E6C02]" autocomplete="off" />
+              <div id="list-city" class="max-h-56 overflow-y-auto space-y-0.5 text-xs"></div>
+            </div>
+          </div>
+
+          <!-- FIELD 4: BARANGAY -->
+          <div class="space-y-1.5 relative">
+            <label for="btn-dropdown-barangay" class="text-xs font-bold text-gray-900 dark:text-gray-100 flex items-center justify-between">
+              <span>Barangay <span class="text-red-500">*</span></span>
+              <span id="barangay-loading" class="hidden text-[10px] text-[#1E6C02] animate-pulse">Loading...</span>
+            </label>
+            <button type="button" id="btn-dropdown-barangay" disabled class="w-full text-left bg-[#F8F9FA] dark:bg-slate-900 border border-gray-200 dark:border-slate-700 text-sm font-medium text-gray-900 dark:text-gray-100 px-3.5 h-11 rounded-xl outline-none transition-all flex items-center justify-between opacity-60 cursor-not-allowed">
+              <span id="label-barangay" class="truncate text-gray-700 dark:text-gray-300">Select Barangay</span>
+              <span class="text-xs text-gray-600 dark:text-gray-400 ml-2">▼</span>
+            </button>
+            <p id="err-barangay" class="hidden text-[11px] font-bold text-red-600 dark:text-red-400"></p>
+
+            <!-- Searchable Dropdown Popover -->
+            <div id="popover-barangay" class="hidden absolute top-full left-0 right-0 mt-1 z-50 bg-white dark:bg-slate-900 rounded-xl border border-gray-200 dark:border-slate-700 shadow-xl p-2 space-y-2">
+              <input type="text" id="search-barangay" placeholder="🔍 Search barangay..." class="w-full bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-xs px-3 h-9 rounded-lg outline-none focus:ring-1 focus:ring-[#1E6C02]" autocomplete="off" />
+              <div id="list-barangay" class="max-h-56 overflow-y-auto space-y-0.5 text-xs"></div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- 3. Street & House Number Details -->
+      <section class="bg-white dark:bg-slate-800/90 rounded-2xl border border-gray-200/90 dark:border-slate-700 p-5 shadow-xs space-y-4">
+        <div class="flex items-center gap-2 border-b border-gray-100 dark:border-slate-700 pb-2.5">
+          <span class="text-sm font-black text-[#1E6C02] dark:text-emerald-400">3</span>
+          <h2 class="text-sm font-black uppercase tracking-wider text-gray-900 dark:text-gray-100">Street & Building Details</h2>
+        </div>
+
+        <div class="space-y-4">
+          <!-- FIELD 5: STREET NAME -->
+          <div class="space-y-1.5">
+            <label for="inp-street-name" class="text-xs font-bold text-gray-900 dark:text-gray-100">
+              Street Name / Purok / Detailed Local Description <span class="text-red-500">*</span>
+            </label>
+            <input type="text" id="inp-street-name" placeholder="e.g. Rizal Street, Purok 2, near Aurora Central Elementary School" class="w-full bg-[#F8F9FA] dark:bg-slate-900 border border-gray-200 dark:border-slate-700 text-sm font-medium text-gray-900 dark:text-gray-100 px-3.5 h-11 rounded-xl outline-none focus:bg-white dark:focus:bg-slate-800 focus:ring-2 focus:ring-[#1E6C02] transition-all" />
+            <p id="err-street-name" class="hidden text-[11px] font-bold text-red-600 dark:text-red-400"></p>
+          </div>
+
+          <!-- FIELD 6: HOUSE NUMBER / UNIT -->
+          <div class="space-y-2">
+            <div class="flex items-center justify-between">
+              <label for="inp-house-details" class="text-xs font-bold text-gray-900 dark:text-gray-100">
+                House Number / Building / Unit Details <span class="text-red-500">*</span>
+              </label>
+              <label class="flex items-center gap-1.5 text-xs font-semibold text-gray-700 dark:text-gray-300 cursor-pointer select-none">
+                <input type="checkbox" id="chk-no-house-number" class="w-4 h-4 text-[#1E6C02] rounded cursor-pointer accent-[#1E6C02]" />
+                <span>No house number (Rural / Purok area)</span>
+              </label>
+            </div>
+            <input type="text" id="inp-house-details" placeholder="e.g. House #14, Green Gate, Block 3 Lot 8" class="w-full bg-[#F8F9FA] dark:bg-slate-900 border border-gray-200 dark:border-slate-700 text-sm font-medium text-gray-900 dark:text-gray-100 px-3.5 h-11 rounded-xl outline-none focus:bg-white dark:focus:bg-slate-800 focus:ring-2 focus:ring-[#1E6C02] transition-all" />
+            <p id="err-house-details" class="hidden text-[11px] font-bold text-red-600 dark:text-red-400"></p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 4. Interactive Map Location & Confirmed Pin -->
+      <section class="bg-white dark:bg-slate-800/90 rounded-2xl border border-gray-200/90 dark:border-slate-700 p-5 shadow-xs space-y-4">
+        <div class="flex items-center justify-between border-b border-gray-100 dark:border-slate-700 pb-2.5">
+          <div class="flex items-center gap-2">
+            <span class="text-sm font-black text-[#1E6C02] dark:text-emerald-400">4</span>
+            <h2 class="text-sm font-black uppercase tracking-wider text-gray-900 dark:text-gray-100">Map Pin Location & Confirmation</h2>
+          </div>
+          <span id="pin-confirmed-status-badge" class="text-[11px] font-bold px-2.5 py-0.5 rounded-full border bg-amber-50 text-amber-800 border-amber-300 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-700">
+            ⚠️ Pin Not Confirmed
+          </span>
+        </div>
+
+        <!-- Automatic Geocode Guidance Banner -->
+        <div id="geocode-guidance-box" class="p-3 rounded-xl bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800/60 text-xs space-y-1">
+          <div class="flex items-center gap-2 font-bold text-blue-900 dark:text-blue-300">
+            <span>🗺️</span>
+            <span id="geocode-guidance-title">Enter your address above to automatically locate on the map</span>
+          </div>
+          <p id="geocode-guidance-desc" class="text-[11px] text-blue-800 dark:text-blue-300/90">
+            When you complete your administrative location and street information, our geocoding service will estimate your location. You can then drag the pin to your exact delivery gate or entrance.
+          </p>
+        </div>
+
+        <!-- Map Container -->
+        <div class="relative rounded-2xl overflow-hidden border border-gray-200 dark:border-slate-700 bg-gray-100 dark:bg-slate-900 shadow-inner" style="height: 300px; min-height: 300px;">
+          <div id="address-map" class="w-full h-full" style="height: 300px; z-index: 10;"></div>
+          <!-- Offline / Unavailable Fallback -->
+          <div id="map-fallback-notice" class="hidden absolute inset-0 bg-gray-50/95 dark:bg-slate-900/95 flex flex-col items-center justify-center p-4 text-center z-20">
+            <span class="text-3xl mb-1">🗺️</span>
+            <p class="text-sm font-bold text-gray-800 dark:text-gray-200">Interactive Map Unavailable</p>
+            <p class="text-xs text-gray-600 dark:text-gray-400 mt-1 max-w-sm">
+              Please check your network connection. Standard manual address entry is preserved.
+            </p>
+          </div>
+        </div>
+
+        <!-- Pin Confirmation Action Bar -->
+        <div class="bg-gray-50 dark:bg-slate-900 p-4 rounded-xl border border-gray-200 dark:border-slate-700 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div class="space-y-0.5">
+            <span class="text-xs font-extrabold text-gray-900 dark:text-gray-100 flex items-center gap-1.5">
+              <span>Selected Coordinates:</span>
+              <span id="coords-text-display" class="font-mono font-bold text-[#1E6C02] dark:text-emerald-400">7.9628, 123.5826</span>
+            </span>
+            <p class="text-[11px] text-gray-600 dark:text-gray-400">
+              Drag the marker directly on the map to fine-tune your exact location.
+            </p>
+          </div>
+
+          <button type="button" id="btn-confirm-pin" class="px-4 py-2.5 bg-[#1E6C02] hover:bg-[#145001] text-white text-xs font-bold rounded-xl transition-all shadow-xs cursor-pointer flex items-center justify-center gap-1.5 shrink-0">
+            <span>📍</span>
+            <span id="btn-confirm-pin-text">Confirm Pin Location</span>
+          </button>
+        </div>
+        <p id="err-pin-confirmation" class="hidden text-[11px] font-bold text-red-600 dark:text-red-400"></p>
+      </section>
+
+      <!-- 5. Default Option & Save / Cancel Buttons -->
+      <section class="space-y-4">
+        <label class="flex items-center gap-2.5 text-xs font-semibold text-gray-800 dark:text-gray-200 cursor-pointer select-none px-1">
+          <input type="checkbox" id="chk-set-default-profile" checked class="w-4 h-4 text-[#1E6C02] rounded cursor-pointer accent-[#1E6C02]" />
+          <span>Save as my default delivery address in profile for future orders</span>
+        </label>
+
+        <div class="flex flex-col-reverse sm:flex-row items-center gap-3 pt-2">
+          <button type="button" id="btn-cancel-address" class="w-full sm:w-1/3 h-12 rounded-2xl border border-gray-300 dark:border-slate-700 text-gray-800 dark:text-gray-200 bg-white dark:bg-slate-800 text-xs font-bold hover:bg-gray-50 dark:hover:bg-slate-700 transition-all cursor-pointer">
+            Cancel
+          </button>
+          <button type="submit" id="btn-save-address" class="w-full sm:w-2/3 h-12 rounded-2xl bg-[#1E6C02] hover:bg-[#145001] text-white text-sm font-black transition-all shadow-md cursor-pointer flex items-center justify-center gap-2">
+            <span>✓</span>
+            <span id="btn-save-text">Save & Confirm Address</span>
+          </button>
+        </div>
+      </section>
+
+    </form>
+  </main>
+
+  <!-- Dynamic Footer Bar -->
+  <div id="footer-container"></div>
+
+  <!-- Shared module -->
+  <script type="module" src="src/app/shared.js"></script>
+
+  <!-- Core Page Logic -->
+  <script type="module">
+    import {
+      protectCustomerPage,
+      getCurrentUser,
+      updateUser,
+      showToast
+    } from './src/app/shared.js';
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      // 1. Authoritative customer authentication guard
+      const authResult = await protectCustomerPage();
+      if (!authResult || !authResult.ok) return;
+
+      const user = authResult.user || getCurrentUser();
+      if (!user) return;
+
+      // Extract navigation context from URL
+      const urlParams = new URLSearchParams(window.location.search);
+      const fromSource = urlParams.get('from') || 'checkout';
+      
+      const btnBackNav = document.getElementById('btn-back-nav');
+      const backNavLabel = document.getElementById('back-nav-label');
+      const btnCancel = document.getElementById('btn-cancel-address');
+
+      let returnUrl = 'checkout.html';
+      if (fromSource === 'profile') {
+        returnUrl = 'profile.html';
+        if (backNavLabel) backNavLabel.textContent = 'Back to Profile';
+      } else {
+        // preserve query parameters for checkout
+        const cleanParams = new URLSearchParams(window.location.search);
+        cleanParams.delete('from');
+        returnUrl = cleanParams.toString() ? `checkout.html?${cleanParams.toString()}` : 'checkout.html';
+        if (backNavLabel) backNavLabel.textContent = 'Back to Checkout';
+      }
+
+      if (btnBackNav) btnBackNav.href = returnUrl;
+      if (btnCancel) btnCancel.addEventListener('click', () => { window.location.href = returnUrl; });
+
+      // Populate recipient information
+      const recNameEl = document.getElementById('recipient-name');
+      const recPhoneEl = document.getElementById('recipient-phone');
+      if (recNameEl) recNameEl.value = user.fullName || user.name || 'Valued Customer';
+      if (recPhoneEl) recPhoneEl.value = user.phone || '09123456789';
+
+      // =========================================================================
+      // FALLBACK PHILIPPINE ADMINISTRATIVE DATA (Ensures zero downtime)
+      // =========================================================================
+      const FALLBACK_REGIONS = [
+        { code: "010000000", name: "Ilocos Region", regionName: "Region I" },
+        { code: "020000000", name: "Cagayan Valley", regionName: "Region II" },
+        { code: "030000000", name: "Central Luzon", regionName: "Region III" },
+        { code: "040000000", name: "CALABARZON", regionName: "Region IV-A" },
+        { code: "170000000", name: "MIMAROPA", regionName: "MIMAROPA Region" },
+        { code: "050000000", name: "Bicol Region", regionName: "Region V" },
+        { code: "060000000", name: "Western Visayas", regionName: "Region VI" },
+        { code: "070000000", name: "Central Visayas", regionName: "Region VII" },
+        { code: "080000000", name: "Eastern Visayas", regionName: "Region VIII" },
+        { code: "090000000", name: "Zamboanga Peninsula", regionName: "Region IX" },
+        { code: "100000000", name: "Northern Mindanao", regionName: "Region X" },
+        { code: "110000000", name: "Davao Region", regionName: "Region XI" },
+        { code: "120000000", name: "SOCCSKSARGEN", regionName: "Region XII" },
+        { code: "130000000", name: "National Capital Region", regionName: "NCR" },
+        { code: "140000000", name: "Cordillera Administrative Region", regionName: "CAR" },
+        { code: "150000000", name: "Bangsamoro Autonomous Region in Muslim Mindanao", regionName: "BARMM" },
+        { code: "160000000", name: "Caraga", regionName: "Region XIII" }
+      ];
+
+      const FALLBACK_REGION_IX_PROVINCES = [
+        { code: "097300000", name: "Zamboanga Del Sur", regionCode: "090000000" },
+        { code: "097200000", name: "Zamboanga Del Norte", regionCode: "090000000" },
+        { code: "098300000", name: "Zamboanga Sibugay", regionCode: "090000000" }
+      ];
+
+      const FALLBACK_ZDS_CITIES = [
+        { code: "097302000", name: "Aurora", provinceCode: "097300000" },
+        { code: "097322000", name: "City of Pagadian", provinceCode: "097300000" },
+        { code: "097319000", name: "Molave", provinceCode: "097300000" },
+        { code: "097315000", name: "Mahayag", provinceCode: "097300000" },
+        { code: "097328000", name: "Tambulig", provinceCode: "097300000" },
+        { code: "097330000", name: "Tukuran", provinceCode: "097300000" },
+        { code: "097307000", name: "Dumalinao", provinceCode: "097300000" },
+        { code: "097312000", name: "Labangan", provinceCode: "097300000" },
+        { code: "097323000", name: "Ramon Magsaysay", provinceCode: "097300000" }
+      ];
+
+      const FALLBACK_AURORA_BARANGAYS = [
+        { code: "097302042", name: "Poblacion" },
+        { code: "097302014", name: "Balide" },
+        { code: "097302045", name: "San Jose" },
+        { code: "097302024", name: "Kahayagan East" },
+        { code: "097302025", name: "Kahayagan West" },
+        { code: "097302052", name: "Waterfall" },
+        { code: "097302005", name: "Bag-ong Mandaue" },
+        { code: "097302002", name: "Alang-alang" },
+        { code: "097302044", name: "Romarate" },
+        { code: "097302029", name: "Lantungan" },
+        { code: "097302047", name: "Sapa Loboc" },
+        { code: "097302048", name: "Taguio" },
+        { code: "097302004", name: "Anonang" },
+        { code: "097302027", name: "Kauswagan" },
+        { code: "097302033", name: "Lubing" },
+        { code: "097302022", name: "Inasagan" },
+        { code: "097302031", name: "Libertad" },
+        { code: "097302032", name: "Lintugop" },
+        { code: "097302034", name: "Maguikay" },
+        { code: "097302035", name: "Mahayahay" },
+        { code: "097302037", name: "Monte Alegre" },
+        { code: "097302041", name: "Panaghiusa" },
+        { code: "097302050", name: "La Paz" }
+      ];
+
+      // =========================================================================
+      // PSGC API FETCHER & CACHE CONTROLLER
+      // =========================================================================
+      const psgcCache = {};
+
+      async function fetchPsgc(endpoint, fallbackData = []) {
+        if (psgcCache[endpoint]) return psgcCache[endpoint];
+        try {
+          const stored = localStorage.getItem(`rf_psgc_${endpoint.replace(/[^a-zA-Z0-9]/g, '_')}`);
+          if (stored) {
+            const parsed = JSON.parse(stored);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              psgcCache[endpoint] = parsed;
+              return parsed;
+            }
+          }
+        } catch (_) {}
+
+        try {
+          // Primary PSGC endpoint
+          const res = await fetch(`https://psgc.gitlab.io/api/${endpoint}`, {
+            headers: { 'Accept': 'application/json' }
+          });
+          if (res.ok) {
+            const data = await res.json();
+            if (Array.isArray(data) && data.length > 0) {
+              psgcCache[endpoint] = data;
+              try {
+                localStorage.setItem(`rf_psgc_${endpoint.replace(/[^a-zA-Z0-9]/g, '_')}`, JSON.stringify(data));
+              } catch (_) {}
+              return data;
+            }
+          }
+        } catch (netErr) {
+          console.warn('[PSGC] Primary API fetch notice:', endpoint, netErr);
+        }
+
+        // Secondary PSGC endpoint
+        try {
+          const res2 = await fetch(`https://psgc.cloud/api/${endpoint}`);
+          if (res2.ok) {
+            const data2 = await res2.json();
+            if (Array.isArray(data2) && data2.length > 0) {
+              psgcCache[endpoint] = data2;
+              return data2;
+            }
+          }
+        } catch (_) {}
+
+        return fallbackData;
+      }
+
+      // =========================================================================
+      // STATE VARIABLES
+      // =========================================================================
+      let selectedRegion = null;    // { code, name }
+      let selectedProvince = null;  // { code, name }
+      let selectedCity = null;      // { code, name }
+      let selectedBarangay = null;  // { code, name }
+
+      let currentCoordinates = { lat: 7.9628, lng: 123.5826 };
+      let isPinConfirmed = false;
+
+      // =========================================================================
+      // LEAFLET MAP & PIN CONTROLLER
+      // =========================================================================
+      let leafletMap = null;
+      let mapMarker = null;
+
+      function updateMapPinCoords(lat, lng) {
+        currentCoordinates = {
+          lat: Math.round(lat * 1e6) / 1e6,
+          lng: Math.round(lng * 1e6) / 1e6
+        };
+        const coordsDisplay = document.getElementById('coords-text-display');
+        if (coordsDisplay) {
+          coordsDisplay.textContent = `${currentCoordinates.lat.toFixed(4)}, ${currentCoordinates.lng.toFixed(4)}`;
+        }
+      }
+
+      function setPinConfirmedState(confirmed) {
+        isPinConfirmed = Boolean(confirmed);
+        const badge = document.getElementById('pin-confirmed-status-badge');
+        const errPin = document.getElementById('err-pin-confirmation');
+        const btnConfirm = document.getElementById('btn-confirm-pin');
+        const btnConfirmText = document.getElementById('btn-confirm-pin-text');
+
+        if (isPinConfirmed) {
+          if (errPin) errPin.classList.add('hidden');
+          if (badge) {
+            badge.textContent = `✅ Confirmed: ${currentCoordinates.lat.toFixed(4)}, ${currentCoordinates.lng.toFixed(4)}`;
+            badge.className = "text-[11px] font-extrabold px-2.5 py-0.5 rounded-full border bg-emerald-50 text-emerald-800 border-emerald-300 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-700";
+          }
+          if (btnConfirm) {
+            btnConfirm.className = "px-4 py-2.5 bg-emerald-700 text-white text-xs font-bold rounded-xl transition-all shadow-xs cursor-pointer flex items-center justify-center gap-1.5 shrink-0";
+          }
+          if (btnConfirmText) btnConfirmText.textContent = "Location Confirmed ✓";
+        } else {
+          if (badge) {
+            badge.textContent = "⚠️ Pin Not Confirmed";
+            badge.className = "text-[11px] font-bold px-2.5 py-0.5 rounded-full border bg-amber-50 text-amber-800 border-amber-300 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-700";
+          }
+          if (btnConfirm) {
+            btnConfirm.className = "px-4 py-2.5 bg-[#1E6C02] hover:bg-[#145001] text-white text-xs font-bold rounded-xl transition-all shadow-xs cursor-pointer flex items-center justify-center gap-1.5 shrink-0";
+          }
+          if (btnConfirmText) btnConfirmText.textContent = "Confirm Pin Location";
+        }
+      }
+
+      function initLeafletMap() {
+        if (typeof L === 'undefined') {
+          const fallback = document.getElementById('map-fallback-notice');
+          if (fallback) fallback.classList.remove('hidden');
+          return;
+        }
+
+        try {
+          leafletMap = L.map('address-map', {
+            zoomControl: true,
+            attributionControl: true
+          }).setView([currentCoordinates.lat, currentCoordinates.lng], 15);
+
+          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a> contributors'
+          }).addTo(leafletMap);
+
+          mapMarker = L.marker([currentCoordinates.lat, currentCoordinates.lng], {
+            draggable: true
+          }).addTo(leafletMap);
+
+          mapMarker.bindTooltip("Drag me to your exact delivery gate / entrance", { permanent: false, direction: 'top' });
+
+          mapMarker.on('dragend', function(e) {
+            const pos = e.target.getLatLng();
+            updateMapPinCoords(pos.lat, pos.lng);
+            // Invalidate old confirmation when marker is moved
+            setPinConfirmedState(false);
+          });
+
+          leafletMap.on('click', function(e) {
+            if (mapMarker) {
+              mapMarker.setLatLng(e.latlng);
+              updateMapPinCoords(e.latlng.lat, e.latlng.lng);
+              setPinConfirmedState(false);
+            }
+          });
+
+          updateMapPinCoords(currentCoordinates.lat, currentCoordinates.lng);
+        } catch (err) {
+          console.warn('[MAP] Leaflet initialisation notice:', err);
+          const fallback = document.getElementById('map-fallback-notice');
+          if (fallback) fallback.classList.remove('hidden');
+        }
+      }
+
+      initLeafletMap();
+
+      // Pin confirmation button handler
+      const btnConfirmPin = document.getElementById('btn-confirm-pin');
+      if (btnConfirmPin) {
+        btnConfirmPin.addEventListener('click', () => {
+          // Validate coordinate sanity: finite numbers within Philippines bounding box
+          const lat = Number(currentCoordinates.lat);
+          const lng = Number(currentCoordinates.lng);
+          const isFiniteNum = !isNaN(lat) && !isNaN(lng) && isFinite(lat) && isFinite(lng);
+          const inPhBounds = lat >= 4.5 && lat <= 21.5 && lng >= 116.0 && lng <= 127.0;
+
+          if (!isFiniteNum || !inPhBounds) {
+            const errPin = document.getElementById('err-pin-confirmation');
+            if (errPin) {
+              errPin.textContent = 'Please place the pin within the Philippines territory on the map.';
+              errPin.classList.remove('hidden');
+            }
+            showToast('Coordinates must be within the Philippines.', 'error');
+            return;
+          }
+
+          setPinConfirmedState(true);
+          showToast('Map pin confirmed at this exact location!', 'info');
+        });
+      }
+
+      // =========================================================================
+      // AUTO-GEOCODING CONTROLLER
+      // =========================================================================
+      let geocodeTimeout = null;
+
+      function triggerAutoGeocode() {
+        // Any change in address fields immediately invalidates previous confirmation
+        setPinConfirmedState(false);
+
+        if (!selectedBarangay && !selectedCity && !selectedProvince && !selectedRegion) return;
+
+        const streetVal = (document.getElementById('inp-street-name')?.value || '').trim();
+        const houseVal = (document.getElementById('inp-house-details')?.value || '').trim();
+        const noHouse = document.getElementById('chk-no-house-number')?.checked;
+
+        const brgyName = selectedBarangay ? selectedBarangay.name : '';
+        const cleanBrgyName = brgyName ? brgyName.replace(/\s*\([^)]*\)/g, '').trim() : '';
+        const cityName = selectedCity ? selectedCity.name : '';
+        const provName = selectedProvince ? selectedProvince.name : '';
+        const regName = selectedRegion ? (selectedRegion.name || selectedRegion.regionName || '') : '';
+
+        // Build progressive search candidates from most specific to broader levels
+        const candidates = [];
+
+        // 1. Street-level precision (if street and barangay/city are present)
+        if (streetVal && brgyName && cityName) {
+          const housePrefix = (!noHouse && houseVal) ? `${houseVal} ` : '';
+          if (cleanBrgyName && cleanBrgyName !== brgyName) {
+            candidates.push({
+              query: `${housePrefix}${streetVal}, ${cleanBrgyName}, ${cityName}, ${provName ? provName + ', ' : ''}Philippines`,
+              zoom: 16,
+              title: '📍 Estimated location placed on map',
+              desc: 'Found location matching your address. Please drag the pin to your exact building entrance, then click "Confirm Pin Location" below.'
+            });
+          }
+          candidates.push({
+            query: `${housePrefix}${streetVal}, ${brgyName}, ${cityName}, ${provName ? provName + ', ' : ''}Philippines`,
+            zoom: 16,
+            title: '📍 Estimated location placed on map',
+            desc: 'Found location matching your address. Please drag the pin to your exact building entrance, then click "Confirm Pin Location" below.'
+          });
+        }
+
+        // 2. Barangay-level precision (clean name first to support (Pob.) and parenthetical suffixes)
+        if (brgyName && cityName) {
+          if (cleanBrgyName && cleanBrgyName !== brgyName) {
+            candidates.push({
+              query: `${cleanBrgyName}, ${cityName}, ${provName ? provName + ', ' : ''}Philippines`,
+              zoom: 15,
+              title: `📍 Centered on Barangay ${brgyName}`,
+              desc: `We centered the map on Barangay ${brgyName}. Please drag the pin to your exact building entrance and click "Confirm Pin Location".`
+            });
+          }
+          candidates.push({
+            query: `${brgyName}, ${cityName}, ${provName ? provName + ', ' : ''}Philippines`,
+            zoom: 15,
+            title: `📍 Centered on Barangay ${brgyName}`,
+            desc: `We centered the map on Barangay ${brgyName}. Please drag the pin to your exact building entrance and click "Confirm Pin Location".`
+          });
+          candidates.push({
+            query: `Barangay ${cleanBrgyName || brgyName}, ${cityName}, ${provName ? provName + ', ' : ''}Philippines`,
+            zoom: 15,
+            title: `📍 Centered on Barangay ${brgyName}`,
+            desc: `We centered the map on Barangay ${brgyName}. Please drag the pin to your exact building entrance and click "Confirm Pin Location".`
+          });
+        }
+
+        // 3. City / Municipality fallback or primary selection
+        if (cityName) {
+          candidates.push({
+            query: `${cityName}, ${provName ? provName + ', ' : ''}Philippines`,
+            zoom: 14,
+            title: `📍 Centered on ${cityName}`,
+            desc: selectedBarangay
+              ? `Specific barangay details could not be uniquely resolved online. We centered the map on ${cityName}. Please drag the pin to your exact entrance and click "Confirm Pin Location".`
+              : `Centered on ${cityName}. Please select your barangay or drag the pin to your exact entrance.`
+          });
+        }
+
+        // 4. Province fallback or primary selection
+        if (provName) {
+          candidates.push({
+            query: `${provName}, Philippines`,
+            zoom: 11,
+            title: `📍 Centered on ${provName}`,
+            desc: `Centered on ${provName}. Please select your city/municipality to narrow down your delivery location.`
+          });
+        }
+
+        // 5. Region fallback or primary selection
+        if (regName) {
+          candidates.push({
+            query: `${regName}, Philippines`,
+            zoom: 9,
+            title: `📍 Centered on ${regName}`,
+            desc: `Centered on ${regName}. Please select your province to narrow down your delivery location.`
+          });
+        }
+
+        if (candidates.length === 0) return;
+
+        clearTimeout(geocodeTimeout);
+        geocodeTimeout = setTimeout(async () => {
+          const guidanceTitle = document.getElementById('geocode-guidance-title');
+          const guidanceDesc = document.getElementById('geocode-guidance-desc');
+          if (guidanceTitle) guidanceTitle.textContent = 'Locating selected address on map...';
+
+          let resolved = false;
+          for (const cand of candidates) {
+            try {
+              const url = `https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=ph&q=${encodeURIComponent(cand.query)}`;
+              const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
+              if (res.ok) {
+                const results = await res.json();
+                if (Array.isArray(results) && results.length > 0) {
+                  const lat = parseFloat(results[0].lat);
+                  const lon = parseFloat(results[0].lon);
+                  if (!isNaN(lat) && !isNaN(lon) && isFinite(lat) && isFinite(lon)) {
+                    if (leafletMap && mapMarker) {
+                      leafletMap.setView([lat, lon], cand.zoom);
+                      mapMarker.setLatLng([lat, lon]);
+                      updateMapPinCoords(lat, lon);
+                    }
+                    if (guidanceTitle) guidanceTitle.textContent = cand.title;
+                    if (guidanceDesc) guidanceDesc.textContent = cand.desc;
+                    resolved = true;
+                    break;
+                  }
+                }
+              }
+            } catch (_) {}
+          }
+
+          if (!resolved) {
+            if (guidanceTitle) guidanceTitle.textContent = '🗺️ Please position your delivery pin';
+            if (guidanceDesc) guidanceDesc.textContent = 'Could not auto-locate exact spot online. Please drag the pin on the map to your exact building entrance and click "Confirm Pin Location".';
+          }
+        }, 500);
+      }
+
+      // =========================================================================
+      // SEARCHABLE DROPDOWNS IMPLEMENTATION
+      // =========================================================================
+
+      function setupSearchableDropdown({
+        btnId,
+        labelId,
+        popoverId,
+        searchId,
+        listId,
+        errId,
+        onSelect,
+        onOpen
+      }) {
+        const btn = document.getElementById(btnId);
+        const label = document.getElementById(labelId);
+        const popover = document.getElementById(popoverId);
+        const searchInput = document.getElementById(searchId);
+        const listContainer = document.getElementById(listId);
+        const errEl = document.getElementById(errId);
+
+        let itemsData = [];
+
+        function close() {
+          if (popover) popover.classList.add('hidden');
+        }
+
+        function open() {
+          // Close other popovers
+          document.querySelectorAll('[id^="popover-"]').forEach(p => {
+            if (p !== popover) p.classList.add('hidden');
+          });
+
+          if (popover) popover.classList.remove('hidden');
+          if (searchInput) {
+            searchInput.value = '';
+            searchInput.focus();
+          }
+          if (errEl) errEl.classList.add('hidden');
+          renderList(itemsData);
+          if (typeof onOpen === 'function') onOpen();
+        }
+
+        function renderList(list) {
+          if (!listContainer) return;
+          listContainer.innerHTML = '';
+
+          if (!list || list.length === 0) {
+            listContainer.innerHTML = `<div class="p-3 text-center text-gray-400 text-xs">No items available.</div>`;
+            return;
+          }
+
+          const q = (searchInput?.value || '').trim().toLowerCase();
+          const filtered = list.filter(item => {
+            const txt = (item.name || item.regionName || '').toLowerCase();
+            return txt.includes(q);
+          });
+
+          if (filtered.length === 0) {
+            listContainer.innerHTML = `<div class="p-3 text-center text-gray-400 text-xs">No matching results for "${searchInput.value}".</div>`;
+            return;
+          }
+
+          filtered.forEach(item => {
+            const itemBtn = document.createElement('button');
+            itemBtn.type = 'button';
+            itemBtn.className = 'w-full text-left px-3 py-2 rounded-lg hover:bg-[#1E6C02]/10 hover:text-[#1E6C02] dark:hover:bg-emerald-950/50 dark:hover:text-emerald-400 font-medium transition-colors flex items-center justify-between text-xs cursor-pointer';
+            
+            const displayLabel = item.regionName ? `${item.regionName} — ${item.name}` : item.name;
+            itemBtn.innerHTML = `<span>${displayLabel}</span>`;
+
+            itemBtn.addEventListener('click', () => {
+              if (label) label.textContent = displayLabel;
+              close();
+              if (typeof onSelect === 'function') onSelect(item);
+            });
+
+            listContainer.appendChild(itemBtn);
+          });
+        }
+
+        if (btn) {
+          btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (btn.disabled) return;
+            if (popover && popover.classList.contains('hidden')) {
+              open();
+            } else {
+              close();
+            }
+          });
+        }
+
+        if (searchInput) {
+          searchInput.addEventListener('input', () => {
+            renderList(itemsData);
+          });
+          searchInput.addEventListener('click', (e) => e.stopPropagation());
+        }
+
+        document.addEventListener('click', (e) => {
+          if (popover && !popover.contains(e.target) && e.target !== btn) {
+            close();
+          }
+        });
+
+        return {
+          setItems: (newItems) => {
+            itemsData = newItems || [];
+            renderList(itemsData);
+          },
+          setLabel: (text) => {
+            if (label) label.textContent = text;
+          },
+          enable: () => {
+            if (btn) {
+              btn.disabled = false;
+              btn.classList.remove('opacity-60', 'cursor-not-allowed');
+            }
+          },
+          disable: (placeholderText = '') => {
+            if (btn) {
+              btn.disabled = true;
+              btn.classList.add('opacity-60', 'cursor-not-allowed');
+            }
+            if (label && placeholderText) label.textContent = placeholderText;
+            itemsData = [];
+            close();
+          }
+        };
+      }
+
+      // =========================================================================
+      // CASCADING SETUP & SELECTION HANDLERS
+      // =========================================================================
+
+      const regionCtrl = setupSearchableDropdown({
+        btnId: 'btn-dropdown-region',
+        labelId: 'label-region',
+        popoverId: 'popover-region',
+        searchId: 'search-region',
+        listId: 'list-region',
+        errId: 'err-region',
+        onSelect: async (item) => {
+          selectedRegion = item;
+          // Clear child selections
+          selectedProvince = null;
+          selectedCity = null;
+          selectedBarangay = null;
+
+          provinceCtrl.disable('Select Province');
+          cityCtrl.disable('Select City (Choose province first)');
+          barangayCtrl.disable('Select Barangay (Choose city first)');
+
+          // Trigger geocode update / pin invalidation
+          triggerAutoGeocode();
+
+          // Load Provinces for selected region
+          await loadProvincesForRegion(item.code);
+        }
+      });
+
+      const provinceCtrl = setupSearchableDropdown({
+        btnId: 'btn-dropdown-province',
+        labelId: 'label-province',
+        popoverId: 'popover-province',
+        searchId: 'search-province',
+        listId: 'list-province',
+        errId: 'err-province',
+        onSelect: async (item) => {
+          selectedProvince = item;
+          // Clear child selections
+          selectedCity = null;
+          selectedBarangay = null;
+
+          cityCtrl.disable('Select City / Municipality');
+          barangayCtrl.disable('Select Barangay');
+
+          triggerAutoGeocode();
+          await loadCitiesForProvince(item.code);
+        }
+      });
+
+      const cityCtrl = setupSearchableDropdown({
+        btnId: 'btn-dropdown-city',
+        labelId: 'label-city',
+        popoverId: 'popover-city',
+        searchId: 'search-city',
+        listId: 'list-city',
+        errId: 'err-city',
+        onSelect: async (item) => {
+          selectedCity = item;
+          selectedBarangay = null;
+
+          barangayCtrl.disable('Select Barangay');
+
+          triggerAutoGeocode();
+          await loadBarangaysForCity(item.code);
+        }
+      });
+
+      const barangayCtrl = setupSearchableDropdown({
+        btnId: 'btn-dropdown-barangay',
+        labelId: 'label-barangay',
+        popoverId: 'popover-barangay',
+        searchId: 'search-barangay',
+        listId: 'list-barangay',
+        errId: 'err-barangay',
+        onSelect: (item) => {
+          selectedBarangay = item;
+          triggerAutoGeocode();
+        }
+      });
+
+      // Load Regions on startup
+      async function loadInitialRegions() {
+        const loading = document.getElementById('region-loading');
+        if (loading) loading.classList.remove('hidden');
+        try {
+          const regions = await fetchPsgc('regions/', FALLBACK_REGIONS);
+          regionCtrl.setItems(regions);
+        } finally {
+          if (loading) loading.classList.add('hidden');
+        }
+      }
+
+      // Load Provinces for a Region
+      async function loadProvincesForRegion(regionCode) {
+        const loading = document.getElementById('province-loading');
+        if (loading) loading.classList.remove('hidden');
+        try {
+          let provinces = [];
+          if (regionCode === '090000000') {
+            provinces = await fetchPsgc(`regions/${regionCode}/provinces/`, FALLBACK_REGION_IX_PROVINCES);
+          } else {
+            provinces = await fetchPsgc(`regions/${regionCode}/provinces/`, []);
+          }
+
+          // Special handling for NCR / Metropolitan areas without provinces
+          if (!provinces || provinces.length === 0) {
+            // NCR or Independent Area: Treat Metro Manila as Province
+            selectedProvince = { code: `${regionCode}-ncr`, name: 'Metro Manila (Special Capital District)' };
+            provinceCtrl.setLabel(selectedProvince.name);
+            provinceCtrl.enable();
+            // Load cities directly under this region
+            await loadCitiesForRegionDirect(regionCode);
+            return;
+          }
+
+          provinceCtrl.setItems(provinces);
+          provinceCtrl.setLabel('Select Province');
+          provinceCtrl.enable();
+        } finally {
+          if (loading) loading.classList.add('hidden');
+        }
+      }
+
+      // Load Cities directly for special regions (e.g. NCR)
+      async function loadCitiesForRegionDirect(regionCode) {
+        const loading = document.getElementById('city-loading');
+        if (loading) loading.classList.remove('hidden');
+        try {
+          const cities = await fetchPsgc(`regions/${regionCode}/cities-municipalities/`, []);
+          cityCtrl.setItems(cities);
+          cityCtrl.setLabel('Select City / Municipality');
+          cityCtrl.enable();
+        } finally {
+          if (loading) loading.classList.add('hidden');
+        }
+      }
+
+      // Load Cities for a Province
+      async function loadCitiesForProvince(provinceCode) {
+        const loading = document.getElementById('city-loading');
+        if (loading) loading.classList.remove('hidden');
+        try {
+          let cities = [];
+          if (provinceCode === '097300000') {
+            cities = await fetchPsgc(`provinces/${provinceCode}/cities-municipalities/`, FALLBACK_ZDS_CITIES);
+          } else {
+            cities = await fetchPsgc(`provinces/${provinceCode}/cities-municipalities/`, []);
+          }
+
+          cityCtrl.setItems(cities);
+          cityCtrl.setLabel('Select City / Municipality');
+          cityCtrl.enable();
+        } finally {
+          if (loading) loading.classList.add('hidden');
+        }
+      }
+
+      // Load Barangays for a City / Municipality
+      async function loadBarangaysForCity(cityCode) {
+        const loading = document.getElementById('barangay-loading');
+        if (loading) loading.classList.remove('hidden');
+        try {
+          let barangays = [];
+          if (cityCode === '097302000') {
+            barangays = await fetchPsgc(`cities-municipalities/${cityCode}/barangays/`, FALLBACK_AURORA_BARANGAYS);
+          } else {
+            barangays = await fetchPsgc(`cities-municipalities/${cityCode}/barangays/`, []);
+          }
+
+          barangayCtrl.setItems(barangays);
+          barangayCtrl.setLabel('Select Barangay');
+          barangayCtrl.enable();
+        } finally {
+          if (loading) loading.classList.add('hidden');
+        }
+      }
+
+      // Initial regions fetch
+      await loadInitialRegions();
+
+      // =========================================================================
+      // STREET & HOUSE INPUT LISTENERS
+      // =========================================================================
+      const inpStreet = document.getElementById('inp-street-name');
+      const inpHouse = document.getElementById('inp-house-details');
+      const chkNoHouse = document.getElementById('chk-no-house-number');
+
+      if (inpStreet) {
+        inpStreet.addEventListener('input', () => {
+          document.getElementById('err-street-name')?.classList.add('hidden');
+          triggerAutoGeocode();
+        });
+      }
+
+      if (inpHouse) {
+        inpHouse.addEventListener('input', () => {
+          document.getElementById('err-house-details')?.classList.add('hidden');
+          triggerAutoGeocode();
+        });
+      }
+
+      if (chkNoHouse) {
+        chkNoHouse.addEventListener('change', () => {
+          document.getElementById('err-house-details')?.classList.add('hidden');
+          if (chkNoHouse.checked) {
+            if (inpHouse) {
+              inpHouse.value = 'No house number';
+              inpHouse.disabled = true;
+              inpHouse.classList.add('opacity-70');
+            }
+          } else {
+            if (inpHouse) {
+              inpHouse.value = '';
+              inpHouse.disabled = false;
+              inpHouse.classList.remove('opacity-70');
+            }
+          }
+          triggerAutoGeocode();
+        });
+      }
+
+      // =========================================================================
+      // PRE-POPULATE SAVED ADDRESS (IF AVAILABLE)
+      // =========================================================================
+      const currentUserId = String(user?.id || user?.uid || user?.firebaseUid || '').trim();
+      const currentUserEmail = String(user?.email || '').trim().toLowerCase();
+
+      function isOwnedByCurrentUser(item) {
+        if (!item || typeof item !== 'object') return false;
+        let hasMatch = false;
+        if (item.userId && typeof item.userId === 'string' && item.userId.trim()) {
+          const itemUid = item.userId.trim();
+          if (currentUserId && itemUid === currentUserId) hasMatch = true;
+          else if (user?.firebaseUid && itemUid === String(user.firebaseUid).trim()) hasMatch = true;
+          else if (user?.uid && itemUid === String(user.uid).trim()) hasMatch = true;
+          else if (user?.id && itemUid === String(user.id).trim()) hasMatch = true;
+          else return false;
+        }
+        if (item.userEmail && typeof item.userEmail === 'string' && item.userEmail.trim()) {
+          const itemEmail = item.userEmail.trim().toLowerCase();
+          if (currentUserEmail && itemEmail === currentUserEmail) hasMatch = true;
+          else return false;
+        }
+        return hasMatch;
+      }
+
+      let activePreset = null;
+      try {
+        const rawSession = sessionStorage.getItem('riceflow-active-checkout-address');
+        if (rawSession) {
+          const parsed = JSON.parse(rawSession);
+          if (isOwnedByCurrentUser(parsed)) {
+            activePreset = parsed;
+          } else {
+            // Discard foreign or unowned cached address
+            sessionStorage.removeItem('riceflow-active-checkout-address');
+          }
+        }
+      } catch (_) {}
+
+      if (!activePreset && user && user.addressDetails) {
+        activePreset = {
+          userId: currentUserId,
+          userEmail: currentUserEmail,
+          addressDetails: user.addressDetails,
+          coordinates: user.coordinates,
+          address: user.address
+        };
+      }
+
+      if (activePreset && activePreset.addressDetails) {
+        const ad = activePreset.addressDetails;
+        if (ad.region) {
+          selectedRegion = { code: ad.regionCode || '090000000', name: ad.region, regionName: ad.region };
+          regionCtrl.setLabel(ad.region);
+
+          await loadProvincesForRegion(selectedRegion.code);
+
+          if (ad.province) {
+            selectedProvince = { code: ad.provinceCode || '097300000', name: ad.province };
+            provinceCtrl.setLabel(ad.province);
+            provinceCtrl.enable();
+
+            await loadCitiesForProvince(selectedProvince.code);
+
+            if (ad.city) {
+              selectedCity = { code: ad.cityCode || '097302000', name: ad.city };
+              cityCtrl.setLabel(ad.city);
+              cityCtrl.enable();
+
+              await loadBarangaysForCity(selectedCity.code);
+
+              if (ad.barangay) {
+                selectedBarangay = { code: ad.barangayCode || '097302042', name: ad.barangay };
+                barangayCtrl.setLabel(ad.barangay);
+                barangayCtrl.enable();
+              }
+            }
+          }
+        }
+
+        if (inpStreet && ad.street) inpStreet.value = ad.street;
+        if (ad.noHouseNumber && chkNoHouse) {
+          chkNoHouse.checked = true;
+          if (inpHouse) {
+            inpHouse.value = 'No house number';
+            inpHouse.disabled = true;
+          }
+        } else if (inpHouse && ad.houseDetails) {
+          inpHouse.value = ad.houseDetails;
+        }
+
+        if (activePreset.coordinates && typeof activePreset.coordinates.lat === 'number') {
+          currentCoordinates = activePreset.coordinates;
+          if (leafletMap && mapMarker) {
+            leafletMap.setView([currentCoordinates.lat, currentCoordinates.lng], 16);
+            mapMarker.setLatLng([currentCoordinates.lat, currentCoordinates.lng]);
+          }
+          updateMapPinCoords(currentCoordinates.lat, currentCoordinates.lng);
+          setPinConfirmedState(true);
+        }
+      } else if (user && user.address && (!activePreset || !activePreset.addressDetails)) {
+        // Prepopulate plain text address into street details if no structured breakdown exists yet
+        if (inpStreet) inpStreet.value = user.address;
+        if (user.coordinates && typeof user.coordinates.lat === 'number') {
+          currentCoordinates = user.coordinates;
+          if (leafletMap && mapMarker) {
+            leafletMap.setView([currentCoordinates.lat, currentCoordinates.lng], 15);
+            mapMarker.setLatLng([currentCoordinates.lat, currentCoordinates.lng]);
+          }
+          updateMapPinCoords(currentCoordinates.lat, currentCoordinates.lng);
+        }
+      }
+
+      // =========================================================================
+      // FORM VALIDATION & PERSISTENCE
+      // =========================================================================
+      const addressForm = document.getElementById('address-form');
+      if (addressForm) {
+        addressForm.addEventListener('submit', async (e) => {
+          e.preventDefault();
+
+          let hasError = false;
+          let firstErrorEl = null;
+
+          function reportFieldError(errId, msg, anchorEl) {
+            const errEl = document.getElementById(errId);
+            if (errEl) {
+              errEl.textContent = msg;
+              errEl.classList.remove('hidden');
+            }
+            if (!firstErrorEl && anchorEl) firstErrorEl = anchorEl;
+            hasError = true;
+          }
+
+          // 1. Validate Region
+          if (!selectedRegion) {
+            reportFieldError('err-region', 'Please select a Region from the list.', document.getElementById('btn-dropdown-region'));
+          }
+
+          // 2. Validate Province (where applicable)
+          if (!selectedProvince) {
+            reportFieldError('err-province', 'Please select a Province from the list.', document.getElementById('btn-dropdown-province'));
+          }
+
+          // 3. Validate City / Municipality
+          if (!selectedCity) {
+            reportFieldError('err-city', 'Please select a City or Municipality from the list.', document.getElementById('btn-dropdown-city'));
+          }
+
+          // 4. Validate Barangay
+          if (!selectedBarangay) {
+            reportFieldError('err-barangay', 'Please select a Barangay from the list.', document.getElementById('btn-dropdown-barangay'));
+          }
+
+          // 5. Validate Street Name
+          const streetVal = (inpStreet?.value || '').trim();
+          if (!streetVal) {
+            reportFieldError('err-street-name', 'Please enter your street name, purok, or local descriptive address.', inpStreet);
+          }
+
+          // 6. Validate House Details
+          const houseVal = (inpHouse?.value || '').trim();
+          const noHouseChecked = chkNoHouse ? chkNoHouse.checked : false;
+          if (!noHouseChecked && !houseVal) {
+            reportFieldError('err-house-details', 'Please enter your house or building details, or check "No house number".', inpHouse);
+          }
+
+          // 7. Validate Map Pin Confirmation
+          if (!isPinConfirmed) {
+            reportFieldError('err-pin-confirmation', 'Please drag your map marker to the exact location and click "Confirm Pin Location".', document.getElementById('btn-confirm-pin'));
+          }
+
+          // 8. Validate Finite Coordinates within Philippines range
+          const lat = Number(currentCoordinates.lat);
+          const lng = Number(currentCoordinates.lng);
+          const isFiniteNum = !isNaN(lat) && !isNaN(lng) && isFinite(lat) && isFinite(lng);
+          const inPhBounds = lat >= 4.5 && lat <= 21.5 && lng >= 116.0 && lng <= 127.0;
+          if (!isFiniteNum || !inPhBounds) {
+            reportFieldError('err-pin-confirmation', 'Valid coordinates within the Philippines are required.', document.getElementById('btn-confirm-pin'));
+          }
+
+          if (hasError) {
+            showToast('Please complete all required address fields and confirm your map pin.', 'error');
+            if (firstErrorEl) {
+              firstErrorEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              if (typeof firstErrorEl.focus === 'function') firstErrorEl.focus();
+            }
+            return;
+          }
+
+          // Build canonical full address string
+          const housePart = noHouseChecked ? 'No house number' : houseVal;
+          const regionPart = selectedRegion.regionName ? `${selectedRegion.regionName} (${selectedRegion.name})` : selectedRegion.name;
+          const provincePart = selectedProvince.name ? `${selectedProvince.name}, ` : '';
+          const fullAddressString = `${housePart}, ${streetVal}, Brgy. ${selectedBarangay.name}, ${selectedCity.name}, ${provincePart}${regionPart}`.replace(/,\s*,/g, ', ').trim();
+
+          const structuredDetails = {
+            region: selectedRegion.name,
+            regionCode: selectedRegion.code,
+            province: selectedProvince ? selectedProvince.name : '',
+            provinceCode: selectedProvince ? selectedProvince.code : '',
+            city: selectedCity.name,
+            cityCode: selectedCity.code,
+            barangay: selectedBarangay.name,
+            barangayCode: selectedBarangay.code,
+            street: streetVal,
+            houseDetails: housePart,
+            noHouseNumber: noHouseChecked,
+            fullAddress: fullAddressString,
+            coordinates: { lat, lng },
+            isPinConfirmed: true,
+            confirmedAt: new Date().toISOString()
+          };
+
+          const btnSave = document.getElementById('btn-save-address');
+          const btnSaveText = document.getElementById('btn-save-text');
+          const origText = btnSaveText ? btnSaveText.textContent : 'Save & Confirm Address';
+
+          if (btnSave) {
+            btnSave.disabled = true;
+            if (btnSaveText) btnSaveText.textContent = 'Saving Address...';
+          }
+
+          try {
+            // Save active address into sessionStorage for instant checkout reuse
+            const activeAddressPayload = {
+              userId: currentUserId,
+              userEmail: currentUserEmail,
+              address: fullAddressString,
+              coordinates: { lat, lng },
+              addressDetails: structuredDetails,
+              isConfirmed: true
+            };
+            sessionStorage.setItem('riceflow-active-checkout-address', JSON.stringify(activeAddressPayload));
+
+            // Save to Customer Profile if toggle is checked
+            const chkDefault = document.getElementById('chk-set-default-profile');
+            if (!chkDefault || chkDefault.checked) {
+              await updateUser({
+                address: fullAddressString,
+                coordinates: { lat, lng },
+                addressDetails: structuredDetails
+              });
+            }
+
+            showToast('Delivery address and map pin saved successfully!', 'success');
+
+            // Return to checkout or profile
+            setTimeout(() => {
+              window.location.href = returnUrl;
+            }, 400);
+          } catch (saveErr) {
+            console.error('[ADDRESS] Error saving address:', saveErr);
+            showToast('Failed to save address. Please check your connection and retry.', 'error');
+            if (btnSave) {
+              btnSave.disabled = false;
+              if (btnSaveText) btnSaveText.textContent = origText;
+            }
+          }
+        });
+      }
+
+    });
+  </script>
+</body>
+</html>

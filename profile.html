@@ -197,8 +197,15 @@
 
           <!-- Row 3: Address -->
           <div class="space-y-1.5">
-            <label class="text-xs font-bold text-gray-900 dark:text-gray-100">Address</label>
+            <div class="flex items-center justify-between">
+              <label class="text-xs font-bold text-gray-900 dark:text-gray-100">Delivery Address</label>
+              <div class="flex items-center gap-2">
+                <span id="profile-coords-badge" class="hidden text-[10px] font-mono font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-200 dark:border-emerald-800">📍 Pinned</span>
+                <a href="address.html?from=profile" class="text-[11px] font-bold text-[#1E6C02] dark:text-emerald-400 hover:underline">Manage Address Page ›</a>
+              </div>
+            </div>
             <input type="text" id="modal-inp-address" name="profile_address" autocomplete="street-address" class="w-full bg-[#F8F9FA] dark:bg-slate-800 border border-transparent dark:border-slate-700 text-sm font-medium text-gray-900 dark:text-gray-100 px-4 py-3 rounded-2xl focus:bg-white dark:focus:bg-slate-700 focus:border-[#1E6C02] outline-none transition-all placeholder-gray-700 dark:placeholder-gray-300" />
+            <p id="profile-coords-text" class="text-[11px] text-gray-500 dark:text-gray-400 pl-1 hidden"></p>
           </div>
 
           <!-- Row 4: Change Password -->
@@ -5691,6 +5698,19 @@
         if (inpPhone) inpPhone.value = user.phone || '';
         if (inpEmail) inpEmail.value = user.email || '';
         if (inpAddress) inpAddress.value = user.address || '';
+
+        const coordsBadge = document.getElementById('profile-coords-badge');
+        const coordsText = document.getElementById('profile-coords-text');
+        if (user && user.coordinates && typeof user.coordinates.lat === 'number') {
+          if (coordsBadge) coordsBadge.classList.remove('hidden');
+          if (coordsText) {
+            coordsText.textContent = `Pinned coordinates: ${user.coordinates.lat.toFixed(4)}, ${user.coordinates.lng.toFixed(4)}`;
+            coordsText.classList.remove('hidden');
+          }
+        } else {
+          if (coordsBadge) coordsBadge.classList.add('hidden');
+          if (coordsText) coordsText.classList.add('hidden');
+        }
 
         newPictureSelected = false;
         pictureExplicitlyRemoved = false;

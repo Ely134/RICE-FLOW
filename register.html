@@ -141,22 +141,6 @@
               />
             </div>
 
-            <!-- Address -->
-            <div class="space-y-1.5">
-              <label for="address" class="text-sm font-bold text-[#222222] block">
-                Address
-              </label>
-              <input
-                id="address"
-                name="address"
-                type="text"
-                autocomplete="street-address"
-                required
-                placeholder="Enter Physical Delivery Address"
-                class="w-full h-12 px-4 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-[#1E6C02]/20 focus:border-[#1E6C02] transition-all text-sm font-medium text-[#222222]"
-              />
-            </div>
-
             <!-- Gender Selection -->
             <div class="space-y-1.5">
               <label class="text-sm font-bold text-[#222222] block">
@@ -317,7 +301,6 @@
       const lastNameInp = document.getElementById('lastName');
       const emailInp = document.getElementById('email');
       const phoneInp = document.getElementById('phone');
-      const addressInp = document.getElementById('address');
       const passwordInp = document.getElementById('password');
       const confirmInp = document.getElementById('confirmPassword');
       const termsChkbx = document.getElementById('terms');
@@ -402,7 +385,6 @@
             lastName: typeof parsed.lastName === 'string' ? parsed.lastName : '',
             email: typeof parsed.email === 'string' ? parsed.email : '',
             phone: typeof parsed.phone === 'string' ? parsed.phone : '',
-            address: typeof parsed.address === 'string' ? parsed.address : '',
             gender: typeof parsed.gender === 'string' ? parsed.gender : ''
           };
         } catch {
@@ -431,7 +413,6 @@
         lastNameInp.value = draft ? draft.lastName : '';
         emailInp.value = draft ? draft.email : '';
         phoneInp.value = draft ? draft.phone : '';
-        addressInp.value = draft ? draft.address : '';
         passwordInp.value = '';
         confirmInp.value = '';
 
@@ -458,7 +439,6 @@
             lastName: lastNameInp.value || '',
             email: emailInp.value || '',
             phone: phoneInp.value || '',
-            address: addressInp.value || '',
             gender: genderChecked ? genderChecked.value : ''
           };
           const hasAnyValue = Object.values(draft).some((v) => String(v || '').trim() !== '');
@@ -493,7 +473,7 @@
         }
       };
 
-      [firstNameInp, lastNameInp, phoneInp, addressInp].forEach((inp) => {
+      [firstNameInp, lastNameInp, phoneInp].forEach((inp) => {
         inp.addEventListener('input', () => {
           userModifiedForm = true;
         });
@@ -597,7 +577,6 @@
         const lastName = lastNameInp.value.trim();
         const email = emailInp.value.trim();
         const phone = phoneInp.value.trim();
-        const address = addressInp.value.trim();
         const password = passwordInp.value;
         const confirmPassword = confirmInp.value;
         const genderChecked = document.querySelector('input[name="gender"]:checked');
@@ -627,25 +606,19 @@
           return;
         }
 
-        // 5. Check Address
-        if (!address) {
-          showToast('Please enter your Address.', 'error');
-          return;
-        }
-
-        // 6. Check Gender
+        // 5. Check Gender
         if (!gender) {
           showToast('Please select your Gender.', 'error');
           return;
         }
 
-        // 7. Check Password
+        // 6. Check Password
         if (!password) {
           showToast('Please enter your Password.', 'error');
           return;
         }
 
-        // 8. Check Confirm Password
+        // 7. Check Confirm Password
         if (!confirmPassword) {
           showToast('Please enter your Confirm Password.', 'error');
           return;
@@ -704,7 +677,7 @@
               lastName,
               email,
               phone,
-              address,
+              address: '',
               password,
               gender
             });

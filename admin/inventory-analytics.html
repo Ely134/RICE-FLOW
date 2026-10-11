@@ -321,7 +321,9 @@
       getProductSackWeightKg,
       getDashboardAvailableStockData,
       getAllOrders,
-      showToast
+      showToast,
+      predictStockAvailability,
+      predictServiceReadinessTime
     } from '../src/app/shared.js';
 
     document.addEventListener('DOMContentLoaded', async () => {
@@ -515,6 +517,88 @@
                 <div>
                   <p id="inv-stat-total" class="text-xl sm:text-2xl font-black tabular-nums tracking-tight">0 sacks / 0 kg</p>
                   <p class="ia-card-sub text-xs sm:text-[13px] font-semibold mt-1">Rice ready for orders</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- AI Predictive Intelligence Card (Phase 3 Approved Capabilities) -->
+          <div class="bg-white dark:bg-[#111827] border border-emerald-200/80 dark:border-emerald-900/60 rounded-2xl p-6 sm:p-7 shadow-xs space-y-5">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100 dark:border-slate-800">
+              <div class="flex items-center gap-2.5">
+                <span class="w-8 h-8 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-700 flex items-center justify-center text-sm font-bold text-[#1E6C02] dark:text-emerald-400">🤖</span>
+                <div>
+                  <h3 class="ia-text-main font-bold text-lg tracking-tight">AI Predictive Intelligence</h3>
+                  <p class="ia-text-sub text-xs sm:text-sm font-medium mt-0.5">Empirical supply chain predictions derived strictly from genuine RiceFlow timestamps and inventory records</p>
+                </div>
+              </div>
+              <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 dark:bg-emerald-950/60 text-[#1E6C02] dark:text-emerald-400 border border-emerald-300 dark:border-emerald-700 w-fit">
+                Phase 3 Approved Models
+              </span>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <!-- Prediction Panel 1: Stock Availability & Queue Allocation -->
+              <div class="p-5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-900/50 space-y-3.5 flex flex-col justify-between">
+                <div class="space-y-2">
+                  <div class="flex items-center justify-between gap-2">
+                    <span class="text-xs font-extrabold uppercase tracking-wider text-emerald-800 dark:text-emerald-300 flex items-center gap-1.5">
+                      <span>📦</span> 1. Stock Availability Prediction
+                    </span>
+                    <span id="ai-stock-variety-tag" class="text-[11px] font-bold px-2.5 py-0.5 rounded-md bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 truncate max-w-[150px]">All Varieties</span>
+                  </div>
+                  <div>
+                    <p id="ai-stock-window" class="text-xl sm:text-2xl font-black text-slate-950 dark:text-white tracking-tight">Waiting for Restock</p>
+                    <p id="ai-stock-status-desc" class="text-xs sm:text-[13px] font-semibold text-slate-700 dark:text-slate-300 mt-1 leading-snug">Evaluating historical restocking cadence and active FIFO queue depth.</p>
+                  </div>
+                </div>
+
+                <div class="pt-2 border-t border-slate-200/80 dark:border-slate-800 space-y-1.5 text-[11px] sm:text-xs">
+                  <div class="flex justify-between items-center text-slate-600 dark:text-slate-400">
+                    <span>Method:</span>
+                    <span class="font-bold text-slate-800 dark:text-slate-200" id="ai-stock-method">Historical Restock Interval Analysis</span>
+                  </div>
+                  <div class="flex justify-between items-center text-slate-600 dark:text-slate-400">
+                    <span>Sample Basis:</span>
+                    <span class="font-bold text-slate-800 dark:text-slate-200" id="ai-stock-sample-count">0 genuine deliveries</span>
+                  </div>
+                  <div class="flex justify-between items-center text-slate-600 dark:text-slate-400">
+                    <span>Public Availability Status:</span>
+                    <span class="font-bold text-slate-800 dark:text-slate-200 text-right truncate max-w-[210px]" id="ai-stock-public-avail">Subject to FIFO Queue Priority</span>
+                  </div>
+                  <p id="ai-stock-disclaimer" class="text-[10.5px] italic text-slate-500 dark:text-slate-400 pt-1 leading-tight">Preliminary: Insufficient genuine restock intervals recorded for this variety.</p>
+                </div>
+              </div>
+
+              <!-- Prediction Panel 2: Service Readiness Lead Time -->
+              <div class="p-5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-900/50 space-y-3.5 flex flex-col justify-between">
+                <div class="space-y-2">
+                  <div class="flex items-center justify-between gap-2">
+                    <span class="text-xs font-extrabold uppercase tracking-wider text-indigo-800 dark:text-indigo-300 flex items-center gap-1.5">
+                      <span>⏱️</span> 2. Service Time Prediction
+                    </span>
+                    <span class="text-[11px] font-bold px-2.5 py-0.5 rounded-md bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300">Staging Readiness</span>
+                  </div>
+                  <div>
+                    <p id="ai-service-leadtime" class="text-xl sm:text-2xl font-black text-slate-950 dark:text-white tracking-tight">1 to 2 business days</p>
+                    <p id="ai-service-desc" class="text-xs sm:text-[13px] font-semibold text-slate-700 dark:text-slate-300 mt-1 leading-snug">Expected warehouse authorization-to-readiness latency before customer pickup or dispatch.</p>
+                  </div>
+                </div>
+
+                <div class="pt-2 border-t border-slate-200/80 dark:border-slate-800 space-y-1.5 text-[11px] sm:text-xs">
+                  <div class="flex justify-between items-center text-slate-600 dark:text-slate-400">
+                    <span>Target Metric:</span>
+                    <span class="font-bold text-slate-800 dark:text-slate-200">Warehouse Readiness Lead Time</span>
+                  </div>
+                  <div class="flex justify-between items-center text-slate-600 dark:text-slate-400">
+                    <span>Method:</span>
+                    <span class="font-bold text-slate-800 dark:text-slate-200" id="ai-service-method">Empirical Lead-Time Analysis</span>
+                  </div>
+                  <div class="flex justify-between items-center text-slate-600 dark:text-slate-400">
+                    <span>Sample Basis:</span>
+                    <span class="font-bold text-slate-800 dark:text-slate-200" id="ai-service-sample-count">0 staging events</span>
+                  </div>
+                  <p id="ai-service-disclaimer" class="text-[10.5px] italic text-slate-500 dark:text-slate-400 pt-1 leading-tight">Measures administrative-to-staging latency. Excludes batch administrative logging (&lt;2 min) and holds (&gt;5 days).</p>
                 </div>
               </div>
             </div>
@@ -1119,6 +1203,60 @@
               `;
             }).join('');
           }
+        }
+
+        // ----------------- AI Prediction Intelligence Dynamic Updates -----------------
+        const stockVarietyEl = document.getElementById('ai-stock-variety-tag');
+        const stockWindowEl = document.getElementById('ai-stock-window');
+        const stockStatusDescEl = document.getElementById('ai-stock-status-desc');
+        const stockMethodEl = document.getElementById('ai-stock-method');
+        const stockSampleCountEl = document.getElementById('ai-stock-sample-count');
+        const stockPublicAvailEl = document.getElementById('ai-stock-public-avail');
+        const stockDisclaimerEl = document.getElementById('ai-stock-disclaimer');
+
+        const serviceLeadTimeEl = document.getElementById('ai-service-leadtime');
+        const serviceDescEl = document.getElementById('ai-service-desc');
+        const serviceMethodEl = document.getElementById('ai-service-method');
+        const serviceSampleCountEl = document.getElementById('ai-service-sample-count');
+        const serviceDisclaimerEl = document.getElementById('ai-service-disclaimer');
+
+        // Identify target rice variety for availability prediction
+        const targetVarietyId = (currentProd && currentProd !== 'all') ? currentProd : (activeProducts[0]?.id || '2');
+        const targetVarietyName = (currentProd && currentProd !== 'all')
+          ? (activeProducts.find(p => String(p.id) === String(currentProd))?.name || currentProd)
+          : (activeProducts[0]?.name || 'All Varieties');
+
+        if (stockVarietyEl) stockVarietyEl.textContent = targetVarietyName;
+
+        if (typeof predictStockAvailability === 'function') {
+          const stockPred = predictStockAvailability(targetVarietyId);
+          if (stockWindowEl) stockWindowEl.textContent = stockPred.displayDate || 'Waiting for Restock';
+          if (stockStatusDescEl) {
+            if (stockPred.status === 'predicted') {
+              stockStatusDescEl.textContent = `Projected replenishment window based on ${stockPred.averageIntervalDays} days average interval between observed deliveries.`;
+            } else {
+              stockStatusDescEl.textContent = 'Awaiting sufficient genuine supplier restock deliveries to establish empirical replenishment interval.';
+            }
+          }
+          if (stockMethodEl) stockMethodEl.textContent = stockPred.method;
+          if (stockSampleCountEl) stockSampleCountEl.textContent = `${stockPred.observationCount} genuine deliveries (${stockPred.intervalCount} intervals)`;
+          if (stockPublicAvailEl) stockPublicAvailEl.textContent = stockPred.publicAvailabilityStatus || 'Awaiting Restock Delivery';
+          if (stockDisclaimerEl) stockDisclaimerEl.textContent = stockPred.confidenceNote;
+        }
+
+        if (typeof predictServiceReadinessTime === 'function') {
+          const servicePred = predictServiceReadinessTime();
+          if (serviceLeadTimeEl) serviceLeadTimeEl.textContent = servicePred.displayTime || '1 to 2 business days';
+          if (serviceDescEl) {
+            if (servicePred.status === 'predicted') {
+              serviceDescEl.textContent = `Estimated warehouse authorization-to-readiness latency: median ${servicePred.predictedHours}h across genuine order stagings.`;
+            } else {
+              serviceDescEl.textContent = 'Using operational baseline lead time. Preparation timestamps are accumulating in the system.';
+            }
+          }
+          if (serviceMethodEl) serviceMethodEl.textContent = servicePred.method;
+          if (serviceSampleCountEl) serviceSampleCountEl.textContent = `${servicePred.observationCount} staging observations`;
+          if (serviceDisclaimerEl) serviceDisclaimerEl.textContent = servicePred.confidenceNote;
         }
       }
 

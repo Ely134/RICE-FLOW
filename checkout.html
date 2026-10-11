@@ -147,10 +147,71 @@
                 </div>
               </div>
 
-              <!-- Address Block -->
-              <div id="address-container" class="space-y-1.5 text-left">
-                <label class="text-xs font-bold text-gray-950 dark:text-gray-100">Delivery Address</label>
-                <textarea required name="address" id="inp-address" rows="3" placeholder="House No., Street name, Barangay, Aurora, Zamboanga del Sur" class="w-full bg-[#F8F9FA] dark:bg-slate-800 border-0 dark:border dark:border-slate-700 text-sm font-medium text-[#111827] dark:text-gray-100 p-4 rounded-2xl outline-none focus:bg-white dark:focus:bg-slate-700 focus:ring-1 focus:ring-[#1E6C02] transition-all placeholder-gray-700 dark:placeholder-gray-300 shadow-none resize-none"></textarea>
+              <!-- Address Block (Shopee-Style Delivery Address Summary) -->
+              <div id="address-container" class="space-y-3 text-left">
+                <!-- Section Header -->
+                <div class="flex items-center justify-between">
+                  <label class="text-xs font-bold text-gray-950 dark:text-gray-100 flex items-center gap-1.5">
+                    <span>📍</span> Delivery Address
+                  </label>
+                  <span id="address-status-pill" class="text-[11px] font-bold text-[#1E6C02] dark:text-emerald-400 bg-green-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded-md border border-green-200 dark:border-emerald-800 hidden">
+                    Verified Location
+                  </span>
+                </div>
+
+                <!-- Shopee-Style Compact Address Summary Card -->
+                <div id="checkout-address-card" class="bg-white dark:bg-slate-800 border-2 border-gray-200 dark:border-slate-700 rounded-2xl p-4 sm:p-5 shadow-xs space-y-3 transition-all">
+                  
+                  <!-- STATE A: Confirmed Delivery Address View -->
+                  <div id="address-confirmed-view" class="hidden space-y-2.5">
+                    <div class="flex items-center justify-between gap-2 flex-wrap">
+                      <div class="flex items-center gap-2">
+                        <span class="text-xs font-black uppercase tracking-wider text-[#1E6C02] dark:text-emerald-400">Recipient & Destination</span>
+                        <span id="badge-address-pinned" class="text-[10px] font-extrabold text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/50 border border-blue-200 dark:border-blue-800 px-2 py-0.5 rounded-full">
+                          📍 Pin Confirmed
+                        </span>
+                      </div>
+                      <a id="btn-change-address" href="address.html?from=checkout" class="text-xs font-bold text-[#1E6C02] hover:text-[#145001] dark:text-emerald-400 dark:hover:text-emerald-300 flex items-center gap-1 cursor-pointer">
+                        <span>Change Address</span>
+                        <span>›</span>
+                      </a>
+                    </div>
+
+                    <div class="pt-2 border-t border-gray-100 dark:border-slate-700 space-y-1">
+                      <div class="flex items-center gap-2 text-xs font-bold text-gray-900 dark:text-gray-100">
+                        <span id="summary-recipient-name">Valued Customer</span>
+                        <span class="text-gray-300 dark:text-gray-600">|</span>
+                        <span id="summary-recipient-phone" class="font-mono text-gray-700 dark:text-gray-300">09XXXXXXXXX</span>
+                      </div>
+                      <p id="summary-address-text" class="text-sm font-semibold text-gray-800 dark:text-gray-200 leading-snug break-words"></p>
+                      <p id="summary-coords-text" class="text-[11px] font-mono text-emerald-700 dark:text-emerald-400"></p>
+                    </div>
+                  </div>
+
+                  <!-- STATE B: No Confirmed Address Selected View -->
+                  <div id="address-empty-view" class="space-y-3">
+                    <div class="flex items-start gap-3">
+                      <span class="text-2xl text-amber-500">📍</span>
+                      <div class="space-y-0.5">
+                        <p class="text-xs font-black uppercase tracking-wide text-gray-900 dark:text-gray-100">No Confirmed Delivery Address</p>
+                        <p class="text-xs text-gray-600 dark:text-gray-400">
+                          Please select your Philippine administrative location and confirm your exact map pin to proceed with checkout.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div class="pt-2 border-t border-gray-100 dark:border-slate-700 flex items-center gap-2">
+                      <a id="btn-add-address" href="address.html?from=checkout" class="px-4 py-2 bg-[#1E6C02] hover:bg-[#145001] text-white text-xs font-bold rounded-xl transition-all shadow-xs cursor-pointer inline-flex items-center gap-1.5">
+                        <span>+</span>
+                        <span>Add Delivery Address & Pin Location</span>
+                      </a>
+                    </div>
+                  </div>
+
+                </div>
+
+                <!-- Hidden input element so any existing form selectors or tests remain compatible -->
+                <input type="hidden" name="address" id="inp-address" value="" />
               </div>
 
               <!-- Additional notes -->
@@ -647,9 +708,109 @@
       const inpAddress = document.getElementById('inp-address');
       if (inpFullName) inpFullName.value = user.fullName || 'Demo User';
       if (inpPhone) inpPhone.value = user.phone || '09123456789';
-      if (inpAddress) {
-        inpAddress.value = user.address || '';
+
+      // =========================================================================
+      // DEDICATED SHOPEE-STYLE DELIVERY ADDRESS STATE & SUMMARY SYNCHRONIZER
+      // =========================================================================
+      const currentUserId = String(user?.id || user?.uid || user?.firebaseUid || '').trim();
+      const currentUserEmail = String(user?.email || '').trim().toLowerCase();
+
+      function isOwnedByCurrentUser(item) {
+        if (!item || typeof item !== 'object') return false;
+        let hasMatch = false;
+        if (item.userId && typeof item.userId === 'string' && item.userId.trim()) {
+          const itemUid = item.userId.trim();
+          if (currentUserId && itemUid === currentUserId) hasMatch = true;
+          else if (user?.firebaseUid && itemUid === String(user.firebaseUid).trim()) hasMatch = true;
+          else if (user?.uid && itemUid === String(user.uid).trim()) hasMatch = true;
+          else if (user?.id && itemUid === String(user.id).trim()) hasMatch = true;
+          else return false;
+        }
+        if (item.userEmail && typeof item.userEmail === 'string' && item.userEmail.trim()) {
+          const itemEmail = item.userEmail.trim().toLowerCase();
+          if (currentUserEmail && itemEmail === currentUserEmail) hasMatch = true;
+          else return false;
+        }
+        return hasMatch;
       }
+
+      let activeCheckoutAddress = null; // { address, coordinates, addressDetails, isConfirmed }
+      let currentSelectedCoordinates = null;
+      let isCoordinatesConfirmed = false;
+
+      function syncCheckoutAddressUI() {
+        const confirmedView = document.getElementById('address-confirmed-view');
+        const emptyView = document.getElementById('address-empty-view');
+        const sumName = document.getElementById('summary-recipient-name');
+        const sumPhone = document.getElementById('summary-recipient-phone');
+        const sumAddress = document.getElementById('summary-address-text');
+        const sumCoords = document.getElementById('summary-coords-text');
+        const btnChange = document.getElementById('btn-change-address');
+        const btnAdd = document.getElementById('btn-add-address');
+
+        // Preserve current checkout query params when linking to dedicated address page
+        const currentSearch = window.location.search ? window.location.search.replace(/^\?/, '') : '';
+        const addressPageUrl = currentSearch ? `address.html?from=checkout&${currentSearch}` : 'address.html?from=checkout';
+        if (btnChange) btnChange.href = addressPageUrl;
+        if (btnAdd) btnAdd.href = addressPageUrl;
+
+        // 1. Check active address saved during current session in sessionStorage first
+        let sessionAddr = null;
+        try {
+          const raw = sessionStorage.getItem('riceflow-active-checkout-address');
+          if (raw) {
+            const parsed = JSON.parse(raw);
+            if (isOwnedByCurrentUser(parsed)) {
+              sessionAddr = parsed;
+            } else {
+              // Discard foreign or unowned cached address
+              sessionStorage.removeItem('riceflow-active-checkout-address');
+            }
+          }
+        } catch (_) {}
+
+        // 2. Fallback to customer's saved profile address if valid coordinates exist
+        if (!sessionAddr && user && user.address && user.coordinates && typeof user.coordinates.lat === 'number' && typeof user.coordinates.lng === 'number') {
+          sessionAddr = {
+            userId: currentUserId,
+            userEmail: currentUserEmail,
+            address: user.address,
+            coordinates: user.coordinates,
+            addressDetails: user.addressDetails || null,
+            isConfirmed: true
+          };
+        }
+
+        if (sessionAddr && sessionAddr.address && sessionAddr.coordinates && typeof sessionAddr.coordinates.lat === 'number' && typeof sessionAddr.coordinates.lng === 'number' && sessionAddr.isConfirmed) {
+          activeCheckoutAddress = sessionAddr;
+          currentSelectedCoordinates = {
+            lat: Math.round(sessionAddr.coordinates.lat * 1e6) / 1e6,
+            lng: Math.round(sessionAddr.coordinates.lng * 1e6) / 1e6
+          };
+          isCoordinatesConfirmed = true;
+
+          if (inpAddress) inpAddress.value = sessionAddr.address;
+          if (sumName) sumName.textContent = user.fullName || user.name || 'Valued Customer';
+          if (sumPhone) sumPhone.textContent = user.phone || '09XXXXXXXXX';
+          if (sumAddress) sumAddress.textContent = sessionAddr.address;
+          if (sumCoords) {
+            sumCoords.textContent = `📍 Pinned coordinates: ${currentSelectedCoordinates.lat.toFixed(4)}, ${currentSelectedCoordinates.lng.toFixed(4)}`;
+          }
+
+          if (confirmedView) confirmedView.classList.remove('hidden');
+          if (emptyView) emptyView.classList.add('hidden');
+        } else {
+          activeCheckoutAddress = null;
+          currentSelectedCoordinates = null;
+          isCoordinatesConfirmed = false;
+          if (inpAddress) inpAddress.value = '';
+
+          if (confirmedView) confirmedView.classList.add('hidden');
+          if (emptyView) emptyView.classList.remove('hidden');
+        }
+      }
+
+      syncCheckoutAddressUI();
 
       // 2. Filter Checkout items from URL queries
       const urlParams = new URLSearchParams(window.location.search);
@@ -1430,13 +1591,19 @@
 
       function saveCheckoutContextForGuide() {
         try {
+          let savedAddress = (addressInput ? addressInput.value : '').trim();
+          if (!savedAddress && activeCheckoutAddress && activeCheckoutAddress.address) {
+            savedAddress = activeCheckoutAddress.address.trim();
+          }
           const ctx = {
+            userId: currentUserId,
+            userEmail: currentUserEmail,
             page: 'checkout.html',
             search: window.location.search || '',
             url: 'checkout.html' + (window.location.search || ''),
             fullName: inpFullName ? inpFullName.value : '',
             phone: inpPhone ? inpPhone.value : '',
-            address: addressInput ? addressInput.value : '',
+            address: savedAddress,
             notes: document.getElementById('inp-notes')?.value || '',
             deliveryOption,
             paymentMethod,
@@ -1459,11 +1626,20 @@
           if (!raw) return;
           const ctx = JSON.parse(raw);
           if (!ctx || ctx.page !== 'checkout.html') return;
+          if (!isOwnedByCurrentUser(ctx)) {
+            sessionStorage.removeItem('riceflow-checkout-context');
+            return;
+          }
           if ((ctx.search || '') !== (window.location.search || '')) return;
 
           if (ctx.fullName && inpFullName) inpFullName.value = ctx.fullName;
           if (ctx.phone && inpPhone) inpPhone.value = ctx.phone;
-          if (ctx.address !== undefined && addressInput) addressInput.value = ctx.address;
+          if (ctx.address !== undefined && addressInput) {
+            const hasConfirmedActiveAddress = Boolean(activeCheckoutAddress && activeCheckoutAddress.address && activeCheckoutAddress.isConfirmed);
+            if (!hasConfirmedActiveAddress || (typeof ctx.address === 'string' && ctx.address.trim().length > 0)) {
+              addressInput.value = ctx.address;
+            }
+          }
           const inpNotes = document.getElementById('inp-notes');
           if (ctx.notes !== undefined && inpNotes) inpNotes.value = ctx.notes;
 
@@ -1557,7 +1733,13 @@
             return;
           }
 
-          if (anchor.id === 'payment-guide-info-link' || href.startsWith('payment-guide.html')) {
+          if (
+            anchor.id === 'payment-guide-info-link' ||
+            href.startsWith('payment-guide.html') ||
+            anchor.id === 'btn-change-address' ||
+            anchor.id === 'btn-add-address' ||
+            href.startsWith('address.html')
+          ) {
             saveCheckoutContextForGuide();
             return;
           }
@@ -1781,9 +1963,23 @@
       }
 
       function validateOrderAndProceed() {
-        if (deliveryOption === 'delivery' && !addressInput.value.trim()) {
-          showToast('Please type your delivery address!', 'error');
-          return;
+        if (deliveryOption === 'delivery') {
+          let addrVal = (addressInput?.value || '').trim();
+          if (!addrVal && activeCheckoutAddress && activeCheckoutAddress.address && activeCheckoutAddress.isConfirmed) {
+            addrVal = activeCheckoutAddress.address.trim();
+            if (addressInput) addressInput.value = addrVal;
+          }
+          if (!addrVal || !currentSelectedCoordinates || !isCoordinatesConfirmed) {
+            showToast('A confirmed delivery address and map pin are required to proceed with delivery.', 'error');
+            const emptyView = document.getElementById('address-empty-view');
+            const confirmedView = document.getElementById('address-confirmed-view');
+            if (emptyView && !emptyView.classList.contains('hidden')) {
+              emptyView.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            } else if (confirmedView) {
+              confirmedView.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+            return;
+          }
         }
 
         if (hasReservations && !blockerCheck.checked) {
@@ -1987,10 +2183,30 @@
         // Construct final payloads
         const fullName = (document.getElementById('inp-fullName')?.value || '').trim();
         const phone = (document.getElementById('inp-phone')?.value || '').trim();
-        const address = deliveryOption === 'delivery' ? (addressInput?.value || '').trim() : '';
+        let address = '';
+        if (deliveryOption === 'delivery') {
+          address = (addressInput?.value || '').trim();
+          if (!address && activeCheckoutAddress && activeCheckoutAddress.address && activeCheckoutAddress.isConfirmed) {
+            address = activeCheckoutAddress.address.trim();
+            if (addressInput) addressInput.value = address;
+          }
+        }
         const rawNotes = (document.getElementById('inp-notes')?.value || '').trim();
         const pickupNotes = deliveryOption === 'pickup' ? rawNotes : '';
         const deliveryNotes = deliveryOption === 'delivery' ? rawNotes : '';
+
+        // Strict validation in the actual order-submission path: prevent unconfirmed address/pin from reaching database
+        if (deliveryOption === 'delivery') {
+          if (!address || !isCoordinatesConfirmed || !currentSelectedCoordinates || typeof currentSelectedCoordinates.lat !== 'number' || typeof currentSelectedCoordinates.lng !== 'number') {
+            showToast('Delivery order cannot be submitted without a complete confirmed address and map pin.', 'error');
+            isSubmitting = false;
+            if (btnSubmit) {
+              btnSubmit.disabled = false;
+              btnSubmit.textContent = originalBtnText;
+            }
+            return;
+          }
+        }
 
         // Calculate subtotal ONLY for available stock
         const subtotal = checkoutItems.reduce((acc, item) => {
@@ -2031,6 +2247,8 @@
             phone,
             deliveryOption: deliveryOption || 'delivery',
             address,
+            coordinates: deliveryOption === 'delivery' ? ((currentSelectedCoordinates && isCoordinatesConfirmed) ? currentSelectedCoordinates : null) : null,
+            addressDetails: deliveryOption === 'delivery' ? (activeCheckoutAddress?.addressDetails || user?.addressDetails || null) : null,
             pickupNotes,
             deliveryNotes,
             notes: rawNotes,
@@ -2104,6 +2322,22 @@
         }
 
         orderSubmitted = true;
+
+        // Auto-save confirmed delivery address and pinned coordinates to customer profile (for delivery orders only)
+        if (deliveryOption === 'delivery' && address) {
+          const chkSave = document.getElementById('chk-save-profile-address');
+          if (!chkSave || chkSave.checked) {
+            try {
+              await updateUser({
+                address,
+                coordinates: (currentSelectedCoordinates && isCoordinatesConfirmed) ? currentSelectedCoordinates : null,
+                addressDetails: activeCheckoutAddress?.addressDetails || user?.addressDetails || null
+              });
+            } catch (saveProfileErr) {
+              console.warn('[CHECKOUT] Notice auto-saving confirmed address to customer profile:', saveProfileErr);
+            }
+          }
+        }
 
         const createdRes = res ? (res.createdReservation || ((res.isPreOrder || res.items?.some(i => i.isReservation)) ? res : null)) : null;
 

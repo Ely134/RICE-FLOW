@@ -854,18 +854,79 @@ html:not(.dark) button[disabled]:not(.bg-\[\#1E6C02\]):not(.disabled\:bg-\[\#A3D
   border-color: #4B5563 !important; /* Strong gray border to ensure proper visibility and clear bounding boxes */
 }
 
-/* Sidebar navigation item overrides */
-.dark aside nav a {
+/* ==========================================================================
+   Admin Sidebar Navigation Items (Global Shared Across All Admin Pages)
+   - Day Mode: Smooth subtle light-green gradient (#F0FDF4 to #DCFCE7) on hover
+   - Inactive: Regular weight (400), dark readable contrast (#111827)
+   - Active: Preserved solid green background (#1E6C02) with white text & icon
+   - Dark Mode: Smooth charcoal hover (#1F2937) with pure white text & icon
+   ========================================================================== */
+#admin-sidebar nav a,
+aside#admin-sidebar nav a {
+  transition: background 250ms cubic-bezier(0.4, 0, 0.2, 1), background-color 250ms cubic-bezier(0.4, 0, 0.2, 1), color 250ms cubic-bezier(0.4, 0, 0.2, 1), border-color 250ms cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+/* Day/Light Mode Inactive Links */
+html:not(.dark) #admin-sidebar nav a:not(.bg-\[\#1E6C02\]),
+html:not(.dark) aside#admin-sidebar nav a:not(.bg-\[\#1E6C02\]) {
+  color: #111827 !important;
+  font-weight: 400 !important;
+}
+
+/* Day/Light Mode: Subtle Light-Green Gradient Hover (#F0FDF4 -> #DCFCE7) */
+html:not(.dark) #admin-sidebar nav a:not(.bg-\[\#1E6C02\]):hover,
+html:not(.dark) aside#admin-sidebar nav a:not(.bg-\[\#1E6C02\]):hover {
+  background: linear-gradient(135deg, #F0FDF4 0%, #DCFCE7 100%) !important;
+  background-color: #DCFCE7 !important;
+  color: #14532D !important;
+  font-weight: 500 !important;
+}
+html:not(.dark) #admin-sidebar nav a:not(.bg-\[\#1E6C02\]):hover svg,
+html:not(.dark) aside#admin-sidebar nav a:not(.bg-\[\#1E6C02\]):hover svg {
+  color: #166534 !important;
+  stroke: #166534 !important;
+}
+
+/* Active navigation items: Preserved solid green (#1E6C02) across Day Mode */
+html:not(.dark) #admin-sidebar nav a.bg-\[\#1E6C02\],
+html:not(.dark) aside#admin-sidebar nav a.bg-\[\#1E6C02\] {
+  background: #1E6C02 !important;
+  background-color: #1E6C02 !important;
+  color: #FFFFFF !important;
+  font-weight: 500 !important;
+}
+html:not(.dark) #admin-sidebar nav a.bg-\[\#1E6C02\] svg,
+html:not(.dark) aside#admin-sidebar nav a.bg-\[\#1E6C02\] svg {
+  color: #FFFFFF !important;
+  stroke: #FFFFFF !important;
+}
+
+/* Dark Mode sidebar navigation item overrides */
+.dark aside nav a,
+html.dark #admin-sidebar nav a {
   color: #F3F4F6 !important; /* Highly readable light grey text */
 }
-.dark aside nav a:hover {
+.dark aside nav a:hover,
+html.dark #admin-sidebar nav a:not(.bg-\[\#1E6C02\]):hover {
+  background: #1F2937 !important;
   background-color: #1F2937 !important;
   color: #FFFFFF !important;
 }
-/* Keep the primary green branding active item intact */
-.dark aside nav a.bg-\[\#1E6C02\] {
+.dark aside nav a:hover svg,
+html.dark #admin-sidebar nav a:not(.bg-\[\#1E6C02\]):hover svg {
+  color: #FFFFFF !important;
+  stroke: #FFFFFF !important;
+}
+/* Keep the primary green branding active item intact in Dark Mode */
+.dark aside nav a.bg-\[\#1E6C02\],
+html.dark #admin-sidebar nav a.bg-\[\#1E6C02\] {
+  background: #1E6C02 !important;
   background-color: #1E6C02 !important;
   color: #FFFFFF !important;
+}
+html.dark #admin-sidebar nav a.bg-\[\#1E6C02\] svg {
+  color: #FFFFFF !important;
+  stroke: #FFFFFF !important;
 }
 
 /* Typography contrast and readability overrides - ABSOLUTELY NO GRAY TEXT FOR READABLE CONTENT */

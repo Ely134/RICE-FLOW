@@ -136,6 +136,254 @@
       stroke: #991B1B !important;
     }
   </style>
+  <style id="admin-settings-typography-and-colors">
+    /* ==========================================================================
+       ADMIN SETTINGS PAGE READABILITY & APPROVED TYPOGRAPHY SYSTEM
+       - Inter: Page & Section Headings, Setting/Card Titles, Action Buttons,
+                Tabs & Interactive Controls
+       - Source Sans 3: Setting Descriptions, Form Labels, Input Text, Helper Text,
+                        Values, Modals & Supporting Information
+       - Solid Black (#000000): In Day/Light mode for all ordinary readable text
+       - Clear Font Weight Hierarchy: No hairline-thin or overly heavy/bold text
+       - Dark Mode Readability & Status Color Preservation
+       ========================================================================== */
+
+    /* 1. BASE TYPOGRAPHY: Default workspace and modal to Source Sans 3 */
+    body,
+    #admin-main-content,
+    #confirmation-modal {
+      font-family: 'Source Sans 3', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* 2. PRIMARY FONT: INTER
+          - Page headings & section / card titles
+          - Action buttons & controls */
+    #admin-right-workspace header h2,
+    #admin-layout-container h1,
+    #admin-layout-container h2,
+    #admin-layout-container h3,
+    #admin-layout-container h4,
+    #admin-main-content h1,
+    #admin-main-content h2,
+    #admin-main-content h3,
+    #admin-main-content h4,
+    .setting-section-title,
+    #modal-title,
+    /* Buttons & controls */
+    #admin-main-content button,
+    #admin-main-content a.btn-action,
+    #btn-view-storefront,
+    #btn-upload-logo,
+    #btn-upload-banner,
+    #btn-save-storefront,
+    #btn-save-contact,
+    #btn-upload-gcash,
+    #btn-reset-gcash,
+    #btn-save-gcash,
+    #btn-change-password,
+    #btn-cancel-modal,
+    #btn-confirm-modal {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+    }
+
+    /* 3. SECONDARY FONT: SOURCE SANS 3
+          - Setting descriptions & supporting text
+          - Form labels & input text
+          - Helper text & notes
+          - Modal message */
+    #admin-main-content p,
+    #admin-main-content label,
+    #admin-main-content input,
+    #admin-main-content textarea,
+    #admin-main-content select,
+    #admin-main-content span:not(#btn-view-storefront *):not(#btn-upload-logo *):not(#btn-upload-banner *):not(#btn-save-storefront *):not(#btn-save-contact *):not(#btn-upload-gcash *):not(#btn-reset-gcash *):not(#btn-save-gcash *):not(#btn-change-password *),
+    .setting-desc,
+    .setting-form-label,
+    .setting-input,
+    .setting-helper-text,
+    #modal-message {
+      font-family: 'Source Sans 3', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+    }
+
+    /* 4. BALANCED FONT SIZING & HIERARCHY */
+    /* Page Title: 24–28px (semibold 600) */
+    #admin-right-workspace header h2 {
+      font-size: 1.625rem !important; /* 26px */
+      line-height: 2rem !important;
+      font-weight: 600 !important;
+      letter-spacing: -0.025em !important;
+    }
+
+    /* Section & Card Headings: 16–18px (medium/semibold 600) */
+    #admin-main-content h3,
+    .setting-section-title {
+      font-size: 1.125rem !important; /* 18px */
+      line-height: 1.5rem !important;
+      font-weight: 600 !important;
+      letter-spacing: -0.015em !important;
+    }
+
+    /* Setting Titles & Form Labels: 15–16px */
+    #admin-main-content label,
+    .setting-form-label {
+      font-size: 0.96875rem !important; /* 15.5px */
+      line-height: 1.35 !important;
+      font-weight: 500 !important;
+    }
+
+    /* Input & Textarea text: 15–16px */
+    #admin-main-content input,
+    #admin-main-content textarea,
+    .setting-input {
+      font-size: 0.96875rem !important; /* 15.5px */
+      line-height: 1.45 !important;
+      font-weight: 400 !important;
+    }
+
+    /* Setting descriptions & supporting information: 14–15px */
+    #admin-main-content p.setting-desc,
+    .setting-desc {
+      font-size: 0.9375rem !important; /* 15px */
+      font-weight: 400 !important;
+      line-height: 1.45 !important;
+    }
+
+    /* Button labels: 14–15px (medium or semibold 600) */
+    #btn-view-storefront,
+    #btn-save-storefront,
+    #btn-save-contact,
+    #btn-save-gcash,
+    #btn-change-password,
+    #btn-cancel-modal,
+    #btn-confirm-modal {
+      font-size: 0.90625rem !important; /* 14.5px */
+      font-weight: 600 !important;
+      letter-spacing: 0.02em !important;
+    }
+
+    #btn-upload-logo,
+    #btn-upload-banner,
+    #btn-upload-gcash,
+    #btn-reset-gcash {
+      font-size: 0.84375rem !important; /* 13.5px */
+      font-weight: 600 !important;
+      letter-spacing: 0.02em !important;
+    }
+
+    /* Small helper text: preferably at least 13-14px */
+    .setting-helper-text,
+    .setting-helper-badge {
+      font-size: 0.84375rem !important; /* 13.5px */
+      font-weight: 400 !important;
+      line-height: 1.35 !important;
+    }
+
+    /* Modal Dialog Typography */
+    #modal-title {
+      font-size: 1.25rem !important; /* 20px */
+      font-weight: 600 !important;
+    }
+    #modal-message {
+      font-size: 0.9375rem !important; /* 15px */
+      font-weight: 400 !important;
+      line-height: 1.5 !important;
+    }
+
+    /* 5. STANDARDIZE TEXT COLORS IN DAY/LIGHT MODE TO SOLID BLACK (#000000) */
+    html:not(.dark) #admin-right-workspace header h2,
+    html:not(.dark) #admin-layout-container h1,
+    html:not(.dark) #admin-layout-container h2,
+    html:not(.dark) #admin-layout-container h3,
+    html:not(.dark) #admin-main-content h3,
+    html:not(.dark) .setting-section-title,
+    html:not(.dark) #modal-title {
+      color: #000000 !important;
+    }
+
+    /* Setting descriptions & supporting text: Solid Black */
+    html:not(.dark) #admin-main-content p.setting-desc,
+    html:not(.dark) .setting-desc {
+      color: #000000 !important;
+    }
+
+    /* Form labels & input text: Solid Black */
+    html:not(.dark) #admin-main-content label,
+    html:not(.dark) .setting-form-label,
+    html:not(.dark) #admin-main-content input,
+    html:not(.dark) #admin-main-content textarea,
+    html:not(.dark) .setting-input {
+      color: #000000 !important;
+    }
+
+    /* Placeholder text: comfortable accessible gray */
+    html:not(.dark) #admin-main-content input::placeholder,
+    html:not(.dark) #admin-main-content textarea::placeholder {
+      color: #4B5563 !important;
+    }
+
+    /* Helper text in day mode: Solid Black */
+    html:not(.dark) .setting-helper-text,
+    html:not(.dark) .setting-helper-badge {
+      color: #000000 !important;
+    }
+
+    /* Modal message in day mode: Solid Black */
+    html:not(.dark) #modal-message {
+      color: #000000 !important;
+    }
+
+    /* 6. DARK MODE READABILITY PRESERVATION */
+    html.dark #admin-right-workspace header h2,
+    html.dark #admin-main-content h3,
+    html.dark .setting-section-title,
+    html.dark #modal-title {
+      color: #F9FAFB !important;
+    }
+
+    html.dark #admin-main-content p.setting-desc,
+    html.dark .setting-desc {
+      color: #E5E7EB !important;
+    }
+
+    html.dark #admin-main-content label,
+    html.dark .setting-form-label {
+      color: #F3F4F6 !important;
+    }
+
+    html.dark #admin-main-content input,
+    html.dark #admin-main-content textarea,
+    html.dark .setting-input {
+      color: #F9FAFB !important;
+      background-color: #1F2937 !important;
+      border-color: #374151 !important;
+    }
+
+    html.dark #admin-main-content input::placeholder,
+    html.dark #admin-main-content textarea::placeholder {
+      color: #9CA3AF !important;
+    }
+
+    html.dark .setting-helper-text,
+    html.dark .setting-helper-badge {
+      color: #D1D5DB !important;
+    }
+
+    html.dark #modal-message {
+      color: #E5E7EB !important;
+    }
+
+    html.dark #confirmation-modal #btn-cancel-modal,
+    html.dark #confirmation-modal #btn-cancel-modal * {
+      background-color: #374151 !important;
+      color: #F9FAFB !important;
+    }
+
+    html.dark #confirmation-modal #btn-close-modal-x {
+      color: #D1D5DB !important;
+    }
+  </style>
   <style id="auth-guard-style">body { visibility: hidden !important; }</style>
 </head>
 <body class="bg-[#F5F5F5] min-h-screen">
@@ -154,19 +402,19 @@
     <div id="modal-panel" class="bg-white rounded-3xl border border-gray-200 shadow-2xl max-w-md w-full mx-4 p-8 relative z-10 transform scale-95 opacity-0 transition-all duration-300">
       <div class="space-y-6">
         <div class="flex items-center justify-between pb-3 border-b border-gray-200">
-          <h4 id="modal-title" class="text-xl font-black text-gray-950 tracking-tight">Save Changes</h4>
-          <button id="btn-close-modal-x" class="text-black hover:text-gray-900 font-extrabold text-lg select-none cursor-pointer">✕</button>
+          <h4 id="modal-title" class="text-xl font-semibold text-black tracking-tight">Save Changes</h4>
+          <button id="btn-close-modal-x" class="text-black hover:text-gray-900 font-semibold text-lg select-none cursor-pointer">✕</button>
         </div>
         
-        <div id="modal-message" class="text-base text-black font-bold leading-relaxed">
+        <div id="modal-message" class="text-[15px] text-black font-normal leading-relaxed">
           Are you sure you want to save these changes? These updates will immediately be applied to the storefront.
         </div>
         
         <div class="flex flex-col sm:flex-row sm:items-center justify-end gap-3 pt-4 border-t border-gray-200">
-          <button id="btn-cancel-modal" class="px-5 py-3 bg-gray-150 hover:bg-gray-200 text-black font-black text-sm uppercase tracking-wider rounded-xl cursor-pointer transition-all select-none w-full sm:w-auto text-center border border-transparent">
+          <button id="btn-cancel-modal" class="px-5 py-3 bg-gray-150 hover:bg-gray-200 text-black font-semibold text-[14.5px] tracking-normal rounded-xl cursor-pointer transition-all select-none w-full sm:w-auto text-center border border-transparent">
             No, Cancel
           </button>
-          <button id="btn-confirm-modal" class="px-5 py-3 bg-[#1E6C02] hover:bg-[#145001] active:scale-[0.98] text-white font-black text-sm uppercase tracking-wider rounded-xl cursor-pointer shadow-md transition-all select-none w-full sm:w-auto text-center border border-transparent">
+          <button id="btn-confirm-modal" class="px-5 py-3 bg-[#1E6C02] hover:bg-[#145001] active:scale-[0.98] text-white font-semibold text-[14.5px] tracking-normal rounded-xl cursor-pointer shadow-md transition-all select-none w-full sm:w-auto text-center border border-transparent">
             Yes, Save Changes
           </button>
         </div>
@@ -295,46 +543,47 @@
             <div class="bg-white rounded-3xl border border-gray-200 shadow-sm p-8 sm:p-10 space-y-8">
               <div class="pb-6 border-b border-gray-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                  <p class="text-base text-black font-semibold leading-relaxed">Customize the branding and assets of your customer-facing storefront homepage.</p>
+                  <h3 class="setting-section-title text-lg font-semibold text-black tracking-tight">Storefront Customization</h3>
+                  <p class="setting-desc text-[15px] text-black font-normal mt-1 leading-relaxed">Customize the branding and assets of your customer-facing storefront homepage.</p>
                 </div>
-                <a href="../index.html" target="_blank" id="btn-view-storefront" class="px-5 py-3 bg-white hover:bg-green-50/50 border border-[#1E6C02] text-[#1E6C02] active:scale-[0.98] font-black text-sm uppercase tracking-wider rounded-xl cursor-pointer shadow-xs inline-flex items-center justify-center gap-2 transition-all hover:scale-[1.01] select-none shrink-0">
+                <a href="../index.html" target="_blank" id="btn-view-storefront" class="btn-action px-5 py-3 bg-white hover:bg-green-50/50 border border-[#1E6C02] text-[#1E6C02] active:scale-[0.98] font-semibold text-[14.5px] rounded-xl cursor-pointer shadow-xs inline-flex items-center justify-center gap-2 transition-all hover:scale-[1.01] select-none shrink-0">
                   👁️ View Storefront
                 </a>
               </div>
 
-              <div class="space-y-8 font-bold text-gray-900">
+              <div class="space-y-8 text-black">
                 
                 <!-- Logo & Banner Upload Row -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                   <div class="space-y-3">
-                    <label class="text-base font-bold text-gray-900 tracking-wide block mb-1">Store Logo Image</label>
+                    <label class="setting-form-label text-[15.5px] font-medium text-black tracking-normal block mb-1">Store Logo Image</label>
                     <div class="flex items-center gap-5 mt-2">
                       <div class="w-24 h-24 rounded-full overflow-hidden flex items-center justify-center border-2 border-gray-200 shadow-sm shrink-0 bg-gray-50">
                         <img id="img-logo-current" src="${logoBase64}" alt="Logo" class="w-full h-full object-cover" />
                       </div>
                       <div class="space-y-2.5">
                         <input type="file" id="inp-store-logo-file" class="hidden" accept="image/png, image/jpeg, image/webp" />
-                        <button type="button" id="btn-upload-logo" class="px-4 py-2.5 bg-white hover:bg-green-50/50 border border-[#1E6C02] text-[#1E6C02] active:scale-[0.98] font-bold text-xs uppercase tracking-wider rounded-xl cursor-pointer shadow-xs inline-flex items-center justify-center gap-2 transition-all hover:scale-[1.01] select-none">
+                        <button type="button" id="btn-upload-logo" class="px-4 py-2.5 bg-white hover:bg-green-50/50 border border-[#1E6C02] text-[#1E6C02] active:scale-[0.98] font-semibold text-[13.5px] rounded-xl cursor-pointer shadow-xs inline-flex items-center justify-center gap-2 transition-all hover:scale-[1.01] select-none">
                           📤 Upload Logo
                         </button>
-                        <span class="block text-sm text-black font-bold leading-tight">PNG, JPG, WEBP. Max 5 MB.</span>
+                        <span class="setting-helper-text block text-[13.5px] text-black font-normal leading-tight">PNG, JPG, WEBP. Max 5 MB.</span>
                       </div>
                     </div>
                   </div>
 
                   <!-- Banner Upload -->
                   <div class="space-y-3">
-                    <label class="text-base font-bold text-gray-900 tracking-wide block mb-1">Homepage Hero Banner</label>
+                    <label class="setting-form-label text-[15.5px] font-medium text-black tracking-normal block mb-1">Homepage Hero Banner</label>
                     <div class="flex items-center gap-5 mt-2">
                       <div class="w-32 h-20 rounded-xl overflow-hidden flex items-center justify-center border-2 border-gray-200 shadow-sm shrink-0 bg-gray-50">
                         <img id="img-banner-current" src="${bannerBase64}" alt="Banner" class="w-full h-full object-cover" />
                       </div>
                       <div class="space-y-2.5">
                         <input type="file" id="inp-store-banner-file" class="hidden" accept="image/png, image/jpeg, image/webp" />
-                        <button type="button" id="btn-upload-banner" class="px-4 py-2.5 bg-white hover:bg-green-50/50 border border-[#1E6C02] text-[#1E6C02] active:scale-[0.98] font-bold text-xs uppercase tracking-wider rounded-xl cursor-pointer shadow-xs inline-flex items-center justify-center gap-2 transition-all hover:scale-[1.01] select-none">
+                        <button type="button" id="btn-upload-banner" class="px-4 py-2.5 bg-white hover:bg-green-50/50 border border-[#1E6C02] text-[#1E6C02] active:scale-[0.98] font-semibold text-[13.5px] rounded-xl cursor-pointer shadow-xs inline-flex items-center justify-center gap-2 transition-all hover:scale-[1.01] select-none">
                           📤 Upload Banner
                         </button>
-                        <span class="block text-sm text-black font-bold leading-tight">PNG, JPG, WEBP. Max 10 MB.</span>
+                        <span class="setting-helper-text block text-[13.5px] text-black font-normal leading-tight">PNG, JPG, WEBP. Max 10 MB.</span>
                       </div>
                     </div>
                   </div>
@@ -342,20 +591,20 @@
 
                 <!-- Store Name -->
                 <div class="space-y-3">
-                  <label class="text-base font-bold text-gray-900 tracking-wide block">Store Brand Name</label>
-                  <input type="text" id="inp-store-name" value="${storeName}" placeholder="e.g. Aurora Rice Store" class="w-full bg-gray-50 border-2 border-gray-200 text-lg font-bold text-gray-950 px-5 py-4 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-[#1E6C02]/20 focus:border-[#1E6C02] placeholder-gray-500 transition-all duration-200" />
+                  <label class="setting-form-label text-[15.5px] font-medium text-black tracking-normal block">Store Brand Name</label>
+                  <input type="text" id="inp-store-name" value="${storeName}" placeholder="e.g. Aurora Rice Store" class="setting-input w-full bg-gray-50 border-2 border-gray-200 text-[15.5px] font-normal text-black px-5 py-3.5 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-[#1E6C02]/20 focus:border-[#1E6C02] placeholder-gray-500 transition-all duration-200" />
                 </div>
 
                 <!-- Store Description -->
                 <div class="space-y-3">
-                  <label class="text-base font-bold text-gray-900 tracking-wide block">Store Introduction / About Description</label>
-                  <textarea id="inp-store-desc" rows="4" placeholder="Describe your store and value propositions..." class="w-full bg-gray-50 border-2 border-gray-200 text-lg font-bold text-gray-950 p-5 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-[#1E6C02]/20 focus:border-[#1E6C02] placeholder-gray-500 transition-all duration-200">${description}</textarea>
+                  <label class="setting-form-label text-[15.5px] font-medium text-black tracking-normal block">Store Introduction / About Description</label>
+                  <textarea id="inp-store-desc" rows="4" placeholder="Describe your store and value propositions..." class="setting-input w-full bg-gray-50 border-2 border-gray-200 text-[15.5px] font-normal text-black p-4 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-[#1E6C02]/20 focus:border-[#1E6C02] placeholder-gray-500 transition-all duration-200">${description}</textarea>
                 </div>
               </div>
 
               <!-- Storefront Save Row -->
               <div class="pt-6 border-t border-gray-200 flex items-center justify-between">
-                <button id="btn-save-storefront" class="px-6 py-4 bg-[#1E6C02] hover:bg-[#145001] active:scale-[0.98] text-white font-black text-sm uppercase tracking-wider rounded-xl cursor-pointer shadow-md inline-flex items-center justify-center gap-2.5 transition-all hover:scale-[1.01] border border-transparent select-none w-full sm:w-auto">
+                <button id="btn-save-storefront" class="px-6 py-3.5 bg-[#1E6C02] hover:bg-[#145001] active:scale-[0.98] text-white font-semibold text-[14.5px] rounded-xl cursor-pointer shadow-md inline-flex items-center justify-center gap-2.5 transition-all hover:scale-[1.01] border border-transparent select-none w-full sm:w-auto">
                   💾 Save Changes
                 </button>
               </div>
@@ -364,37 +613,37 @@
             <!-- Contact Information Section -->
             <div class="bg-white rounded-3xl border border-gray-200 shadow-sm p-8 sm:p-10 space-y-8">
               <div class="pb-6 border-b border-gray-200">
-                <h3 class="text-2xl font-black text-gray-950 tracking-tight">Contact Information</h3>
-                <p class="text-base text-black font-semibold mt-2 leading-relaxed">Customize default address, contact lines, and active communication links.</p>
+                <h3 class="setting-section-title text-lg font-semibold text-black tracking-tight">Contact Information</h3>
+                <p class="setting-desc text-[15px] text-black font-normal mt-1 leading-relaxed">Customize default address, contact lines, and active communication links.</p>
               </div>
 
-              <div class="space-y-6 font-bold text-gray-900">
+              <div class="space-y-6 text-black">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div class="space-y-3">
-                    <label class="text-base font-bold text-gray-900 tracking-wide block">Official Mobile Contact Point</label>
-                    <input type="text" id="inp-contact-phone" value="${contactNumber}" class="w-full bg-gray-50 border-2 border-gray-200 text-lg font-bold text-gray-950 px-5 py-4 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-[#1E6C02]/20 focus:border-[#1E6C02] placeholder-gray-500 transition-all duration-200" />
+                    <label class="setting-form-label text-[15.5px] font-medium text-black tracking-normal block">Official Mobile Contact Point</label>
+                    <input type="text" id="inp-contact-phone" value="${contactNumber}" class="setting-input w-full bg-gray-50 border-2 border-gray-200 text-[15.5px] font-normal text-black px-5 py-3.5 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-[#1E6C02]/20 focus:border-[#1E6C02] placeholder-gray-500 transition-all duration-200" />
                   </div>
 
                   <div class="space-y-3">
-                    <label class="text-base font-bold text-gray-900 tracking-wide block">Business Hours <span class="text-black font-medium">(Optional)</span></label>
-                    <input type="text" id="inp-business-hours" value="${businessHours}" placeholder="e.g. 8:00 AM - 5:00 PM (Mon - Sat)" class="w-full bg-gray-50 border-2 border-gray-200 text-lg font-bold text-gray-950 px-5 py-4 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-[#1E6C02]/20 focus:border-[#1E6C02] placeholder-gray-500 transition-all duration-200" />
+                    <label class="setting-form-label text-[15.5px] font-medium text-black tracking-normal block">Business Hours <span class="setting-helper-badge text-black font-normal">(Optional)</span></label>
+                    <input type="text" id="inp-business-hours" value="${businessHours}" placeholder="e.g. 8:00 AM - 5:00 PM (Mon - Sat)" class="setting-input w-full bg-gray-50 border-2 border-gray-200 text-[15.5px] font-normal text-black px-5 py-3.5 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-[#1E6C02]/20 focus:border-[#1E6C02] placeholder-gray-500 transition-all duration-200" />
                   </div>
                 </div>
 
                 <div class="space-y-3">
-                  <label class="text-base font-bold text-gray-900 tracking-wide block">Facebook Page Link <span class="text-black font-medium">(Optional)</span></label>
-                  <input type="url" id="inp-facebook-link" value="${facebookLink}" placeholder="e.g. https://facebook.com/auroralocalrice" class="w-full bg-gray-50 border-2 border-gray-200 text-lg font-bold text-gray-950 px-5 py-4 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-[#1E6C02]/20 focus:border-[#1E6C02] placeholder-gray-500 transition-all duration-200" />
+                  <label class="setting-form-label text-[15.5px] font-medium text-black tracking-normal block">Facebook Page Link <span class="setting-helper-badge text-black font-normal">(Optional)</span></label>
+                  <input type="url" id="inp-facebook-link" value="${facebookLink}" placeholder="e.g. https://facebook.com/auroralocalrice" class="setting-input w-full bg-gray-50 border-2 border-gray-200 text-[15.5px] font-normal text-black px-5 py-3.5 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-[#1E6C02]/20 focus:border-[#1E6C02] placeholder-gray-500 transition-all duration-200" />
                 </div>
 
                 <div class="space-y-3">
-                  <label class="text-base font-bold text-gray-900 tracking-wide block">Physical Store / Supplier Address</label>
-                  <textarea id="inp-store-address" rows="3" class="w-full bg-gray-50 border-2 border-gray-200 text-lg font-bold text-gray-950 p-5 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-[#1E6C02]/20 focus:border-[#1E6C02] placeholder-gray-500 transition-all duration-200">${storeAddress}</textarea>
+                  <label class="setting-form-label text-[15.5px] font-medium text-black tracking-normal block">Physical Store / Supplier Address</label>
+                  <textarea id="inp-store-address" rows="3" class="setting-input w-full bg-gray-50 border-2 border-gray-200 text-[15.5px] font-normal text-black p-4 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-[#1E6C02]/20 focus:border-[#1E6C02] placeholder-gray-500 transition-all duration-200">${storeAddress}</textarea>
                 </div>
               </div>
 
               <!-- Contact Save Row -->
               <div class="pt-6 border-t border-gray-200 flex items-center justify-between">
-                <button id="btn-save-contact" class="px-6 py-4 bg-[#1E6C02] hover:bg-[#145001] active:scale-[0.98] text-white font-black text-sm uppercase tracking-wider rounded-xl cursor-pointer shadow-md inline-flex items-center justify-center gap-2.5 transition-all hover:scale-[1.01] border border-transparent select-none w-full sm:w-auto">
+                <button id="btn-save-contact" class="px-6 py-3.5 bg-[#1E6C02] hover:bg-[#145001] active:scale-[0.98] text-white font-semibold text-[14.5px] rounded-xl cursor-pointer shadow-md inline-flex items-center justify-center gap-2.5 transition-all hover:scale-[1.01] border border-transparent select-none w-full sm:w-auto">
                   💾 Save Changes
                 </button>
               </div>
@@ -403,24 +652,25 @@
             <!-- GCash Payment Information Section -->
             <div class="bg-white rounded-3xl border border-gray-200 shadow-sm p-8 sm:p-10 space-y-8">
               <div class="pb-6 border-b border-gray-200">
-                <h3 class="text-2xl font-black text-gray-950 tracking-tight">GCash Payment Information</h3>
+                <h3 class="setting-section-title text-lg font-semibold text-black tracking-tight">GCash Payment Information</h3>
+                <p class="setting-desc text-[15px] text-black font-normal mt-1 leading-relaxed">Configure beneficiary account match name, mobile wallet number, and QR checkout badge.</p>
               </div>
 
-              <div class="space-y-6 font-bold text-gray-900">
+              <div class="space-y-6 text-black">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div class="space-y-3">
-                    <label class="text-base font-bold text-gray-900 tracking-wide block">GCash Beneficiary Match Name</label>
-                    <input type="text" id="inp-gcash-name" value="${gcashName}" class="w-full bg-gray-50 border-2 border-gray-200 text-lg font-bold text-gray-950 px-5 py-4 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-[#1E6C02]/20 focus:border-[#1E6C02] placeholder-gray-500 transition-all duration-200" />
+                    <label class="setting-form-label text-[15.5px] font-medium text-black tracking-normal block">GCash Beneficiary Match Name</label>
+                    <input type="text" id="inp-gcash-name" value="${gcashName}" class="setting-input w-full bg-gray-50 border-2 border-gray-200 text-[15.5px] font-normal text-black px-5 py-3.5 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-[#1E6C02]/20 focus:border-[#1E6C02] placeholder-gray-500 transition-all duration-200" />
                   </div>
                   <div class="space-y-3">
-                    <label class="text-base font-bold text-gray-900 tracking-wide block">Registered GCash Number</label>
-                    <input type="text" id="inp-gcash-phone" value="${gcashNumber}" class="w-full bg-gray-50 border-2 border-gray-200 text-lg font-bold text-gray-950 px-5 py-4 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-[#1E6C02]/20 focus:border-[#1E6C02] placeholder-gray-500 transition-all duration-200" />
+                    <label class="setting-form-label text-[15.5px] font-medium text-black tracking-normal block">Registered GCash Number</label>
+                    <input type="text" id="inp-gcash-phone" value="${gcashNumber}" class="setting-input w-full bg-gray-50 border-2 border-gray-200 text-[15.5px] font-normal text-black px-5 py-3.5 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-[#1E6C02]/20 focus:border-[#1E6C02] placeholder-gray-500 transition-all duration-200" />
                   </div>
                 </div>
 
                 <!-- QR Upload -->
                 <div class="space-y-3">
-                  <label class="text-base font-bold text-gray-900 tracking-wide block">GCash Merchant QR Code Badge</label>
+                  <label class="setting-form-label text-[15.5px] font-medium text-black tracking-normal block">GCash Merchant QR Code Badge</label>
                   <div class="flex flex-col sm:flex-row items-center gap-6 p-6 border-2 border-gray-200 rounded-2xl bg-gray-50/50">
                     <div class="w-28 h-28 bg-white border border-gray-200 rounded-2xl overflow-hidden flex items-center justify-center p-2 shrink-0 shadow-sm">
                       <img id="img-gcash-qr" src="${gcashQrBase64 || fallbackQrSvg}" alt="GCash QR Code" class="w-full h-full object-contain" />
@@ -428,16 +678,16 @@
                     <div class="text-center sm:text-left space-y-3">
                       <input type="file" id="inp-gcash-qr-file" class="hidden" accept="image/png, image/jpeg, image/webp" />
                       <div class="flex flex-wrap gap-3.5 justify-center sm:justify-start">
-                        <button type="button" id="btn-upload-gcash" class="px-4 py-2.5 bg-white hover:bg-green-50/50 border border-[#1E6C02] text-[#1E6C02] active:scale-[0.98] font-bold text-xs uppercase tracking-wider rounded-xl cursor-pointer shadow-xs inline-flex items-center justify-center gap-2 transition-all hover:scale-[1.01] select-none">
+                        <button type="button" id="btn-upload-gcash" class="px-4 py-2.5 bg-white hover:bg-green-50/50 border border-[#1E6C02] text-[#1E6C02] active:scale-[0.98] font-semibold text-[13.5px] rounded-xl cursor-pointer shadow-xs inline-flex items-center justify-center gap-2 transition-all hover:scale-[1.01] select-none">
                           📤 Upload GCash QR
                         </button>
                         ${gcashQrBase64 ? `
-                          <button type="button" id="btn-reset-gcash" class="px-4 py-2.5 bg-red-50 hover:bg-red-100 text-red-650 font-bold text-xs uppercase tracking-wider rounded-xl transition-all cursor-pointer border border-red-200">
+                          <button type="button" id="btn-reset-gcash" class="px-4 py-2.5 bg-red-50 hover:bg-red-100 text-[#B91C1C] font-semibold text-[13.5px] rounded-xl transition-all cursor-pointer border border-red-200">
                             ❌ Remove QR Code
                           </button>
                         ` : ''}
                       </div>
-                      <p class="text-sm text-black font-bold leading-normal">Loads a dedicated merchant QR code. Acceptable: JPG, PNG, WEBP. Max size 5 MB.</p>
+                      <p class="setting-helper-text text-[13.5px] text-black font-normal leading-normal">Loads a dedicated merchant QR code. Acceptable: JPG, PNG, WEBP. Max size 5 MB.</p>
                     </div>
                   </div>
                 </div>
@@ -445,7 +695,7 @@
 
               <!-- GCash Save Row -->
               <div class="pt-6 border-t border-gray-200 flex items-center justify-between">
-                <button id="btn-save-gcash" class="px-6 py-4 bg-[#1E6C02] hover:bg-[#145001] active:scale-[0.98] text-white font-black text-sm uppercase tracking-wider rounded-xl cursor-pointer shadow-md inline-flex items-center justify-center gap-2.5 transition-all hover:scale-[1.01] border border-transparent select-none w-full sm:w-auto">
+                <button id="btn-save-gcash" class="px-6 py-3.5 bg-[#1E6C02] hover:bg-[#145001] active:scale-[0.98] text-white font-semibold text-[14.5px] rounded-xl cursor-pointer shadow-md inline-flex items-center justify-center gap-2.5 transition-all hover:scale-[1.01] border border-transparent select-none w-full sm:w-auto">
                   💾 Save Changes
                 </button>
               </div>
@@ -454,27 +704,28 @@
             <!-- Change Password Card -->
             <div class="bg-white rounded-3xl border border-gray-200 shadow-sm p-8 sm:p-10 space-y-8">
               <div class="pb-6 border-b border-gray-200">
-                <h3 class="text-2xl font-black text-gray-950 tracking-tight">Change Password</h3>
+                <h3 class="setting-section-title text-lg font-semibold text-black tracking-tight">Change Password</h3>
+                <p class="setting-desc text-[15px] text-black font-normal mt-1 leading-relaxed">Update administrative credentials and key passphrases for this management portal.</p>
               </div>
               
-              <div class="space-y-6 max-w-lg font-bold text-gray-900">
+              <div class="space-y-6 max-w-lg text-black">
                 <div class="space-y-3">
-                  <label class="text-base font-bold text-gray-900 tracking-wide block">Current Password</label>
-                  <input type="password" id="inp-pass-current" placeholder="Enter current password" class="w-full bg-gray-50 border-2 border-gray-200 text-lg font-bold text-gray-950 px-5 py-4 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-[#1E6C02]/20 focus:border-[#1E6C02] placeholder-gray-500 transition-all duration-200" />
+                  <label class="setting-form-label text-[15.5px] font-medium text-black tracking-normal block">Current Password</label>
+                  <input type="password" id="inp-pass-current" placeholder="Enter current password" class="setting-input w-full bg-gray-50 border-2 border-gray-200 text-[15.5px] font-normal text-black px-5 py-3.5 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-[#1E6C02]/20 focus:border-[#1E6C02] placeholder-gray-500 transition-all duration-200" />
                 </div>
 
                 <div class="space-y-3">
-                  <label class="text-base font-bold text-gray-900 tracking-wide block">New Password</label>
-                  <input type="password" id="inp-pass-new" placeholder="Enter new password" class="w-full bg-gray-50 border-2 border-gray-200 text-lg font-bold text-gray-950 px-5 py-4 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-[#1E6C02]/20 focus:border-[#1E6C02] placeholder-gray-500 transition-all duration-200" />
+                  <label class="setting-form-label text-[15.5px] font-medium text-black tracking-normal block">New Password</label>
+                  <input type="password" id="inp-pass-new" placeholder="Enter new password" class="setting-input w-full bg-gray-50 border-2 border-gray-200 text-[15.5px] font-normal text-black px-5 py-3.5 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-[#1E6C02]/20 focus:border-[#1E6C02] placeholder-gray-500 transition-all duration-200" />
                 </div>
 
                 <div class="space-y-3">
-                  <label class="text-base font-bold text-gray-900 tracking-wide block">Confirm New Password</label>
-                  <input type="password" id="inp-pass-confirm" placeholder="Confirm new password" class="w-full bg-gray-50 border-2 border-gray-200 text-lg font-bold text-gray-950 px-5 py-4 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-[#1E6C02]/20 focus:border-[#1E6C02] placeholder-gray-500 transition-all duration-200" />
+                  <label class="setting-form-label text-[15.5px] font-medium text-black tracking-normal block">Confirm New Password</label>
+                  <input type="password" id="inp-pass-confirm" placeholder="Confirm new password" class="setting-input w-full bg-gray-50 border-2 border-gray-200 text-[15.5px] font-normal text-black px-5 py-3.5 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-[#1E6C02]/20 focus:border-[#1E6C02] placeholder-gray-500 transition-all duration-200" />
                 </div>
 
                 <div class="pt-2">
-                  <button id="btn-change-password" class="px-6 py-4 bg-[#1E6C02] hover:bg-[#145001] active:scale-[0.98] text-white font-black text-sm uppercase tracking-wider rounded-xl cursor-pointer shadow-md inline-flex items-center justify-center gap-2.5 transition-all hover:scale-[1.01] border border-transparent select-none w-full sm:w-auto">
+                  <button id="btn-change-password" class="px-6 py-3.5 bg-[#1E6C02] hover:bg-[#145001] active:scale-[0.98] text-white font-semibold text-[14.5px] rounded-xl cursor-pointer shadow-md inline-flex items-center justify-center gap-2.5 transition-all hover:scale-[1.01] border border-transparent select-none w-full sm:w-auto">
                     Change Password
                   </button>
                 </div>
