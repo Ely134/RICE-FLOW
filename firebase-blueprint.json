@@ -169,6 +169,22 @@
         "updatedAt": { "type": "string" }
       },
       "required": ["name", "email", "subject", "message", "status", "createdAt"]
+    },
+    "deliveryRoutePlans": {
+      "title": "Delivery Route Plans",
+      "description": "Authoritative confirmed delivery road route plans shared across authorized staff devices",
+      "properties": {
+        "id": { "type": "string" },
+        "confirmedAt": { "type": "string" },
+        "confirmedBy": { "type": "string" },
+        "origin": { "type": "object" },
+        "stopsCount": { "type": "number" },
+        "stops": { "type": "array" },
+        "orderPriorityMap": { "type": "object" },
+        "isManual": { "type": "boolean" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["confirmedAt", "origin", "stopsCount", "orderPriorityMap"]
     }
   }
 }

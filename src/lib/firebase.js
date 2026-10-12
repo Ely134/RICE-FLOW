@@ -222,6 +222,67 @@ export async function saveReviewDoc(review) {
   return true;
 }
 
+// Dedicated helpers for cross-device authoritative Delivery Route Plan persistence
+export async function saveDeliveryRoutePlanDoc(plan) {
+  if (!db) {
+    console.warn('[FIREBASE] Cannot save delivery route plan: Firestore db not initialized');
+    return false;
+  }
+  try {
+    const cleanPlan = JSON.parse(JSON.stringify(plan));
+    cleanPlan.updatedAt = new Date().toISOString();
+    const docRef = doc(db, 'deliveryRoutePlans', 'active');
+    await setDoc(docRef, cleanPlan, { merge: true });
+    return true;
+  } catch (err) {
+    console.warn('[FIREBASE] Error saving delivery route plan to Firestore:', err);
+    return false;
+  }
+}
+
+export async function fetchActiveDeliveryRoutePlanFromFirestore() {
+  if (!db) return null;
+  try {
+    const docRef = doc(db, 'deliveryRoutePlans', 'active');
+    const docSnap = await getDoc(docRef);
+    if (docSnap && docSnap.exists()) {
+      return docSnap.data();
+    }
+  } catch (err) {
+    console.warn('[FIREBASE] Error fetching active delivery route plan from Firestore:', err);
+  }
+  return null;
+}
+
+export async function clearDeliveryRoutePlanDoc(expectedConfirmedAt = null) {
+  if (!db) return false;
+  try {
+    const docRef = doc(db, 'deliveryRoutePlans', 'active');
+    return await runTransaction(db, async (transaction) => {
+      const snap = await transaction.get(docRef);
+      if (!snap.exists()) {
+        return true; // Already cleared
+      }
+      const remoteData = snap.data();
+      // If expectedConfirmedAt is provided, only delete if remote plan is not newer
+      if (expectedConfirmedAt && remoteData && remoteData.confirmedAt) {
+        if (remoteData.confirmedAt > expectedConfirmedAt) {
+          console.warn('[FIREBASE] Aborted route plan deletion: remote plan is newer than local plan.', {
+            remote: remoteData.confirmedAt,
+            expected: expectedConfirmedAt
+          });
+          return false;
+        }
+      }
+      transaction.delete(docRef);
+      return true;
+    });
+  } catch (err) {
+    console.warn('[FIREBASE] Error conditionally clearing delivery route plan in Firestore:', err);
+    return false;
+  }
+}
+
 // Dedicated hydrator & reconciler: Firestore reviews -> aurora-reviews cache
 export async function syncReviewsFromFirestore() {
   if (!db) return [];

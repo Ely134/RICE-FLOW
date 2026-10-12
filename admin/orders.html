@@ -1312,9 +1312,13 @@
           <span class="text-black font-bold uppercase tracking-wide text-[12px]">Quantity</span>
           <span id="prepare-modal-quantity" class="font-normal text-black text-[17px]">0</span>
         </div>
-        <div class="flex justify-between">
+        <div class="flex justify-between border-b border-gray-200 pb-2">
           <span class="text-black font-bold uppercase tracking-wide text-[12px]">Delivery Method</span>
           <span id="prepare-modal-delivery-method" class="font-normal text-[#1E6C02] uppercase text-[17px]">N/A</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-black font-bold uppercase tracking-wide text-[12px]">Delivery Priority</span>
+          <span id="prepare-modal-priority" class="font-bold text-[#1E6C02] text-[16px]">Route Unconfirmed</span>
         </div>
       </div>
 
@@ -1324,6 +1328,67 @@
         </button>
         <button id="btn-prepare-confirm-commit" class="px-6 py-3 text-[15px] font-bold bg-[#1E6C02] text-white hover:bg-[#145001] rounded-xl shadow-xs cursor-pointer transition-all">
           Prepare Order
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PREPARE SHIPMENT GUARD MODAL -->
+  <div id="prepare-shipment-guard-modal" class="fixed inset-0 bg-black/65 backdrop-blur-xs z-[88] flex items-center justify-center p-4 hidden" role="dialog" aria-modal="true" aria-labelledby="guard-modal-title">
+    <div class="bg-white dark:bg-gray-900 rounded-3xl max-w-lg w-full shadow-2xl p-6 sm:p-7 border border-amber-300 dark:border-amber-700 animate-in fade-in zoom-in duration-200 text-left space-y-4">
+      <div class="flex items-start gap-3.5 pb-3 border-b border-gray-200 dark:border-gray-800">
+        <div class="w-12 h-12 rounded-2xl bg-amber-100 dark:bg-amber-950/70 text-amber-700 dark:text-amber-300 flex items-center justify-center text-2xl font-black shrink-0 border border-amber-300 dark:border-amber-800">
+          ⚠️
+        </div>
+        <div class="flex-1">
+          <h3 id="guard-modal-title" class="text-xl font-black text-black dark:text-white leading-tight">Delivery Route Confirmation Required</h3>
+          <p id="guard-modal-subtitle" class="text-xs text-amber-800 dark:text-amber-300 font-bold uppercase tracking-wider mt-0.5">Delivery Route Verification Check</p>
+        </div>
+        <button id="btn-guard-close-x" class="text-gray-400 hover:text-black dark:hover:text-white text-xl font-bold cursor-pointer" title="Close">✕</button>
+      </div>
+
+      <!-- State 1: Route Unconfirmed Guard Notice -->
+      <div id="guard-modal-unconfirmed-box" class="space-y-3 hidden">
+        <div class="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 space-y-2">
+          <p id="guard-modal-unconfirmed-message" class="text-sm font-extrabold text-amber-950 dark:text-amber-200 leading-snug">
+            Please review and confirm the delivery route before preparing shipments.
+          </p>
+          <p id="guard-modal-unconfirmed-reason" class="text-xs text-amber-850 dark:text-amber-300 font-medium leading-relaxed">
+            Delivery orders require a valid, current confirmed route plan covering eligible delivery stops before preparation can begin.
+          </p>
+        </div>
+      </div>
+
+      <!-- State 2: Out of Sequence Warning -->
+      <div id="guard-modal-sequence-box" class="space-y-3 hidden">
+        <div class="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 space-y-2.5 text-xs">
+          <p class="text-sm font-extrabold text-black dark:text-white">
+            Order <span id="guard-modal-target-order" class="font-mono text-[#1E6C02] dark:text-emerald-400 font-black">#000000</span> is scheduled as <span id="guard-modal-target-priority" class="px-2.5 py-0.5 rounded-lg font-black bg-emerald-100 dark:bg-emerald-900 text-[#1E6C02] dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700">Priority 2 (Stop #2)</span>.
+          </p>
+          <p class="text-gray-700 dark:text-gray-300 leading-relaxed font-normal">
+            The following higher-priority delivery stop(s) in your confirmed route are <strong>still waiting to be prepared</strong> in "To Ship":
+          </p>
+          <div id="guard-modal-unprepared-list" class="space-y-1.5 pt-1 max-h-48 overflow-y-auto">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+
+        <p class="text-xs text-gray-600 dark:text-gray-400 leading-relaxed font-normal">
+          Preparing deliveries in confirmed sequence ensures optimal truck loading (LIFO pack / FIFO drop) and prevents delivery delays. Do you want to prepare this order out of sequence anyway?
+        </p>
+      </div>
+
+      <!-- Footer Buttons -->
+      <div class="flex flex-wrap items-center justify-end gap-3 pt-3 border-t border-gray-200 dark:border-gray-800">
+        <button id="btn-guard-cancel" class="px-5 py-2.5 text-sm font-bold text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-700 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer transition-colors">
+          Cancel
+        </button>
+        <button id="btn-guard-open-planner" class="px-5 py-2.5 text-sm font-black bg-[#1E6C02] hover:bg-[#145001] text-white rounded-xl shadow-xs cursor-pointer transition-all flex items-center gap-1.5 hidden">
+          <span>🗺️</span>
+          <span>Open Route Planner</span>
+        </button>
+        <button id="btn-guard-override" class="px-5 py-2.5 text-sm font-bold bg-amber-600 hover:bg-amber-700 text-white rounded-xl shadow-xs cursor-pointer transition-all hidden">
+          Proceed Anyway (Override)
         </button>
       </div>
     </div>
@@ -1609,22 +1674,55 @@
 
       <!-- Modal Body (Scrollable) -->
       <div class="p-5 sm:p-6 overflow-y-auto space-y-6 flex-1">
-        <!-- Route Meta & Origin Summary Card -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div class="p-4 rounded-2xl bg-gray-50 dark:bg-gray-800/80 border border-gray-200 dark:border-gray-700/80 space-y-1">
-            <span class="text-[11px] font-bold uppercase tracking-wider text-gray-700 dark:text-gray-300 block">Warehouse Starting Point</span>
-            <p id="route-planner-origin-name" class="font-extrabold text-black dark:text-white text-sm truncate">Aurora Local Rice Warehouse (Provisional)</p>
-            <p id="route-planner-origin-coords" class="text-xs text-gray-700 dark:text-gray-300 font-mono">7.896128° N, 123.616425° E <span class="text-[11px] text-amber-700 dark:text-amber-400 font-bold block sm:inline sm:ml-1">(Provisional FB Map Pin)</span></p>
+        <!-- Route Meta & Origin Summary: Compact Top Section -->
+        <div class="rounded-2xl border border-gray-200 dark:border-gray-750 bg-white dark:bg-gray-850 p-4 sm:p-5 shadow-2xs space-y-3.5">
+          <!-- Top Row: Distance & Driving Time prominently displayed -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+            <!-- 1. Total Road Distance -->
+            <div class="p-3.5 sm:p-4 rounded-xl bg-emerald-50/90 dark:bg-emerald-950/40 border border-emerald-200/90 dark:border-emerald-800/80 flex items-start gap-3.5">
+              <div class="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-900/80 text-[#1E6C02] dark:text-emerald-300 flex items-center justify-center text-xl shrink-0 border border-emerald-200 dark:border-emerald-700/60 font-black">
+                🛣️
+              </div>
+              <div class="min-w-0 flex-1">
+                <span class="text-[11px] font-black uppercase tracking-wider text-emerald-800 dark:text-emerald-300 block">Total Road Distance</span>
+                <p id="route-planner-trip-distance" class="text-xl sm:text-2xl font-black text-[#1E6C02] dark:text-emerald-400 tracking-tight mt-0.5 truncate">Calculating...</p>
+                <p class="text-xs text-emerald-900/80 dark:text-emerald-300/80 font-medium mt-0.5">Total road distance for this route</p>
+              </div>
+            </div>
+
+            <!-- 2. Estimated Driving Time -->
+            <div class="p-3.5 sm:p-4 rounded-xl bg-emerald-50/90 dark:bg-emerald-950/40 border border-emerald-200/90 dark:border-emerald-800/80 flex items-start gap-3.5">
+              <div class="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-900/80 text-[#1E6C02] dark:text-emerald-300 flex items-center justify-center text-xl shrink-0 border border-emerald-200 dark:border-emerald-700/60 font-black">
+                ⏱️
+              </div>
+              <div class="min-w-0 flex-1">
+                <span class="text-[11px] font-black uppercase tracking-wider text-emerald-800 dark:text-emerald-300 block">Estimated Driving Time</span>
+                <p id="route-planner-trip-time" class="text-xl sm:text-2xl font-black text-[#1E6C02] dark:text-emerald-400 tracking-tight mt-0.5 truncate">Estimated driving time</p>
+                <p class="text-xs text-gray-600 dark:text-gray-400 font-medium mt-0.5">No live traffic data</p>
+              </div>
+            </div>
           </div>
-          <div class="p-4 rounded-2xl bg-emerald-50/80 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 space-y-1">
-            <span class="text-[11px] font-bold uppercase tracking-wider text-emerald-900 dark:text-emerald-300 block">Estimated Road Trip</span>
-            <p id="route-planner-trip-distance" class="font-black text-[#1E6C02] dark:text-emerald-400 text-lg">Calculating...</p>
-            <p id="route-planner-trip-time" class="text-xs text-emerald-900 dark:text-emerald-300 font-medium">Estimated driving time</p>
-          </div>
-          <div class="p-4 rounded-2xl bg-blue-50/80 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800 space-y-1">
-            <span class="text-[11px] font-bold uppercase tracking-wider text-blue-900 dark:text-blue-300 block">Routing Engine</span>
-            <p id="route-planner-engine-badge" class="font-bold text-blue-950 dark:text-blue-200 text-sm">OpenStreetMap / OSRM Road Router</p>
-            <p class="text-xs text-blue-800 dark:text-blue-300">Road travel estimates; live traffic not supplied</p>
+
+          <!-- Bottom Row: Starting Point (Warehouse) & Secondary Engine Note -->
+          <div class="pt-3 border-t border-gray-100 dark:border-gray-800/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs">
+            <!-- Starting Point with warehouse name and clear warning if provisional -->
+            <div class="flex items-center gap-2 flex-wrap min-w-0">
+              <span class="text-gray-500 dark:text-gray-400 font-semibold shrink-0">Starting Point:</span>
+              <span id="route-planner-origin-name" class="font-bold text-black dark:text-white truncate">Aurora Local Rice Warehouse (Provisional)</span>
+              <!-- Hidden coordinate span kept for internal validation and DOM backwards compatibility -->
+              <span id="route-planner-origin-coords" class="hidden"></span>
+              <!-- Clear staff-visible warning badge for provisional warehouse origin -->
+              <span id="route-planner-origin-warning" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-100 text-amber-900 border border-amber-300 dark:bg-amber-950/80 dark:text-amber-300 dark:border-amber-700 text-[11px] font-bold shrink-0">
+                ⚠️ Provisional Location
+              </span>
+            </div>
+
+            <!-- Routing engine name in small secondary note -->
+            <div class="flex items-center gap-1.5 text-gray-500 dark:text-gray-400 shrink-0 text-[11px]">
+              <span id="route-planner-engine-badge" class="font-medium">Route powered by OSRM</span>
+              <span class="text-gray-400 dark:text-gray-600">·</span>
+              <span>OpenStreetMap</span>
+            </div>
           </div>
         </div>
 
@@ -1661,18 +1759,29 @@
 
         <!-- Suggested Delivery Stops Table -->
         <div class="space-y-3">
-          <div class="flex items-center justify-between">
+          <div class="flex flex-wrap items-center justify-between gap-2.5">
             <h4 class="text-base font-extrabold text-black dark:text-white flex items-center gap-2">
               <span>📍</span>
-              <span>Suggested Sequence of Stops (<span id="route-planner-stops-count">0</span>)</span>
+              <span>Sequence of Delivery Stops (<span id="route-planner-stops-count">0</span>)</span>
             </h4>
-            <span class="text-xs text-gray-700 dark:text-gray-300 font-medium">Sequential dispatch order</span>
+            <div class="flex items-center gap-2.5">
+              <button 
+                id="btn-restore-optimized-route" 
+                class="hidden px-3.5 py-1.5 rounded-xl text-xs font-bold bg-amber-50 hover:bg-amber-100 dark:bg-amber-950/70 dark:hover:bg-amber-900 text-amber-900 dark:text-amber-200 border border-amber-300 dark:border-amber-700 transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs"
+                title="Restore the automatically optimized sequence calculated by the road router"
+              >
+                <span>↩</span>
+                <span>Restore Optimized Sequence</span>
+              </button>
+              <span class="text-xs text-gray-700 dark:text-gray-300 font-medium">Drag handles to rearrange</span>
+            </div>
           </div>
 
           <div class="overflow-x-auto border border-gray-200 dark:border-gray-750 rounded-2xl">
             <table class="w-full text-left text-sm border-collapse min-w-[700px]">
               <thead>
                 <tr class="bg-gray-50/90 dark:bg-gray-800/90 border-b border-gray-200 dark:border-gray-750 text-xs font-extrabold uppercase text-gray-800 dark:text-gray-200">
+                  <th class="py-3 px-2 text-center w-14" title="Drag to reorder stops">Move</th>
                   <th class="py-3 px-3 text-center w-16">Stop #</th>
                   <th class="py-3 px-4">Order(s) & Priority</th>
                   <th class="py-3 px-4">Customer & Contact</th>
@@ -1739,7 +1848,7 @@
 
   <!-- INTERACTION CONTROLLER -->
   <script type="module">
-    import { protectAdminPage, renderAdminLayout, getAllOrders, verifyPayment, updateOrderStatus, addActivityLog, showToast, saveOrders, addNotification, getCashToAudit, evaluateOrderCompletion, verifyCashTurnover, getCurrentAdmin, processOrderStockAndSplitIfNeeded, getEstimatedArrivalDate, getReservationQueuePosition, isReservationOrder, updateOrderRefundStatus, getStoreSettings } from '../src/app/shared.js';
+    import { protectAdminPage, renderAdminLayout, getAllOrders, verifyPayment, updateOrderStatus, addActivityLog, showToast, saveOrders, addNotification, getCashToAudit, evaluateOrderCompletion, verifyCashTurnover, getCurrentAdmin, processOrderStockAndSplitIfNeeded, getEstimatedArrivalDate, getReservationQueuePosition, isReservationOrder, updateOrderRefundStatus, getStoreSettings, saveDeliveryRoutePlanDoc, fetchActiveDeliveryRoutePlanFromFirestore, clearDeliveryRoutePlanDoc } from '../src/app/shared.js';
     import { saveFirestoreDoc } from '../src/lib/firebase.js';
 
     window.getCurrentAdmin = getCurrentAdmin;
@@ -1931,7 +2040,290 @@
         document.getElementById('prepare-modal-quantity').textContent = quantityText;
         document.getElementById('prepare-modal-delivery-method').textContent = order.deliveryOption === 'pickup' ? 'Store Pickup' : 'Home Delivery';
         
+        // Reflect confirmed delivery priority in prepare-confirm-modal
+        const prioEl = document.getElementById('prepare-modal-priority');
+        if (prioEl) {
+          const isPickup = order.deliveryOption === 'pickup';
+          if (isPickup) {
+            prioEl.textContent = 'Store Pickup (No Delivery Route Priority)';
+            prioEl.className = 'font-bold text-gray-500 text-[15px]';
+          } else if (routePlannerSessionPlan && routePlannerSessionPlan.orderPriorityMap && routePlannerSessionPlan.orderPriorityMap[String(order.id)]) {
+            const p = routePlannerSessionPlan.orderPriorityMap[String(order.id)].priority;
+            prioEl.textContent = `Priority ${p} (Stop #${p})`;
+            prioEl.className = 'font-extrabold text-[#1E6C02] text-[16px]';
+          } else {
+            prioEl.textContent = 'Route Unconfirmed (Standard FIFO Queue)';
+            prioEl.className = 'font-semibold text-gray-500 text-[15px]';
+          }
+        }
+
         document.getElementById('prepare-confirm-modal').classList.remove('hidden');
+      }
+
+      /**
+       * Prepare Shipment Guard:
+       * 1. Checks whether the order is home delivery and whether a valid, current confirmed
+       *    route plan exists covering applicable delivery stops. If not confirmed, blocks preparation
+       *    with the exact required notice: "Please review and confirm the delivery route before preparing shipments."
+       * 2. Checks whether any higher-priority delivery stops remain unprepared in "To Ship".
+       */
+      let pendingGuardOrderId = null;
+
+      function isConfirmedRouteValidForEligibleOrders() {
+        if (!routePlannerSessionPlan || typeof routePlannerSessionPlan !== 'object') return false;
+        if (!routePlannerSessionPlan.orderPriorityMap || typeof routePlannerSessionPlan.orderPriorityMap !== 'object') return false;
+
+        // 1. Verify warehouse origin exists and confirmed origin matches currently authoritative origin
+        if (typeof getAuthoritativeWarehouseOrigin !== 'function') return false;
+        const authoritativeOrigin = getAuthoritativeWarehouseOrigin();
+        if (!authoritativeOrigin || !authoritativeOrigin.isVerified) return false;
+        if (typeof authoritativeOrigin.lat !== 'number' || typeof authoritativeOrigin.lng !== 'number' || isNaN(authoritativeOrigin.lat) || isNaN(authoritativeOrigin.lng)) return false;
+
+        const confirmedOrigin = routePlannerSessionPlan.origin;
+        if (!confirmedOrigin || typeof confirmedOrigin !== 'object' || !confirmedOrigin.isVerified) return false;
+        if (typeof confirmedOrigin.lat !== 'number' || typeof confirmedOrigin.lng !== 'number' || isNaN(confirmedOrigin.lat) || isNaN(confirmedOrigin.lng)) return false;
+        if (Math.abs(confirmedOrigin.lat - authoritativeOrigin.lat) > 0.0001 || Math.abs(confirmedOrigin.lng - authoritativeOrigin.lng) > 0.0001) {
+          return false;
+        }
+
+        // 2. Collect current eligible delivery orders
+        if (typeof collectRoutePlannerOrders !== 'function') return false;
+        const { eligibleOrders } = collectRoutePlannerOrders();
+        if (!Array.isArray(eligibleOrders) || eligibleOrders.length === 0) return false;
+
+        // 3. Verify confirmed plan covers exactly the currently eligible delivery orders
+        const eligibleOrdersById = new Map();
+        const eligibleOrderIds = new Set();
+        for (const item of eligibleOrders) {
+          if (!item || !item.order || item.order.id === undefined || item.order.id === null) return false;
+          const idStr = String(item.order.id);
+          eligibleOrderIds.add(idStr);
+          eligibleOrdersById.set(idStr, item);
+        }
+
+        const confirmedOrderIds = Object.keys(routePlannerSessionPlan.orderPriorityMap);
+        if (confirmedOrderIds.length !== eligibleOrders.length) return false;
+
+        for (const orderId of confirmedOrderIds) {
+          if (!eligibleOrderIds.has(orderId)) return false;
+        }
+
+        for (const item of eligibleOrders) {
+          const prio = routePlannerSessionPlan.orderPriorityMap[String(item.order.id)];
+          if (!prio || typeof prio.priority !== 'number' || isNaN(prio.priority) || prio.priority < 1) {
+            return false;
+          }
+        }
+
+        // 4. Verify confirmed stop membership and destination coordinates still match current eligible orders
+        if (!Array.isArray(routePlannerSessionPlan.stops) || routePlannerSessionPlan.stops.length === 0) return false;
+
+        const seenStopOrderIds = new Set();
+        for (const stop of routePlannerSessionPlan.stops) {
+          if (!stop || !Array.isArray(stop.orderIds) || stop.orderIds.length === 0) return false;
+          if (typeof stop.lat !== 'number' || typeof stop.lng !== 'number' || isNaN(stop.lat) || isNaN(stop.lng) || !isFinite(stop.lat) || !isFinite(stop.lng)) return false;
+          if (stop.lat < -90 || stop.lat > 90 || stop.lng < -180 || stop.lng > 180 || (stop.lat === 0 && stop.lng === 0)) return false;
+
+          for (const oId of stop.orderIds) {
+            const strId = String(oId);
+            if (seenStopOrderIds.has(strId)) return false; // Duplicate order across stops
+            seenStopOrderIds.add(strId);
+
+            const eligibleItem = eligibleOrdersById.get(strId);
+            if (!eligibleItem || !eligibleItem.coords) return false;
+            if (typeof eligibleItem.coords.lat !== 'number' || typeof eligibleItem.coords.lng !== 'number' || isNaN(eligibleItem.coords.lat) || isNaN(eligibleItem.coords.lng)) return false;
+
+            // Destination coordinates must match within tolerance
+            if (Math.abs(eligibleItem.coords.lat - stop.lat) > 0.00015 || Math.abs(eligibleItem.coords.lng - stop.lng) > 0.00015) {
+              return false;
+            }
+          }
+        }
+
+        if (seenStopOrderIds.size !== eligibleOrders.length) return false;
+
+        // Verify stop grouping matches current physical clustering
+        if (typeof groupOrdersIntoPhysicalStops === 'function') {
+          const currentClusters = groupOrdersIntoPhysicalStops(eligibleOrders);
+          if (routePlannerSessionPlan.stops.length !== currentClusters.length) return false;
+
+          for (const stop of routePlannerSessionPlan.stops) {
+            const stopIdSet = new Set((stop.orderIds || []).map(String));
+            const matchingCluster = currentClusters.find(c => {
+              if (!Array.isArray(c.orderIds) || c.orderIds.length !== stopIdSet.size) return false;
+              return c.orderIds.every(id => stopIdSet.has(String(id)));
+            });
+            if (!matchingCluster) return false;
+            if (Math.abs(stop.lat - matchingCluster.lat) > 0.00015 || Math.abs(stop.lng - matchingCluster.lng) > 0.00015) {
+              return false;
+            }
+          }
+        }
+
+        return true;
+      }
+
+      function openRouteConfirmationRequiredGuardModal(order, reasonText) {
+        pendingGuardOrderId = order.id;
+        const modal = document.getElementById('prepare-shipment-guard-modal');
+        if (!modal) {
+          showToast('Please review and confirm the delivery route before preparing shipments.', 'warning');
+          return;
+        }
+
+        const titleEl = document.getElementById('guard-modal-title');
+        const subtitleEl = document.getElementById('guard-modal-subtitle');
+        const unconfirmedBox = document.getElementById('guard-modal-unconfirmed-box');
+        const sequenceBox = document.getElementById('guard-modal-sequence-box');
+        const reasonEl = document.getElementById('guard-modal-unconfirmed-reason');
+        const btnOpenPlanner = document.getElementById('btn-guard-open-planner');
+        const btnOverride = document.getElementById('btn-guard-override');
+
+        if (titleEl) titleEl.textContent = 'Delivery Route Confirmation Required';
+        if (subtitleEl) subtitleEl.textContent = 'Delivery Route Verification Guard';
+        if (reasonEl && reasonText) reasonEl.textContent = reasonText;
+
+        if (unconfirmedBox) unconfirmedBox.classList.remove('hidden');
+        if (sequenceBox) sequenceBox.classList.add('hidden');
+        if (btnOpenPlanner) btnOpenPlanner.classList.remove('hidden');
+        if (btnOverride) btnOverride.classList.add('hidden');
+
+        modal.classList.remove('hidden');
+      }
+
+      function handlePrepareShipmentWithGuard(orderId) {
+        const orders = getAllOrders();
+        const order = orders.find(o => o.id === orderId);
+        if (!order) return;
+
+        // Pickup orders are never guarded by delivery route confirmation or priority
+        const methodInfo = typeof getDeliveryMethodBadge === 'function' ? getDeliveryMethodBadge(order) : null;
+        const isPickup = (order.deliveryOption === 'pickup') || (methodInfo && methodInfo.type === 'pickup');
+        if (isPickup) {
+          openPrepareConfirmModal(orderId);
+          return;
+        }
+
+        // 1. Mandatory Confirmed Route Guard for Delivery Orders
+        const hasValidConfirmedRoute = isConfirmedRouteValidForEligibleOrders();
+        if (!hasValidConfirmedRoute) {
+          // Invalidate stale or non-conforming session plan if exists
+          if (routePlannerSessionPlan) {
+            routePlannerSessionPlan = null;
+            try { sessionStorage.removeItem('aurora-route-planner-plan'); } catch (_) {}
+            renderOrdersBoard();
+          }
+          openRouteConfirmationRequiredGuardModal(
+            order,
+            'This delivery order requires an active, confirmed road route plan covering all eligible delivery stops before preparation can proceed.'
+          );
+          return;
+        }
+
+        const targetPrioInfo = routePlannerSessionPlan.orderPriorityMap[String(order.id)];
+        if (!targetPrioInfo || typeof targetPrioInfo.priority !== 'number') {
+          // Delivery order not in confirmed route plan
+          openRouteConfirmationRequiredGuardModal(
+            order,
+            `Order #${order.id} is not included in the current active route plan. Please review and re-confirm the delivery route.`
+          );
+          return;
+        }
+
+        const currentPriority = targetPrioInfo.priority;
+
+        // 2. Check for any higher priority delivery orders (lower priority number) that are still in "to-ship"
+        const toShipOrders = orders.filter(o => o.status === 'to-ship');
+        const higherPriorityUnprepared = [];
+
+        toShipOrders.forEach(o => {
+          if (String(o.id) === String(order.id)) return;
+          const p = routePlannerSessionPlan.orderPriorityMap[String(o.id)]?.priority;
+          if (typeof p === 'number' && p < currentPriority) {
+            higherPriorityUnprepared.push({
+              order: o,
+              priority: p,
+              customerName: o.fullName || o.customerName || 'Customer'
+            });
+          }
+        });
+
+        higherPriorityUnprepared.sort((a, b) => a.priority - b.priority);
+
+        if (higherPriorityUnprepared.length > 0) {
+          openPrepareShipmentGuardModal(order, currentPriority, higherPriorityUnprepared);
+        } else {
+          openPrepareConfirmModal(orderId);
+        }
+      }
+
+      function openPrepareShipmentGuardModal(order, currentPriority, higherPriorityUnprepared) {
+        pendingGuardOrderId = order.id;
+        const modal = document.getElementById('prepare-shipment-guard-modal');
+        if (!modal) {
+          openPrepareConfirmModal(order.id);
+          return;
+        }
+
+        const titleEl = document.getElementById('guard-modal-title');
+        const subtitleEl = document.getElementById('guard-modal-subtitle');
+        const unconfirmedBox = document.getElementById('guard-modal-unconfirmed-box');
+        const sequenceBox = document.getElementById('guard-modal-sequence-box');
+        const targetOrderEl = document.getElementById('guard-modal-target-order');
+        const targetPrioEl = document.getElementById('guard-modal-target-priority');
+        const listEl = document.getElementById('guard-modal-unprepared-list');
+        const btnOpenPlanner = document.getElementById('btn-guard-open-planner');
+        const btnOverride = document.getElementById('btn-guard-override');
+
+        if (titleEl) titleEl.textContent = 'Out-of-Sequence Preparation Guard';
+        if (subtitleEl) subtitleEl.textContent = 'Route Delivery Priority Check';
+        if (unconfirmedBox) unconfirmedBox.classList.add('hidden');
+        if (sequenceBox) sequenceBox.classList.remove('hidden');
+        if (btnOpenPlanner) btnOpenPlanner.classList.add('hidden');
+        if (btnOverride) btnOverride.classList.remove('hidden');
+
+        if (targetOrderEl) targetOrderEl.textContent = `#${order.id}`;
+        if (targetPrioEl) targetPrioEl.textContent = `Priority ${currentPriority} (Stop #${currentPriority})`;
+
+        if (listEl) {
+          listEl.innerHTML = higherPriorityUnprepared.map(item => `
+            <div class="flex items-center justify-between p-2.5 rounded-xl bg-white dark:bg-gray-800 border border-amber-200 dark:border-amber-800 text-xs gap-2">
+              <div class="flex items-center gap-2 min-w-0">
+                <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-emerald-700 text-white font-black text-[11px] shrink-0">
+                  #${item.priority}
+                </span>
+                <div class="truncate">
+                  <span class="font-extrabold text-black dark:text-white">#${item.order.id}</span>
+                  <span class="text-gray-600 dark:text-gray-300 ml-1">(${item.customerName})</span>
+                  <span class="text-[10px] text-amber-700 dark:text-amber-400 font-bold ml-1.5">— Unprepared</span>
+                </div>
+              </div>
+              <button 
+                type="button" 
+                class="btn-guard-jump-order px-2.5 py-1 text-[11px] font-bold bg-[#1E6C02] hover:bg-[#145001] text-white rounded-lg cursor-pointer shrink-0 transition-colors shadow-2xs whitespace-nowrap"
+                data-id="${item.order.id}"
+                title="Open details to prepare Stop #${item.priority} first"
+              >
+                Prepare Stop #${item.priority} ↗
+              </button>
+            </div>
+          `).join('');
+
+          listEl.querySelectorAll('.btn-guard-jump-order').forEach(btn => {
+            btn.addEventListener('click', () => {
+              const jumpId = btn.getAttribute('data-id');
+              modal.classList.add('hidden');
+              pendingGuardOrderId = null;
+              const allOrders = getAllOrders();
+              const jumpOrder = allOrders.find(o => String(o.id) === String(jumpId));
+              if (jumpOrder) {
+                openDetailsModal(jumpOrder);
+              }
+            });
+          });
+        }
+
+        modal.classList.remove('hidden');
       }
 
       function openQueueStatusModal(orderId) {
@@ -1977,6 +2369,36 @@
         document.getElementById('reject-confirm-modal').classList.add('hidden');
         pendingRejectOrderId = null;
       };
+
+      document.getElementById('btn-guard-close-x')?.addEventListener('click', () => {
+        document.getElementById('prepare-shipment-guard-modal')?.classList.add('hidden');
+        pendingGuardOrderId = null;
+      });
+
+      document.getElementById('btn-guard-cancel')?.addEventListener('click', () => {
+        document.getElementById('prepare-shipment-guard-modal')?.classList.add('hidden');
+        pendingGuardOrderId = null;
+      });
+
+      document.getElementById('btn-guard-open-planner')?.addEventListener('click', () => {
+        document.getElementById('prepare-shipment-guard-modal')?.classList.add('hidden');
+        pendingGuardOrderId = null;
+        if (typeof openSmartRoutePlannerModal === 'function') {
+          openSmartRoutePlannerModal();
+        } else {
+          const plannerModal = document.getElementById('smart-route-planner-modal');
+          if (plannerModal) plannerModal.classList.remove('hidden');
+        }
+      });
+
+      document.getElementById('btn-guard-override')?.addEventListener('click', () => {
+        const targetId = pendingGuardOrderId;
+        document.getElementById('prepare-shipment-guard-modal')?.classList.add('hidden');
+        pendingGuardOrderId = null;
+        if (targetId) {
+          openPrepareConfirmModal(targetId);
+        }
+      });
 
       document.getElementById('btn-queue-modal-close').onclick = () => {
         document.getElementById('queue-status-modal').classList.add('hidden');
@@ -2399,7 +2821,27 @@
         } else if (statusFilter === 'processing') {
           filtered = orders.filter(o => o.status === 'processing');
         } else if (statusFilter === 'to-ship') {
+          if (routePlannerSessionPlan && !isConfirmedRouteValidForEligibleOrders()) {
+            routePlannerSessionPlan = null;
+            try { sessionStorage.removeItem('aurora-route-planner-plan'); } catch (_) {}
+          }
           filtered = orders.filter(o => o.status === 'to-ship');
+          if (routePlannerSessionPlan && routePlannerSessionPlan.orderPriorityMap) {
+            filtered.sort((a, b) => {
+              const prioA = routePlannerSessionPlan.orderPriorityMap[String(a.id)]?.priority;
+              const prioB = routePlannerSessionPlan.orderPriorityMap[String(b.id)]?.priority;
+              const hasA = typeof prioA === 'number';
+              const hasB = typeof prioB === 'number';
+
+              if (hasA && hasB) {
+                if (prioA !== prioB) return prioA - prioB;
+                return new Date(a.createdAt || a.date || 0) - new Date(b.createdAt || b.date || 0);
+              }
+              if (hasA && !hasB) return -1;
+              if (!hasA && hasB) return 1;
+              return new Date(a.createdAt || a.date || 0) - new Date(b.createdAt || b.date || 0);
+            });
+          }
         } else if (statusFilter === 'to-receive') {
           filtered = orders.filter(o => o.status === 'to-receive');
           filtered.sort((a, b) =>
@@ -2664,6 +3106,32 @@
               </div>
             </div>
 
+            ${statusFilter === 'to-ship' && routePlannerSessionPlan && routePlannerSessionPlan.orderPriorityMap ? `
+              <!-- CONFIRMED ROUTE DELIVERY PRIORITY BANNER -->
+              <div class="bg-emerald-50/90 dark:bg-emerald-950/50 border border-emerald-300 dark:border-emerald-700 rounded-2xl p-4.5 mb-5 shadow-xs flex flex-wrap items-center justify-between gap-4 text-left">
+                <div class="flex items-center gap-3.5">
+                  <div class="w-10 h-10 rounded-2xl bg-emerald-600 text-white flex items-center justify-center font-black text-lg shrink-0 shadow-xs">
+                    🚚
+                  </div>
+                  <div>
+                    <div class="flex items-center gap-2 flex-wrap">
+                      <span class="text-xs font-black uppercase tracking-wider text-emerald-950 dark:text-emerald-200">Confirmed Delivery Route Priorities Active</span>
+                      <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-200 text-emerald-900 dark:bg-emerald-800 dark:text-emerald-100 uppercase">Confirmed</span>
+                    </div>
+                    <p class="text-xs text-emerald-900 dark:text-emerald-200 mt-0.5 font-normal">
+                      The "To Ship" queue is sequenced by confirmed road route dispatch sequence (<span class="font-bold">Priority 1 to ${routePlannerSessionPlan.stopsCount || 'N'}</span>). Confirmed by <span class="font-bold">${routePlannerSessionPlan.confirmedBy || 'Staff'}</span>.
+                    </p>
+                  </div>
+                </div>
+                <div class="flex items-center gap-2 shrink-0">
+                  <button id="btn-view-confirmed-route-banner" class="px-4 py-2 bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 text-[#1E6C02] dark:text-emerald-300 font-bold text-xs uppercase tracking-wider rounded-xl border border-emerald-300 dark:border-emerald-700 shadow-2xs cursor-pointer flex items-center gap-1.5 transition-colors">
+                    <span>🗺️</span>
+                    <span>View / Reorder Route</span>
+                  </button>
+                </div>
+              </div>
+            ` : ''}
+
             ${statusFilter === 'delivered' && ((typeof getCurrentAdmin === 'function' ? getCurrentAdmin() : window.RiceFlow?.getCurrentAdmin?.())?.role === 'admin') ? `
               <!-- PAYMENT SUMMARY PANEL & BATCH ACTIONS (ADMIN ONLY) -->
               <div class="bg-emerald-50/80 dark:bg-emerald-950/40 border border-emerald-200/90 dark:border-emerald-800 rounded-2xl p-5 mb-5 shadow-xs flex flex-wrap items-center justify-between gap-4 text-left">
@@ -2852,16 +3320,45 @@
                         const activeStatuses = ['to-pay', 'processing', 'to-ship', 'to-receive', 'pre-order', 'pre_order'];
                         
                         if (activeStatuses.includes(curStatus)) {
-                          const sameStatusOrders = orders.filter(o => o.status === curStatus);
-                          sameStatusOrders.sort((a, b) => new Date(a.createdAt || a.date || 0) - new Date(b.createdAt || b.date || 0));
-                          const rank = sameStatusOrders.findIndex(o => o.id === order.id) + 1;
+                          if (curStatus === 'to-ship') {
+                            const methodInfo = typeof getDeliveryMethodBadge === 'function' ? getDeliveryMethodBadge(order) : null;
+                            const isPickup = (order.deliveryOption === 'pickup') || (methodInfo && methodInfo.type === 'pickup');
 
-                          if (rank > 0) {
-                            column7CellHtml = `
-                              <span class="${bClass} bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-black dark:text-white font-bold text-[16px]">
-                                Priority #${rank}
-                              </span>
-                            `;
+                            if (isPickup) {
+                              column7CellHtml = `
+                                <span class="${bClass} bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-gray-700 dark:text-gray-300 font-bold text-[14px]">
+                                  Store Pickup
+                                </span>
+                              `;
+                            } else if (routePlannerSessionPlan && routePlannerSessionPlan.orderPriorityMap && routePlannerSessionPlan.orderPriorityMap[String(order.id)]) {
+                              const pInfo = routePlannerSessionPlan.orderPriorityMap[String(order.id)];
+                              column7CellHtml = `
+                                <span class="${bClass} bg-emerald-100 dark:bg-emerald-950 text-[#1E6C02] dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700 font-extrabold text-[15px] flex items-center justify-center gap-1 shadow-2xs" title="Confirmed Delivery Route Priority: Stop #${pInfo.priority}">
+                                  <span>🚚</span> Priority ${pInfo.priority}
+                                </span>
+                              `;
+                            } else {
+                              const sameStatusDeliveries = orders.filter(o => o.status === 'to-ship' && o.deliveryOption !== 'pickup');
+                              sameStatusDeliveries.sort((a, b) => new Date(a.createdAt || a.date || 0) - new Date(b.createdAt || b.date || 0));
+                              const rank = sameStatusDeliveries.findIndex(o => o.id === order.id) + 1;
+                              column7CellHtml = `
+                                <span class="${bClass} bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-black dark:text-white font-bold text-[15px]" title="FIFO Priority (Route Unconfirmed)">
+                                  Priority #${rank > 0 ? rank : '-'}
+                                </span>
+                              `;
+                            }
+                          } else {
+                            const sameStatusOrders = orders.filter(o => o.status === curStatus);
+                            sameStatusOrders.sort((a, b) => new Date(a.createdAt || a.date || 0) - new Date(b.createdAt || b.date || 0));
+                            const rank = sameStatusOrders.findIndex(o => o.id === order.id) + 1;
+
+                            if (rank > 0) {
+                              column7CellHtml = `
+                                <span class="${bClass} bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-black dark:text-white font-bold text-[16px]">
+                                  Priority #${rank}
+                                </span>
+                              `;
+                            }
                           }
                         } else {
                           // Finished stages (completed, cancelled, issue-reported) do not display Priority badges
@@ -3067,6 +3564,13 @@
         const btnOpenPlanner = document.getElementById('btn-open-route-planner');
         if (btnOpenPlanner) {
           btnOpenPlanner.addEventListener('click', () => {
+            openSmartRoutePlannerModal();
+          });
+        }
+
+        const btnViewConfirmedRouteBanner = document.getElementById('btn-view-confirmed-route-banner');
+        if (btnViewConfirmedRouteBanner) {
+          btnViewConfirmedRouteBanner.addEventListener('click', () => {
             openSmartRoutePlannerModal();
           });
         }
@@ -4732,6 +5236,18 @@
                       <p class="font-normal text-black text-[17px] mt-1.5 capitalize">${order.deliveryOption === 'pickup' ? 'Store Pickup' : 'Home Delivery'}</p>
                     </div>
                     <div>
+                      <p class="text-black font-bold text-[16px]">Delivery Priority</p>
+                      <div class="mt-1.5">
+                        ${order.deliveryOption === 'pickup'
+                          ? '<span class="px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 border border-slate-300">Store Pickup (No Route Priority)</span>'
+                          : (routePlannerSessionPlan && routePlannerSessionPlan.orderPriorityMap && routePlannerSessionPlan.orderPriorityMap[String(order.id)]
+                            ? `<span class="px-3 py-1 rounded-lg text-xs font-extrabold bg-emerald-100 text-[#1E6C02] border border-emerald-300 inline-flex items-center gap-1 shadow-2xs">🚚 Priority ${routePlannerSessionPlan.orderPriorityMap[String(order.id)].priority} (Stop #${routePlannerSessionPlan.orderPriorityMap[String(order.id)].priority})</span>`
+                            : '<span class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-gray-100 text-gray-700 border border-gray-300">Route Unconfirmed (FIFO Queue)</span>'
+                          )
+                        }
+                      </div>
+                    </div>
+                    <div class="sm:col-span-2">
                       <div class="flex items-center justify-between">
                         <p class="text-black font-bold text-[16px]">Shipping Address</p>
                         ${mapLinkHtml}
@@ -5058,6 +5574,22 @@
                       <p class="font-normal text-black text-[17px] mt-1.5 capitalize">${order.deliveryOption === 'pickup' ? 'Store Pickup' : 'Home Delivery'}</p>
                     </div>
                     <div>
+                      <p class="text-black font-bold text-[16px]">Route Delivery Priority</p>
+                      <div class="mt-1.5">
+                        ${(() => {
+                          const isPickup = order.deliveryOption === 'pickup';
+                          if (isPickup) {
+                            return '<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-sm font-bold bg-slate-100 text-gray-700 border border-slate-300">Store Pickup (No Route Priority)</span>';
+                          }
+                          const prioInfo = routePlannerSessionPlan?.orderPriorityMap?.[String(order.id)];
+                          if (prioInfo && typeof prioInfo.priority === 'number') {
+                            return `<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-sm font-black bg-emerald-100 text-[#1E6C02] border border-emerald-300"><span>🚚</span> Priority ${prioInfo.priority} (Stop #${prioInfo.priority})</span>`;
+                          }
+                          return '<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-sm font-bold bg-slate-100 text-gray-700 border border-slate-300">Route Unconfirmed (Standard FIFO)</span>';
+                        })()}
+                      </div>
+                    </div>
+                    <div class="sm:col-span-2 border-t border-gray-200 pt-3.5">
                       <div class="flex items-center justify-between">
                         <p class="text-black font-bold text-[16px]">Shipping Address</p>
                         ${mapLinkHtml}
@@ -5163,7 +5695,7 @@
                 <button id="btn-details-close-modal" class="px-5 py-3 text-[15px] font-bold text-gray-500 border border-gray-200 rounded-xl hover:bg-gray-55 cursor-pointer transition-colors">Cancel</button>
               </div>
               <div>
-                <button id="btn-det-action-prepare" class="px-6 py-3 text-[15px] font-black bg-[#1E6C02] text-white hover:bg-[#145001] rounded-xl cursor-pointer transition-colors shadow-xs">Prepare Order</button>
+                <button id="btn-det-action-prepare" class="px-6 py-3 text-[15px] font-black bg-[#1E6C02] text-white hover:bg-[#145001] rounded-xl cursor-pointer transition-colors shadow-xs">Prepare Shipment</button>
               </div>
             </div>
           `;
@@ -6461,7 +6993,7 @@ if (freshEst && freshEst !== 'Waiting for Restock' && freshEst !== 'Not yet sche
         const prepareBtn = document.getElementById('btn-det-action-prepare');
         if (prepareBtn) {
           prepareBtn.onclick = () => {
-            openPrepareConfirmModal(order.id);
+            handlePrepareShipmentWithGuard(order.id);
           };
         }
 
@@ -6837,6 +7369,17 @@ if (freshEst && freshEst !== 'Waiting for Restock' && freshEst !== 'Not yet sche
       let routePlannerLayersGroup = null;
       let routePlannerSessionPlan = null;
       let isRoutePlannerCalculating = false;
+      let currentRouteStops = [];
+      let automaticallyOptimizedStopsBackup = [];
+      let isRouteManuallyReordered = false;
+      let draggedStopIndex = null;
+
+      try {
+        const cachedPlan = sessionStorage.getItem('aurora-route-planner-plan');
+        if (cachedPlan) {
+          routePlannerSessionPlan = JSON.parse(cachedPlan);
+        }
+      } catch (_) {}
 
       /**
        * Checks whether the warehouse starting location is verified by an
@@ -7127,6 +7670,63 @@ if (freshEst && freshEst !== 'Waiting for Restock' && freshEst !== 'Not yet sche
       }
 
       /**
+       * Calls real OSRM road routing service for an EXPLICIT manual stop sequence.
+       * Uses the standard OSRM Route service (/route/v1/driving/...) to preserve
+       * the user's exact arranged visit order without auto-reordering.
+       */
+      async function fetchExplicitSequenceRoute(origin, stops) {
+        if (!origin || !origin.isVerified) {
+          throw new Error('Warehouse origin is unverified.');
+        }
+        if (!stops || stops.length === 0) {
+          return { stops: [], totalDistance: 0, totalDuration: 0, geometry: null, legs: [] };
+        }
+
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 8000);
+
+        try {
+          const coordsString = `${origin.lng},${origin.lat};` + stops.map(s => `${s.lng},${s.lat}`).join(';');
+          const url = `https://router.project-osrm.org/route/v1/driving/${coordsString}?overview=full&geometries=geojson`;
+          const resp = await fetch(url, { signal: controller.signal });
+          clearTimeout(timeoutId);
+
+          if (!resp.ok) throw new Error(`OSRM HTTP error: ${resp.status}`);
+          const data = await resp.json();
+          if (data.code !== 'Ok' || !data.routes || data.routes.length === 0) {
+            throw new Error(`OSRM returned code: ${data.code || 'Unknown'}`);
+          }
+
+          const route = data.routes[0];
+          const legs = route.legs || [];
+
+          const orderedStops = stops.map((stop, idx) => {
+            const stopObj = { ...stop };
+            const leg = legs[idx];
+            if (leg) {
+              stopObj.legDistanceMeters = leg.distance;
+              stopObj.legDurationSeconds = leg.duration;
+            } else {
+              stopObj.legDistanceMeters = null;
+              stopObj.legDurationSeconds = null;
+            }
+            return stopObj;
+          });
+
+          return {
+            stops: orderedStops,
+            totalDistance: route.distance,
+            totalDuration: route.duration,
+            geometry: route.geometry,
+            legs
+          };
+        } catch (err) {
+          clearTimeout(timeoutId);
+          throw err;
+        }
+      }
+
+      /**
        * Renders or updates the Leaflet map and layer group.
        */
       function renderRoutePlannerMap(origin, stops, geometry) {
@@ -7232,6 +7832,7 @@ if (freshEst && freshEst !== 'Waiting for Restock' && freshEst !== 'Not yet sche
 
         const originCardName = document.getElementById('route-planner-origin-name');
         const originCardCoords = document.getElementById('route-planner-origin-coords');
+        const originWarningEl = document.getElementById('route-planner-origin-warning');
         const blockerBanner = document.getElementById('route-planner-origin-blocker');
         const tripDistanceEl = document.getElementById('route-planner-trip-distance');
         const tripTimeEl = document.getElementById('route-planner-trip-time');
@@ -7242,18 +7843,27 @@ if (freshEst && freshEst !== 'Waiting for Restock' && freshEst !== 'Not yet sche
         const excludedListEl = document.getElementById('route-planner-excluded-list');
         const reviewBadge = document.getElementById('route-planner-confirmation-badge');
         const reviewNote = document.getElementById('route-planner-confirmation-note');
+        const restoreBtn = document.getElementById('btn-restore-optimized-route');
+
+        // Check if previously confirmed route is still valid for current eligible orders & origin
+        if (routePlannerSessionPlan && !isConfirmedRouteValidForEligibleOrders()) {
+          routePlannerSessionPlan = null;
+          try {
+            sessionStorage.removeItem('aurora-route-planner-plan');
+          } catch (_) {}
+          renderOrdersBoard();
+        }
 
         if (isRecalculate) {
-          routePlannerSessionPlan = null;
           if (reviewBadge) {
             reviewBadge.innerHTML = `
-              <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-amber-100 text-amber-900 border border-amber-300 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-700">
-                <span>⏳</span> Pending Staff Review
+              <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black bg-amber-100 text-amber-950 border border-amber-300 dark:bg-amber-950/80 dark:text-amber-200 dark:border-amber-700 animate-pulse">
+                <span>⚠️</span> Unsaved Route Changes — Confirmation Required
               </span>
             `;
           }
           if (reviewNote) {
-            reviewNote.textContent = 'Staff must review this suggested sequence before dispatch. Confirming preserves the plan in this session without modifying order statuses or payment/inventory records.';
+            reviewNote.textContent = 'Route is being recalculated. The recalculated sequence remains a draft until explicitly confirmed by staff.';
           }
         }
 
@@ -7307,8 +7917,14 @@ if (freshEst && freshEst !== 'Waiting for Restock' && freshEst !== 'Not yet sche
             return a.bestPriorityRank - b.bestPriorityRank;
           });
 
+          automaticallyOptimizedStopsBackup = clusteredStops.map(s => ({ ...s }));
+          currentRouteStops = clusteredStops.map(s => ({ ...s }));
+          isRouteManuallyReordered = false;
+          if (restoreBtn) restoreBtn.classList.add('hidden');
+
           renderStopsTable(clusteredStops, false);
           renderRoutePlannerMap(null, clusteredStops, null);
+          bindStopReorderListeners();
 
           isRoutePlannerCalculating = false;
           if (isRecalculate) {
@@ -7320,6 +7936,14 @@ if (freshEst && freshEst !== 'Waiting for Restock' && freshEst !== 'Not yet sche
         // Warehouse Origin IS verified / provisional
         if (blockerBanner) blockerBanner.classList.add('hidden');
         if (originCardName) originCardName.textContent = warehouseOrigin.name;
+        if (originWarningEl) {
+          if (warehouseOrigin.isProvisional) {
+            originWarningEl.classList.remove('hidden');
+            originWarningEl.innerHTML = `⚠️ Provisional Location`;
+          } else {
+            originWarningEl.classList.add('hidden');
+          }
+        }
         if (originCardCoords) {
           originCardCoords.innerHTML = warehouseOrigin.isProvisional
             ? `<span class="font-mono text-black dark:text-white font-bold">${warehouseOrigin.lat.toFixed(6)}° N, ${warehouseOrigin.lng.toFixed(6)}° E</span> <span class="text-[11px] font-bold text-amber-700 dark:text-amber-400 block sm:inline sm:ml-1">(Provisional FB Map Pin)</span>`
@@ -7329,6 +7953,10 @@ if (freshEst && freshEst !== 'Waiting for Restock' && freshEst !== 'Not yet sche
         if (clusteredStops.length === 0) {
           if (tripDistanceEl) tripDistanceEl.textContent = '0 km (0 stops)';
           if (tripTimeEl) tripTimeEl.textContent = 'No eligible home deliveries to route';
+          automaticallyOptimizedStopsBackup = [];
+          currentRouteStops = [];
+          isRouteManuallyReordered = false;
+          if (restoreBtn) restoreBtn.classList.add('hidden');
           renderStopsTable([], true);
           renderRoutePlannerMap(warehouseOrigin, [], null);
           isRoutePlannerCalculating = false;
@@ -7348,11 +7976,18 @@ if (freshEst && freshEst !== 'Waiting for Restock' && freshEst !== 'Not yet sche
           const durMins = Math.round((totalSec % 3600) / 60);
           const timeStr = durHours > 0 ? `${durHours}h ${durMins}m` : `${durMins} mins`;
 
-          if (tripDistanceEl) tripDistanceEl.textContent = `${distKm} km total`;
-          if (tripTimeEl) tripTimeEl.textContent = `Est. driving time: ~${timeStr} (no live traffic)`;
+          if (tripDistanceEl) tripDistanceEl.textContent = `${distKm} km`;
+          if (tripTimeEl) tripTimeEl.textContent = `~${timeStr} (No live traffic data)`;
+
+          // Preserve automatically optimized sequence backup
+          automaticallyOptimizedStopsBackup = routeResult.stops.map(s => ({ ...s }));
+          currentRouteStops = routeResult.stops.map(s => ({ ...s }));
+          isRouteManuallyReordered = false;
+          if (restoreBtn) restoreBtn.classList.add('hidden');
 
           renderStopsTable(routeResult.stops, true);
           renderRoutePlannerMap(warehouseOrigin, routeResult.stops, routeResult.geometry);
+          bindStopReorderListeners();
 
           if (isRecalculate) {
             showToast('Route successfully recalculated using road routing service.', 'success');
@@ -7368,8 +8003,14 @@ if (freshEst && freshEst !== 'Waiting for Restock' && freshEst !== 'Not yet sche
 
           // Fallback sequence table ordered by FIFO priority
           clusteredStops.sort((a, b) => a.bestPriorityRank - b.bestPriorityRank);
+          automaticallyOptimizedStopsBackup = clusteredStops.map(s => ({ ...s }));
+          currentRouteStops = clusteredStops.map(s => ({ ...s }));
+          isRouteManuallyReordered = false;
+          if (restoreBtn) restoreBtn.classList.add('hidden');
+
           renderStopsTable(clusteredStops, false);
           renderRoutePlannerMap(warehouseOrigin, clusteredStops, null);
+          bindStopReorderListeners();
 
           if (isRecalculate) {
             showToast('OSRM service unavailable. Please retry shortly.', 'error');
@@ -7380,7 +8021,7 @@ if (freshEst && freshEst !== 'Waiting for Restock' && freshEst !== 'Not yet sche
       }
 
       /**
-       * Helper to render the suggested stops table body.
+       * Helper to render the suggested stops table body with manual drag handles.
        */
       function renderStopsTable(stops, hasLegEstimates) {
         const stopsCountEl = document.getElementById('route-planner-stops-count');
@@ -7391,7 +8032,7 @@ if (freshEst && freshEst !== 'Waiting for Restock' && freshEst !== 'Not yet sche
         if (stops.length === 0) {
           stopsTbody.innerHTML = `
             <tr>
-              <td colspan="6" class="py-8 text-center text-gray-500 dark:text-gray-400 text-sm font-medium">
+              <td colspan="7" class="py-8 text-center text-gray-500 dark:text-gray-400 text-sm font-medium">
                 No eligible home delivery orders currently ready for dispatch in "To Ship".
               </td>
             </tr>
@@ -7420,13 +8061,49 @@ if (freshEst && freshEst !== 'Waiting for Restock' && freshEst !== 'Not yet sche
             const legMins = Math.max(1, Math.round(stop.legDurationSeconds / 60));
             legEstimateHtml = `<span class="font-bold text-[#1E6C02] dark:text-emerald-400 text-xs">+${legKm} km • ~${legMins}m</span>`;
           } else {
-            legEstimateHtml = `<span class="text-xs text-amber-700 dark:text-amber-400 font-semibold" title="Requires verified warehouse dispatch origin">Origin Unverified</span>`;
+            legEstimateHtml = `<span class="text-xs text-amber-700 dark:text-amber-400 font-semibold" title="Road estimate unavailable or stale">Estimates Stale</span>`;
           }
 
           const gMapsNavUrl = `https://www.google.com/maps/dir/?api=1&destination=${stop.lat},${stop.lng}`;
 
           return `
-            <tr class="hover:bg-gray-50/70 dark:hover:bg-gray-800/50 transition-colors">
+            <tr 
+              class="route-stop-row hover:bg-gray-50/70 dark:hover:bg-gray-800/50 transition-colors border-b border-gray-100 dark:border-gray-800"
+              draggable="true"
+              data-stop-index="${idx}"
+            >
+              <!-- Drag Handle & Quick Reorder Controls -->
+              <td class="py-3 px-2 text-center align-middle">
+                <div class="flex items-center justify-center gap-1">
+                  <div 
+                    class="drag-handle-grip cursor-grab active:cursor-grabbing p-1.5 rounded-lg text-gray-400 hover:text-emerald-700 dark:hover:text-emerald-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors" 
+                    title="Drag and drop to rearrange stop order" 
+                    draggable="false"
+                  >
+                    <svg class="w-4 h-4 pointer-events-none" viewBox="0 0 24 24" fill="currentColor">
+                      <circle cx="9" cy="6" r="1.5"/><circle cx="15" cy="6" r="1.5"/>
+                      <circle cx="9" cy="12" r="1.5"/><circle cx="15" cy="12" r="1.5"/>
+                      <circle cx="9" cy="18" r="1.5"/><circle cx="15" cy="18" r="1.5"/>
+                    </svg>
+                  </div>
+                  <div class="flex flex-col gap-0.5">
+                    <button 
+                      type="button" 
+                      class="btn-stop-move-up p-0.5 text-gray-400 hover:text-emerald-600 disabled:opacity-20 disabled:pointer-events-none text-[11px] leading-none" 
+                      data-index="${idx}" 
+                      ${idx === 0 ? 'disabled' : ''} 
+                      title="Move stop up"
+                    >▲</button>
+                    <button 
+                      type="button" 
+                      class="btn-stop-move-down p-0.5 text-gray-400 hover:text-emerald-600 disabled:opacity-20 disabled:pointer-events-none text-[11px] leading-none" 
+                      data-index="${idx}" 
+                      ${idx === stops.length - 1 ? 'disabled' : ''} 
+                      title="Move stop down"
+                    >▼</button>
+                  </div>
+                </div>
+              </td>
               <td class="py-3 px-3 text-center align-middle">
                 <span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-emerald-700 text-white font-black text-xs shadow-xs">
                   #${stopNum}
@@ -7464,36 +8141,444 @@ if (freshEst && freshEst !== 'Waiting for Restock' && freshEst !== 'Not yet sche
       }
 
       /**
-       * Staff confirmation of the suggested route.
-       * Preserves the plan in current session memory without touching Firestore,
-       * order statuses, payments, or inventory.
+       * Binds HTML5 drag-and-drop and arrow reordering events on the stops table.
        */
-      function confirmSuggestedRoutePlan() {
-        const { eligibleOrders } = collectRoutePlannerOrders();
-        const clusteredStops = groupOrdersIntoPhysicalStops(eligibleOrders);
+      function bindStopReorderListeners() {
+        const rows = document.querySelectorAll('.route-stop-row');
+        rows.forEach(row => {
+          row.addEventListener('dragstart', (e) => {
+            draggedStopIndex = parseInt(row.getAttribute('data-stop-index'), 10);
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/plain', String(draggedStopIndex));
+            row.classList.add('opacity-40', 'bg-emerald-50', 'dark:bg-emerald-950/40');
+          });
 
-        routePlannerSessionPlan = {
-          confirmedAt: new Date().toISOString(),
-          confirmedBy: getCurrentAdmin()?.name || 'Staff Member',
-          stopsCount: clusteredStops.length,
-          orderIds: clusteredStops.flatMap(s => s.orderIds)
-        };
+          row.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            row.classList.add('border-t-2', 'border-emerald-500');
+          });
 
+          row.addEventListener('dragleave', () => {
+            row.classList.remove('border-t-2', 'border-emerald-500');
+          });
+
+          row.addEventListener('drop', (e) => {
+            e.preventDefault();
+            row.classList.remove('border-t-2', 'border-emerald-500');
+            const targetIndex = parseInt(row.getAttribute('data-stop-index'), 10);
+            if (draggedStopIndex !== null && !isNaN(draggedStopIndex) && !isNaN(targetIndex) && draggedStopIndex !== targetIndex) {
+              handleStopReordered(draggedStopIndex, targetIndex);
+            }
+          });
+
+          row.addEventListener('dragend', () => {
+            row.classList.remove('opacity-40', 'bg-emerald-50', 'dark:bg-emerald-950/40');
+            draggedStopIndex = null;
+          });
+        });
+
+        // Up/down buttons
+        document.querySelectorAll('.btn-stop-move-up').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const idx = parseInt(btn.getAttribute('data-index'), 10);
+            if (!isNaN(idx) && idx > 0) {
+              handleStopReordered(idx, idx - 1);
+            }
+          });
+        });
+
+        document.querySelectorAll('.btn-stop-move-down').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const idx = parseInt(btn.getAttribute('data-index'), 10);
+            if (!isNaN(idx) && idx < currentRouteStops.length - 1) {
+              handleStopReordered(idx, idx + 1);
+            }
+          });
+        });
+      }
+
+      /**
+       * Handles moving a stop from fromIndex to toIndex in currentRouteStops.
+       * Invalidates previous confirmation and triggers road route recalculation.
+       */
+      /**
+       * Handles moving a stop from fromIndex to toIndex in currentRouteStops (DRAFT).
+       * Modifies ONLY the temporary draft sequence. Preserves the active confirmed route
+       * and To Ship priorities until staff explicitly clicks "Confirm Suggested Route".
+       */
+      async function handleStopReordered(fromIndex, toIndex) {
+        if (!currentRouteStops || currentRouteStops.length === 0) return;
+        if (fromIndex === toIndex) return;
+
+        const updated = [...currentRouteStops];
+        const [moved] = updated.splice(fromIndex, 1);
+        updated.splice(toIndex, 0, moved);
+        currentRouteStops = updated;
+        isRouteManuallyReordered = true;
+
+        // Keep draft separate from active confirmed route. Do NOT apply draft to To Ship table yet.
+        // Update confirmation badge in modal to clearly indicate unsaved draft changes
         const reviewBadge = document.getElementById('route-planner-confirmation-badge');
         const reviewNote = document.getElementById('route-planner-confirmation-note');
-
         if (reviewBadge) {
           reviewBadge.innerHTML = `
-            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-emerald-100 text-emerald-900 border border-emerald-300 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-700">
-              <span>✔</span> Confirmed for Current Session
+            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black bg-amber-100 text-amber-950 border border-amber-300 dark:bg-amber-950/80 dark:text-amber-200 dark:border-amber-700 animate-pulse">
+              <span>⚠️</span> Unsaved Route Changes — Confirmation Required
             </span>
           `;
         }
         if (reviewNote) {
-          reviewNote.textContent = 'Staff confirmed this suggested sequence for the current active session (held in session memory; no order records or statuses were altered).';
+          reviewNote.textContent = 'Draft sequence modified. Click "Confirm Suggested Route" to validate and apply these changes as active To Ship delivery priorities.';
         }
 
-        showToast('Route sequence approved and confirmed for current session.', 'success');
+        // Show "Restore Optimized Sequence" option
+        const restoreBtn = document.getElementById('btn-restore-optimized-route');
+        if (restoreBtn) restoreBtn.classList.remove('hidden');
+
+        // Recalculate road distance and driving times for the new draft sequence
+        await recalculateManualRoute(currentRouteStops);
+      }
+
+      /**
+       * Recalculates road network distances and durations for manually arranged stops.
+       */
+      async function recalculateManualRoute(stops) {
+        const origin = getAuthoritativeWarehouseOrigin();
+        const tripDistanceEl = document.getElementById('route-planner-trip-distance');
+        const tripTimeEl = document.getElementById('route-planner-trip-time');
+
+        if (!origin || !origin.isVerified) {
+          renderStopsTable(stops, false);
+          renderRoutePlannerMap(null, stops, null);
+          bindStopReorderListeners();
+          return;
+        }
+
+        if (tripDistanceEl) {
+          tripDistanceEl.innerHTML = `<span class="text-emerald-700 dark:text-emerald-300 text-sm font-bold flex items-center gap-1.5"><span class="animate-spin">🔄</span> Recalculating road estimates...</span>`;
+        }
+        if (tripTimeEl) {
+          tripTimeEl.textContent = 'Updating travel estimates for rearranged sequence...';
+        }
+
+        try {
+          const routeResult = await fetchExplicitSequenceRoute(origin, stops);
+
+          const distKm = (routeResult.totalDistance / 1000).toFixed(1);
+          const totalSec = Math.round(routeResult.totalDuration);
+          const durHours = Math.floor(totalSec / 3600);
+          const durMins = Math.round((totalSec % 3600) / 60);
+          const timeStr = durHours > 0 ? `${durHours}h ${durMins}m` : `${durMins} mins`;
+
+          if (tripDistanceEl) {
+            tripDistanceEl.innerHTML = `${distKm} km <span class="text-xs font-bold px-2 py-0.5 rounded-md bg-emerald-100 dark:bg-emerald-900 text-[#1E6C02] dark:text-emerald-300 ml-1.5 font-sans">Manual Sequence</span>`;
+          }
+          if (tripTimeEl) {
+            tripTimeEl.textContent = `~${timeStr} (No live traffic data)`;
+          }
+
+          currentRouteStops = routeResult.stops;
+          renderStopsTable(routeResult.stops, true);
+          renderRoutePlannerMap(origin, routeResult.stops, routeResult.geometry);
+          bindStopReorderListeners();
+        } catch (err) {
+          console.warn('Manual route recalculation error:', err);
+          if (tripDistanceEl) {
+            tripDistanceEl.innerHTML = `<span class="text-amber-600 dark:text-amber-400 text-sm font-bold">Route Estimates Stale / Unavailable</span>`;
+          }
+          if (tripTimeEl) {
+            tripTimeEl.textContent = 'OSRM request failed. Displayed estimates are unavailable or stale. Retry or check connection.';
+          }
+
+          // Mark individual stop estimates as stale
+          const staleStops = stops.map(s => ({
+            ...s,
+            legDistanceMeters: null,
+            legDurationSeconds: null
+          }));
+          currentRouteStops = staleStops;
+          renderStopsTable(staleStops, false);
+          renderRoutePlannerMap(origin, staleStops, null);
+          bindStopReorderListeners();
+        }
+      }
+
+      /**
+       * Restores the automatically optimized sequence.
+       * Modifies ONLY the draft route. Does not automatically activate or apply it to To Ship table.
+       */
+      async function restoreOptimizedSequence() {
+        if (!automaticallyOptimizedStopsBackup || automaticallyOptimizedStopsBackup.length === 0) return;
+
+        currentRouteStops = automaticallyOptimizedStopsBackup.map(s => ({ ...s }));
+        isRouteManuallyReordered = false;
+
+        const restoreBtn = document.getElementById('btn-restore-optimized-route');
+        if (restoreBtn) restoreBtn.classList.add('hidden');
+
+        const reviewBadge = document.getElementById('route-planner-confirmation-badge');
+        const reviewNote = document.getElementById('route-planner-confirmation-note');
+        if (reviewBadge) {
+          reviewBadge.innerHTML = `
+            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black bg-amber-100 text-amber-950 border border-amber-300 dark:bg-amber-950/80 dark:text-amber-200 dark:border-amber-700 animate-pulse">
+              <span>⚠️</span> Unsaved Route Changes — Confirmation Required
+            </span>
+          `;
+        }
+        if (reviewNote) {
+          reviewNote.textContent = 'Sequence restored in draft. Click "Confirm Suggested Route" to validate and apply as active To Ship delivery priorities.';
+        }
+
+        await recalculateManualRoute(currentRouteStops);
+        showToast('Restored draft sequence to automatic optimization. Confirmation required to apply.', 'info');
+      }
+
+      /**
+       * Staff confirmation of the active route plan.
+       * Validates that the draft is valid, its eligible stops and coordinates are current,
+       * and its road-route estimates are valid and current.
+       * Only after successful validation does the draft become the active confirmed route
+       * and its delivery priorities applied to the To Ship table.
+       */
+      async function confirmSuggestedRoutePlan() {
+        // Collect current eligible To Ship delivery orders
+        const { eligibleOrders } = typeof collectRoutePlannerOrders === 'function'
+          ? collectRoutePlannerOrders()
+          : { eligibleOrders: [] };
+
+        // Helper to handle validation failure according to Requirement 3
+        function handleValidationFailure(errorMsg) {
+          const isPrevValid = isConfirmedRouteValidForEligibleOrders();
+          if (isPrevValid) {
+            // Preserve the previous confirmed route and its priorities
+            showToast(`Cannot confirm draft route: ${errorMsg} Previously confirmed route remains active.`, 'error');
+          } else {
+            // Clear invalid route, remove stale priorities, notify user to recalculate or review
+            routePlannerSessionPlan = null;
+            try {
+              sessionStorage.removeItem('aurora-route-planner-plan');
+            } catch (_) {}
+
+            const reviewBadge = document.getElementById('route-planner-confirmation-badge');
+            const reviewNote = document.getElementById('route-planner-confirmation-note');
+            if (reviewBadge) {
+              reviewBadge.innerHTML = `
+                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black bg-rose-100 text-rose-950 border border-rose-300 dark:bg-rose-950/80 dark:text-rose-200 dark:border-rose-700">
+                  <span>❌</span> Route Unconfirmed — Recalculation Required
+                </span>
+              `;
+            }
+            if (reviewNote) {
+              reviewNote.textContent = 'Active route cleared due to validation mismatch. Please click "Recalculate Route" and review before confirming.';
+            }
+
+            renderOrdersBoard();
+            showToast(`Cannot confirm route: ${errorMsg} Stale route priorities cleared. Please recalculate or review.`, 'error');
+          }
+        }
+
+        // 1. Validate that draft stops exist
+        if (!currentRouteStops || !Array.isArray(currentRouteStops) || currentRouteStops.length === 0) {
+          handleValidationFailure('No delivery stops available to confirm.');
+          return;
+        }
+
+        // 2. Validate authoritative warehouse origin
+        const origin = getAuthoritativeWarehouseOrigin();
+        if (!origin || !origin.isVerified || typeof origin.lat !== 'number' || typeof origin.lng !== 'number' || isNaN(origin.lat) || isNaN(origin.lng)) {
+          handleValidationFailure('Authoritative warehouse location is unverified or invalid.');
+          return;
+        }
+
+        // 3. Validate eligible delivery orders exist
+        if (!Array.isArray(eligibleOrders) || eligibleOrders.length === 0) {
+          handleValidationFailure('No eligible home delivery orders currently ready for dispatch in "To Ship".');
+          return;
+        }
+
+        // 4. Validate mismatch between draft stops and current eligible delivery orders
+        const eligibleOrdersById = new Map();
+        const eligibleOrderIds = new Set();
+        eligibleOrders.forEach(item => {
+          const sId = String(item.order.id);
+          eligibleOrderIds.add(sId);
+          eligibleOrdersById.set(sId, item);
+        });
+
+        const draftOrderIds = new Set();
+        let hasDuplicateDraftOrder = false;
+
+        for (const stop of currentRouteStops) {
+          if (!stop || !Array.isArray(stop.orderIds) || stop.orderIds.length === 0) {
+            handleValidationFailure('Draft contains empty or invalid stops.');
+            return;
+          }
+          for (const id of stop.orderIds) {
+            const sId = String(id);
+            if (draftOrderIds.has(sId)) {
+              hasDuplicateDraftOrder = true;
+            }
+            draftOrderIds.add(sId);
+          }
+        }
+
+        if (hasDuplicateDraftOrder) {
+          handleValidationFailure('Draft contains duplicate order assignments across stops.');
+          return;
+        }
+
+        if (draftOrderIds.size !== eligibleOrders.length) {
+          handleValidationFailure('Draft stops do not match the number of currently eligible orders. Please recalculate.');
+          return;
+        }
+
+        const missingOrders = eligibleOrders.filter(item => !draftOrderIds.has(String(item.order.id)));
+        if (missingOrders.length > 0) {
+          handleValidationFailure('Draft is missing one or more currently eligible To Ship orders. Please recalculate.');
+          return;
+        }
+
+        for (const draftId of draftOrderIds) {
+          if (!eligibleOrderIds.has(draftId)) {
+            handleValidationFailure('Draft contains orders that are no longer eligible for delivery in To Ship. Please recalculate.');
+            return;
+          }
+        }
+
+        // Validate stop membership and clustering against groupOrdersIntoPhysicalStops
+        if (typeof groupOrdersIntoPhysicalStops === 'function') {
+          const currentClusters = groupOrdersIntoPhysicalStops(eligibleOrders);
+          if (currentRouteStops.length !== currentClusters.length) {
+            handleValidationFailure('Draft stop clustering does not match current physical delivery groupings. Please recalculate.');
+            return;
+          }
+
+          for (const stop of currentRouteStops) {
+            const stopIdSet = new Set((stop.orderIds || []).map(String));
+            const matchingCluster = currentClusters.find(c => {
+              if (!Array.isArray(c.orderIds) || c.orderIds.length !== stopIdSet.size) return false;
+              return c.orderIds.every(id => stopIdSet.has(String(id)));
+            });
+            if (!matchingCluster) {
+              handleValidationFailure('Draft stop membership has changed relative to current order addresses. Please recalculate.');
+              return;
+            }
+          }
+        }
+
+        // 5. Validate destination coordinates: reject invalid or missing coordinates
+        for (let idx = 0; idx < currentRouteStops.length; idx++) {
+          const stop = currentRouteStops[idx];
+          if (typeof stop.lat !== 'number' || typeof stop.lng !== 'number' || isNaN(stop.lat) || isNaN(stop.lng) || !isFinite(stop.lat) || !isFinite(stop.lng) || stop.lat < -90 || stop.lat > 90 || stop.lng < -180 || stop.lng > 180 || (stop.lat === 0 && stop.lng === 0)) {
+            handleValidationFailure(`Stop #${idx + 1} has invalid or missing GPS destination coordinates.`);
+            return;
+          }
+
+          for (const oId of stop.orderIds) {
+            const item = eligibleOrdersById.get(String(oId));
+            if (!item || !item.coords || typeof item.coords.lat !== 'number' || typeof item.coords.lng !== 'number' || isNaN(item.coords.lat) || isNaN(item.coords.lng)) {
+              handleValidationFailure(`Order #${oId} has missing or unverified delivery coordinates.`);
+              return;
+            }
+            if (Math.abs(item.coords.lat - stop.lat) > 0.00015 || Math.abs(item.coords.lng - stop.lng) > 0.00015) {
+              handleValidationFailure(`Stop #${idx + 1} coordinates do not match current address snapshot for Order #${oId}. Please recalculate.`);
+              return;
+            }
+          }
+        }
+
+        // 6. Validate road estimates: reject missing or invalid road estimates, stale estimates
+        for (let idx = 0; idx < currentRouteStops.length; idx++) {
+          const stop = currentRouteStops[idx];
+          const dist = stop.legDistanceMeters;
+          const dur = stop.legDurationSeconds;
+          if (typeof dist !== 'number' || isNaN(dist) || !isFinite(dist) || dist < 0 ||
+              typeof dur !== 'number' || isNaN(dur) || !isFinite(dur) || dur < 0) {
+            handleValidationFailure(`Stop #${idx + 1} has missing, invalid, or stale road routing estimates. Please recalculate.`);
+            return;
+          }
+        }
+
+        // 7. ALL VALIDATIONS PASSED: Safely apply draft as confirmed route and update delivery priorities
+        const orderPriorityMap = {};
+        currentRouteStops.forEach((stop, idx) => {
+          const priority = idx + 1;
+          (stop.orderIds || []).forEach(oId => {
+            orderPriorityMap[String(oId)] = {
+              priority,
+              stopNumber: priority,
+              customerName: stop.customerName,
+              address: stop.address
+            };
+          });
+        });
+
+        const adminUser = typeof getCurrentAdmin === 'function' ? getCurrentAdmin() : window.RiceFlow?.getCurrentAdmin?.();
+
+        routePlannerSessionPlan = {
+          confirmedAt: new Date().toISOString(),
+          confirmedBy: adminUser?.name || 'Staff Member',
+          origin: {
+            lat: origin.lat,
+            lng: origin.lng,
+            name: origin.name,
+            isVerified: origin.isVerified,
+            isProvisional: Boolean(origin.isProvisional)
+          },
+          stopsCount: currentRouteStops.length,
+          stops: currentRouteStops.map(s => ({ ...s })),
+          orderPriorityMap,
+          isManual: isRouteManuallyReordered
+        };
+
+        try {
+          sessionStorage.setItem('aurora-route-planner-plan', JSON.stringify(routePlannerSessionPlan));
+        } catch (_) {}
+
+        // Persist confirmed route plan across authorized staff devices via Firestore and await confirmation
+        let isRemotePersisted = false;
+        try {
+          const saveResult = await saveDeliveryRoutePlanDoc(routePlannerSessionPlan);
+          isRemotePersisted = Boolean(saveResult);
+        } catch (syncErr) {
+          console.warn('[ROUTE-PLANNER] Firestore route plan persistence error:', syncErr);
+          isRemotePersisted = false;
+        }
+
+        const reviewBadge = document.getElementById('route-planner-confirmation-badge');
+        const reviewNote = document.getElementById('route-planner-confirmation-note');
+
+        if (isRemotePersisted) {
+          if (reviewBadge) {
+            reviewBadge.innerHTML = `
+              <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-emerald-100 text-emerald-900 border border-emerald-300 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-700">
+                <span>✔</span> Confirmed Across Staff Devices
+              </span>
+            `;
+          }
+          if (reviewNote) {
+            reviewNote.textContent = `Staff confirmed this sequence (${isRouteManuallyReordered ? 'Manual Sequence' : 'Optimized Sequence'}) across devices. Applied as To Ship delivery priorities.`;
+          }
+          showToast(`✔ Route sequence confirmed and saved across devices! Delivery priorities (Priority 1..${currentRouteStops.length}) applied.`, 'success');
+        } else {
+          if (reviewBadge) {
+            reviewBadge.innerHTML = `
+              <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-amber-100 text-amber-900 border border-amber-300 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-700">
+                <span>⚠️</span> Active on this Device Only (Cloud Sync Failed)
+              </span>
+            `;
+          }
+          if (reviewNote) {
+            reviewNote.textContent = `Route confirmed locally on this device, but could not be saved to Firestore across devices. Click "Confirm Suggested Route" to retry cross-device sync.`;
+          }
+          showToast(`⚠️ Route confirmed locally, but failed to save across devices. You may retry confirming to sync across devices.`, 'warning');
+        }
+
+        // Immediately reflect confirmed sequence in the existing To Ship interface
+        renderOrdersBoard();
       }
 
       function openSmartRoutePlannerModal() {
@@ -7537,6 +8622,9 @@ if (freshEst && freshEst !== 'Waiting for Restock' && freshEst !== 'Not yet sche
           calculateAndRenderRoute(true);
         });
 
+        // Restore optimized button
+        document.getElementById('btn-restore-optimized-route')?.addEventListener('click', restoreOptimizedSequence);
+
         // Confirm button
         document.getElementById('btn-confirm-route-plan')?.addEventListener('click', confirmSuggestedRoutePlan);
       }
@@ -7544,17 +8632,52 @@ if (freshEst && freshEst !== 'Waiting for Restock' && freshEst !== 'Not yet sche
       // Initialize route planner events once
       initSmartRoutePlannerEvents();
 
-      // Initial page renders
+      // Cross-device route plan synchronization helper
+      async function syncAuthoritativeRoutePlanFromFirestore() {
+        try {
+          const remotePlan = await fetchActiveDeliveryRoutePlanFromFirestore();
+          if (!remotePlan || typeof remotePlan !== 'object') {
+            return;
+          }
+
+          // If we already have an identical or newer confirmed route in memory, avoid unnecessary re-render
+          if (routePlannerSessionPlan && routePlannerSessionPlan.confirmedAt === remotePlan.confirmedAt) {
+            return;
+          }
+
+          // Temporarily test candidate plan against current eligible orders and authoritative origin
+          const previousLocalPlan = routePlannerSessionPlan;
+          routePlannerSessionPlan = remotePlan;
+
+          if (isConfirmedRouteValidForEligibleOrders()) {
+            // Valid confirmed plan from staff device! Persist locally and re-render board
+            try {
+              sessionStorage.setItem('aurora-route-planner-plan', JSON.stringify(remotePlan));
+            } catch (_) {}
+            renderOrdersBoard();
+          } else {
+            // Stale or non-matching plan: restore previous local plan
+            routePlannerSessionPlan = previousLocalPlan;
+          }
+        } catch (err) {
+          console.warn('[ROUTE-PLANNER] Remote route plan hydration warning:', err);
+        }
+      }
+
+      // Initial page renders and cross-device route plan hydration
       renderOrdersBoard();
+      syncAuthoritativeRoutePlanFromFirestore().catch(() => {});
 
       // Real-time synchronization and auto-cancellation listener
       window.addEventListener('aurora-sync-event', (e) => {
         if (!e.detail?.key || e.detail?.key === 'aurora-orders') {
           renderOrdersBoard();
+          syncAuthoritativeRoutePlanFromFirestore().catch(() => {});
         }
       });
       window.addEventListener('aurora-orders-updated', () => {
         renderOrdersBoard();
+        syncAuthoritativeRoutePlanFromFirestore().catch(() => {});
       });
 
       // Deep Linking handler for notifications

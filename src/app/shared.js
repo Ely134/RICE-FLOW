@@ -67,6 +67,9 @@ import {
   unregisterPendingOrderWrite,
   syncOrdersFromFirestore,
   syncStoreSettingsFromFirestore,
+  saveDeliveryRoutePlanDoc,
+  fetchActiveDeliveryRoutePlanFromFirestore,
+  clearDeliveryRoutePlanDoc,
   db,
   runTransaction,
   doc,
@@ -100,7 +103,10 @@ export {
   isOrdersHydrated,
   registerPendingOrderWrite,
   unregisterPendingOrderWrite,
-  syncOrdersFromFirestore
+  syncOrdersFromFirestore,
+  saveDeliveryRoutePlanDoc,
+  fetchActiveDeliveryRoutePlanFromFirestore,
+  clearDeliveryRoutePlanDoc
 };
 import {
   waitForAuthState,
