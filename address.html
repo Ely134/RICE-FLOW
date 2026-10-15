@@ -346,6 +346,12 @@
       if (fromSource === 'profile') {
         returnUrl = 'profile.html';
         if (backNavLabel) backNavLabel.textContent = 'Back to Profile';
+      } else if (fromSource === 'reservation') {
+        // preserve query parameters for reservation
+        const cleanParams = new URLSearchParams(window.location.search);
+        cleanParams.delete('from');
+        returnUrl = cleanParams.toString() ? `reservation.html?${cleanParams.toString()}` : 'reservation.html';
+        if (backNavLabel) backNavLabel.textContent = 'Back to Reservation';
       } else {
         // preserve query parameters for checkout
         const cleanParams = new URLSearchParams(window.location.search);

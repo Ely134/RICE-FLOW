@@ -1292,6 +1292,13 @@ export function isOrderStockDeducted(order) {
     return true;
   }
 
+  // Reservation orders never deduct stock upon placement; they are ONLY deducted when explicitly flagged as stockDeducted.
+  // Never infer that a reservation's warehouse stock has been deducted from status alone when the code path did not perform a physical deduction.
+  const isRes = isReservationOrder(order) || Boolean(order.isPreOrder) || (Array.isArray(order.items) && order.items.some(it => it && it.isReservation));
+  if (isRes) {
+    return false;
+  }
+
   // Normal portion of a split order: available stock was committed/deducted upon order split
   if (Number(order.partialApprovedQty || 0) > 0 || Boolean(order.linkedReservationId)) {
     return true;
@@ -1303,16 +1310,8 @@ export function isOrderStockDeducted(order) {
   }
 
   // Normal orders placed into the database: in RiceFlow, regular orders deduct warehouse inventory upon placement
-  if (!order.isPreOrder && Array.isArray(order.items) && !order.items.some(it => it && it.isReservation)) {
-    const statusClean = String(order.status || '').toLowerCase().replace(/_/g, '-');
-    if (['to-pay', 'pending', 'processing', 'to-ship', 'to-receive', 'delivered', 'completed', 'paid'].includes(statusClean)) {
-      return true;
-    }
-  }
-
-  // Active or fulfilled normal orders whose warehouse stock was already decremented upon acceptance/fulfillment
   const statusClean = String(order.status || '').toLowerCase().replace(/_/g, '-');
-  if (['processing', 'to-ship', 'to-receive', 'delivered', 'completed'].includes(statusClean)) {
+  if (['to-pay', 'pending', 'processing', 'to-ship', 'to-receive', 'delivered', 'completed', 'paid'].includes(statusClean)) {
     return true;
   }
 
@@ -1376,7 +1375,7 @@ export function getProducts() {
       return;
     }
 
-    const isRes = o.isPreOrder || (o.items && o.items.some(it => it.isReservation));
+    const isRes = Boolean(o.isPreOrder || isReservationOrder(o) || (o.items && o.items.some(it => it && it.isReservation)));
 
     if (isRes && Array.isArray(o.items)) {
       o.items.forEach(it => {
@@ -1391,12 +1390,13 @@ export function getProducts() {
         if (pId) {
           const totalQty = Number(it.quantity || 0);
           const cleanStatus = String(o.status || '').toLowerCase().replace(/_/g, '-').trim();
-          const isActuallyAllocated = Boolean(
-            (o.stockAllocated === true || ['stock-allocated', 'ready-for-processing', 'ready'].includes(cleanStatus) ||
-             (o.paymentDeadline && new Date(o.paymentDeadline).getTime() > Date.now())) &&
-            Number(o.allocatedQuantity || 0) > 0
+          const rawAlloc = Number(it.allocatedQuantity !== undefined && it.allocatedQuantity !== null ? it.allocatedQuantity : (o.allocatedQuantity || 0));
+          const isFullyReadyAlloc = Boolean(
+            o.stockAllocated === true || 
+            ['stock-allocated', 'ready-for-processing', 'ready', 'processing', 'to-ship', 'to-receive'].includes(cleanStatus) ||
+            (o.paymentDeadline && new Date(o.paymentDeadline).getTime() > Date.now())
           );
-          const allocatedQty = isActuallyAllocated ? Math.min(totalQty, Math.max(0, Number(o.allocatedQuantity || 0))) : 0;
+          const allocatedQty = rawAlloc > 0 ? Math.min(totalQty, rawAlloc) : (isFullyReadyAlloc ? totalQty : 0);
           const waitingQty = Math.max(0, totalQty - allocatedQty);
 
           if (waitingQty > 0) {
@@ -1453,6 +1453,7 @@ export function getProducts() {
       stock: available, // client-facing customer-orderable Current Stock
       currentStock: physical, // physical warehouse stock
       reservedStock: waitingReserved, // Reserved Stock = waiting for allocation
+      allocatedStock: allocatedRes, // Committed reservation stock from physical warehouse
       availableStock: available // customer-orderable Current Stock
     };
   });
@@ -1466,7 +1467,7 @@ export function saveProducts(products, bypassRoleCheck = false, targetDocInfo = 
     }
   }
   const cleanList = products.map(p => {
-    const { currentStock, reservedStock, availableStock, ...rest } = p;
+    const { currentStock, reservedStock, availableStock, allocatedStock, ...rest } = p;
     const finalStock = currentStock !== undefined ? currentStock : p.stock;
     return {
       ...rest,
@@ -5674,17 +5675,17 @@ export async function addOrderAtomic(orderData) {
     if (['processing', 'to-ship', 'to-receive', 'delivered', 'completed'].includes(cleanStatus)) return;
     const isRes = o.isPreOrder || (o.items && o.items.some(it => it.isReservation));
     if (isRes && Array.isArray(o.items)) {
-      const isActuallyAllocated = Boolean(
-        (o.stockAllocated === true || ['stock-allocated', 'ready-for-processing', 'ready'].includes(cleanStatus) ||
-         (o.paymentDeadline && new Date(o.paymentDeadline).getTime() > Date.now())) &&
-        Number(o.allocatedQuantity || 0) > 0
-      );
-      if (!isActuallyAllocated) return;
       o.items.forEach(it => {
         const pId = String(it.product?.id || it.productId || it.id || '').trim();
         if (pId) {
           const totalQty = Number(it.quantity || 0);
-          const allocatedQty = Math.min(totalQty, Math.max(0, Number(o.allocatedQuantity || 0)));
+          const rawAlloc = Number(it.allocatedQuantity !== undefined && it.allocatedQuantity !== null ? it.allocatedQuantity : (o.allocatedQuantity || 0));
+          const isFullyReadyAlloc = Boolean(
+            o.stockAllocated === true || 
+            ['stock-allocated', 'ready-for-processing', 'ready'].includes(cleanStatus) ||
+            (o.paymentDeadline && new Date(o.paymentDeadline).getTime() > Date.now())
+          );
+          const allocatedQty = rawAlloc > 0 ? Math.min(totalQty, rawAlloc) : (isFullyReadyAlloc ? totalQty : 0);
           if (allocatedQty > 0) {
             allocatedMap[pId] = (allocatedMap[pId] || 0) + allocatedQty;
           }
@@ -5758,11 +5759,30 @@ export async function addOrderAtomic(orderData) {
       const availStock = Math.max(0, physicalStock - committedAllocated);
       const requestedQty = Number(item.quantity || 0);
 
-      const isOriginallyReservation = Boolean(orderData.isPreOrder || item.isReservation);
+      const isFullOrderRes = orderData.customerChoice === 'reserve_full' || orderData.isFullOrderReservation;
+      const isOriginallyReservation = Boolean(orderData.isPreOrder || item.isReservation || isFullOrderRes);
 
       if (isOriginallyReservation) {
-        // Pure reservation item
-        updatedItems.push({ ...item, isReservation: true });
+        // Pure reservation or full-order reservation item:
+        // Do NOT prematurely reduce physical warehouse inventory!
+        // But commit any available physical warehouse stock to this reservation so it is not double-counted.
+        let commitQty = Number(item.allocatedQuantity !== undefined && item.allocatedQuantity !== null ? item.allocatedQuantity : (orderData.allocatedQuantity || 0));
+        if (commitQty === 0 && availStock > 0) {
+          commitQty = Math.min(requestedQty, availStock);
+        }
+        const waitQty = Math.max(0, requestedQty - commitQty);
+        if (commitQty > 0) {
+          allocatedMap[pId] = (allocatedMap[pId] || 0) + commitQty;
+        }
+
+        updatedItems.push({
+          ...item,
+          quantity: requestedQty,
+          originalRequestedQty: requestedQty,
+          allocatedQuantity: commitQty,
+          waitingQuantity: waitQty,
+          isReservation: true
+        });
         continue;
       }
 
@@ -5911,11 +5931,18 @@ export async function addOrderAtomic(orderData) {
             throw new Error(`The item "${pData.name || 'Rice'}" was just claimed by another order and is currently out of stock.`);
           }
         } else if (orderData.customerChoice === 'reserve_full') {
-          // Customer explicitly agreed to reserve full quantity
+          // Customer explicitly agreed to reserve full quantity (delivered together)
+          const commitQty = Math.min(requestedQty, Math.max(0, availStock));
+          const waitQty = Math.max(0, requestedQty - commitQty);
+          if (commitQty > 0) {
+            allocatedMap[pId] = (allocatedMap[pId] || 0) + commitQty;
+          }
           updatedItems.push({
             ...item,
             quantity: requestedQty,
             originalRequestedQty: requestedQty,
+            allocatedQuantity: commitQty,
+            waitingQuantity: waitQty,
             isReservation: true
           });
         } else {
@@ -5947,6 +5974,11 @@ export async function addOrderAtomic(orderData) {
       finalRemaining = finalTotal;
     }
 
+    const totalOrderAllocated = updatedItems.reduce((acc, it) => acc + Number(it.allocatedQuantity || 0), 0);
+    const totalOrderWaiting = updatedItems.reduce((acc, it) => acc + Number(it.waitingQuantity || 0), 0);
+    const totalItemQty = updatedItems.reduce((acc, it) => acc + Number(it.quantity || 0), 0);
+    const hasCommittedStock = totalOrderAllocated > 0;
+
     const finalOrder = {
       ...orderData,
       id: finalOrderId,
@@ -5967,6 +5999,12 @@ export async function addOrderAtomic(orderData) {
       updatedAt: now.toISOString(),
       status: isConvertedReservation ? 'pre-order' : startStatus,
       isPreOrder: isConvertedReservation,
+      allocatedQuantity: hasCommittedStock ? totalOrderAllocated : (orderData.allocatedQuantity !== undefined ? orderData.allocatedQuantity : undefined),
+      waitingQuantity: totalOrderWaiting > 0 ? totalOrderWaiting : (orderData.waitingQuantity !== undefined ? orderData.waitingQuantity : undefined),
+      stockAllocated: totalItemQty > 0 && totalOrderAllocated >= totalItemQty,
+      stockAllocatedAt: hasCommittedStock ? (orderData.stockAllocatedAt || now.toISOString()) : null,
+      allocatedStock: hasCommittedStock ? (totalOrderAllocated >= totalItemQty ? 'Fully Allocated' : `${totalOrderAllocated} Sacks Allocated / ${totalOrderWaiting} Sacks Waiting`) : (orderData.allocatedStock || 'Pending Restock'),
+      isFullOrderReservation: Boolean(isConvertedReservation && (orderData.customerChoice === 'reserve_full' || orderData.isFullOrderReservation || hasCommittedStock)),
       stockDeducted: anyPhysicalStockDeducted,
       consumedFromStock: anyPhysicalStockDeducted ? stockDeductions.reduce((acc, d) => acc + d.qty, 0) : 0,
       consumedAt: anyPhysicalStockDeducted ? now.toISOString() : null,
@@ -5982,7 +6020,7 @@ export async function addOrderAtomic(orderData) {
           status: isConvertedReservation ? 'Waiting for Stock' : 'New Order',
           changedBy: 'System',
           changedAt: now.toLocaleString(),
-          note: isConvertedReservation ? 'Reservation submitted by customer' : 'Order submitted by customer'
+          note: hasCommittedStock ? `Full-order reservation submitted: ${totalOrderAllocated} sack(s) committed from existing warehouse stock, ${totalOrderWaiting} sack(s) awaiting restock.` : (isConvertedReservation ? 'Reservation submitted by customer' : 'Order submitted by customer')
         }
       ]
     };
@@ -6678,6 +6716,20 @@ export function updateOrderStatus(orderId, status, note = '', extraFields = {}) 
       if (currentStatus === 'cancelled') {
         cancelledAt = now.toISOString();
         const isRes = isReservationOrder(order);
+        if (isRes) {
+          order.allocatedQuantity = 0;
+          order.waitingQuantity = Number(order.quantity || 0);
+          order.stockAllocated = false;
+          order.allocatedStock = 'Cancelled';
+          if (Array.isArray(order.items)) {
+            order.items.forEach(it => {
+              if (it.isReservation) {
+                it.allocatedQuantity = 0;
+                it.waitingQuantity = Number(it.quantity || 0);
+              }
+            });
+          }
+        }
         // CRITICAL: Reservations never deduct physical warehouse stock on placement, so cancelling a reservation must NOT add stock back to warehouse inventory!
         if (stockDeducted && !isRes) {
           const currentProducts = getProducts();
@@ -6856,6 +6908,16 @@ export function updateOrderStatus(orderId, status, note = '', extraFields = {}) 
       issueReports[repIndex].status = 'completed';
       issueReports[repIndex].resolvedAt = now.toISOString();
       localStorage.setItem('aurora-issue-reports', JSON.stringify(issueReports));
+    }
+  }
+
+  if (status === 'cancelled' && updatedOrderObj && isReservationOrder(updatedOrderObj)) {
+    try {
+      if (typeof allocateStockToReservations === 'function') {
+        allocateStockToReservations();
+      }
+    } catch (allocErr) {
+      console.warn('[RESERVATION] Auto-reallocation on cancellation notice:', allocErr);
     }
   }
 }
@@ -7242,6 +7304,7 @@ allOrdersForAllocation.forEach(existingOrder => {
     existingOrder.stockAllocated === true ||
     existingOrder.restockAllocatedAt ||
     existingOrder.actualRestockDate ||
+    Number(existingOrder.allocatedQuantity || 0) > 0 ||
     (
       existingOrder.allocatedStock &&
       !String(existingOrder.allocatedStock)
@@ -7249,7 +7312,8 @@ allOrdersForAllocation.forEach(existingOrder => {
         .includes('pending')
     )
   ) {
-    const allocatedQty = Number(existingOrder.allocatedQuantity || 0);
+    const rawAlloc = Number(existingOrder.allocatedQuantity || 0);
+    const allocatedQty = rawAlloc > 0 ? rawAlloc : Number(existingItem.quantity || 0);
 
     if (allocatedQty > 0 && existingOrder.items) {
       existingOrder.items.forEach(existingItem => {
@@ -7276,7 +7340,56 @@ const availStock = Math.max(
 );
       const requestedQty = Number(item.quantity || 0);
 
-      const isOriginallyReservation = Boolean(order.isPreOrder || item.isReservation || (order.id && String(order.id).toLowerCase().startsWith('res')));
+      const isFullOrderRes = order.customerChoice === 'reserve_full' || order.isFullOrderReservation;
+      const isOriginallyReservation = Boolean(order.isPreOrder || item.isReservation || isFullOrderRes || (order.id && String(order.id).toLowerCase().startsWith('res')));
+
+      if (isOriginallyReservation || isFullOrderRes) {
+        // Full-order reservation or pre-order
+        // DO NOT split into a partial normal order or deduct physical stock prematurely!
+        let commitQty = Number(item.allocatedQuantity !== undefined && item.allocatedQuantity !== null ? item.allocatedQuantity : (order.allocatedQuantity || 0));
+        if (commitQty === 0 && availStock > 0) {
+          commitQty = Math.min(requestedQty, availStock);
+        }
+        const waitQty = Math.max(0, requestedQty - commitQty);
+
+        order.isPreOrder = true;
+        order.status = order.status || 'pre-order';
+        order.stockDeducted = false;
+        order.allocatedQuantity = commitQty;
+        order.waitingQuantity = waitQty;
+        order.isFullOrderReservation = true;
+        order.stockAllocated = commitQty >= requestedQty && requestedQty > 0;
+        order.stockAllocatedAt = commitQty > 0 ? (order.stockAllocatedAt || new Date().toISOString()) : null;
+        order.allocatedStock = commitQty > 0 ? (commitQty >= requestedQty ? 'Fully Allocated' : `${commitQty} Sacks Allocated / ${waitQty} Sacks Waiting`) : 'Pending Restock';
+
+        let estDate = null;
+        if (p.restockDate) {
+          const rd = new Date(p.restockDate);
+          if (!isNaN(rd.getTime()) && rd >= new Date()) {
+            estDate = p.restockDate;
+          }
+        }
+        order.estimatedRestockDate = order.estimatedRestockDate || estDate;
+        order.estimatedAvailability = order.estimatedAvailability || estDate;
+
+        const initialPreOrderEst = getEstimatedArrivalDate(order);
+        if (initialPreOrderEst && initialPreOrderEst !== 'Waiting for Restock' && initialPreOrderEst !== 'Not yet scheduled') {
+          order.estimatedFulfillmentDate = initialPreOrderEst;
+        }
+
+        const allOrders = getOrders();
+        const pId = String(p.id);
+        order.queuePosition = order.queuePosition || getReservationQueuePosition(order, allOrders, pId) || 1;
+
+        updatedItems.push({
+          ...item,
+          quantity: requestedQty,
+          allocatedQuantity: commitQty,
+          waitingQuantity: waitQty,
+          isReservation: true
+        });
+        return;
+      }
 
       if (requestedQty > availStock) {
         if (availStock > 0) {
@@ -8727,6 +8840,9 @@ if (typeof window !== 'undefined') {
     sortActivityLogsDesc,
     showToast,
     getStoreSettings,
+    get DEFAULT_DELIVERY_MINIMUM_SETTINGS() { return DEFAULT_DELIVERY_MINIMUM_SETTINGS; },
+    getDeliveryMinimumSettings(...args) { return getDeliveryMinimumSettings(...args); },
+    evaluateDeliveryMinimum(...args) { return evaluateDeliveryMinimum(...args); },
     sanitizeInput,
     hashPassword,
     checkLockout,
@@ -10159,6 +10275,150 @@ if (typeof window !== 'undefined') {
 
 // ---------------------- STOREFRONT CUSTOMIZATION SETTINGS ----------------------
 
+export const DEFAULT_DELIVERY_MINIMUM_SETTINGS = {
+  defaultMinimumSacks: 20,
+  farLocationMinimumSacks: 350,
+  isProvisionalNotice: true,
+  locationRules: [
+    {
+      id: 'rule-zamboanga-del-norte',
+      locationName: 'Zamboanga del Norte',
+      locationType: 'province',
+      isFarLocation: true,
+      minimumSacks: 350
+    },
+    {
+      id: 'rule-zamboanga-sibugay',
+      locationName: 'Zamboanga Sibugay',
+      locationType: 'province',
+      isFarLocation: true,
+      minimumSacks: 350
+    },
+    {
+      id: 'rule-pagadian',
+      locationName: 'Pagadian',
+      locationType: 'city',
+      isFarLocation: false,
+      minimumSacks: 20
+    }
+  ]
+};
+
+export function getDeliveryMinimumSettings() {
+  const settings = getStoreSettings();
+  return settings.deliveryMinimumSettings || DEFAULT_DELIVERY_MINIMUM_SETTINGS;
+}
+
+export function evaluateDeliveryMinimum(deliveryAddress, totalSacks, storeSettings) {
+  const settings = (storeSettings && storeSettings.deliveryMinimumSettings) 
+    ? storeSettings.deliveryMinimumSettings 
+    : (typeof getStoreSettings === 'function' ? getStoreSettings().deliveryMinimumSettings : DEFAULT_DELIVERY_MINIMUM_SETTINGS);
+
+  const defaultMin = (settings && Number.isInteger(Number(settings.defaultMinimumSacks)) && Number(settings.defaultMinimumSacks) >= 0)
+    ? Number(settings.defaultMinimumSacks)
+    : 20;
+
+  const farMin = (settings && Number.isInteger(Number(settings.farLocationMinimumSacks)) && Number(settings.farLocationMinimumSacks) >= 0)
+    ? Number(settings.farLocationMinimumSacks)
+    : 350;
+
+  const rules = (settings && Array.isArray(settings.locationRules)) ? settings.locationRules : [];
+
+  let addrStr = '';
+  let cityName = '';
+  let provinceName = '';
+  let regionName = '';
+
+  if (deliveryAddress && typeof deliveryAddress === 'object') {
+    addrStr = deliveryAddress.fullAddress || deliveryAddress.address || '';
+    cityName = deliveryAddress.city || deliveryAddress.cityMunicipality || '';
+    provinceName = deliveryAddress.province || '';
+    regionName = deliveryAddress.region || '';
+    if (deliveryAddress.addressDetails && typeof deliveryAddress.addressDetails === 'object') {
+      const ad = deliveryAddress.addressDetails;
+      if (!cityName) cityName = ad.city || ad.cityMunicipality || '';
+      if (!provinceName) provinceName = ad.province || '';
+      if (!regionName) regionName = ad.region || '';
+      if (!addrStr) addrStr = ad.fullAddress || ad.address || '';
+    }
+  } else if (typeof deliveryAddress === 'string') {
+    addrStr = deliveryAddress;
+  }
+
+  const normalize = (s) => (s || '').toLowerCase()
+    .replace(/city of\s+/i, '')
+    .replace(/[\.,#-]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const normAddr = normalize(addrStr);
+  const normCity = normalize(cityName);
+  const normProvince = normalize(provinceName);
+  const normRegion = normalize(regionName);
+
+  let matchedRule = null;
+  let matchSpecificity = -1; // 3: exact city, 2: exact province, 1.5: region, 1: address substring
+
+  for (const rule of rules) {
+    if (!rule || !rule.locationName) continue;
+    const normRule = normalize(rule.locationName);
+    if (!normRule) continue;
+
+    if (normCity && (normCity === normRule || normCity.includes(normRule) || normRule.includes(normCity))) {
+      if (matchSpecificity < 3) {
+        matchedRule = rule;
+        matchSpecificity = 3;
+      }
+    } else if (normProvince && (normProvince === normRule || normProvince.includes(normRule) || normRule.includes(normProvince))) {
+      if (matchSpecificity < 2) {
+        matchedRule = rule;
+        matchSpecificity = 2;
+      }
+    } else if (normRegion && (normRegion === normRule || normRegion.includes(normRule) || normRule.includes(normRegion))) {
+      if (matchSpecificity < 1.5) {
+        matchedRule = rule;
+        matchSpecificity = 1.5;
+      }
+    } else if (normAddr && (normAddr.includes(normRule) || (normRule.length >= 4 && normAddr.split(' ').includes(normRule)))) {
+      if (matchSpecificity < 1) {
+        matchedRule = rule;
+        matchSpecificity = 1;
+      }
+    }
+  }
+
+  let applicableMinimum = defaultMin;
+  let isFar = false;
+  let ruleName = '';
+
+  if (matchedRule) {
+    ruleName = matchedRule.locationName;
+    isFar = Boolean(matchedRule.isFarLocation);
+    if (Number.isInteger(Number(matchedRule.minimumSacks)) && Number(matchedRule.minimumSacks) >= 0) {
+      applicableMinimum = Number(matchedRule.minimumSacks);
+    } else if (isFar) {
+      applicableMinimum = farMin;
+    } else {
+      applicableMinimum = defaultMin;
+    }
+  }
+
+  const total = Number(totalSacks) || 0;
+  const isSatisfied = total >= applicableMinimum;
+  const deficit = Math.max(0, applicableMinimum - total);
+
+  return {
+    isSatisfied,
+    totalSacks: total,
+    applicableMinimum,
+    deficit,
+    isFarLocation: isFar,
+    matchedRuleName: ruleName,
+    defaultMinimumSacks: defaultMin,
+    farLocationMinimumSacks: farMin
+  };
+}
+
 export function getStoreSettings() {
   if (typeof window === 'undefined') {
     return {
@@ -10173,7 +10433,8 @@ export function getStoreSettings() {
       banner: 'https://static.vecteezy.com/system/resources/thumbnails/047/128/443/small/a-bag-of-rice-is-sitting-on-a-wooden-table-with-a-bunch-of-rice-on-the-table-photo.jpg',
       gcashName: 'Aurora Rice Store',
       gcashNumber: '09123456789',
-      gcashQr: ''
+      gcashQr: '',
+      deliveryMinimumSettings: DEFAULT_DELIVERY_MINIMUM_SETTINGS
     };
   }
   const p = getPathPrefix();
@@ -10190,6 +10451,43 @@ export function getStoreSettings() {
     }
   } catch (e) {}
 
+  let deliveryMinimumSettings = DEFAULT_DELIVERY_MINIMUM_SETTINGS;
+  if (cloudSettings.deliveryMinimumSettings && typeof cloudSettings.deliveryMinimumSettings === 'object') {
+    deliveryMinimumSettings = {
+      defaultMinimumSacks: (Number.isInteger(Number(cloudSettings.deliveryMinimumSettings.defaultMinimumSacks)) && Number(cloudSettings.deliveryMinimumSettings.defaultMinimumSacks) >= 0)
+        ? Number(cloudSettings.deliveryMinimumSettings.defaultMinimumSacks)
+        : DEFAULT_DELIVERY_MINIMUM_SETTINGS.defaultMinimumSacks,
+      farLocationMinimumSacks: (Number.isInteger(Number(cloudSettings.deliveryMinimumSettings.farLocationMinimumSacks)) && Number(cloudSettings.deliveryMinimumSettings.farLocationMinimumSacks) >= 0)
+        ? Number(cloudSettings.deliveryMinimumSettings.farLocationMinimumSacks)
+        : DEFAULT_DELIVERY_MINIMUM_SETTINGS.farLocationMinimumSacks,
+      isProvisionalNotice: true,
+      locationRules: Array.isArray(cloudSettings.deliveryMinimumSettings.locationRules)
+        ? cloudSettings.deliveryMinimumSettings.locationRules
+        : DEFAULT_DELIVERY_MINIMUM_SETTINGS.locationRules
+    };
+  } else {
+    try {
+      const rawMin = localStorage.getItem('settings-delivery-minimum');
+      if (rawMin) {
+        const parsedMin = JSON.parse(rawMin);
+        if (parsedMin && typeof parsedMin === 'object') {
+          deliveryMinimumSettings = {
+            defaultMinimumSacks: (Number.isInteger(Number(parsedMin.defaultMinimumSacks)) && Number(parsedMin.defaultMinimumSacks) >= 0)
+              ? Number(parsedMin.defaultMinimumSacks)
+              : DEFAULT_DELIVERY_MINIMUM_SETTINGS.defaultMinimumSacks,
+            farLocationMinimumSacks: (Number.isInteger(Number(parsedMin.farLocationMinimumSacks)) && Number(parsedMin.farLocationMinimumSacks) >= 0)
+              ? Number(parsedMin.farLocationMinimumSacks)
+              : DEFAULT_DELIVERY_MINIMUM_SETTINGS.farLocationMinimumSacks,
+            isProvisionalNotice: true,
+            locationRules: Array.isArray(parsedMin.locationRules)
+              ? parsedMin.locationRules
+              : DEFAULT_DELIVERY_MINIMUM_SETTINGS.locationRules
+          };
+        }
+      }
+    } catch (_) {}
+  }
+
   return {
     storeName: localStorage.getItem('settings-store-name') || cloudSettings.storeName || 'Aurora Local Rice',
     tagline: localStorage.getItem('settings-store-tagline') || cloudSettings.tagline || 'Fresh Quality Rice Delivered to Your Doorstep',
@@ -10202,7 +10500,8 @@ export function getStoreSettings() {
     banner: localStorage.getItem('settings-store-banner') || cloudSettings.banner || 'https://static.vecteezy.com/system/resources/thumbnails/047/128/443/small/a-bag-of-rice-is-sitting-on-a-wooden-table-with-a-bunch-of-rice-on-the-table-photo.jpg',
     gcashName: localStorage.getItem('settings-gcash-name') || cloudSettings.gcashName || 'Aurora Rice Store',
     gcashNumber: localStorage.getItem('settings-gcash-number') || cloudSettings.gcashNumber || '09123456789',
-    gcashQr: localStorage.getItem('settings-gcash-qr') || cloudSettings.gcashQr || ''
+    gcashQr: localStorage.getItem('settings-gcash-qr') || cloudSettings.gcashQr || '',
+    deliveryMinimumSettings
   };
 }
 
@@ -10245,7 +10544,7 @@ export function applyGcashSettings() {
 // ---------------------- NAVIGATION & LAYOUT RENDERER ----------------------
 
 export function getPathPrefix() {
-  if (typeof window === 'undefined') return './';
+  if (typeof window === 'undefined' || !window.location || typeof window.location.pathname !== 'string') return './';
   const isSubFolder = window.location.pathname.includes('/admin/');
   return isSubFolder ? '../' : './';
 }

@@ -200,10 +200,92 @@
                 </div>
               </div>
 
-              <!-- Address Block -->
-              <div id="address-container" class="space-y-1.5 text-left">
-                <label class="text-xs font-bold text-gray-950 dark:text-gray-100">Delivery Address</label>
-                <textarea required name="address" id="inp-address" rows="3" placeholder="House No., Street name, Barangay, Aurora, Zamboanga del Sur" class="w-full bg-[#F8F9FA] dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-sm font-medium text-[#111827] dark:text-gray-100 p-4 rounded-2xl outline-none focus:bg-white dark:focus:bg-slate-700 focus:ring-1 focus:ring-[#1E6C02] transition-all placeholder-gray-700 dark:placeholder-gray-300 shadow-none resize-none"></textarea>
+              <!-- Address Block (Shopee-Style Delivery Address Summary) -->
+              <div id="address-container" class="space-y-3 text-left">
+                <!-- Section Header -->
+                <div class="flex items-center justify-between">
+                  <label class="text-xs font-bold text-gray-950 dark:text-gray-100 flex items-center gap-1.5">
+                    <span>📍</span> Delivery Address
+                  </label>
+                  <span id="address-status-pill" class="text-[11px] font-bold text-[#1E6C02] dark:text-emerald-400 bg-green-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded-md border border-green-200 dark:border-emerald-800 hidden">
+                    Verified Location
+                  </span>
+                </div>
+
+                <!-- Shopee-Style Compact Address Summary Card -->
+                <div id="reservation-address-card" class="bg-white dark:bg-slate-800 border-2 border-gray-200 dark:border-slate-700 rounded-2xl p-4 sm:p-5 shadow-xs space-y-3 transition-all">
+                  
+                  <!-- STATE A: Confirmed Delivery Address View -->
+                  <div id="address-confirmed-view" class="hidden space-y-2.5">
+                    <div class="flex items-center justify-between gap-2 flex-wrap">
+                      <div class="flex items-center gap-2">
+                        <span class="text-xs font-black uppercase tracking-wider text-[#1E6C02] dark:text-emerald-400">Recipient & Destination</span>
+                        <span id="badge-address-pinned" class="text-[10px] font-extrabold text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/50 border border-blue-200 dark:border-blue-800 px-2 py-0.5 rounded-full">
+                          📍 Pin Confirmed
+                        </span>
+                      </div>
+                      <a id="btn-change-address" href="address.html?from=reservation" class="text-xs font-bold text-[#1E6C02] hover:text-[#145001] dark:text-emerald-400 dark:hover:text-emerald-300 flex items-center gap-1 cursor-pointer">
+                        <span>Change Address</span>
+                        <span>›</span>
+                      </a>
+                    </div>
+
+                    <div class="pt-2 border-t border-gray-100 dark:border-slate-700 space-y-2">
+                      <div class="flex items-center justify-between text-xs font-bold text-gray-900 dark:text-gray-100">
+                        <div class="flex items-center gap-2">
+                          <span id="summary-recipient-name">Valued Customer</span>
+                          <span class="text-gray-300 dark:text-gray-600">|</span>
+                          <span id="summary-recipient-phone" class="font-mono text-gray-700 dark:text-gray-300">09XXXXXXXXX</span>
+                        </div>
+                        <span class="bg-[#E2F9E5] text-[#1E6C02] dark:bg-emerald-950/60 dark:text-emerald-300 text-[9px] font-black px-1.5 py-0.5 rounded-md tracking-wider">SAVED INFO</span>
+                      </div>
+
+                      <p id="summary-address-text" class="text-sm font-semibold text-gray-800 dark:text-gray-200 leading-snug break-words"></p>
+                      <p id="summary-coords-text" class="text-[11px] font-mono text-emerald-700 dark:text-emerald-400"></p>
+                      <input type="hidden" name="address" id="inp-address" />
+                    </div>
+                  </div>
+
+                  <!-- STATE B: No Confirmed Address Selected View -->
+                  <div id="address-empty-view" class="space-y-3">
+                    <div class="flex items-start gap-3">
+                      <span class="text-2xl text-amber-500">📍</span>
+                      <div class="space-y-0.5">
+                        <p class="text-xs font-black uppercase tracking-wide text-gray-900 dark:text-gray-100">No Delivery Address Set</p>
+                        <p class="text-xs text-gray-600 dark:text-gray-400">
+                          Please set your Philippine delivery address and confirm your map location to proceed with reservation delivery.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div class="pt-2 border-t border-gray-100 dark:border-slate-700 flex items-center justify-between gap-2 flex-wrap">
+                      <a id="btn-add-address" href="address.html?from=reservation" class="px-4 py-2.5 bg-[#1E6C02] hover:bg-[#145001] text-white text-xs font-bold rounded-xl transition-all shadow-xs cursor-pointer inline-flex items-center gap-1.5">
+                        <span>+ Set Delivery Address</span>
+                        <span>›</span>
+                      </a>
+                    </div>
+                  </div>
+
+                </div>
+
+                <!-- Minimum Delivery Quantity Notice Card -->
+                <div id="delivery-min-notice-card" class="hidden rounded-2xl p-4 transition-all space-y-2.5 border">
+                  <div class="flex items-start gap-3">
+                    <span id="delivery-min-icon" class="text-xl">⚠️</span>
+                    <div class="space-y-1 flex-1 text-xs">
+                      <div class="flex items-center justify-between gap-2 flex-wrap">
+                        <span id="delivery-min-badge" class="px-2.5 py-0.5 rounded-full text-[11px] font-bold"></span>
+                        <span id="delivery-min-far-tag" class="hidden px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-900 border border-amber-300">🚩 Far Delivery Area</span>
+                      </div>
+                      <p id="delivery-min-main-msg" class="font-bold text-sm leading-snug"></p>
+                      <p id="delivery-min-detail-msg" class="font-normal leading-relaxed"></p>
+                    </div>
+                  </div>
+                  <div id="delivery-min-tip-box" class="pt-2 border-t text-[11px] font-semibold flex items-center justify-between gap-2">
+                    <span id="delivery-min-tip-text">💡 Tip: Store Pickup has no minimum sack requirement.</span>
+                    <button type="button" id="btn-switch-to-pickup" class="text-[#1E6C02] dark:text-emerald-400 font-bold hover:underline shrink-0 cursor-pointer">Switch to Pickup</button>
+                  </div>
+                </div>
               </div>
 
               <!-- Additional special instructions field -->
@@ -419,6 +501,15 @@
                 </div>
               </div>
 
+              <!-- Minimum Delivery Warning Alert in Summary -->
+              <div id="summary-min-delivery-alert" class="hidden p-3.5 bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-800 rounded-2xl text-xs text-amber-900 dark:text-amber-200 space-y-1">
+                <div class="flex items-center gap-1.5 font-bold text-amber-900 dark:text-amber-200 text-xs">
+                  <span>⚠️</span>
+                  <span id="summary-min-alert-title">Below Minimum Delivery Quantity</span>
+                </div>
+                <p id="summary-min-alert-desc" class="text-[11px] leading-snug"></p>
+              </div>
+
               <!-- Form Submit Trigger Button -->
               <button 
                 type="submit"
@@ -570,6 +661,7 @@
       protectCustomerPage,
       getProductById, 
       getCurrentUser, 
+      updateUser,
       showToast, 
       addOrder, 
       getOrders, 
@@ -579,7 +671,10 @@
       checkPhoneExists,
       updateUserPhoneVerified,
       getEstimatedArrivalDate,
-      getReservationQueuePosition
+      getReservationQueuePosition,
+      getStoreSettings,
+      evaluateDeliveryMinimum,
+      DEFAULT_DELIVERY_MINIMUM_SETTINGS
     } from './src/app/shared.js';
     import { 
       sendFirebasePhoneVerification, 
@@ -634,18 +729,82 @@
       const inpAddress = document.getElementById('inp-address');
       if (inpFullName) inpFullName.value = user.fullName || 'Demo User';
       if (inpPhone) inpPhone.value = user.phone || '+63 912 345 6789';
-      if (inpAddress) {
+
+      const currentUserId = String(user?.id || user?.uid || user?.firebaseUid || '').trim();
+      const currentUserEmail = String(user?.email || '').trim().toLowerCase();
+
+      function isOwnedByCurrentUser(item) {
+        if (!item || typeof item !== 'object') return false;
+        let hasMatch = false;
+        if (item.userId && typeof item.userId === 'string' && item.userId.trim()) {
+          const itemUid = item.userId.trim();
+          if (currentUserId && itemUid === currentUserId) hasMatch = true;
+          else if (user?.firebaseUid && itemUid === String(user.firebaseUid).trim()) hasMatch = true;
+          else if (user?.uid && itemUid === String(user.uid).trim()) hasMatch = true;
+          else if (user?.id && itemUid === String(user.id).trim()) hasMatch = true;
+          else return false;
+        }
+        if (item.userEmail && typeof item.userEmail === 'string' && item.userEmail.trim()) {
+          const itemEmail = item.userEmail.trim().toLowerCase();
+          if (currentUserEmail && itemEmail === currentUserEmail) hasMatch = true;
+          else return false;
+        }
+        return hasMatch;
+      }
+
+      let activeReservationAddress = null; // { address, coordinates, addressDetails, isConfirmed }
+      let currentSelectedCoordinates = null;
+      let isCoordinatesConfirmed = false;
+
+      // 1. Check active address saved during current session in sessionStorage first
+      let sessionAddr = null;
+      try {
+        const raw = sessionStorage.getItem('riceflow-active-checkout-address');
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (isOwnedByCurrentUser(parsed)) {
+            sessionAddr = parsed;
+          } else {
+            sessionStorage.removeItem('riceflow-active-checkout-address');
+          }
+        }
+      } catch (_) {}
+
+      // 2. Fallback to customer's saved profile address
+      if (!sessionAddr && user && user.address && typeof user.address === 'string' && user.address.trim()) {
+        sessionAddr = {
+          userId: currentUserId,
+          userEmail: currentUserEmail,
+          address: user.address.trim(),
+          coordinates: (user.coordinates && typeof user.coordinates.lat === 'number') ? user.coordinates : { lat: 7.9628, lng: 123.5826 },
+          addressDetails: user.addressDetails || null,
+          isConfirmed: true
+        };
+      }
+
+      if (sessionAddr && sessionAddr.address) {
+        activeReservationAddress = sessionAddr;
+        if (sessionAddr.coordinates && typeof sessionAddr.coordinates.lat === 'number' && typeof sessionAddr.coordinates.lng === 'number') {
+          currentSelectedCoordinates = {
+            lat: Math.round(sessionAddr.coordinates.lat * 1e6) / 1e6,
+            lng: Math.round(sessionAddr.coordinates.lng * 1e6) / 1e6
+          };
+          isCoordinatesConfirmed = Boolean(sessionAddr.isConfirmed);
+        }
+        if (inpAddress) inpAddress.value = sessionAddr.address;
+      } else if (inpAddress) {
         inpAddress.value = user.address || '';
       }
 
-      // Stock check: determine if target product is currently out of stock
+      // Stock check: determine if target product is currently out of stock or full-order reservation
+      const isFullReservation = urlParams.get('fullReservation') === 'true' || urlParams.get('type') === 'full_reservation';
       const availStock = Math.max(0, Number(product.availableStock !== undefined ? product.availableStock : (product.stock !== undefined ? product.stock : 0)));
-      const isOutOfStock = availStock <= 0;
+      const isOutOfStock = availStock <= 0 || isFullReservation;
 
       // Interactive state variables
       let quantity = initialQty < 1 ? 1 : initialQty;
       let deliveryOption = 'delivery'; // Default is Delivery
-      let paymentMethod = isOutOfStock ? 'none' : 'gcash'; // Out-of-stock reservations must follow No Payment rule
+      let paymentMethod = isOutOfStock ? 'none' : 'gcash'; // Out-of-stock and full-order reservations follow No Payment rule
       let paymentProofFile = null;
 
       // HTML Elements
@@ -800,7 +959,184 @@
             <span class="font-bold text-gray-950 dark:text-white">₱${subtotal.toLocaleString()}.00</span>
           </div>
         `;
+
+        updateDeliveryMinimumStatus();
       }
+
+      function updateDeliveryMinimumStatus() {
+        const noticeCard = document.getElementById('delivery-min-notice-card');
+        const summaryAlert = document.getElementById('summary-min-delivery-alert');
+        const summaryAlertTitle = document.getElementById('summary-min-alert-title');
+        const summaryAlertDesc = document.getElementById('summary-min-alert-desc');
+        const minIcon = document.getElementById('delivery-min-icon');
+        const minBadge = document.getElementById('delivery-min-badge');
+        const minFarTag = document.getElementById('delivery-min-far-tag');
+        const minMainMsg = document.getElementById('delivery-min-main-msg');
+        const minDetailMsg = document.getElementById('delivery-min-detail-msg');
+        const tipBox = document.getElementById('delivery-min-tip-box');
+
+        // Pickup orders: No delivery minimum.
+        if (deliveryOption === 'pickup') {
+          if (noticeCard) noticeCard.classList.add('hidden');
+          if (summaryAlert) summaryAlert.classList.add('hidden');
+          return { isSatisfied: true, isPickup: true };
+        }
+
+        const totalSacks = Number(quantity) || 1;
+        const storeSettings = getStoreSettings();
+        const activeAddr = (addressInput ? addressInput.value.trim() : '') || (user ? user.address : '');
+
+        const evalResult = evaluateDeliveryMinimum(activeAddr, totalSacks, storeSettings);
+
+        if (!noticeCard) return evalResult;
+
+        noticeCard.classList.remove('hidden');
+
+        if (!evalResult.isSatisfied) {
+          noticeCard.className = "rounded-2xl p-4 transition-all space-y-2.5 border border-amber-300 dark:border-amber-800 bg-amber-50/90 dark:bg-amber-950/40 text-amber-950 dark:text-amber-100";
+          if (minIcon) minIcon.textContent = "⚠️";
+          if (minBadge) {
+            minBadge.className = "px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-amber-200/90 text-amber-950 border border-amber-300";
+            minBadge.textContent = "Below Delivery Minimum";
+          }
+          if (minFarTag) {
+            if (evalResult.isFarLocation) {
+              minFarTag.classList.remove('hidden');
+            } else {
+              minFarTag.classList.add('hidden');
+            }
+          }
+          const locationLabel = evalResult.matchedRuleName ? `"${evalResult.matchedRuleName}"` : "your selected delivery area";
+          if (minMainMsg) {
+            minMainMsg.textContent = `Delivery to ${locationLabel} requires at least ${evalResult.applicableMinimum} sacks (Current order: ${evalResult.totalSacks} ${evalResult.totalSacks === 1 ? 'sack' : 'sacks'}).`;
+          }
+          if (minDetailMsg) {
+            minDetailMsg.innerHTML = `Please add at least <strong>${evalResult.deficit} more ${evalResult.deficit === 1 ? 'sack' : 'sacks'}</strong> to qualify for delivery. <span class="text-[11px] opacity-75 block mt-1">(Provisional policy: Standard delivery ${evalResult.defaultMinimumSacks} sacks, Far-location delivery ${evalResult.farLocationMinimumSacks} sacks).</span>`;
+          }
+          if (tipBox) {
+            tipBox.className = "pt-2 border-t border-amber-200 dark:border-amber-800/60 text-[11px] font-semibold flex items-center justify-between gap-2 text-amber-900 dark:text-amber-200";
+          }
+
+          if (summaryAlert) {
+            summaryAlert.classList.remove('hidden');
+            if (summaryAlertTitle) {
+              summaryAlertTitle.textContent = `Order Below Delivery Minimum (${evalResult.totalSacks}/${evalResult.applicableMinimum} sacks)`;
+            }
+            if (summaryAlertDesc) {
+              summaryAlertDesc.textContent = `Delivery requires at least ${evalResult.applicableMinimum} sacks for ${locationLabel}. Add ${evalResult.deficit} more sack(s) or switch to Store Pickup.`;
+            }
+          }
+        } else {
+          noticeCard.className = "rounded-2xl p-4 transition-all space-y-2 border border-emerald-200 dark:border-emerald-800 bg-emerald-50/80 dark:bg-emerald-950/30 text-emerald-950 dark:text-emerald-100";
+          if (minIcon) minIcon.textContent = "✅";
+          if (minBadge) {
+            minBadge.className = "px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-900 border border-emerald-300";
+            minBadge.textContent = "Delivery Minimum Met";
+          }
+          if (minFarTag) minFarTag.classList.add('hidden');
+          const locationLabel = evalResult.matchedRuleName ? `for "${evalResult.matchedRuleName}"` : "";
+          if (minMainMsg) {
+            minMainMsg.textContent = `Delivery quantity requirement met: ${evalResult.totalSacks} / ${evalResult.applicableMinimum} sacks ${locationLabel}.`;
+          }
+          if (minDetailMsg) {
+            minDetailMsg.innerHTML = `Your reservation qualifies for scheduled truck delivery.`;
+          }
+          if (tipBox) {
+            tipBox.className = "hidden";
+          }
+
+          if (summaryAlert) summaryAlert.classList.add('hidden');
+        }
+
+        return evalResult;
+      }
+
+      const btnSwitchPickup = document.getElementById('btn-switch-to-pickup');
+      if (btnSwitchPickup) {
+        btnSwitchPickup.addEventListener('click', () => {
+          if (divPic) divPic.click();
+          showToast('Switched to Store Pickup (Free - No minimum sack requirement).', 'info');
+        });
+      }
+
+      function syncReservationAddressUI() {
+        const confirmedView = document.getElementById('address-confirmed-view');
+        const emptyView = document.getElementById('address-empty-view');
+        const sumName = document.getElementById('summary-recipient-name');
+        const sumPhone = document.getElementById('summary-recipient-phone');
+        const sumAddress = document.getElementById('summary-address-text');
+        const sumCoords = document.getElementById('summary-coords-text');
+        const badgePinned = document.getElementById('badge-address-pinned');
+        const statusPill = document.getElementById('address-status-pill');
+
+        updateReservationChangeAddressLink();
+
+        const currentAddr = (addressInput ? addressInput.value : '').trim();
+        if (currentAddr) {
+          if (sumName) sumName.textContent = inpFullName?.value || user.fullName || user.name || 'Valued Customer';
+          if (sumPhone) sumPhone.textContent = inpPhone?.value || user.phone || '09XXXXXXXXX';
+          if (sumAddress) sumAddress.textContent = currentAddr;
+          if (sumCoords) {
+            if (currentSelectedCoordinates && typeof currentSelectedCoordinates.lat === 'number') {
+              sumCoords.textContent = `📍 Pinned coordinates: ${currentSelectedCoordinates.lat.toFixed(4)}, ${currentSelectedCoordinates.lng.toFixed(4)}`;
+            } else {
+              sumCoords.textContent = '';
+            }
+          }
+          if (badgePinned) {
+            if (isCoordinatesConfirmed && currentSelectedCoordinates) {
+              badgePinned.classList.remove('hidden');
+            } else {
+              badgePinned.classList.add('hidden');
+            }
+          }
+          if (statusPill) statusPill.classList.remove('hidden');
+          if (confirmedView) confirmedView.classList.remove('hidden');
+          if (emptyView) emptyView.classList.add('hidden');
+        } else {
+          if (confirmedView) confirmedView.classList.add('hidden');
+          if (emptyView) emptyView.classList.remove('hidden');
+          if (statusPill) statusPill.classList.add('hidden');
+        }
+
+        if (deliveryOption === 'delivery' && typeof updateDeliveryMinimumStatus === 'function') {
+          updateDeliveryMinimumStatus();
+        }
+      }
+
+      function updateReservationChangeAddressLink() {
+        const btnChangeAddress = document.getElementById('btn-change-address');
+        const btnAddAddress = document.getElementById('btn-add-address');
+        const params = new URLSearchParams(window.location.search);
+        params.set('from', 'reservation');
+        if (product && product.id) params.set('productId', String(product.id));
+        if (quantity) params.set('quantity', String(quantity));
+        if (isFullReservation) params.set('fullReservation', 'true');
+        const targetUrl = `address.html?${params.toString()}`;
+        if (btnChangeAddress) btnChangeAddress.href = targetUrl;
+        if (btnAddAddress) btnAddAddress.href = targetUrl;
+      }
+      updateReservationChangeAddressLink();
+
+      const btnChangeAddress = document.getElementById('btn-change-address');
+      if (btnChangeAddress) {
+        btnChangeAddress.addEventListener('click', () => {
+          saveReservationContextForGuide();
+        });
+      }
+      const btnAddAddress = document.getElementById('btn-add-address');
+      if (btnAddAddress) {
+        btnAddAddress.addEventListener('click', () => {
+          saveReservationContextForGuide();
+        });
+      }
+      syncReservationAddressUI();
+
+      window.addEventListener('aurora-sync-event', (e) => {
+        if (e.detail && (e.detail.key === 'delivery-minimum-settings' || e.detail.key === 'aurora-store-settings')) {
+          updateDeliveryMinimumStatus();
+        }
+      });
 
       // Initial execution
       refreshCalculations();
@@ -814,12 +1150,14 @@
         if (quantity > 1) {
           quantity--;
           refreshCalculations();
+          updateReservationChangeAddressLink();
         }
       });
 
       btnInc.addEventListener('click', () => {
         quantity++;
         refreshCalculations();
+        updateReservationChangeAddressLink();
       });
 
       // Delivery Toggles
@@ -1029,7 +1367,10 @@
           const ctx = JSON.parse(raw);
           if (!ctx || ctx.page !== 'reservation.html') return;
 
-          if (ctx.address !== undefined && addressInput) addressInput.value = ctx.address;
+          if (ctx.address !== undefined && addressInput) {
+            addressInput.value = ctx.address;
+            if (typeof syncReservationAddressUI === 'function') syncReservationAddressUI();
+          }
           const inpNotes = document.getElementById('inp-notes');
           if (ctx.notes !== undefined && inpNotes) inpNotes.value = ctx.notes;
           if (ctx.quantity && Number(ctx.quantity) >= 1) {
@@ -1056,6 +1397,7 @@
 
           refreshCalculations();
           updateReservationGuideLink();
+          if (typeof updateReservationChangeAddressLink === 'function') updateReservationChangeAddressLink();
         } catch (_) {}
       }
 
@@ -1078,6 +1420,12 @@
 
           if (anchor.id === 'payment-guide-info-link' || href.startsWith('payment-guide.html')) {
             updateReservationGuideLink();
+            saveReservationContextForGuide();
+            return;
+          }
+
+          if (anchor.id === 'btn-change-address' || anchor.id === 'btn-add-address' || href.startsWith('address.html')) {
+            if (typeof updateReservationChangeAddressLink === 'function') updateReservationChangeAddressLink();
             saveReservationContextForGuide();
             return;
           }
@@ -1305,9 +1653,21 @@
 
       function validateReservationAndProceed() {
         // Check if address selected but not filled
-        if (deliveryOption === 'delivery' && !addressInput.value.trim()) {
-          showToast('Please type your delivery address!', 'error');
-          return;
+        if (deliveryOption === 'delivery') {
+          if (!addressInput.value.trim()) {
+            showToast('Please type your delivery address!', 'error');
+            return;
+          }
+          const minDeliveryStatus = updateDeliveryMinimumStatus();
+          if (minDeliveryStatus && !minDeliveryStatus.isSatisfied) {
+            const locName = minDeliveryStatus.matchedRuleName ? `to "${minDeliveryStatus.matchedRuleName}"` : 'to your destination';
+            showToast(`Delivery ${locName} requires a minimum of ${minDeliveryStatus.applicableMinimum} sacks (currently ${minDeliveryStatus.totalSacks} sacks). Please add ${minDeliveryStatus.deficit} more sack(s) or switch to Store Pickup.`, 'error');
+            const noticeCard = document.getElementById('delivery-min-notice-card');
+            if (noticeCard) {
+              noticeCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+            return;
+          }
         }
 
         // Verify that payment proof screenshot is loaded for GCash/Cash options
@@ -1418,9 +1778,19 @@
 
         orderSubmitted = true;
         const hasPayment = paymentMethod !== 'none' && Boolean(downloadUrl);
+        const editedAddress = deliveryOption === 'delivery' ? (addressInput?.value || '').trim() : '';
+
+        const commitQty = (isFullReservation || isOutOfStock || availStock > 0) ? Math.min(quantity, Math.max(0, availStock)) : 0;
+        const waitingQty = Math.max(0, quantity - commitQty);
 
         const reservationRecord = {
-          items: [{ product, quantity, isReservation: true }],
+          items: [{
+            product,
+            quantity,
+            allocatedQuantity: commitQty,
+            waitingQuantity: waitingQty,
+            isReservation: true
+          }],
           total,
           status: hasPayment ? 'payment_verification' : 'pre-order',
           paymentMethod: paymentMethod,
@@ -1437,9 +1807,17 @@
           fullName: document.getElementById('inp-fullName').value,
           phone: document.getElementById('inp-phone').value,
           deliveryOption,
-          address: deliveryOption === 'delivery' ? (addressInput?.value || '') : '',
+          address: editedAddress,
+          coordinates: deliveryOption === 'delivery' ? ((currentSelectedCoordinates && isCoordinatesConfirmed) ? currentSelectedCoordinates : null) : null,
+          addressDetails: deliveryOption === 'delivery' ? (activeReservationAddress?.addressDetails || user?.addressDetails || null) : null,
           pickupNotes: deliveryOption === 'pickup' ? (document.getElementById('inp-notes')?.value || '') : '',
           isPreOrder: true,
+          isFullOrderReservation: Boolean(isFullReservation || commitQty > 0),
+          allocatedQuantity: commitQty,
+          waitingQuantity: waitingQty,
+          stockAllocated: commitQty >= quantity && quantity > 0,
+          stockAllocatedAt: commitQty > 0 ? new Date().toISOString() : null,
+          allocatedStock: commitQty > 0 ? (commitQty >= quantity ? 'Fully Allocated' : `${commitQty} Sacks Allocated / ${waitingQty} Sacks Waiting`) : 'Pending Restock',
           estimatedRestockDate: product.restockDate || null,
           estimatedAvailability: product.restockDate || null,
           stockDeducted: false
@@ -1535,6 +1913,19 @@
 
         // Remove from standard shopping cart if it was listed there
         clearCartItems([product.id]);
+
+        // Auto-save confirmed delivery address to customer profile for the current user (delivery orders only)
+        if (deliveryOption === 'delivery' && editedAddress) {
+          try {
+            await updateUser({
+              address: editedAddress,
+              coordinates: (currentSelectedCoordinates && isCoordinatesConfirmed) ? currentSelectedCoordinates : null,
+              addressDetails: activeReservationAddress?.addressDetails || user?.addressDetails || null
+            });
+          } catch (saveProfileErr) {
+            console.warn('[RESERVATION] Notice auto-saving address to customer profile:', saveProfileErr);
+          }
+        }
 
         // Transition views
         document.getElementById('checkout-form-container').classList.add('hidden');

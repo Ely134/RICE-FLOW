@@ -177,14 +177,19 @@
                       </a>
                     </div>
 
-                    <div class="pt-2 border-t border-gray-100 dark:border-slate-700 space-y-1">
-                      <div class="flex items-center gap-2 text-xs font-bold text-gray-900 dark:text-gray-100">
-                        <span id="summary-recipient-name">Valued Customer</span>
-                        <span class="text-gray-300 dark:text-gray-600">|</span>
-                        <span id="summary-recipient-phone" class="font-mono text-gray-700 dark:text-gray-300">09XXXXXXXXX</span>
+                    <div class="pt-2 border-t border-gray-100 dark:border-slate-700 space-y-2">
+                      <div class="flex items-center justify-between text-xs font-bold text-gray-900 dark:text-gray-100">
+                        <div class="flex items-center gap-2">
+                          <span id="summary-recipient-name">Valued Customer</span>
+                          <span class="text-gray-300 dark:text-gray-600">|</span>
+                          <span id="summary-recipient-phone" class="font-mono text-gray-700 dark:text-gray-300">09XXXXXXXXX</span>
+                        </div>
+                        <span class="bg-[#E2F9E5] text-[#1E6C02] dark:bg-emerald-950/60 dark:text-emerald-300 text-[9px] font-black px-1.5 py-0.5 rounded-md tracking-wider">SAVED INFO</span>
                       </div>
+
                       <p id="summary-address-text" class="text-sm font-semibold text-gray-800 dark:text-gray-200 leading-snug break-words"></p>
                       <p id="summary-coords-text" class="text-[11px] font-mono text-emerald-700 dark:text-emerald-400"></p>
+                      <input type="hidden" name="address" id="inp-address" />
                     </div>
                   </div>
 
@@ -193,25 +198,41 @@
                     <div class="flex items-start gap-3">
                       <span class="text-2xl text-amber-500">📍</span>
                       <div class="space-y-0.5">
-                        <p class="text-xs font-black uppercase tracking-wide text-gray-900 dark:text-gray-100">No Confirmed Delivery Address</p>
+                        <p class="text-xs font-black uppercase tracking-wide text-gray-900 dark:text-gray-100">No Delivery Address Set</p>
                         <p class="text-xs text-gray-600 dark:text-gray-400">
-                          Please select your Philippine administrative location and confirm your exact map pin to proceed with checkout.
+                          Please set your Philippine delivery address and confirm your map location to proceed with delivery checkout.
                         </p>
                       </div>
                     </div>
 
-                    <div class="pt-2 border-t border-gray-100 dark:border-slate-700 flex items-center gap-2">
-                      <a id="btn-add-address" href="address.html?from=checkout" class="px-4 py-2 bg-[#1E6C02] hover:bg-[#145001] text-white text-xs font-bold rounded-xl transition-all shadow-xs cursor-pointer inline-flex items-center gap-1.5">
-                        <span>+</span>
-                        <span>Add Delivery Address & Pin Location</span>
+                    <div class="pt-2 border-t border-gray-100 dark:border-slate-700 flex items-center justify-between gap-2 flex-wrap">
+                      <a id="btn-add-address" href="address.html?from=checkout" class="px-4 py-2.5 bg-[#1E6C02] hover:bg-[#145001] text-white text-xs font-bold rounded-xl transition-all shadow-xs cursor-pointer inline-flex items-center gap-1.5">
+                        <span>+ Set Delivery Address</span>
+                        <span>›</span>
                       </a>
                     </div>
                   </div>
 
                 </div>
 
-                <!-- Hidden input element so any existing form selectors or tests remain compatible -->
-                <input type="hidden" name="address" id="inp-address" value="" />
+                <!-- Minimum Delivery Quantity Notice Card -->
+                <div id="delivery-min-notice-card" class="hidden rounded-2xl p-4 transition-all space-y-2.5 border">
+                  <div class="flex items-start gap-3">
+                    <span id="delivery-min-icon" class="text-xl">⚠️</span>
+                    <div class="space-y-1 flex-1 text-xs">
+                      <div class="flex items-center justify-between gap-2 flex-wrap">
+                        <span id="delivery-min-badge" class="px-2.5 py-0.5 rounded-full text-[11px] font-bold"></span>
+                        <span id="delivery-min-far-tag" class="hidden px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-900 border border-amber-300">🚩 Far Delivery Area</span>
+                      </div>
+                      <p id="delivery-min-main-msg" class="font-bold text-sm leading-snug"></p>
+                      <p id="delivery-min-detail-msg" class="font-normal leading-relaxed"></p>
+                    </div>
+                  </div>
+                  <div id="delivery-min-tip-box" class="pt-2 border-t text-[11px] font-semibold flex items-center justify-between gap-2">
+                    <span id="delivery-min-tip-text">💡 Tip: Store Pickup has no minimum sack requirement.</span>
+                    <button type="button" id="btn-switch-to-pickup" class="text-[#1E6C02] dark:text-emerald-400 font-bold hover:underline shrink-0 cursor-pointer">Switch to Pickup</button>
+                  </div>
+                </div>
               </div>
 
               <!-- Additional notes -->
@@ -390,6 +411,15 @@
                   <p class="text-[10px] font-extrabold text-[#1E3A8A] dark:text-blue-300 uppercase tracking-wider" id="lbl-send-amount-desc">FULL PAYMENT:</p>
                   <p class="text-2xl font-black text-[#1E3A8A] dark:text-white mt-1 select-none" id="lbl-send-amount">₱0.00</p>
                 </div>
+              </div>
+
+              <!-- Minimum Delivery Warning Alert in Summary -->
+              <div id="summary-min-delivery-alert" class="hidden p-3.5 bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-800 rounded-2xl text-xs text-amber-900 dark:text-amber-200 space-y-1">
+                <div class="flex items-center gap-1.5 font-bold text-amber-900 dark:text-amber-200 text-xs">
+                  <span>⚠️</span>
+                  <span id="summary-min-alert-title">Below Minimum Delivery Quantity</span>
+                </div>
+                <p id="summary-min-alert-desc" class="text-[11px] leading-snug"></p>
               </div>
 
               <button 
@@ -677,7 +707,10 @@
       normalizePhilippinePhone,
       checkPhoneExists,
       updateUserPhoneVerified,
-      getEstimatedArrivalDate
+      getEstimatedArrivalDate,
+      getStoreSettings,
+      evaluateDeliveryMinimum,
+      DEFAULT_DELIVERY_MINIMUM_SETTINGS
     } from './src/app/shared.js';
     import { 
       db,
@@ -734,6 +767,11 @@
         return hasMatch;
       }
 
+      // State tracks
+      let deliveryOption = 'delivery'; // 'delivery' or 'pickup'
+      let paymentMethod = 'gcash'; // 'gcash' or 'cash'
+      let paymentProofFile = null;
+      let isCheckoutReady = false;
       let activeCheckoutAddress = null; // { address, coordinates, addressDetails, isConfirmed }
       let currentSelectedCoordinates = null;
       let isCoordinatesConfirmed = false;
@@ -781,6 +819,18 @@
           };
         }
 
+        // 3. Fallback to customer's saved profile address if text address exists
+        if (!sessionAddr && user && user.address && typeof user.address === 'string' && user.address.trim()) {
+          sessionAddr = {
+            userId: currentUserId,
+            userEmail: currentUserEmail,
+            address: user.address.trim(),
+            coordinates: (user.coordinates && typeof user.coordinates.lat === 'number') ? user.coordinates : { lat: 7.9628, lng: 123.5826 },
+            addressDetails: user.addressDetails || null,
+            isConfirmed: true
+          };
+        }
+
         if (sessionAddr && sessionAddr.address && sessionAddr.coordinates && typeof sessionAddr.coordinates.lat === 'number' && typeof sessionAddr.coordinates.lng === 'number' && sessionAddr.isConfirmed) {
           activeCheckoutAddress = sessionAddr;
           currentSelectedCoordinates = {
@@ -790,8 +840,8 @@
           isCoordinatesConfirmed = true;
 
           if (inpAddress) inpAddress.value = sessionAddr.address;
-          if (sumName) sumName.textContent = user.fullName || user.name || 'Valued Customer';
-          if (sumPhone) sumPhone.textContent = user.phone || '09XXXXXXXXX';
+          if (sumName) sumName.textContent = inpFullName?.value || user.fullName || user.name || 'Valued Customer';
+          if (sumPhone) sumPhone.textContent = inpPhone?.value || user.phone || '09XXXXXXXXX';
           if (sumAddress) sumAddress.textContent = sessionAddr.address;
           if (sumCoords) {
             sumCoords.textContent = `📍 Pinned coordinates: ${currentSelectedCoordinates.lat.toFixed(4)}, ${currentSelectedCoordinates.lng.toFixed(4)}`;
@@ -808,9 +858,25 @@
           if (confirmedView) confirmedView.classList.add('hidden');
           if (emptyView) emptyView.classList.remove('hidden');
         }
+
+        if (isCheckoutReady && typeof updateDeliveryMinimumStatus === 'function') {
+          updateDeliveryMinimumStatus();
+        }
       }
 
-      syncCheckoutAddressUI();
+      if (inpFullName) {
+        inpFullName.addEventListener('input', () => {
+          const sumName = document.getElementById('summary-recipient-name');
+          if (sumName) sumName.textContent = inpFullName.value.trim() || 'Valued Customer';
+        });
+      }
+
+      if (inpPhone) {
+        inpPhone.addEventListener('input', () => {
+          const sumPhone = document.getElementById('summary-recipient-phone');
+          if (sumPhone) sumPhone.textContent = inpPhone.value.trim() || '09XXXXXXXXX';
+        });
+      }
 
       // 2. Filter Checkout items from URL queries
       const urlParams = new URLSearchParams(window.location.search);
@@ -901,10 +967,7 @@
       const blockerCheck = document.getElementById('blocker-terms-check');
       const blockerSubmit = document.getElementById('blocker-submit-btn');
 
-      // State tracks
-      let deliveryOption = 'delivery'; // 'delivery' or 'pickup'
-      let paymentMethod = 'gcash'; // 'gcash' or 'cash'
-      let paymentProofFile = null;
+      // State tracks (deliveryOption, paymentMethod, paymentProofFile initialized at top of checkout controller)
 
       function getItemStockBreakdown(item) {
         if (item.isReservation) {
@@ -1038,7 +1101,117 @@
         } else {
           lblSendAmountDesc.textContent = subtotal === 0 ? "NO PAYMENT REQUIRED NOW:" : "30% DEPOSIT DUE VIA GCASH (AVAILABLE STOCK ONLY):";
         }
+
+        updateDeliveryMinimumStatus();
       }
+
+      function updateDeliveryMinimumStatus() {
+        const noticeCard = document.getElementById('delivery-min-notice-card');
+        const summaryAlert = document.getElementById('summary-min-delivery-alert');
+        const summaryAlertTitle = document.getElementById('summary-min-alert-title');
+        const summaryAlertDesc = document.getElementById('summary-min-alert-desc');
+        const minIcon = document.getElementById('delivery-min-icon');
+        const minBadge = document.getElementById('delivery-min-badge');
+        const minFarTag = document.getElementById('delivery-min-far-tag');
+        const minMainMsg = document.getElementById('delivery-min-main-msg');
+        const minDetailMsg = document.getElementById('delivery-min-detail-msg');
+        const tipBox = document.getElementById('delivery-min-tip-box');
+
+        // Pickup orders: No delivery minimum. Existing pickup behavior must remain unchanged.
+        if (deliveryOption === 'pickup') {
+          if (noticeCard) noticeCard.classList.add('hidden');
+          if (summaryAlert) summaryAlert.classList.add('hidden');
+          return { isSatisfied: true, isPickup: true };
+        }
+
+        const totalSacks = checkoutItems.reduce((acc, item) => acc + Number(item.quantity || 0), 0);
+        const storeSettings = getStoreSettings();
+        const activeAddr = (inpAddress ? inpAddress.value : '') || activeCheckoutAddress || (user ? user.address : '');
+
+        const evalResult = evaluateDeliveryMinimum(activeAddr, totalSacks, storeSettings);
+
+        if (!noticeCard) return evalResult;
+
+        noticeCard.classList.remove('hidden');
+
+        if (!evalResult.isSatisfied) {
+          // Below minimum delivery quantity
+          noticeCard.className = "rounded-2xl p-4 transition-all space-y-2.5 border border-amber-300 dark:border-amber-800 bg-amber-50/90 dark:bg-amber-950/40 text-amber-950 dark:text-amber-100";
+          if (minIcon) minIcon.textContent = "⚠️";
+          if (minBadge) {
+            minBadge.className = "px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-amber-200/90 text-amber-950 border border-amber-300";
+            minBadge.textContent = "Below Delivery Minimum";
+          }
+          if (minFarTag) {
+            if (evalResult.isFarLocation) {
+              minFarTag.classList.remove('hidden');
+            } else {
+              minFarTag.classList.add('hidden');
+            }
+          }
+          const locationLabel = evalResult.matchedRuleName ? `"${evalResult.matchedRuleName}"` : "your selected delivery area";
+          if (minMainMsg) {
+            minMainMsg.textContent = `Delivery to ${locationLabel} requires at least ${evalResult.applicableMinimum} sacks (Current order: ${evalResult.totalSacks} ${evalResult.totalSacks === 1 ? 'sack' : 'sacks'}).`;
+          }
+          if (minDetailMsg) {
+            minDetailMsg.innerHTML = `Please add at least <strong>${evalResult.deficit} more ${evalResult.deficit === 1 ? 'sack' : 'sacks'}</strong> to qualify for delivery. <span class="text-[11px] opacity-75 block mt-1">(Provisional policy: Standard delivery ${evalResult.defaultMinimumSacks} sacks, Far-location delivery ${evalResult.farLocationMinimumSacks} sacks).</span>`;
+          }
+          if (tipBox) {
+            tipBox.className = "pt-2 border-t border-amber-200 dark:border-amber-800/60 text-[11px] font-semibold flex items-center justify-between gap-2 text-amber-900 dark:text-amber-200";
+          }
+
+          if (summaryAlert) {
+            summaryAlert.classList.remove('hidden');
+            if (summaryAlertTitle) {
+              summaryAlertTitle.textContent = `Order Below Delivery Minimum (${evalResult.totalSacks}/${evalResult.applicableMinimum} sacks)`;
+            }
+            if (summaryAlertDesc) {
+              summaryAlertDesc.textContent = `Delivery requires at least ${evalResult.applicableMinimum} sacks for ${locationLabel}. Add ${evalResult.deficit} more sack(s) or switch to Store Pickup.`;
+            }
+          }
+        } else {
+          // Satisfied
+          noticeCard.className = "rounded-2xl p-4 transition-all space-y-2 border border-emerald-200 dark:border-emerald-800 bg-emerald-50/80 dark:bg-emerald-950/30 text-emerald-950 dark:text-emerald-100";
+          if (minIcon) minIcon.textContent = "✅";
+          if (minBadge) {
+            minBadge.className = "px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-900 border border-emerald-300";
+            minBadge.textContent = "Delivery Minimum Met";
+          }
+          if (minFarTag) minFarTag.classList.add('hidden');
+          const locationLabel = evalResult.matchedRuleName ? `for "${evalResult.matchedRuleName}"` : "";
+          if (minMainMsg) {
+            minMainMsg.textContent = `Delivery quantity requirement met: ${evalResult.totalSacks} / ${evalResult.applicableMinimum} sacks ${locationLabel}.`;
+          }
+          if (minDetailMsg) {
+            minDetailMsg.innerHTML = `Your order qualifies for scheduled truck delivery.`;
+          }
+          if (tipBox) {
+            tipBox.className = "hidden";
+          }
+
+          if (summaryAlert) summaryAlert.classList.add('hidden');
+        }
+
+        return evalResult;
+      }
+
+      const btnSwitchPickup = document.getElementById('btn-switch-to-pickup');
+      if (btnSwitchPickup) {
+        btnSwitchPickup.addEventListener('click', () => {
+          if (divPic) divPic.click();
+          showToast('Switched to Store Pickup (Free - No minimum sack requirement).', 'info');
+        });
+      }
+
+      window.addEventListener('aurora-sync-event', (e) => {
+        if (e.detail && (e.detail.key === 'delivery-minimum-settings' || e.detail.key === 'aurora-store-settings')) {
+          updateDeliveryMinimumStatus();
+        }
+      });
+
+      // Synchronize address UI now that checkoutItems, deliveryOption, and state tracks are ready
+      syncCheckoutAddressUI();
+      isCheckoutReady = true;
 
       executePricing();
 
@@ -1056,6 +1229,7 @@
         addressInput.required = true;
 
         executePricing();
+        updateDeliveryMinimumStatus();
       });
 
       divPic.addEventListener('click', () => {
@@ -1070,7 +1244,13 @@
         addressInput.required = false;
 
         executePricing();
+        updateDeliveryMinimumStatus();
       });
+
+      // Honor Store Pickup query param when redirected from Buy Available Sacks Only
+      if (urlParams.get('deliveryOption') === 'pickup' || urlParams.get('delivery') === 'pickup') {
+        if (divPic) divPic.click();
+      }
 
       // Payment Preferences switches
       divPmGcash.addEventListener('click', () => {
@@ -1298,14 +1478,37 @@
           if (itemsWithShortage.length > 0) {
             const totalAvailAcrossShortages = itemsWithShortage.reduce((sum, s) => sum + s.avail, 0);
             const totalReservedAcrossShortages = itemsWithShortage.reduce((sum, s) => sum + s.reserved, 0);
+            const totalRequestedAcrossShortages = itemsWithShortage.reduce((sum, s) => sum + s.requestedQty, 0);
             const primaryShortage = itemsWithShortage[0];
             const p = primaryShortage.product;
 
+            // Delivery minimum evaluation for projected available stock
+            const isDelivery = deliveryOption === 'delivery';
+            const projectedAvailSacks = (checkoutItems || []).reduce((acc, item) => {
+              const shortage = itemsWithShortage.find(s => s.item === item);
+              return acc + Number(shortage ? shortage.avail : (item.quantity || 0));
+            }, 0);
+            const storeSettings = getStoreSettings();
+            const activeAddr = activeCheckoutAddress || (addressInput ? addressInput.value : '') || (inpAddress ? inpAddress.value : '') || (user ? user.address : '');
+            const minDeliveryCheck = isDelivery ? evaluateDeliveryMinimum(activeAddr, projectedAvailSacks, storeSettings) : null;
+            const isUnderMinDelivery = Boolean(isDelivery && minDeliveryCheck && !minDeliveryCheck.isSatisfied);
+
+            let noticeType = 'partial';
+            if (totalAvailAcrossShortages === 0) {
+              noticeType = 'zero';
+            } else if (isUnderMinDelivery) {
+              noticeType = 'under_min_delivery';
+            }
+
             pendingStockNotice = {
-              type: totalAvailAcrossShortages > 0 ? 'partial' : 'zero',
+              type: noticeType,
+              isUnderMinDelivery,
+              minDeliveryCheck,
+              projectedAvailSacks,
               itemsWithShortage,
               totalAvail: totalAvailAcrossShortages,
               totalReserved: totalReservedAcrossShortages,
+              totalRequested: totalRequestedAcrossShortages,
               product: p
             };
 
@@ -1322,7 +1525,7 @@
                 product: s.product,
                 productId: s.product.id,
                 productName: s.product.name,
-                quantity: s.reserved,
+                quantity: isUnderMinDelivery ? s.requestedQty : s.reserved,
                 isReservation: true
               }))
             };
@@ -1333,7 +1536,69 @@
             const availSackNoun = totalAvailAcrossShortages === 1 ? 'sack' : 'sacks';
             const reservedSackNoun = totalReservedAcrossShortages === 1 ? 'sack' : 'sacks';
 
-            if (totalAvailAcrossShortages > 0) {
+            if (isUnderMinDelivery) {
+              // UNDER-MINIMUM DELIVERY: Available sacks cannot meet minimum delivery alone
+              const minQty = minDeliveryCheck ? minDeliveryCheck.applicableMinimum : 20;
+              const locStr = minDeliveryCheck?.matchedRuleName ? `to "${minDeliveryCheck.matchedRuleName}"` : 'to your destination';
+              partialNoticeHtml = `
+                <span class="block text-left space-y-5 mt-2">
+                  <!-- 1. What the customer is reserving -->
+                  <span class="block space-y-1.5">
+                    <span class="block text-xs font-extrabold uppercase tracking-wider text-amber-700 dark:text-amber-400">Delivery Minimum Notice</span>
+                    <span class="block text-base sm:text-lg font-bold text-gray-900 dark:text-gray-100 leading-snug">
+                      Stock shortage detected for <strong class="text-[#1E6C02] dark:text-emerald-400 font-black">${itemsWithShortage.map(s => s.product?.name || 'Rice').join(', ')}</strong>.
+                    </span>
+                    <span class="block text-sm text-gray-900 dark:text-gray-100 font-medium leading-relaxed">
+                      Delivery ${locStr} requires a minimum of <strong>${minQty} sacks</strong>, but only <strong>${totalAvailAcrossShortages} ${availSackNoun}</strong> are currently available in the warehouse.
+                    </span>
+                    <span class="block text-sm text-[#1E6C02] dark:text-emerald-300 font-semibold leading-relaxed">
+                      To ensure your delivery arrives together, your entire requested order of <strong>${totalRequestedAcrossShortages} sacks</strong> will enter the reservation queue and be delivered together once all sacks are ready.
+                    </span>
+                  </span>
+
+                  <!-- 2. Availability Breakdown -->
+                  <span class="block space-y-2">
+                    <span class="block text-xs font-extrabold uppercase tracking-wider text-gray-900 dark:text-gray-100">Order & Reservation Breakdown</span>
+                    <span class="grid grid-cols-2 gap-3">
+                      <span class="res-card-avail block bg-[#F4FAF3] dark:bg-emerald-950/40 border border-[#C6EFCE] dark:border-emerald-800/70 rounded-2xl p-3.5">
+                        <span class="block text-xs font-extrabold uppercase tracking-wide text-[#1E6C02] dark:text-emerald-300">Available Now</span>
+                        <span class="block text-lg sm:text-xl font-black text-gray-900 dark:text-white mt-1">${totalAvailAcrossShortages} ${availSackNoun}</span>
+                      </span>
+                      <span class="res-card-reserve block bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/70 rounded-2xl p-3.5">
+                        <span class="block text-xs font-extrabold uppercase tracking-wide text-amber-900 dark:text-amber-300">Awaiting Restock</span>
+                        <span class="block text-lg sm:text-xl font-black text-gray-900 dark:text-white mt-1">${totalReservedAcrossShortages} ${reservedSackNoun}</span>
+                      </span>
+                    </span>
+                    <span class="block bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800/70 rounded-2xl p-3 text-center">
+                      <span class="block text-xs font-extrabold uppercase tracking-wide text-blue-900 dark:text-blue-300">Total Order Delivered Together</span>
+                      <span class="block text-lg font-black text-blue-950 dark:text-blue-100 mt-0.5">${totalRequestedAcrossShortages} sacks</span>
+                    </span>
+                  </span>
+
+                  <!-- 3. Estimated Arrival -->
+                  <span class="res-card-est block bg-[#EFF6FF] dark:bg-blue-950/50 border-2 border-[#93C5FD] dark:border-blue-700 rounded-2xl p-4 sm:p-5 shadow-xs">
+                    <span class="flex items-center gap-2 text-xs sm:text-sm font-black uppercase tracking-wider text-[#1E3A8A] dark:text-blue-300">
+                      <span class="text-base">📅</span>
+                      <span>${estLabelText}</span>
+                    </span>
+                    <span class="block text-xl sm:text-2xl font-black text-gray-950 dark:text-white mt-1.5 tracking-tight">
+                      ${estDateText}
+                    </span>
+                  </span>
+
+                  <!-- 4. Payment Reminder -->
+                  <span class="res-card-payment block bg-[#FFF8EB] dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/70 rounded-2xl p-4 space-y-1.5">
+                    <span class="flex items-center gap-2 text-xs sm:text-sm font-extrabold uppercase tracking-wider text-amber-950 dark:text-amber-200">
+                      <span>💳</span>
+                      <span>No Payment Needed Today</span>
+                    </span>
+                    <span class="block text-xs sm:text-sm text-gray-900 dark:text-gray-100 font-medium leading-relaxed">
+                      Your full order reservation will be saved to the queue without charging you. We will notify you once all sacks arrive in warehouse, giving you 48 hours to complete payment before dispatch.
+                    </span>
+                  </span>
+                </span>
+              `;
+            } else if (totalAvailAcrossShortages > 0) {
               // PARTIAL STOCK AVAILABLE
               partialNoticeHtml = `
                 <span class="block text-left space-y-5 mt-2">
@@ -1443,17 +1708,29 @@
 
         if (confirmTextPara) {
           if (pendingStockNotice) {
-            confirmTitle.textContent = pendingStockNotice.type === 'partial' ? 'Stock Availability Notice' : 'Item Out of Stock';
-            if (confirmIcon) {
-              const isZero = pendingStockNotice.type === 'zero';
-              confirmIcon.className = isZero
-                ? 'h-14 w-14 bg-red-50 dark:bg-red-950/60 text-red-650 dark:text-red-400 rounded-2xl flex items-center justify-center mb-3 mx-auto border border-red-200 dark:border-red-800/60'
-                : 'h-14 w-14 bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 rounded-2xl flex items-center justify-center mb-3 mx-auto border border-amber-200 dark:border-amber-800/60';
-              confirmIcon.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" class="w-7 h-7"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>';
-            }
-            confirmTextPara.innerHTML = partialNoticeHtml;
-
-            if (pendingStockNotice.type === 'partial') {
+            if (pendingStockNotice.type === 'under_min_delivery') {
+              confirmTitle.textContent = 'Full-Order Reservation Required';
+              if (confirmIcon) {
+                confirmIcon.className = 'h-14 w-14 bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 rounded-2xl flex items-center justify-center mb-3 mx-auto border border-amber-200 dark:border-amber-800/60';
+                confirmIcon.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" class="w-7 h-7"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>';
+              }
+              if (btnSubmitConfirm) {
+                btnSubmitConfirm.textContent = 'Reserve Full Order (Delivered Together)';
+                btnSubmitConfirm.className = 'flex-1 h-12 px-4 bg-[#1E6C02] text-white font-extrabold text-xs sm:text-sm rounded-2xl hover:bg-[#145001] transition-all cursor-pointer shadow-lg shadow-green-900/10 text-center flex items-center justify-center';
+              }
+              if (btnAvailOnlyConfirm) {
+                btnAvailOnlyConfirm.classList.add('hidden');
+              }
+              if (btnCancelConfirm) {
+                btnCancelConfirm.textContent = 'Cancel Checkout';
+                btnCancelConfirm.className = 'flex-1 h-12 px-4 border border-gray-300 dark:border-slate-700 text-gray-900 dark:text-gray-100 bg-white dark:bg-slate-800 font-bold text-xs sm:text-sm rounded-2xl hover:bg-gray-50 dark:hover:bg-slate-700 transition-all cursor-pointer text-center flex items-center justify-center';
+              }
+            } else if (pendingStockNotice.type === 'partial') {
+              confirmTitle.textContent = 'Stock Availability Notice';
+              if (confirmIcon) {
+                confirmIcon.className = 'h-14 w-14 bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 rounded-2xl flex items-center justify-center mb-3 mx-auto border border-amber-200 dark:border-amber-800/60';
+                confirmIcon.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" class="w-7 h-7"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>';
+              }
               // Option 1: Buy Available Quantity & Reserve Remainder
               if (btnSubmitConfirm) {
                 btnSubmitConfirm.textContent = 'Buy Available & Reserve Remainder';
@@ -1471,6 +1748,11 @@
               }
             } else {
               // Zero stock: 2 distinct choices
+              confirmTitle.textContent = 'Item Out of Stock';
+              if (confirmIcon) {
+                confirmIcon.className = 'h-14 w-14 bg-red-50 dark:bg-red-950/60 text-red-650 dark:text-red-400 rounded-2xl flex items-center justify-center mb-3 mx-auto border border-red-200 dark:border-red-800/60';
+                confirmIcon.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" class="w-7 h-7"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>';
+              }
               if (btnSubmitConfirm) {
                 btnSubmitConfirm.textContent = 'Reserve Full Quantity';
                 btnSubmitConfirm.className = 'flex-1 h-12 px-4 bg-[#1E6C02] text-white font-extrabold text-sm sm:text-base rounded-2xl hover:bg-[#145001] transition-all cursor-pointer shadow-lg shadow-green-900/10 text-center flex items-center justify-center';
@@ -1483,6 +1765,7 @@
                 btnCancelConfirm.className = 'flex-1 h-12 px-4 border border-gray-300 dark:border-slate-700 text-gray-900 dark:text-gray-100 bg-white dark:bg-slate-800 font-bold text-sm sm:text-base rounded-2xl hover:bg-gray-50 dark:hover:bg-slate-700 transition-all cursor-pointer text-center flex items-center justify-center';
               }
             }
+            confirmTextPara.innerHTML = partialNoticeHtml;
           } else {
             // Normal Full Stock Confirmation
             if (confirmTitle) confirmTitle.textContent = 'Confirm Order';
@@ -1509,6 +1792,7 @@
       }
 
       // Choice 1 / Primary Action:
+      // When under_min_delivery: Reserve Full Order (Delivered Together) (customerChoice: 'reserve_full')
       // When partial: Buy Available Quantity & Reserve Remainder (customerChoice: 'buy_and_reserve')
       // When zero: Reserve Full Quantity (customerChoice: 'reserve_full')
       // When normal: Confirm Order
@@ -1517,7 +1801,10 @@
         let customerChoice = undefined;
         let agreedAvailQty = undefined;
         if (pendingStockNotice) {
-          if (pendingStockNotice.type === 'partial') {
+          if (pendingStockNotice.type === 'under_min_delivery' || pendingStockNotice.isUnderMinDelivery) {
+            customerChoice = 'reserve_full';
+            agreedAvailQty = 0;
+          } else if (pendingStockNotice.type === 'partial') {
             customerChoice = 'buy_and_reserve';
             agreedAvailQty = pendingStockNotice.totalAvail;
           } else if (pendingStockNotice.type === 'zero') {
@@ -1532,6 +1819,29 @@
       // Choice 2: Buy Available Quantity Only (customerChoice: 'buy_available_only', skipReservation: true)
       if (btnAvailOnlyConfirm) {
         btnAvailOnlyConfirm.addEventListener('click', () => {
+          // Pre-validate delivery minimum before mutating in-memory checkoutItems
+          if (deliveryOption === 'delivery') {
+            const projectedAvailSacks = (checkoutItems || []).reduce((acc, item) => {
+              const shortage = pendingStockNotice?.itemsWithShortage?.find(s => s.item === item);
+              return acc + Number(shortage ? shortage.avail : (item.quantity || 0));
+            }, 0);
+
+            const storeSettings = getStoreSettings();
+            const activeAddr = activeCheckoutAddress || (inpAddress ? inpAddress.value : '') || (user ? user.address : '');
+            const minCheck = evaluateDeliveryMinimum(activeAddr, projectedAvailSacks, storeSettings);
+
+            if (minCheck && !minCheck.isSatisfied) {
+              confirmOrderModal.classList.add('hidden');
+              const locName = minCheck.matchedRuleName ? `to "${minCheck.matchedRuleName}"` : 'to your destination';
+              showToast(`Cannot proceed with delivery: Available quantity (${minCheck.totalSacks} ${minCheck.totalSacks === 1 ? 'sack' : 'sacks'}) is below the delivery minimum of ${minCheck.applicableMinimum} sacks ${locName}. Shortfall: ${minCheck.deficit} ${minCheck.deficit === 1 ? 'sack' : 'sacks'}. Please switch to Store Pickup or use "Buy Available & Reserve Remainder".`, 'error');
+              const noticeCard = document.getElementById('delivery-min-notice-card');
+              if (noticeCard) {
+                noticeCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              }
+              return;
+            }
+          }
+
           confirmOrderModal.classList.add('hidden');
           let agreedAvailQty = undefined;
           if (pendingStockNotice && pendingStockNotice.itemsWithShortage) {
@@ -1541,8 +1851,9 @@
               s.item.quantity = s.avail;
             });
             renderCheckoutItemsAndTotals();
-            showToast('Proceeding with available quantity only.', 'info');
           }
+
+          showToast('Proceeding with available quantity only.', 'info');
           pendingStockNotice = null;
           submitOrderToDB({ skipReservation: true, customerChoice: 'buy_available_only', agreedAvailQty });
         });
@@ -1969,14 +2280,32 @@
             addrVal = activeCheckoutAddress.address.trim();
             if (addressInput) addressInput.value = addrVal;
           }
+          if (addrVal && (!currentSelectedCoordinates || !isCoordinatesConfirmed)) {
+            currentSelectedCoordinates = (activeCheckoutAddress && activeCheckoutAddress.coordinates) || (user && user.coordinates) || { lat: 7.9628, lng: 123.5826 };
+            isCoordinatesConfirmed = true;
+          }
           if (!addrVal || !currentSelectedCoordinates || !isCoordinatesConfirmed) {
-            showToast('A confirmed delivery address and map pin are required to proceed with delivery.', 'error');
+            showToast('A complete delivery address is required to proceed with delivery.', 'error');
             const emptyView = document.getElementById('address-empty-view');
             const confirmedView = document.getElementById('address-confirmed-view');
-            if (emptyView && !emptyView.classList.contains('hidden')) {
+            if (addressInput && addressInput.offsetParent) {
+              addressInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              addressInput.focus();
+            } else if (emptyView && !emptyView.classList.contains('hidden')) {
               emptyView.scrollIntoView({ behavior: 'smooth', block: 'center' });
             } else if (confirmedView) {
               confirmedView.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+            return;
+          }
+
+          const minDeliveryStatus = updateDeliveryMinimumStatus();
+          if (minDeliveryStatus && !minDeliveryStatus.isSatisfied) {
+            const locName = minDeliveryStatus.matchedRuleName ? `to "${minDeliveryStatus.matchedRuleName}"` : 'to your destination';
+            showToast(`Delivery ${locName} requires a minimum of ${minDeliveryStatus.applicableMinimum} sacks (currently ${minDeliveryStatus.totalSacks} sacks). Please add ${minDeliveryStatus.deficit} more sack(s) or switch to Store Pickup.`, 'error');
+            const noticeCard = document.getElementById('delivery-min-notice-card');
+            if (noticeCard) {
+              noticeCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
             }
             return;
           }
@@ -2038,23 +2367,63 @@
           return;
         }
 
-        if (!paymentProofFile) {
-          showToast('Please attach your GCash payment confirmation screenshot!', 'error');
-          return;
+        // Determine whether checkout will require a full-order reservation without upfront payment:
+        // 1. Zero physical stock across shortage items
+        // 2. Delivery order where projected available sacks cannot meet the applicable delivery minimum
+        let isFullReservationExpected = false;
+        if (checkoutItems && checkoutItems.length > 0) {
+          const allProds = getProducts();
+          const itemsWithShortage = [];
+          for (const item of checkoutItems) {
+            const pid = String(item.product?.id || item.productId || '').trim();
+            const p = allProds.find(pr => String(pr.id).trim() === pid) || item.product;
+            if (p) {
+              const availStock = Number(p.availableStock !== undefined ? p.availableStock : (p.stock !== undefined ? p.stock : 0));
+              const requestedQty = Number(item.quantity || 0);
+              if (requestedQty > availStock) {
+                const avail = Math.max(0, availStock);
+                itemsWithShortage.push({ item, avail });
+              }
+            }
+          }
+          if (itemsWithShortage.length > 0) {
+            const totalAvail = itemsWithShortage.reduce((s, x) => s + x.avail, 0);
+            if (totalAvail === 0) {
+              isFullReservationExpected = true;
+            } else if (deliveryOption === 'delivery') {
+              const projectedAvailSacks = checkoutItems.reduce((acc, item) => {
+                const shortage = itemsWithShortage.find(s => s.item === item);
+                return acc + Number(shortage ? shortage.avail : (item.quantity || 0));
+              }, 0);
+              const storeSettings = getStoreSettings();
+              const activeAddr = activeCheckoutAddress || (addressInput ? addressInput.value : '') || (inpAddress ? inpAddress.value : '') || (user ? user.address : '');
+              const minCheck = evaluateDeliveryMinimum(activeAddr, projectedAvailSacks, storeSettings);
+              if (minCheck && !minCheck.isSatisfied) {
+                isFullReservationExpected = true;
+              }
+            }
+          }
         }
 
-        const maxSizeBytes = 5 * 1024 * 1024;
-        if (paymentProofFile.size > maxSizeBytes) {
-          showToast('Payment screenshot file size exceeds 5MB limit. Please upload a smaller image.', 'error');
-          return;
-        }
+        if (!isFullReservationExpected) {
+          if (!paymentProofFile) {
+            showToast('Please attach your GCash payment confirmation screenshot!', 'error');
+            return;
+          }
 
-        const validTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
-        const fileExt = (paymentProofFile.name.split('.').pop() || '').toLowerCase();
-        const isValidType = validTypes.includes((paymentProofFile.type || '').toLowerCase()) || ['jpg', 'jpeg', 'png', 'webp'].includes(fileExt);
-        if (!isValidType) {
-          showToast('Please upload a valid image file (PNG, JPG, JPEG, or WEBP).', 'error');
-          return;
+          const maxSizeBytes = 5 * 1024 * 1024;
+          if (paymentProofFile.size > maxSizeBytes) {
+            showToast('Payment screenshot file size exceeds 5MB limit. Please upload a smaller image.', 'error');
+            return;
+          }
+
+          const validTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
+          const fileExt = (paymentProofFile.name.split('.').pop() || '').toLowerCase();
+          const isValidType = validTypes.includes((paymentProofFile.type || '').toLowerCase()) || ['jpg', 'jpeg', 'png', 'webp'].includes(fileExt);
+          if (!isValidType) {
+            showToast('Please upload a valid image file (PNG, JPG, JPEG, or WEBP).', 'error');
+            return;
+          }
         }
 
         const phoneVal = inpPhone.value.trim();
@@ -2106,23 +2475,29 @@
       async function submitOrderToDB(options = {}) {
         if (isSubmitting) return;
 
-        if (!paymentProofFile) {
-          showToast('Please attach your GCash payment confirmation screenshot!', 'error');
-          return;
-        }
+        const isFullReservation = options.customerChoice === 'reserve_full';
 
-        const maxSizeBytes = 5 * 1024 * 1024;
-        if (paymentProofFile.size > maxSizeBytes) {
-          showToast('Payment screenshot file size exceeds 5MB limit. Please upload a smaller image.', 'error');
-          return;
-        }
+        // Payment proof verification:
+        // Skip for full-order reservations ('reserve_full') because amountPaid is 0 and no upfront payment is required
+        if (!isFullReservation) {
+          if (!paymentProofFile) {
+            showToast('Please attach your GCash payment confirmation screenshot!', 'error');
+            return;
+          }
 
-        const validTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
-        const fileExt = (paymentProofFile.name.split('.').pop() || '').toLowerCase();
-        const isValidType = validTypes.includes((paymentProofFile.type || '').toLowerCase()) || ['jpg', 'jpeg', 'png', 'webp'].includes(fileExt);
-        if (!isValidType) {
-          showToast('Please upload a valid image file (PNG, JPG, JPEG, or WEBP).', 'error');
-          return;
+          const maxSizeBytes = 5 * 1024 * 1024;
+          if (paymentProofFile.size > maxSizeBytes) {
+            showToast('Payment screenshot file size exceeds 5MB limit. Please upload a smaller image.', 'error');
+            return;
+          }
+
+          const validTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
+          const fileExt = (paymentProofFile.name.split('.').pop() || '').toLowerCase();
+          const isValidType = validTypes.includes((paymentProofFile.type || '').toLowerCase()) || ['jpg', 'jpeg', 'png', 'webp'].includes(fileExt);
+          if (!isValidType) {
+            showToast('Please upload a valid image file (PNG, JPG, JPEG, or WEBP).', 'error');
+            return;
+          }
         }
 
         let firebaseAuthUid = auth?.currentUser?.uid;
@@ -2137,47 +2512,69 @@
           return;
         }
 
+        // Authoritative delivery-minimum enforcement: Prevent under-minimum delivery from uploading proof or committing to database
+        if (deliveryOption === 'delivery') {
+          const storeSettings = getStoreSettings();
+          const activeAddr = (addressInput ? addressInput.value : '') || activeCheckoutAddress || (user ? user.address : '');
+          const totalSacks = checkoutItems.reduce((acc, item) => acc + Number(item.quantity || 0), 0);
+          const evalResult = evaluateDeliveryMinimum(activeAddr, totalSacks, storeSettings);
+          if (evalResult && !evalResult.isSatisfied) {
+            const locName = evalResult.matchedRuleName ? `to "${evalResult.matchedRuleName}"` : 'to your destination';
+            showToast(`Delivery ${locName} requires a minimum of ${evalResult.applicableMinimum} sacks (current order: ${evalResult.totalSacks} ${evalResult.totalSacks === 1 ? 'sack' : 'sacks'}). Shortfall: ${evalResult.deficit} ${evalResult.deficit === 1 ? 'sack' : 'sacks'}. Order submission blocked.`, 'error');
+            const noticeCard = document.getElementById('delivery-min-notice-card');
+            if (noticeCard) {
+              noticeCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+            return;
+          }
+        }
+
         isSubmitting = true;
         const originalBtnText = btnSubmit ? btnSubmit.textContent : 'Submit Order';
         if (btnSubmit) {
           btnSubmit.disabled = true;
-          btnSubmit.innerHTML = `<svg class="animate-spin -ml-1 mr-2 h-5 w-5 text-white inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg> Uploading Payment Proof...`;
+          btnSubmit.innerHTML = isFullReservation
+            ? `<svg class="animate-spin -ml-1 mr-2 h-5 w-5 text-white inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg> Committing Reservation...`
+            : `<svg class="animate-spin -ml-1 mr-2 h-5 w-5 text-white inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg> Uploading Payment Proof...`;
         }
 
         let downloadUrl = '';
         let storagePath = '';
 
-        try {
-          const timestamp = Date.now();
-          const randSuffix = Math.random().toString(36).substring(2, 9);
-          const ext = (fileExt || 'jpg').toLowerCase();
-          const safeBaseName = paymentProofFile.name.replace(/\.[^/.]+$/, '').replace(/[^a-zA-Z0-9_-]/g, '_').substring(0, 30);
-          storagePath = `payment_proofs/orders/${firebaseAuthUid}/${timestamp}_${randSuffix}_${safeBaseName}.${ext}`;
+        if (!isFullReservation && paymentProofFile) {
+          try {
+            const fileExt = (paymentProofFile.name.split('.').pop() || '').toLowerCase();
+            const timestamp = Date.now();
+            const randSuffix = Math.random().toString(36).substring(2, 9);
+            const ext = (fileExt || 'jpg').toLowerCase();
+            const safeBaseName = paymentProofFile.name.replace(/\.[^/.]+$/, '').replace(/[^a-zA-Z0-9_-]/g, '_').substring(0, 30);
+            storagePath = `payment_proofs/orders/${firebaseAuthUid}/${timestamp}_${randSuffix}_${safeBaseName}.${ext}`;
 
-          const proofRef = storageRef(storage, storagePath);
-          const metadata = {
-            contentType: paymentProofFile.type || 'image/jpeg',
-            customMetadata: {
-              originalFileName: paymentProofFile.name,
-              uploadedAt: new Date().toISOString(),
-              userId: firebaseAuthUid,
-              userPhone: String(document.getElementById('inp-phone')?.value || ''),
-              orderType: 'normal'
+            const proofRef = storageRef(storage, storagePath);
+            const metadata = {
+              contentType: paymentProofFile.type || 'image/jpeg',
+              customMetadata: {
+                originalFileName: paymentProofFile.name,
+                uploadedAt: new Date().toISOString(),
+                userId: firebaseAuthUid,
+                userPhone: String(document.getElementById('inp-phone')?.value || ''),
+                orderType: 'normal'
+              }
+            };
+
+            const uploadSnapshot = await uploadBytes(proofRef, paymentProofFile, metadata);
+            downloadUrl = await getDownloadURL(uploadSnapshot.ref);
+            console.log('[STORAGE] Normal order payment proof uploaded successfully:', downloadUrl);
+          } catch (uploadError) {
+            console.error('[STORAGE] Normal order payment proof upload failed:', uploadError);
+            isSubmitting = false;
+            if (btnSubmit) {
+              btnSubmit.disabled = false;
+              btnSubmit.textContent = originalBtnText;
             }
-          };
-
-          const uploadSnapshot = await uploadBytes(proofRef, paymentProofFile, metadata);
-          downloadUrl = await getDownloadURL(uploadSnapshot.ref);
-          console.log('[STORAGE] Normal order payment proof uploaded successfully:', downloadUrl);
-        } catch (uploadError) {
-          console.error('[STORAGE] Normal order payment proof upload failed:', uploadError);
-          isSubmitting = false;
-          if (btnSubmit) {
-            btnSubmit.disabled = false;
-            btnSubmit.textContent = originalBtnText;
+            showToast('Failed to upload payment screenshot to Firebase Storage: ' + (uploadError.message || 'Please try again.'), 'error');
+            return;
           }
-          showToast('Failed to upload payment screenshot to Firebase Storage: ' + (uploadError.message || 'Please try again.'), 'error');
-          return;
         }
 
         // Construct final payloads
@@ -2190,6 +2587,10 @@
             address = activeCheckoutAddress.address.trim();
             if (addressInput) addressInput.value = address;
           }
+          if (address && (!currentSelectedCoordinates || !isCoordinatesConfirmed)) {
+            currentSelectedCoordinates = (activeCheckoutAddress && activeCheckoutAddress.coordinates) || (user && user.coordinates) || { lat: 7.9628, lng: 123.5826 };
+            isCoordinatesConfirmed = true;
+          }
         }
         const rawNotes = (document.getElementById('inp-notes')?.value || '').trim();
         const pickupNotes = deliveryOption === 'pickup' ? rawNotes : '';
@@ -2198,7 +2599,7 @@
         // Strict validation in the actual order-submission path: prevent unconfirmed address/pin from reaching database
         if (deliveryOption === 'delivery') {
           if (!address || !isCoordinatesConfirmed || !currentSelectedCoordinates || typeof currentSelectedCoordinates.lat !== 'number' || typeof currentSelectedCoordinates.lng !== 'number') {
-            showToast('Delivery order cannot be submitted without a complete confirmed address and map pin.', 'error');
+            showToast('Delivery order cannot be submitted without a complete delivery address.', 'error');
             isSubmitting = false;
             if (btnSubmit) {
               btnSubmit.disabled = false;
@@ -2208,21 +2609,25 @@
           }
         }
 
-        // Calculate subtotal ONLY for available stock
+        // Calculate totals
+        const resSubtotal = checkoutItems.reduce((acc, item) => {
+          return acc + (item.product?.price || item.price || 0) * Number(item.quantity || 0);
+        }, 0);
+
         const subtotal = checkoutItems.reduce((acc, item) => {
           const { availQty } = getItemStockBreakdown(item);
           return acc + (item.product?.price || item.price || 0) * availQty;
         }, 0);
 
         const deliveryFee = deliveryOption === 'delivery' ? 80 : 0;
-        const total = subtotal + deliveryFee;
+        const total = isFullReservation ? resSubtotal : (subtotal + deliveryFee);
 
-        const amountPaid = paymentMethod === 'gcash' ? total : total * 0.3;
-        const remainingAmount = Math.max(0, total - amountPaid);
-        const refNumber = 'REF' + Date.now().toString().slice(-8);
+        const amountPaid = isFullReservation ? 0 : (paymentMethod === 'gcash' ? total : total * 0.3);
+        const remainingAmount = isFullReservation ? total : Math.max(0, total - amountPaid);
+        const refNumber = isFullReservation ? null : ('REF' + Date.now().toString().slice(-8));
 
         if (btnSubmit) {
-          btnSubmit.innerHTML = `<svg class="animate-spin -ml-1 mr-2 h-5 w-5 text-white inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg> Validating Stock & Committing...`;
+          btnSubmit.innerHTML = `<svg class="animate-spin -ml-1 mr-2 h-5 w-5 text-white inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg> ${isFullReservation ? 'Validating & Queuing Reservation...' : 'Validating Stock & Committing...'}`;
         }
 
         let res = null;
@@ -2231,16 +2636,16 @@
           res = await addOrderAtomic({
             items: checkoutItems,
             total,
-            status: 'to-pay',
-            paymentMethod,
-            paymentType: paymentMethod === 'gcash' ? 'full' : 'deposit',
+            status: isFullReservation ? 'pre-order' : 'to-pay',
+            paymentMethod: isFullReservation ? 'none' : paymentMethod,
+            paymentType: isFullReservation ? 'none' : (paymentMethod === 'gcash' ? 'full' : 'deposit'),
             amountPaid,
             remainingAmount,
-            paymentProof: paymentProofFile ? paymentProofFile.name : 'screenshot.png',
-            paymentProofDataUrl: downloadUrl || '',
-            paymentProofUrl: downloadUrl || '',
-            storagePath: storagePath || null,
-            paymentUploadedAt: new Date().toISOString(),
+            paymentProof: isFullReservation ? null : (paymentProofFile ? paymentProofFile.name : 'screenshot.png'),
+            paymentProofDataUrl: isFullReservation ? '' : (downloadUrl || ''),
+            paymentProofUrl: isFullReservation ? '' : (downloadUrl || ''),
+            storagePath: isFullReservation ? null : (storagePath || null),
+            paymentUploadedAt: isFullReservation ? null : new Date().toISOString(),
             referenceNumber: refNumber,
             paymentVerified: false,
             fullName,
@@ -2252,7 +2657,8 @@
             pickupNotes,
             deliveryNotes,
             notes: rawNotes,
-            isPreOrder: false,
+            isPreOrder: isFullReservation,
+            isFullOrderReservation: isFullReservation,
             skipReservation: options.skipReservation || false,
             customerChoice: options.customerChoice || undefined,
             agreedAvailQty: options.agreedAvailQty !== undefined ? options.agreedAvailQty : undefined
@@ -2354,6 +2760,9 @@
           const resQty = createdRes.items ? createdRes.items.reduce((acc, it) => acc + (it.quantity || 0), 0) : 0;
           const actualPos = createdRes.queuePosition || getReservationQueuePosition(createdRes) || 1;
           const isSplit = res && res.createdReservation;
+          const allocatedSacks = Number(createdRes.allocatedQuantity || 0);
+          const waitingSacks = Number(createdRes.waitingQuantity || (resQty - allocatedSacks));
+          const hasCommittedStock = allocatedSacks > 0;
           splash.innerHTML = `
             <div class="h-20 w-20 bg-[#E2F9E5] text-[#1E6C02] rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner dark:bg-emerald-950/60 dark:text-emerald-400">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" class="w-10 h-10"><polyline points="20 6 9 17 4 12"></polyline></svg>
@@ -2369,14 +2778,22 @@
                 <span class="px-2.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/60 text-amber-800 dark:text-amber-300 text-[11px] font-black uppercase">Ticket #${createdRes.id}</span>
               </div>
               <div class="grid grid-cols-2 gap-y-2 text-xs sm:text-sm text-amber-900 dark:text-amber-200">
-                <span class="font-bold">Reserved Quantity:</span>
+                <span class="font-bold">Total Reserved Quantity:</span>
                 <span class="text-right font-black text-gray-950 dark:text-white">${resQty} sacks</span>
+
+                ${hasCommittedStock ? `
+                  <span class="font-bold text-emerald-800 dark:text-emerald-300">Committed Warehouse Stock:</span>
+                  <span class="text-right font-black text-emerald-800 dark:text-emerald-300">${allocatedSacks} sacks</span>
+
+                  <span class="font-bold text-amber-800 dark:text-amber-300">Awaiting Harvest Restock:</span>
+                  <span class="text-right font-black text-amber-800 dark:text-amber-300">${waitingSacks} sacks</span>
+                ` : ''}
 
                 <span class="font-bold">Reservation Queue Position:</span>
                 <span class="text-right font-black text-[#1E6C02] dark:text-emerald-400">Queue Position #${actualPos}</span>
 
                 <span class="font-bold">Reservation Status:</span>
-                <span class="text-right font-black text-orange-700 dark:text-orange-400 uppercase">Waiting for Restock</span>
+                <span class="text-right font-black text-orange-700 dark:text-orange-400 uppercase">${hasCommittedStock && allocatedSacks < resQty ? 'Partially Allocated (Waiting)' : 'Waiting for Restock'}</span>
 
                 <span class="font-bold">${createdRes.deliveryOption === 'pickup' ? 'Estimated Pickup' : 'Estimated Delivery'}:</span>
                 <span class="text-right font-black text-gray-900 dark:text-gray-100">${getEstimatedArrivalDate(createdRes) || 'Waiting for Restock'}</span>

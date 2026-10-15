@@ -426,7 +426,7 @@
 
   <!-- Interactive administrative settings script -->
   <script type="module">
-    import { protectAdminPage, renderAdminLayout, addActivityLog, showToast, getStoreSettings } from '../src/app/shared.js';
+    import { protectAdminPage, renderAdminLayout, addActivityLog, showToast, getStoreSettings, DEFAULT_DELIVERY_MINIMUM_SETTINGS } from '../src/app/shared.js';
     import { auth, saveFirestoreDoc, storage, storageRef, uploadBytes, getDownloadURL } from '../src/lib/firebase.js';
     import { updatePassword } from 'firebase/auth';
 
@@ -455,6 +455,7 @@
       let gcashName = settings.gcashName;
       let gcashNumber = settings.gcashNumber;
       let gcashQrBase64 = settings.gcashQr;
+      let deliveryMinimumSettings = JSON.parse(JSON.stringify(settings.deliveryMinimumSettings || DEFAULT_DELIVERY_MINIMUM_SETTINGS));
       let selectedLogoFile = null;
       let selectedBannerFile = null;
       let selectedGcashQrFile = null;
@@ -533,6 +534,82 @@
 
         const inpGcashPhone = document.getElementById('inp-gcash-phone');
         if (inpGcashPhone) gcashNumber = inpGcashPhone.value.trim();
+
+        const inpDefMin = document.getElementById('inp-default-min-sacks');
+        if (inpDefMin) {
+          const val = parseInt(inpDefMin.value, 10);
+          if (!isNaN(val) && val >= 0) deliveryMinimumSettings.defaultMinimumSacks = val;
+        }
+
+        const inpFarMin = document.getElementById('inp-far-min-sacks');
+        if (inpFarMin) {
+          const val = parseInt(inpFarMin.value, 10);
+          if (!isNaN(val) && val >= 0) deliveryMinimumSettings.farLocationMinimumSacks = val;
+        }
+      }
+
+      function renderLocationRulesRows() {
+        const tbody = document.getElementById('tbody-location-rules');
+        if (!tbody) return;
+        const rules = deliveryMinimumSettings.locationRules || [];
+        if (rules.length === 0) {
+          tbody.innerHTML = `
+            <tr>
+              <td colspan="5" class="py-6 text-center text-gray-500 text-xs">
+                No custom location rules configured. All delivery locations will use the default minimum (${deliveryMinimumSettings.defaultMinimumSacks || 20} sacks).
+              </td>
+            </tr>
+          `;
+          return;
+        }
+
+        tbody.innerHTML = rules.map((r, idx) => {
+          const typeLabel = r.locationType === 'province' ? 'Province' : (r.locationType === 'city' ? 'City / Mun' : 'Custom');
+          const isFar = Boolean(r.isFarLocation);
+          const minVal = Number.isInteger(Number(r.minimumSacks)) ? Number(r.minimumSacks) : (isFar ? deliveryMinimumSettings.farLocationMinimumSacks : deliveryMinimumSettings.defaultMinimumSacks);
+          return `
+            <tr class="hover:bg-gray-50 transition-colors">
+              <td class="py-3 px-4 font-bold text-black text-sm">${r.locationName}</td>
+              <td class="py-3 px-3">
+                <span class="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-gray-100 text-gray-700 border border-gray-200">
+                  ${typeLabel}
+                </span>
+              </td>
+              <td class="py-3 px-3 text-center">
+                ${isFar 
+                  ? '<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-900 border border-amber-300">🚩 Far Area</span>'
+                  : '<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">Local Area</span>'
+                }
+              </td>
+              <td class="py-3 px-4 text-center font-extrabold text-black">
+                ${minVal} sacks
+              </td>
+              <td class="py-3 px-3 text-right">
+                <button 
+                  type="button" 
+                  data-rule-idx="${idx}" 
+                  class="btn-delete-location-rule px-2.5 py-1 text-xs font-bold text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-colors cursor-pointer border border-transparent hover:border-red-200"
+                  title="Remove this rule"
+                >
+                  ✕ Remove
+                </button>
+              </td>
+            </tr>
+          `;
+        }).join('');
+
+        // Bind delete buttons
+        tbody.querySelectorAll('.btn-delete-location-rule').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            const ruleIdx = parseInt(e.currentTarget.getAttribute('data-rule-idx'), 10);
+            if (!isNaN(ruleIdx) && ruleIdx >= 0 && ruleIdx < (deliveryMinimumSettings.locationRules || []).length) {
+              const removedName = deliveryMinimumSettings.locationRules[ruleIdx].locationName;
+              deliveryMinimumSettings.locationRules.splice(ruleIdx, 1);
+              renderLocationRulesRows();
+              showToast(`Removed rule for "${removedName}". Click "Save Delivery Minimum Settings" to apply.`, 'info');
+            }
+          });
+        });
       }
 
       function renderSettingsPanel() {
@@ -701,6 +778,156 @@
               </div>
             </div>
 
+            <!-- Minimum Delivery Quantity Section -->
+            <div class="bg-white rounded-3xl border border-gray-200 shadow-sm p-8 sm:p-10 space-y-8">
+              <div class="pb-6 border-b border-gray-200 flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+                <div>
+                  <div class="flex items-center gap-3 flex-wrap">
+                    <h3 class="setting-section-title text-lg font-semibold text-black tracking-tight">Minimum Delivery Quantity</h3>
+                    <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-900 border border-amber-300">Provisional Policy</span>
+                  </div>
+                  <p class="setting-desc text-[15px] text-black font-normal mt-1 leading-relaxed">
+                    Configure default and location-specific minimum order quantities (in sacks) for delivery orders. Pickup orders have no delivery minimum and bypass this check.
+                  </p>
+                </div>
+              </div>
+
+              <!-- Provisional Policy Disclaimer Banner -->
+              <div class="p-4 rounded-2xl bg-amber-50/80 border border-amber-200 text-xs text-amber-950 space-y-1">
+                <div class="flex items-center gap-2 font-bold text-sm text-amber-900">
+                  <span>ℹ️</span>
+                  <span>Provisional Capstone Implementation Notice</span>
+                </div>
+                <p class="leading-relaxed font-normal">
+                  These minimum delivery thresholds and location classifications are provisional implementation assumptions pending final business confirmation. Values and location rules can be reconfigured or customized anytime by authorized admins without modifying code.
+                </p>
+              </div>
+
+              <!-- Base Minimums Configuration -->
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-black">
+                <div class="space-y-2">
+                  <label class="setting-form-label text-[15px] font-semibold text-black block">
+                    Default Delivery Minimum (Sacks)
+                  </label>
+                  <input
+                    type="number"
+                    id="inp-default-min-sacks"
+                    min="0"
+                    step="1"
+                    value="${deliveryMinimumSettings.defaultMinimumSacks}"
+                    class="setting-input w-full bg-gray-50 border-2 border-gray-200 text-[15.5px] font-normal text-black px-5 py-3.5 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-[#1E6C02]/20 focus:border-[#1E6C02] transition-all"
+                  />
+                  <p class="text-xs text-gray-700">Applied to nearby or unconfigured delivery locations (initially 20 sacks, including Pagadian and local municipalities).</p>
+                </div>
+
+                <div class="space-y-2">
+                  <label class="setting-form-label text-[15px] font-semibold text-black block">
+                    Far-Location Delivery Minimum (Sacks)
+                  </label>
+                  <input
+                    type="number"
+                    id="inp-far-min-sacks"
+                    min="0"
+                    step="1"
+                    value="${deliveryMinimumSettings.farLocationMinimumSacks}"
+                    class="setting-input w-full bg-gray-50 border-2 border-gray-200 text-[15.5px] font-normal text-black px-5 py-3.5 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-[#1E6C02]/20 focus:border-[#1E6C02] transition-all"
+                  />
+                  <p class="text-xs text-gray-700">Applied only to locations explicitly designated below as Far Delivery Areas (initially 350 sacks).</p>
+                </div>
+              </div>
+
+              <!-- Location Rules Table & Add Form -->
+              <div class="space-y-4 pt-4 border-t border-gray-200">
+                <div class="flex items-center justify-between flex-wrap gap-2">
+                  <div>
+                    <h4 class="text-base font-bold text-black">Configured Location Rules</h4>
+                    <p class="text-xs text-gray-700">Manage custom delivery minimums and far-delivery area designations by city, municipality, province, or custom locality name.</p>
+                  </div>
+                </div>
+
+                <!-- Rules List Table -->
+                <div class="overflow-x-auto border border-gray-200 rounded-2xl">
+                  <table class="w-full text-left text-sm border-collapse min-w-[560px]">
+                    <thead>
+                      <tr class="bg-gray-50/90 border-b border-gray-200 text-xs font-bold uppercase text-gray-700">
+                        <th class="py-3 px-4">Location Name</th>
+                        <th class="py-3 px-3">Type</th>
+                        <th class="py-3 px-3 text-center">Far-Delivery Area?</th>
+                        <th class="py-3 px-4 text-center">Minimum (Sacks)</th>
+                        <th class="py-3 px-3 text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody id="tbody-location-rules" class="divide-y divide-gray-100">
+                      <!-- Dynamically rendered -->
+                    </tbody>
+                  </table>
+                </div>
+
+                <!-- Add New Location Rule Sub-Card -->
+                <div class="p-5 rounded-2xl bg-gray-50/80 border border-gray-200 space-y-4">
+                  <h5 class="text-sm font-bold text-black flex items-center gap-1.5">
+                    <span>➕</span> Add Location Minimum Rule
+                  </h5>
+                  <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 text-black text-sm">
+                    <div class="space-y-1">
+                      <label class="text-xs font-bold text-gray-700">Location Name</label>
+                      <input
+                        type="text"
+                        id="inp-new-rule-name"
+                        placeholder="e.g. Molave or Dipolog"
+                        class="w-full bg-white border border-gray-300 rounded-xl px-3 py-2 text-sm text-black outline-none focus:border-[#1E6C02]"
+                      />
+                    </div>
+                    <div class="space-y-1">
+                      <label class="text-xs font-bold text-gray-700">Location Type</label>
+                      <select
+                        id="sel-new-rule-type"
+                        class="w-full bg-white border border-gray-300 rounded-xl px-3 py-2 text-sm text-black outline-none focus:border-[#1E6C02]"
+                      >
+                        <option value="city">City / Municipality</option>
+                        <option value="province">Province</option>
+                        <option value="custom">Custom Area / Label</option>
+                      </select>
+                    </div>
+                    <div class="space-y-1">
+                      <label class="text-xs font-bold text-gray-700">Minimum Sacks</label>
+                      <input
+                        type="number"
+                        id="inp-new-rule-min"
+                        min="0"
+                        step="1"
+                        value="${deliveryMinimumSettings.defaultMinimumSacks || 20}"
+                        class="w-full bg-white border border-gray-300 rounded-xl px-3 py-2 text-sm text-black outline-none focus:border-[#1E6C02]"
+                      />
+                    </div>
+                    <div class="flex flex-col justify-end">
+                      <label class="inline-flex items-center gap-2 cursor-pointer text-xs font-bold text-gray-800 pb-2">
+                        <input type="checkbox" id="chk-new-rule-far" class="w-4 h-4 accent-[#1E6C02] rounded" />
+                        <span>Far Delivery Area</span>
+                      </label>
+                      <button
+                        type="button"
+                        id="btn-add-location-rule"
+                        class="px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-xs font-bold cursor-pointer transition-all shadow-xs"
+                      >
+                        Add Rule
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Save Row -->
+              <div class="pt-6 border-t border-gray-200 flex items-center justify-between">
+                <button
+                  id="btn-save-delivery-minimum"
+                  class="px-6 py-3.5 bg-[#1E6C02] hover:bg-[#145001] active:scale-[0.98] text-white font-semibold text-[14.5px] rounded-xl cursor-pointer shadow-md inline-flex items-center justify-center gap-2.5 transition-all hover:scale-[1.01] border border-transparent select-none w-full sm:w-auto"
+                >
+                  💾 Save Delivery Minimum Settings
+                </button>
+              </div>
+            </div>
+
             <!-- Change Password Card -->
             <div class="bg-white rounded-3xl border border-gray-200 shadow-sm p-8 sm:p-10 space-y-8">
               <div class="pb-6 border-b border-gray-200">
@@ -739,6 +966,26 @@
       }
 
       function bindSettingsActions() {
+        // Render current location rules
+        renderLocationRulesRows();
+
+        // Sync inputs on change
+        const inpDefMinEl = document.getElementById('inp-default-min-sacks');
+        if (inpDefMinEl) {
+          inpDefMinEl.addEventListener('input', (e) => {
+            const v = parseInt(e.target.value, 10);
+            if (!isNaN(v) && v >= 0) deliveryMinimumSettings.defaultMinimumSacks = v;
+          });
+        }
+
+        const inpFarMinEl = document.getElementById('inp-far-min-sacks');
+        if (inpFarMinEl) {
+          inpFarMinEl.addEventListener('input', (e) => {
+            const v = parseInt(e.target.value, 10);
+            if (!isNaN(v) && v >= 0) deliveryMinimumSettings.farLocationMinimumSacks = v;
+          });
+        }
+
         // Logo upload handlers
         document.getElementById('btn-upload-logo').addEventListener('click', () => {
           document.getElementById('inp-store-logo-file').click();
@@ -1075,6 +1322,115 @@
                     btnConfirm.disabled = false;
                     btnConfirm.textContent = 'Yes, Save Changes';
                   }
+                }
+              }
+            });
+          });
+        }
+
+        // Action: Add Location Minimum Rule
+        const btnAddRule = document.getElementById('btn-add-location-rule');
+        if (btnAddRule) {
+          btnAddRule.addEventListener('click', () => {
+            const inpName = document.getElementById('inp-new-rule-name');
+            const selType = document.getElementById('sel-new-rule-type');
+            const inpMin = document.getElementById('inp-new-rule-min');
+            const chkFar = document.getElementById('chk-new-rule-far');
+
+            const name = inpName ? inpName.value.trim() : '';
+            if (!name) {
+              showToast('Please enter a location name (e.g. city, municipality, or province).', 'error');
+              if (inpName) inpName.focus();
+              return;
+            }
+
+            const type = selType ? selType.value : 'city';
+            const isFar = chkFar ? chkFar.checked : false;
+            let minSacks = inpMin ? parseInt(inpMin.value, 10) : 20;
+            if (isNaN(minSacks) || minSacks < 0) {
+              minSacks = isFar ? (deliveryMinimumSettings.farLocationMinimumSacks || 350) : (deliveryMinimumSettings.defaultMinimumSacks || 20);
+            }
+
+            if (!deliveryMinimumSettings.locationRules) {
+              deliveryMinimumSettings.locationRules = [];
+            }
+
+            const existingIdx = deliveryMinimumSettings.locationRules.findIndex(r => r.locationName && r.locationName.toLowerCase() === name.toLowerCase());
+            if (existingIdx >= 0) {
+              deliveryMinimumSettings.locationRules[existingIdx] = {
+                id: deliveryMinimumSettings.locationRules[existingIdx].id || `rule-${Date.now()}`,
+                locationName: name,
+                locationType: type,
+                isFarLocation: isFar,
+                minimumSacks: minSacks
+              };
+              showToast(`Updated existing rule for "${name}". Click "Save Delivery Minimum Settings" to apply.`, 'info');
+            } else {
+              deliveryMinimumSettings.locationRules.push({
+                id: `rule-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+                locationName: name,
+                locationType: type,
+                isFarLocation: isFar,
+                minimumSacks: minSacks
+              });
+              showToast(`Added rule for "${name}". Click "Save Delivery Minimum Settings" to apply.`, 'success');
+            }
+
+            if (inpName) inpName.value = '';
+            if (inpMin) inpMin.value = deliveryMinimumSettings.defaultMinimumSacks || 20;
+            if (chkFar) chkFar.checked = false;
+
+            renderLocationRulesRows();
+          });
+        }
+
+        // Action: Save Delivery Minimum Settings
+        const btnSaveDeliveryMin = document.getElementById('btn-save-delivery-minimum');
+        if (btnSaveDeliveryMin) {
+          btnSaveDeliveryMin.addEventListener('click', () => {
+            saveCurrentInputStates();
+
+            const defMin = deliveryMinimumSettings.defaultMinimumSacks;
+            const farMin = deliveryMinimumSettings.farLocationMinimumSacks;
+
+            if (isNaN(defMin) || defMin < 0) {
+              showToast('Default delivery minimum must be a non-negative number of sacks.', 'error');
+              return;
+            }
+            if (isNaN(farMin) || farMin < 0) {
+              showToast('Far-location delivery minimum must be a non-negative number of sacks.', 'error');
+              return;
+            }
+
+            showConfirmationModal({
+              title: 'Save Delivery Minimum Settings',
+              message: `Are you sure you want to update the delivery minimum settings?<br><br>
+                <div class="text-left bg-gray-50 p-3 rounded-xl border border-gray-200 text-xs text-gray-700 space-y-1 mt-2">
+                  <div><strong>Default Minimum:</strong> ${defMin} sacks</div>
+                  <div><strong>Far-Location Minimum:</strong> ${farMin} sacks</div>
+                  <div><strong>Configured Location Rules:</strong> ${(deliveryMinimumSettings.locationRules || []).length} rule(s)</div>
+                </div>
+                <br>These thresholds will immediately apply to customer delivery orders.`,
+              cancelText: 'No, Cancel',
+              confirmText: 'Yes, Save Changes',
+              onConfirm: async () => {
+                try {
+                  const currentSettings = getStoreSettings();
+                  currentSettings.deliveryMinimumSettings = JSON.parse(JSON.stringify(deliveryMinimumSettings));
+
+                  await saveFirestoreDoc('storeSettings', 'main', currentSettings);
+                  localStorage.setItem('aurora-store-settings', JSON.stringify([currentSettings]));
+                  if (typeof window !== 'undefined') {
+                    window.dispatchEvent(new CustomEvent('aurora-sync-event', { detail: { key: 'delivery-minimum-settings' } }));
+                    window.dispatchEvent(new CustomEvent('aurora-sync-event', { detail: { key: 'aurora-store-settings' } }));
+                  }
+
+                  addActivityLog('System', `Updated Delivery Minimum Settings: Default ${defMin} sacks, Far ${farMin} sacks, ${(deliveryMinimumSettings.locationRules || []).length} rule(s)`);
+                  showToast('Delivery minimum settings saved and synchronized successfully.', 'success');
+                  renderSettingsPanel();
+                } catch (err) {
+                  console.error('[SETTINGS] Error saving delivery minimum settings:', err);
+                  showToast('Failed to save delivery minimum settings: ' + (err.message || err), 'error');
                 }
               }
             });

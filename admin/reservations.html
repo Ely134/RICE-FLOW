@@ -1656,21 +1656,24 @@
             order.autoCancelledDueToRejectionDeadline === true ||
             order.autoCancelledDueToPaymentDeadline === true
           );
-          const isReady = !isCancelled && (order.status === 'ready_for_processing' || order.status === 'ready');
-          const isReuploadWaiting = !isCancelled && isReservationWaitingForReupload(order);
-          const isPaymentVerification = !isCancelled && !isReady && !isReuploadWaiting && (
+          const cleanStatus = String(order.status || '').toLowerCase().replace(/_/g, '-').trim();
+          const isFulfillment = ['processing', 'to-ship', 'to-receive', 'delivered', 'completed'].includes(cleanStatus);
+          const isReady = !isCancelled && !isFulfillment && (order.status === 'ready_for_processing' || order.status === 'ready');
+          const isReuploadWaiting = !isCancelled && !isFulfillment && isReservationWaitingForReupload(order);
+          const isPaymentVerification = !isCancelled && !isFulfillment && !isReady && !isReuploadWaiting && !order.paymentVerified && (
+            cleanStatus === 'payment-verification' || 
             order.status === 'payment_verification' || 
             order.paymentStatus === 'pending_verification' || 
             Boolean((order.paymentProofDataUrl && order.paymentProofDataUrl.length > 20) || (order.paymentProof && String(order.paymentProof).startsWith('data:')))
           );
-          const isWaiting = !isCancelled && !isReady && !isPaymentVerification && !isReuploadWaiting;
+          const isWaiting = !isCancelled && !isFulfillment && !isReady && !isPaymentVerification && !isReuploadWaiting && isReservationInWaitingForStock(order);
 
-          if (statusFilter === 'all') return true;
+          if (statusFilter === 'all') return !isFulfillment;
           if (statusFilter === 'waiting') return isWaiting;
           if (statusFilter === 'payment_verification') return isPaymentVerification || isReuploadWaiting;
           if (statusFilter === 'ready') return isReady;
           if (statusFilter === 'cancelled') return isCancelled;
-          return true;
+          return !isFulfillment;
         });
 
         // Priority Rules for Admin/Staff Reservation List:
@@ -1773,10 +1776,12 @@
             order.autoCancelledDueToRejectionDeadline === true ||
             order.autoCancelledDueToPaymentDeadline === true
           );
-          const isReady = !isCancelled && (order.status === 'ready_for_processing' || order.status === 'ready');
-          const isReuploadWaiting = !isCancelled && isReservationWaitingForReupload(order);
-          const isPaymentVerification = !isCancelled && !isReady && !isReuploadWaiting && isReservationInPaymentVerification(order);
-          const isWaiting = !isCancelled && !isReady && !isPaymentVerification && !isReuploadWaiting && isReservationInWaitingForStock(order);
+          const cleanStatus = String(order.status || '').toLowerCase().replace(/_/g, '-').trim();
+          const isFulfillment = ['processing', 'to-ship', 'to-receive', 'delivered', 'completed'].includes(cleanStatus);
+          const isReady = !isCancelled && !isFulfillment && (order.status === 'ready_for_processing' || order.status === 'ready');
+          const isReuploadWaiting = !isCancelled && !isFulfillment && isReservationWaitingForReupload(order);
+          const isPaymentVerification = !isCancelled && !isFulfillment && !isReady && !isReuploadWaiting && !order.paymentVerified && isReservationInPaymentVerification(order);
+          const isWaiting = !isCancelled && !isFulfillment && !isReady && !isPaymentVerification && !isReuploadWaiting && isReservationInWaitingForStock(order);
 
           // Highlight position #1 for waiting reservations as Next
           const isNext = isWaiting && pos === 1;
@@ -1998,8 +2003,33 @@
                 <p class="text-[13px] sm:text-[14px] text-gray-700 dark:text-gray-300 font-normal leading-tight">${timeStr}</p>
               </div>
             `;
+          } else if (isFulfillment) {
+            const fulfillmentLabels = {
+              'processing': '🟣 Processing (In Fulfillment)',
+              'to-ship': '📦 To Ship (Fulfillment)',
+              'to-receive': '🚚 In Transit (Fulfillment)',
+              'delivered': '✅ Delivered',
+              'completed': '✅ Completed'
+            };
+            const fBadge = fulfillmentLabels[cleanStatus] || '🟣 In Fulfillment';
+            statusBadge = `
+              <div class="flex flex-col items-start gap-1 text-left leading-tight">
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 dark:bg-blue-950/60 border border-blue-300 dark:border-blue-700 text-blue-900 dark:text-blue-200 text-[13px] sm:text-[14px] font-semibold shrink-0 whitespace-nowrap leading-tight">
+                  ${fBadge}
+                </span>
+                <p class="text-[12px] sm:text-[13px] text-blue-700 dark:text-blue-300 font-medium leading-tight">Transferred to Order Management</p>
+              </div>
+            `;
+            dateAndAvailabilityHtml = `
+              <div class="space-y-1 text-left leading-tight">
+                <p class="font-normal text-gray-950 dark:text-white text-[15px] sm:text-[16px] leading-tight">${dateStr}</p>
+                <p class="text-[13px] sm:text-[14px] text-gray-700 dark:text-gray-300 font-normal leading-tight">${timeStr}</p>
+              </div>
+            `;
           } else {
-            statusBadge = `<span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-gray-100 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 text-gray-800 dark:text-gray-200 text-[13px] sm:text-[14px] font-semibold shrink-0 whitespace-nowrap">Cancelled</span>`;
+            const rawStatus = String(order.status || '').replace(/_/g, ' ').replace(/-/g, ' ');
+            const formattedStatus = rawStatus ? rawStatus.charAt(0).toUpperCase() + rawStatus.slice(1) : 'Unknown';
+            statusBadge = `<span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-gray-100 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 text-gray-800 dark:text-gray-200 text-[13px] sm:text-[14px] font-semibold shrink-0 whitespace-nowrap">${formattedStatus}</span>`;
             dateAndAvailabilityHtml = `
               <div class="space-y-1 text-left leading-tight">
                 <p class="font-normal text-gray-950 dark:text-white text-[15px] sm:text-[16px] leading-tight">${dateStr}</p>
@@ -2026,6 +2056,15 @@
                   Process
                 </button>
               </div>
+            `;
+          } else if (isFulfillment) {
+            actionButtonHtml = `
+              <a 
+                href="orders.html"
+                class="h-9 px-3.5 inline-flex items-center justify-center border border-blue-300 dark:border-blue-700 bg-blue-50 dark:bg-blue-950/60 text-blue-800 dark:text-blue-200 hover:bg-blue-100 dark:hover:bg-blue-900/60 text-xs sm:text-[13px] font-semibold rounded-xl transition-all duration-150 cursor-pointer whitespace-nowrap text-center shadow-2xs"
+              >
+                View in Orders
+              </a>
             `;
           } else if (isReuploadWaiting) {
             actionButtonHtml = `
@@ -2627,11 +2666,13 @@
         const modalInitial = (modalCustomerName.trim().charAt(0) || 'C').toUpperCase();
         const modalAvatarUrl = getCustomerAvatar(order);
 
+        const cleanModalStatus = String(order.status || '').toLowerCase().replace(/_/g, '-').trim();
+        const isFulfillmentModal = ['processing', 'to-ship', 'to-receive', 'delivered', 'completed'].includes(cleanModalStatus);
         const isCancelledModal = (order.status === 'cancelled' || order.status === 'Cancelled' || order.status === 'rejected');
-        const isReadyModal = (order.status === 'ready_for_processing' || order.status === 'ready');
-        const isReuploadWaitingModal = isReservationWaitingForReupload(order);
-        const isPaymentVerificationModal = !isCancelledModal && !isReadyModal && !isReuploadWaitingModal && isReservationInPaymentVerification(order);
-        const isWaitingModal = !isCancelledModal && !isReadyModal && !isPaymentVerificationModal && !isReuploadWaitingModal && isReservationInWaitingForStock(order);
+        const isReadyModal = !isCancelledModal && !isFulfillmentModal && (order.status === 'ready_for_processing' || order.status === 'ready');
+        const isReuploadWaitingModal = !isCancelledModal && !isFulfillmentModal && isReservationWaitingForReupload(order);
+        const isPaymentVerificationModal = !isCancelledModal && !isReadyModal && !isReuploadWaitingModal && !isFulfillmentModal && !order.paymentVerified && isReservationInPaymentVerification(order);
+        const isWaitingModal = !isCancelledModal && !isReadyModal && !isPaymentVerificationModal && !isReuploadWaitingModal && !isFulfillmentModal && isReservationInWaitingForStock(order);
 
         let statusBadge = '';
         const modalAllocatedQty = Number(order.allocatedQuantity || 0);
@@ -2653,12 +2694,25 @@
           statusBadge = `<span class="px-3 py-1 rounded-full ${isExp ? 'bg-red-50 border border-red-300 text-red-800' : 'bg-amber-50 border border-amber-300 text-amber-900'} text-xs sm:text-[13px] font-bold uppercase">${isExp ? '⚠️ Window Expired' : '⏱️ Proof Rejected — Awaiting Re-upload'}</span>`;
         } else if (isPaymentVerificationModal) {
           statusBadge = `<span class="px-3 py-1 rounded-full bg-blue-50 border border-blue-300 text-blue-800 text-xs sm:text-[13px] font-bold uppercase">🔵 Payment Review</span>`;
+        } else if (isFulfillmentModal) {
+          const fModalMap = {
+            'processing': '🟣 Processing (In Fulfillment)',
+            'to-ship': '📦 To Ship (In Fulfillment)',
+            'to-receive': '🚚 In Transit (In Fulfillment)',
+            'delivered': '✅ Delivered',
+            'completed': '✅ Completed'
+          };
+          statusBadge = `<span class="px-3 py-1 rounded-full bg-blue-50 border border-blue-300 text-blue-800 text-xs sm:text-[13px] font-bold uppercase">${fModalMap[cleanModalStatus] || '🟣 In Fulfillment'}</span>`;
         } else if (isModalFullyAllocated) {
           statusBadge = `<span class="px-3 py-1 rounded-full bg-emerald-100 border border-emerald-300 text-emerald-900 text-xs sm:text-[13px] font-bold uppercase">🟢 Stock Allocated</span>`;
         } else if (isModalPartiallyAllocated) {
           statusBadge = `<span class="px-3 py-1 rounded-full bg-amber-100 border border-amber-300 text-amber-900 text-xs sm:text-[13px] font-bold uppercase">🟠 Partially Allocated</span>`;
-        } else {
+        } else if (isWaitingModal) {
           statusBadge = `<span class="px-3 py-1 rounded-full bg-amber-50 border border-amber-300 text-amber-900 text-xs sm:text-[13px] font-bold uppercase">🟠 Waiting for Stock</span>`;
+        } else {
+          const rawStatus = String(order.status || '').replace(/_/g, ' ').replace(/-/g, ' ');
+          const formattedStatus = rawStatus ? rawStatus.toUpperCase() : 'UNKNOWN';
+          statusBadge = `<span class="px-3 py-1 rounded-full bg-gray-100 border border-gray-300 text-gray-800 text-xs sm:text-[13px] font-bold uppercase">${formattedStatus}</span>`;
         }
 
         box.innerHTML = `
@@ -2922,8 +2976,11 @@
                 </div>
                 <button id="btn-det-action-cancel" class="px-5 py-3 text-sm sm:text-base font-bold bg-gray-200 hover:bg-gray-300 text-gray-900 rounded-xl cursor-pointer transition-colors shadow-2xs">Cancel Reservation</button>
               ` : ''}
-              ${(!isCancelledModal && !isPaymentVerificationModal && !isReuploadWaitingModal) ? `
+              ${(!isCancelledModal && !isPaymentVerificationModal && !isReuploadWaitingModal && !isFulfillmentModal) ? `
                 <button id="btn-det-action-cancel" class="px-5 py-3 text-sm sm:text-base font-bold bg-gray-200 hover:bg-gray-300 text-gray-900 rounded-xl cursor-pointer transition-colors shadow-2xs">Cancel Reservation</button>
+              ` : ''}
+              ${isFulfillmentModal ? `
+                <a href="orders.html" class="px-6 py-3 text-sm sm:text-base font-black bg-blue-600 text-white hover:bg-blue-700 rounded-xl cursor-pointer transition-colors shadow-xs inline-flex items-center gap-1.5">Manage in Orders &rarr;</a>
               ` : ''}
               ${(isReadyModal) ? `
                 <button id="btn-det-action-process" class="px-6 py-3 text-sm sm:text-base font-black bg-[#1E6C02] text-white hover:bg-[#145001] rounded-xl cursor-pointer transition-colors shadow-xs">Process Order</button>
