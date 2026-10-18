@@ -78,8 +78,16 @@ import {
   getDocs,
   collection,
   query,
-  where
 } from '../lib/firebase.js';
+
+import { 
+  predictServiceReadinessML, 
+  predictStockAvailabilityML, 
+  trainServiceTimeRidgeRegression, 
+  trainStockAvailabilityRidgeRegression,
+  extractOrderPlacementFeatures,
+  evaluateStockAvailabilityDataSufficiency
+} from './prediction-engine.js';
 
 export { 
   saveFirestoreDoc,
@@ -4533,137 +4541,35 @@ export function checkAndAutoCompleteOrders() {
   try {
     const raw = localStorage.getItem('aurora-orders') || '[]';
     const list = (JSON.parse(raw) || []).filter(o => !isStaleOrderOrReservation(o));
+    const modifiedOrders = [];
     let modified = false;
-    const now = new Date();
-    
-    const updatedList = list.map(order => {
+
+    list.forEach(order => {
       if (order && !isStaleOrderOrReservation(order) && order.status === 'delivered') {
-        // Resolve authoritative delivery timestamp and deadline
-        let deliveredMs = null;
-        if (order.deliveredAt) {
-          deliveredMs = new Date(order.deliveredAt).getTime();
-        } else if (order.customerConfirmationDeadline) {
-          deliveredMs = new Date(order.customerConfirmationDeadline).getTime() - (48 * 60 * 60 * 1000);
-        } else if (order.deliveredDate) {
-          const timeStr = order.deliveredTime || '00:00';
-          deliveredMs = new Date(`${order.deliveredDate} ${timeStr}`).getTime();
-        }
-
-        if ((!deliveredMs || isNaN(deliveredMs)) && order.statusHistory) {
-          const delHist = order.statusHistory.find(h => (h.status || '').toLowerCase() === 'delivered');
-          if (delHist && delHist.changedAt) {
-            deliveredMs = new Date(delHist.changedAt).getTime();
-          }
-        }
-
-        const deadlineDate = deliveredMs && !isNaN(deliveredMs) 
-          ? new Date(deliveredMs + (48 * 60 * 60 * 1000))
-          : (order.customerConfirmationDeadline ? new Date(order.customerConfirmationDeadline) : null);
-
-        if (deadlineDate && now.getTime() >= deadlineDate.getTime()) {
+        const completed = evaluateOrderCompletion(order);
+        if (completed) {
           modified = true;
-          const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-          const completionDate = `${months[deadlineDate.getMonth()]} ${deadlineDate.getDate()}, ${deadlineDate.getFullYear()}`;
-          const completionTime = deadlineDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-          const completedAtIso = deadlineDate.toISOString();
-          
-          addNotification(
-            order.userId || order.customerId || '',
-            'Order Automatically Completed',
-            `Your order #${order.id} has been automatically marked as completed after 48 hours of successful delivery.`,
-            { 
-              role: 'customer', 
-              type: 'order', 
-              orderId: order.id,
-              eventKey: `order-completed-${order.id}`,
-              notificationId: `notif-order-completed-${order.id}`,
-              createdDate: completionDate,
-              createdTime: completionTime,
-              timestamp: completedAtIso
-            }
-          );
-
-          const historyItem = {
-            id: 'hist-' + deadlineDate.getTime() + '-auto',
-            status: 'Completed',
-            changedBy: 'System',
-            changedAt: `${completionDate}, ${completionTime}`,
-            note: '✔ Order automatically completed after 48 hours of delivery (no issues reported).'
-          };
-
-          let stockDeducted = order.stockDeducted;
-          if (!stockDeducted) {
-            const currentProducts = getProducts();
-            if (order.items) {
-              order.items.forEach(it => {
-                if (it.product && it.product.id) {
-                  const pIdx = currentProducts.findIndex(p => String(p.id) === String(it.product.id));
-                  if (pIdx !== -1) {
-                    const qty = Number(it.quantity || 0);
-                    currentProducts[pIdx].stock = Math.max(0, Number(currentProducts[pIdx].stock || 0) - qty);
-                    if (currentProducts[pIdx].currentStock !== undefined) {
-                      currentProducts[pIdx].currentStock = Math.max(0, Number(currentProducts[pIdx].currentStock || 0) - qty);
-                    }
-                    
-                    addInventoryHistory({
-                      productName: currentProducts[pIdx].name,
-                      quantityAdded: -qty,
-                      type: 'order_fulfillment',
-                      remarks: `Fulfillment release for order #${order.id}`
-                    }, true);
-                  }
-                }
-              });
-            }
-            saveProducts(currentProducts, true);
-            stockDeducted = true;
-          }
-
-          // Financial verification check:
-          // Fully electronic payment (GCash full payment) requires no cash turnover audit.
-          // Physical cash / COD / partial deposit orders MUST NOT be automatically marked financially verified.
-          const isFullElectronic = order.financialStatus === 'No Cash Collection Required' || 
-            (order.paymentMethod === 'gcash' && (order.paymentType === 'full' || order.paymentOption === 'Full Payment') && (order.paymentVerified || order.financialVerification));
-          
-          const isFinancialVerified = Boolean(
-            order.financialVerification === true || 
-            order.cashAuditStatus === 'Audited' || 
-            isFullElectronic
-          );
-
-          let finStatus = order.financialStatus;
-          if (isFullElectronic) {
-            finStatus = 'No Cash Collection Required';
-          } else if (isFinancialVerified) {
-            finStatus = 'Verified';
-          } else {
-            finStatus = 'Pending Turnover';
-          }
-
-          return {
-            ...order,
-            status: 'completed',
-            completedAt: completedAtIso,
-            completionDate: completionDate,
-            completionTime: completionTime,
-            completionType: 'System Auto Completed',
-            completionMethod: 'Automatic Completion',
-            completionReason: 'Auto Completed (48 Hours - No Issue Reported)',
-            customerConfirmation: true,
-            customerConfirmationDate: completionDate,
-            customerConfirmationTime: completionTime,
-            financialVerification: isFinancialVerified,
-            financialStatus: finStatus,
-            stockDeducted,
-            statusHistory: [...(order.statusHistory || []).filter(h => h.status !== 'Completed'), historyItem]
-          };
+          modifiedOrders.push(order);
         }
       }
-      return order;
     });
 
     if (modified) {
-      localStorage.setItem('aurora-orders', JSON.stringify(updatedList));
+      localStorage.setItem('aurora-orders', JSON.stringify(list));
+
+      if (modifiedOrders.length > 0) {
+        modifiedOrders.forEach(ord => {
+          try {
+            registerPendingOrderWrite(ord.id, ord);
+            saveFirestoreDoc('orders', String(ord.id), ord).catch(err => {
+              console.warn('[AUTO-COMPLETE] Error saving auto-completed order to Firestore:', ord.id, err);
+            });
+          } catch (e) {
+            console.warn('[AUTO-COMPLETE] Error registering auto-completed order write:', e);
+          }
+        });
+      }
+
       if (typeof window !== 'undefined') {
         window.dispatchEvent(new CustomEvent('aurora-sync-event', { detail: { key: 'aurora-orders' } }));
       }
@@ -4760,16 +4666,39 @@ export function getOrders() {
     let collectedDate = o.collectedDate || o.deliveredDate || o.deliveryVerificationDate || (o.createdAt ? new Date(o.createdAt).toLocaleDateString() : new Date().toLocaleDateString());
     let collectedTime = o.collectedTime || o.deliveredTime || '10:00 AM';
 
-    if (o.isReplacement || o.replacementDelivery) {
+    const isGenuineCashlessFull = (String(o.paymentMethod || '').toLowerCase() === 'gcash' || String(o.paymentMethod || '').toLowerCase() === 'g-cash') &&
+      (o.paymentType === 'full' || o.paymentType === 'full_advance' || o.paymentOption === 'Full Payment' || o.paymentOption === 'full') &&
+      !isReservation &&
+      o.paymentType !== 'deposit' && o.paymentType !== 'downpayment' && o.paymentType !== 'down';
+    const isReplacementOrder = Boolean(o.isReplacement || o.replacementDelivery || o.amountPaid === 'Original Payment');
+
+    if (isReplacementOrder) {
       financialStatus = 'No Cash Collection Required';
       amountCollected = 0;
+    } else if (financialStatus === 'No Cash Collection Required' && !isGenuineCashlessFull) {
+      // Do not preserve a cash-audit exemption on an ordinary cash/collect-on-delivery order.
+      financialStatus = (o.financialVerification === true || o.cashAuditStatus === 'Audited')
+        ? 'Verified'
+        : 'Pending Turnover';
+      if (amountCollected === undefined || amountCollected === 0) {
+        const isDown = o.paymentType === 'deposit' || o.paymentType === 'downpayment' || o.paymentType === 'down' || o.isPreOrder;
+        const depositPaid = isDown ? Math.floor(total * 0.3) : 0;
+        amountCollected = Math.max(0, total - depositPaid);
+      }
+    }
+
+    if (isReplacementOrder) {
+      // Replacement deliveries do not require cash collection.
     } else if (o.status === 'delivered' || o.status === 'completed') {
       if (!financialStatus) {
-        if (o.paymentType === 'full' || o.paymentType === 'full_advance' || o.paymentMethod === 'gcash' && !isReservation && o.paymentType !== 'deposit' && o.paymentType !== 'downpayment') {
+        if (isGenuineCashlessFull) {
           financialStatus = 'No Cash Collection Required';
           amountCollected = 0;
         } else {
-          financialStatus = o.status === 'completed' ? 'Verified' : 'Pending Turnover';
+          // Preserve explicit verification evidence, but never infer an audit from Completed status alone.
+          financialStatus = (o.financialVerification === true || o.cashAuditStatus === 'Audited')
+            ? 'Verified'
+            : 'Pending Turnover';
           if (amountCollected === undefined) {
             const isDown = o.paymentType === 'deposit' || o.paymentType === 'downpayment' || o.paymentType === 'down' || o.isPreOrder;
             const depositPaid = isDown ? Math.floor(total * 0.3) : (o.paymentMethod === 'gcash' ? total : 0);
@@ -4779,7 +4708,7 @@ export function getOrders() {
       }
     } else {
       if (!financialStatus) {
-        if (o.paymentType === 'full' || o.paymentType === 'full_advance') {
+        if (isGenuineCashlessFull) {
           financialStatus = 'No Cash Collection Required';
           amountCollected = 0;
         }
@@ -4795,13 +4724,10 @@ export function getOrders() {
     }
 
     // Order completion workflow state fields
+    // Preserve explicit customer confirmation only. Completed status alone is not confirmation evidence.
     let customerConfirmation = Boolean(o.customerConfirmation);
-    if (o.status === 'completed' && !customerConfirmation) {
-      customerConfirmation = true;
-    }
-
-    const customerConfirmationDate = o.customerConfirmationDate || (customerConfirmation ? (o.completedAt ? new Date(o.completedAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })) : null);
-    const customerConfirmationTime = o.customerConfirmationTime || (customerConfirmation ? (o.completedAt ? new Date(o.completedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '10:00 AM') : null);
+    const customerConfirmationDate = o.customerConfirmationDate || null;
+    const customerConfirmationTime = o.customerConfirmationTime || null;
 
     let financialVerification = Boolean(o.financialVerification || o.cashAuditStatus === 'Audited');
     if (financialStatus === 'Verified' || financialStatus === 'No Cash Collection Required') {
@@ -4810,9 +4736,10 @@ export function getOrders() {
       financialVerification = false;
     }
 
-    const verifiedBy = o.verifiedBy || (financialVerification ? 'Administrator' : null);
-    const verifiedDate = o.verifiedDate || (financialVerification ? (collectedDate || new Date().toLocaleDateString()) : null);
-    const verifiedTime = o.verifiedTime || (financialVerification ? (collectedTime || '10:00 AM') : null);
+    // Do not invent an auditor identity or verification timestamp when the record lacks one.
+    const verifiedBy = o.verifiedBy || null;
+    const verifiedDate = o.verifiedDate || null;
+    const verifiedTime = o.verifiedTime || null;
 
     let completionType = o.completionType || 'Pending';
     if (o.status === 'completed' && (completionType === 'Pending' || !completionType)) {
@@ -4823,7 +4750,8 @@ export function getOrders() {
       } else if (customerConfirmation) {
         completionType = 'Customer Confirmed';
       } else {
-        completionType = 'Full Workflow Verified';
+        // Avoid claiming the full workflow was verified when the source record does not establish that.
+        completionType = 'Legacy Completed (Verification Unconfirmed)';
       }
     }
 
@@ -4862,7 +4790,10 @@ export function getOrders() {
       if (isStaleOrderOrReservation(order)) return;
       if (order.status === 'delivered') {
         const changed = evaluateOrderCompletion(order);
-        if (changed) autoCompletedAny = true;
+        if (changed) {
+          autoCompletedAny = true;
+          deadlineModifiedOrders.push(order);
+        }
       }
       const cancelledRejection = evaluateOrderPaymentRejectionDeadline(order);
       const cancelledAllocationDeadline = evaluateReservationPaymentDeadline(order, true);
@@ -4937,6 +4868,60 @@ export function getCashToAudit(order) {
   return totalBill;
 }
 
+export function hasUnresolvedIssue(order) {
+  if (!order) return false;
+  if (order.status === 'issue-reported') return true;
+  if (order.issueReported === true) return true;
+  if (order.reportedIssue) {
+    const issueStatus = String(order.reportedIssue.status || '').toLowerCase().trim();
+    if (issueStatus === 'pending-review' || issueStatus === 'in-review' || issueStatus === 'pending' || issueStatus === 'reported') {
+      return true;
+    }
+    const isResolved = Boolean(
+      order.reportedIssue.resolvedAt || 
+      issueStatus === 'approved' || 
+      issueStatus === 'rejected' || 
+      issueStatus === 'completed' || 
+      issueStatus === 'resolved'
+    );
+    if (!isResolved) return true;
+  }
+  return false;
+}
+
+export function orderRequiresCashAudit(order) {
+  if (!order) return false;
+  if (order.isReplacement || order.replacementDelivery) return false;
+  if (order.financialStatus === 'No Cash Collection Required') return false;
+  if (order.amountPaid === 'Original Payment') return false;
+
+  const isFullGcash = order.paymentMethod === 'gcash' && (
+    order.paymentType === 'full' || 
+    order.paymentType === 'full_advance' || 
+    order.paymentOption === 'Full Payment' || 
+    order.paymentOption === 'full'
+  );
+  if (isFullGcash && !order.isPreOrder && order.paymentType !== 'deposit' && order.paymentType !== 'downpayment' && order.paymentType !== 'down') {
+    return false;
+  }
+
+  if (order.amountCollected !== undefined && order.amountCollected !== null) {
+    return Number(order.amountCollected) > 0;
+  }
+
+  return getCashToAudit(order) > 0;
+}
+
+export function isOrderCashAuditVerified(order) {
+  if (!order) return false;
+  if (!orderRequiresCashAudit(order)) return true;
+  return Boolean(
+    order.financialVerification === true || 
+    order.financialStatus === 'Verified' || 
+    order.cashAuditStatus === 'Audited'
+  );
+}
+
 export function evaluateOrderCompletion(order) {
   if (!order || order.status === 'completed' || order.status === 'cancelled') {
     return false;
@@ -4946,20 +4931,24 @@ export function evaluateOrderCompletion(order) {
     return false;
   }
 
-  // Stop automatic completion if issue is reported
-  if (order.status === 'issue-reported' || order.issueReported || (order.reportedIssue && order.reportedIssue.status === 'pending-review')) {
+  // Stop completion if unresolved issue is reported
+  if (hasUnresolvedIssue(order)) {
     return false;
   }
 
-  const isFinancialVerified = Boolean(
-    order.financialVerification === true || 
-    order.financialStatus === 'Verified' || 
-    order.financialStatus === 'No Cash Collection Required'
-  );
+  const requiresCashAudit = orderRequiresCashAudit(order);
+  const isAuditVerified = isOrderCashAuditVerified(order);
+
+  // An order requiring a cash turnover audit must remain Delivered until the audit is verified
+  if (requiresCashAudit && !isAuditVerified) {
+    return false;
+  }
 
   const isCustomerConfirmed = Boolean(order.customerConfirmation === true || order.customerConfirmation === 'Confirmed');
 
-  if (isCustomerConfirmed && isFinancialVerified) {
+  // Rule 4: If the order does not require a cash audit, valid customer confirmation may complete it immediately (provided no unresolved issue).
+  // If the order requires a cash audit, customer confirmation alone does not complete it until cash audit is verified.
+  if (isCustomerConfirmed) {
     order.status = 'completed';
     const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
     const now = new Date();
@@ -4969,26 +4958,34 @@ export function evaluateOrderCompletion(order) {
     if (!order.customerConfirmationDate) {
       order.customerConfirmationDate = formattedDate;
     }
-    order.completionType = 'Full Workflow Verified';
-    order.financialVerification = true;
-    if (order.financialStatus !== 'No Cash Collection Required') {
-      order.financialStatus = 'Verified';
+    order.completionType = requiresCashAudit ? 'Full Workflow Verified' : 'Customer Confirmed (No Cash Audit Required)';
+    if (requiresCashAudit) {
+      order.financialVerification = true;
+      if (order.financialStatus !== 'No Cash Collection Required') {
+        order.financialStatus = 'Verified';
+      }
     }
     order.completedAt = order.completedAt || order.customerConfirmedAt || now.toISOString();
 
     if (!order.statusHistory) order.statusHistory = [];
-    order.statusHistory.push({
-      id: 'hist-comp-' + Date.now(),
-      status: 'Completed',
-      changedBy: 'System / Admin Workflow',
-      changedAt: `${formattedDate}, ${formattedTime}`,
-      note: 'Order successfully completed following customer confirmation and financial audit verification.'
-    });
+    const hasCompletionEntry = order.statusHistory.some(h => (h.status || '').toLowerCase() === 'completed');
+    if (!hasCompletionEntry) {
+      const historyNote = requiresCashAudit
+        ? 'Order successfully completed following customer confirmation and verified cash turnover audit.'
+        : 'Order successfully completed following customer confirmation (no cash collection required).';
+      order.statusHistory.push({
+        id: 'hist-comp-' + Date.now(),
+        status: 'Completed',
+        changedBy: 'System / Customer Confirmation Workflow',
+        changedAt: `${formattedDate}, ${formattedTime}`,
+        note: historyNote
+      });
+    }
 
     try {
       addActivityLog(
         'Delivery',
-        `Order ticket #${order.id} marked as Completed following customer confirmation and verified financial audit.`,
+        `Order ticket #${order.id} marked as Completed following customer confirmation${requiresCashAudit ? ' and verified cash turnover audit.' : ' (no cash collection required).'}`,
         `Order #${order.id}`
       );
     } catch (e) {}
@@ -4996,39 +4993,36 @@ export function evaluateOrderCompletion(order) {
     return true;
   }
 
-  // Check 48-Hour Auto Completion Rule:
-  // Order Status = Delivered AND financialVerification == true AND customerConfirmation == false/pending AND No Issue Report AND 48 hours have passed
+  // Rule 5: If the customer does not confirm, automatic completion may occur after 48 hours only when there is no unresolved issue and all required financial verification has been satisfied.
   let autoCompleted48h = false;
   let deadlineDate = null;
 
-  if (!isCustomerConfirmed && isFinancialVerified) {
-    let deliveredMs = null;
-    if (order.deliveredAt) {
-      deliveredMs = new Date(order.deliveredAt).getTime();
-    } else if (order.customerConfirmationDeadline) {
-      deliveredMs = new Date(order.customerConfirmationDeadline).getTime() - (48 * 60 * 60 * 1000);
-    } else if (order.deliveredDate) {
-      const timeStr = order.deliveredTime || '00:00';
-      deliveredMs = new Date(`${order.deliveredDate} ${timeStr}`).getTime();
-    }
+  let deliveredMs = null;
+  if (order.deliveredAt) {
+    deliveredMs = new Date(order.deliveredAt).getTime();
+  } else if (order.customerConfirmationDeadline) {
+    deliveredMs = new Date(order.customerConfirmationDeadline).getTime() - (48 * 60 * 60 * 1000);
+  } else if (order.deliveredDate) {
+    const timeStr = order.deliveredTime || '00:00';
+    deliveredMs = new Date(`${order.deliveredDate} ${timeStr}`).getTime();
+  }
 
-    if ((!deliveredMs || isNaN(deliveredMs)) && order.statusHistory) {
-      const delHist = order.statusHistory.find(h => (h.status || '').toLowerCase() === 'delivered');
-      if (delHist && delHist.changedAt) {
-        deliveredMs = new Date(delHist.changedAt).getTime();
-      }
-    }
-
-    if (deliveredMs && !isNaN(deliveredMs)) {
-      deadlineDate = new Date(deliveredMs + (48 * 60 * 60 * 1000));
-      if (Date.now() >= deadlineDate.getTime()) {
-        autoCompleted48h = true;
-      }
+  if ((!deliveredMs || isNaN(deliveredMs)) && order.statusHistory) {
+    const delHist = order.statusHistory.find(h => (h.status || '').toLowerCase() === 'delivered');
+    if (delHist && delHist.changedAt) {
+      deliveredMs = new Date(delHist.changedAt).getTime();
     }
   }
 
-  // Only auto-complete on 48h timeout when payment is verified
-  if (isFinancialVerified && autoCompleted48h && deadlineDate) {
+  if (deliveredMs && !isNaN(deliveredMs)) {
+    deadlineDate = new Date(deliveredMs + (48 * 60 * 60 * 1000));
+    if (Date.now() >= deadlineDate.getTime()) {
+      autoCompleted48h = true;
+    }
+  }
+
+  // Only auto-complete on 48h timeout when all required financial verification is verified and deadline passed
+  if (autoCompleted48h && deadlineDate) {
     const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
     const completionDate = `${months[deadlineDate.getMonth()]} ${deadlineDate.getDate()}, ${deadlineDate.getFullYear()}`;
     const completionTime = deadlineDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -5040,26 +5034,34 @@ export function evaluateOrderCompletion(order) {
     order.completionMethod = 'Automatic Completion';
     order.customerConfirmationDate = completionDate;
     order.customerConfirmationTime = completionTime;
-    order.financialVerification = true;
-    if (order.financialStatus !== 'No Cash Collection Required') {
-      order.financialStatus = 'Verified';
+    if (requiresCashAudit) {
+      order.financialVerification = true;
+      if (order.financialStatus !== 'No Cash Collection Required') {
+        order.financialStatus = 'Verified';
+      }
     }
 
     order.completedAt = completedAtIso;
 
     if (!order.statusHistory) order.statusHistory = [];
-    order.statusHistory.push({
-      id: 'hist-comp-' + deadlineDate.getTime(),
-      status: 'Completed',
-      changedBy: 'System Auto-Completion',
-      changedAt: `${completionDate}, ${completionTime}`,
-      note: 'Order automatically completed after 48 hours because no customer issue was reported.'
-    });
+    const hasCompletionEntry = order.statusHistory.some(h => (h.status || '').toLowerCase() === 'completed');
+    if (!hasCompletionEntry) {
+      const historyNote = requiresCashAudit
+        ? 'Order automatically completed after 48 hours following verified cash turnover audit without customer issue.'
+        : 'Order automatically completed after 48 hours without customer issue (no cash collection required).';
+      order.statusHistory.push({
+        id: 'hist-comp-' + deadlineDate.getTime(),
+        status: 'Completed',
+        changedBy: 'System Auto-Completion',
+        changedAt: `${completionDate}, ${completionTime}`,
+        note: historyNote
+      });
+    }
 
     try {
       addActivityLog(
         'Delivery',
-        `Order ticket #${order.id} automatically completed after 48 hours because no customer issue was reported.`,
+        `Order ticket #${order.id} automatically completed after 48 hours without customer issue${requiresCashAudit ? ' following verified cash audit.' : '.'}`,
         `Order #${order.id}`
       );
     } catch (e) {}
@@ -5107,6 +5109,33 @@ export function isReservationOrder(o) {
   return false;
 }
 
+/**
+ * Sales-only classification for reservations that have explicitly been converted
+ * into regular orders. Keep isReservationOrder() unchanged because other workflows
+ * still need to recognize reservation IDs (including RES-prefixed IDs).
+ */
+export function isTransferredReservationToOrder(o) {
+  if (!o) return false;
+  const orderType = String(o.orderType || '').trim().toLowerCase();
+  const type = String(o.type || '').trim().toLowerCase();
+  const transactionType = String(o.transactionType || '').trim().toLowerCase();
+  return o.isPreOrder === false ||
+    orderType === 'order' ||
+    type === 'order' ||
+    transactionType === 'order' ||
+    o.reservationConvertedToOrder === true ||
+    o.convertedFromReservation === true ||
+    o.transferredToOrder === true ||
+    o.transferredToOrders === true;
+}
+
+/** True only for active reservation records that have not been explicitly converted to orders. */
+export function isSalesReservationOrder(o) {
+  if (!o) return false;
+  if (isTransferredReservationToOrder(o)) return false;
+  return isReservationOrder(o);
+}
+
 export function isReservationWaitingForReupload(order) {
   if (!order) return false;
   const statusClean = String(order.status || '').toLowerCase().replace(/_/g, '-');
@@ -5145,101 +5174,61 @@ export function isCancelledOrRejectedOrder(o) {
 }
 
 export function getVerifiedCustomerPaymentInfo(o) {
-  if (!o) return { isVerified: false, amount: 0, isReservation: false };
+  if (!o) return { isVerified: false, amount: 0, isReservation: false, isDownPayment: false, isFullPayment: false, isAudited: false };
   if (isCancelledOrRejectedOrder(o) || o.isReplacement) {
-    return { isVerified: false, amount: 0, isReservation: false };
+    return { isVerified: false, amount: 0, isReservation: false, isDownPayment: false, isFullPayment: false, isAudited: false };
   }
 
-  const isRes = isReservationOrder(o);
-  const statusClean = (o.status || '').toLowerCase().replace(/_/g, '-');
+  const isRes = isSalesReservationOrder(o);
+  const statusClean = String(o.status || '').toLowerCase().replace(/_/g, '-').trim();
+  const total = Math.max(0, Number(o.total || o.totalPrice || o.totalBill || 0) || 0);
+  const amountPaidValue = Number(o.amountPaid);
+  const hasRecordedAmountPaid = o.amountPaid !== undefined && o.amountPaid !== null && o.amountPaid !== '' && Number.isFinite(amountPaidValue) && amountPaidValue > 0;
+  const amountPaid = hasRecordedAmountPaid ? Math.min(amountPaidValue, total > 0 ? total : amountPaidValue) : 0;
+  const paymentMethod = String(o.paymentMethod || o.paymentTypeMethod || '').toLowerCase().replace(/[\s_-]+/g, ' ').trim();
+  const isCashMethod = ['cash', 'cash on delivery', 'cod', 'cash upon delivery', 'pay on delivery', 'collect on delivery', 'cheque on delivery'].includes(paymentMethod);
+  const isPaymentApproved = o.paymentVerified === true || o.isVerifiedPayment === true || o.paymentStatus === 'verified' || o.paymentStatus === 'paid' || o.paymentConfirmed === true;
+  const isAudited = o.financialVerification === true || o.financialStatus === 'Verified' || o.cashAuditStatus === 'Audited';
+  const requiresCashAudit = typeof orderRequiresCashAudit === 'function' ? orderRequiresCashAudit(o) : (Number(o.amountCollected || o.cashToAudit || 0) > 0);
+  const auditSatisfied = !requiresCashAudit || isAudited;
+  const isCashAuditVerified = requiresCashAudit && isAudited;
+  const isExplicitDownPayment = ['deposit', 'downpayment', 'down payment', 'down'].includes(String(o.paymentType || '').toLowerCase().replace(/[_-]+/g, ' ').trim()) || ['30% Down Payment', 'Down Payment', 'downpayment', 'deposit'].includes(String(o.paymentOption || '').trim());
+  const isExplicitFullPayment = ['full', 'full_advance', 'full payment'].includes(String(o.paymentType || '').toLowerCase().replace(/[_-]+/g, ' ').trim()) || ['Full Payment', 'full'].includes(String(o.paymentOption || '').trim()) || o.financialStatus === 'No Cash Collection Required';
 
-  // Check if status or payment flag indicates an approved/verified order or transaction
-  const isVerifiedStatus = [
-    'processing',
-    'to-ship',
-    'preparing',
-    'to-receive',
-    'shipped',
-    'in-transit',
-    'delivered',
-    'completed',
-    'fulfilled',
-    'ready_for_processing',
-    'ready-for-processing'
-  ].includes(statusClean);
-
-  const isVerifiedFlag = o.paymentVerified === true || o.isVerifiedPayment === true || o.paymentStatus === 'verified' || o.paymentStatus === 'paid';
-
-  if (!isVerifiedStatus && !isVerifiedFlag) {
-    return { isVerified: false, amount: 0, isReservation: isRes };
+  // A completed cash audit confirms the outstanding collected balance as well as any
+  // previously approved down payment. Delivery/order status alone is never proof of payment.
+  if (isCashAuditVerified) {
+    const amount = total > 0 ? total : amountPaid;
+    return { isVerified: amount > 0, amount, isReservation: isRes, isDownPayment: false, isFullPayment: amount > 0, isAudited: true };
   }
 
-  // Calculate transaction sales amount
-  let amount = 0;
+  // A reservation's order total or default deposit percentage is not evidence that money
+  // was received. Only a real, recorded, approved payment can contribute to sales.
   if (isRes) {
-    // For reservation: deposit amount, amountPaid, or total
-    if (o.amountPaid !== undefined && o.amountPaid !== null && !isNaN(Number(o.amountPaid)) && Number(o.amountPaid) > 0) {
-      amount = Number(o.amountPaid);
-    } else if (o.depositAmount !== undefined && o.depositAmount !== null && !isNaN(Number(o.depositAmount)) && Number(o.depositAmount) > 0) {
-      amount = Number(o.depositAmount);
-    } else {
-      const tot = Number(o.total || o.totalPrice || o.totalBill || 0);
-      const isFull = o.paymentType === 'full' || o.paymentOption === 'Full Payment';
-      amount = isFull ? tot : Math.round(tot * 0.3);
+    if (!isPaymentApproved || !hasRecordedAmountPaid) {
+      return { isVerified: false, amount: 0, isReservation: true, isDownPayment: false, isFullPayment: false, isAudited: false };
     }
-  } else {
-    // For regular approved order: verified amount actually paid/collected
-    const tot = Number(o.total || o.totalPrice || o.totalBill || 0);
-    const isFullPayment = o.paymentType === 'full' || 
-                          o.paymentType === 'full_advance' || 
-                          o.paymentOption === 'Full Payment' || 
-                          o.paymentOption === 'full' || 
-                          o.paymentType === 'Full Payment' || 
-                          o.financialStatus === 'No Cash Collection Required';
-
-    const isDown = o.paymentType === 'deposit' || 
-                   o.paymentType === 'downpayment' || 
-                   o.paymentType === 'down' || 
-                   o.paymentOption === '30% Down Payment' || 
-                   (o.remainingAmount !== undefined && Number(o.remainingAmount) > 0) ||
-                   (o.remainingBalance !== undefined && Number(o.remainingBalance) > 0);
-
-    const isCompleted = statusClean === 'completed' || statusClean === 'fulfilled';
-    const isTurnoverVerified = o.financialVerification === true || 
-                               o.financialStatus === 'Verified' || 
-                               o.cashAuditStatus === 'Audited';
-
-    if (isCompleted || (statusClean === 'delivered' && isTurnoverVerified)) {
-      // Completed order or delivered with turnover verified: full total collected
-      amount = tot > 0 ? tot : Number(o.amountPaid || 0);
-    } else if (isFullPayment) {
-      // Full payment in advance: full total collected
-      amount = tot > 0 ? tot : Number(o.amountPaid || 0);
-    } else if (isDown) {
-      // Customer paid downpayment only (order in processing, to-ship, to-receive, or delivered pending turnover)
-      if (o.amountPaid !== undefined && o.amountPaid !== null && !isNaN(Number(o.amountPaid)) && Number(o.amountPaid) > 0 && Number(o.amountPaid) < tot) {
-        amount = Number(o.amountPaid);
-      } else if (o.depositAmount !== undefined && o.depositAmount !== null && !isNaN(Number(o.depositAmount)) && Number(o.depositAmount) > 0) {
-        amount = Number(o.depositAmount);
-      } else if (o.remainingAmount !== undefined && Number(o.remainingAmount) > 0 && tot > Number(o.remainingAmount)) {
-        amount = tot - Number(o.remainingAmount);
-      } else {
-        amount = Math.floor(tot * 0.3);
-      }
-    } else {
-      if (o.amountPaid !== undefined && o.amountPaid !== null && !isNaN(Number(o.amountPaid)) && Number(o.amountPaid) > 0) {
-        amount = Number(o.amountPaid);
-      } else {
-        amount = tot;
-      }
-    }
-
-    if (tot > 0 && amount > tot) {
-      amount = tot;
-    }
+    const amount = Math.min(amountPaid, total > 0 ? total : amountPaid);
+    return { isVerified: amount > 0, amount, isReservation: true, isDownPayment: total > 0 && amount < total, isFullPayment: total > 0 && amount >= total, isAudited: false };
   }
 
-  return { isVerified: true, amount: amount, isReservation: isRes };
+  // Explicitly approved non-cash payments (e.g. GCash/bank transfer) count only the
+  // amount actually recorded as paid. Never infer payment from Processing/Delivered status.
+  if (isPaymentApproved && hasRecordedAmountPaid && (!requiresCashAudit || (!isCashMethod && paymentMethod !== ''))) {
+    const amount = Math.min(amountPaid, total > 0 ? total : amountPaid);
+    return { isVerified: amount > 0, amount, isReservation: false, isDownPayment: total > 0 && amount < total && (isExplicitDownPayment || amountPaid < total), isFullPayment: total > 0 && amount >= total, isAudited: false };
+  }
+
+  // Full advance payment may be recorded by the approved payment flag even when older
+  // records did not store amountPaid, but cash collection still requires its audit.
+  if (isPaymentApproved && isExplicitFullPayment && total > 0 && (!requiresCashAudit || (!isCashMethod && paymentMethod !== '')) && auditSatisfied) {
+    return { isVerified: true, amount: total, isReservation: false, isDownPayment: false, isFullPayment: true, isAudited: false };
+  }
+
+  // A cash/COD amount is not sales-eligible until the corresponding cash audit is done.
+  // An approved, explicitly recorded partial non-cash payment is handled above even when
+  // the remaining COD balance still awaits turnover.
+  return { isVerified: false, amount: 0, isReservation: false, isDownPayment: false, isFullPayment: false, isAudited: false };
 }
 
 export function isOrderVerified(o) {
@@ -6581,7 +6570,16 @@ export function updateOrderStatus(orderId, status, note = '', extraFields = {}) 
 
     if (shouldUpdate) {
       // For original order, status becomes completed, but we can customize the note/history
-      const currentStatus = order.id === originalOrderId ? 'completed' : status;
+      let currentStatus = order.id === originalOrderId ? 'completed' : status;
+      if (currentStatus === 'completed' && order.id !== originalOrderId) {
+        if (hasUnresolvedIssue(order)) {
+          console.warn(`[ORDER-COMPLETION] Blocked completion of order #${order.id} due to unresolved customer issue.`);
+          currentStatus = order.status;
+        } else if (orderRequiresCashAudit(order) && !isOrderCashAuditVerified(order)) {
+          console.warn(`[ORDER-COMPLETION] Blocked completion of order #${order.id} due to pending cash turnover audit.`);
+          currentStatus = order.status === 'delivered' ? 'delivered' : order.status;
+        }
+      }
       const historyNote = order.id === originalOrderId 
         ? `✔ Original order automatically completed as Replacement Order #${orderId} was successfully fulfilled.`
         : (note || `Status updated to ${labels[status] || status}`);
@@ -6659,7 +6657,10 @@ export function updateOrderStatus(orderId, status, note = '', extraFields = {}) 
           if (order.isReplacement || order.replacementDelivery) {
             order.financialStatus = 'No Cash Collection Required';
             order.amountCollected = 0;
-          } else if (order.paymentType === 'full' || order.paymentType === 'full_advance') {
+          } else if ((String(order.paymentMethod || '').toLowerCase() === 'gcash' || String(order.paymentMethod || '').toLowerCase() === 'g-cash') &&
+                     (order.paymentType === 'full' || order.paymentType === 'full_advance' || order.paymentOption === 'Full Payment' || order.paymentOption === 'full') &&
+                     !isReservationOrder(order) &&
+                     order.paymentType !== 'deposit' && order.paymentType !== 'downpayment' && order.paymentType !== 'down') {
             order.financialStatus = 'No Cash Collection Required';
             order.amountCollected = 0;
           } else {
@@ -6877,7 +6878,9 @@ export function updateOrderStatus(orderId, status, note = '', extraFields = {}) 
         cancellationReason: currentStatus === 'cancelled' ? (historyNote || 'Cancelled by customer') : order.cancellationReason,
         staffName: finalStaffName,
         assignedStaff: finalAssignedStaff,
-        statusHistory: [...(order.statusHistory || []), historyItem],
+        statusHistory: (currentStatus === 'completed' && (order.statusHistory || []).some(h => (h.status || '').toLowerCase() === 'completed'))
+          ? (order.statusHistory || [])
+          : [...(order.statusHistory || []), historyItem],
         ...cancellationFields
       };
     }
@@ -8830,6 +8833,9 @@ if (typeof window !== 'undefined') {
     getCashToAudit,
     verifyCashTurnover,
     evaluateOrderCompletion,
+    hasUnresolvedIssue,
+    orderRequiresCashAudit,
+    isOrderCashAuditVerified,
     getOrderCompletionDate,
     getStaff,
     getActivityLogs,
@@ -8863,6 +8869,8 @@ if (typeof window !== 'undefined') {
     getAuthoritativeDeliveredDate,
     getEstimatedArrivalDate,
     predictStockAvailability,
+    evaluateStockAvailabilitySufficiency,
+    trainStockAvailabilityModel,
     predictServiceReadinessTime,
     getRestockPrediction,
     getContactMessages,
@@ -9650,160 +9658,41 @@ export function getEstimatedArrivalDate(order) {
  * Predicts the upcoming replenishment window for a given rice variety based strictly
  * on genuine historical inventory records (prioritizing 'restock_delivery' logs).
  * 
- * Method: Empirical Inter-Arrival Analysis with FIFO Queue Absorption Modeling
- * - Calculates inter-delivery intervals from genuine historical restocks (if available).
+ * Method: Empirical Inter-Arrival Analysis with FIFO Queue Demand Absorption
+ * Note: This is an empirical statistical heuristic derived from observed supplier
+ * replenishment intervals and active reservation queue depth, NOT a trained machine learning model.
+ * 
+ * - Evaluates inter-delivery intervals from genuine historical restocks.
  * - Projects the next physical restock delivery window.
  * - Evaluates active FIFO reservation queue depth against average batch size to distinguish
  *   physical supplier arrival from general-public stock availability.
  * - Never invents lead times, restock dates, or synthetic records.
  * - Gracefully falls back to "Waiting for Restock" if observations are insufficient.
+ * - Does NOT allocate stock, alter FIFO queues, or change reservation dates.
  *
  * @param {string|number} productIdOrName - Target rice variety identifier or name
  * @param {Object} [options] - Optional context parameters
  * @returns {Object} Structured prediction result with metadata, intervals, and fallback state
  */
 export function predictStockAvailability(productIdOrName, options = {}) {
-  const fallbackResult = {
-    status: 'insufficient_history',
-    displayDate: 'Waiting for Restock',
-    predictedDate: null,
-    predictedWindowStart: null,
-    predictedWindowEnd: null,
-    isPreliminary: true,
-    observationCount: 0,
-    intervalCount: 0,
-    averageIntervalDays: null,
-    method: 'Historical Restock Interval Analysis',
-    targetVariety: String(productIdOrName || 'Unknown'),
-    publicAvailabilityStatus: 'Awaiting Physical Restock Delivery',
-    reservedQueueSacks: 0,
-    avgBatchSacks: 0,
-    confidenceNote: 'Preliminary: Insufficient genuine restock intervals recorded for this variety. Awaiting genuine restock deliveries.'
-  };
-
-  if (!productIdOrName) return fallbackResult;
-
-  const products = typeof getProducts === 'function' ? getProducts() : [];
-  const product = products.find(p => String(p.id) === String(productIdOrName)) || 
-                  products.find(p => matchesProductVariety(p, { name: productIdOrName }, products));
-  const pId = product ? String(product.id) : String(productIdOrName);
-  const pName = product ? product.name : String(productIdOrName);
-  fallbackResult.targetVariety = pName;
-
-  // 1. Fetch genuine inventory history
   const allHistory = typeof getInventoryHistory === 'function' ? getInventoryHistory() : [];
-  const matchingHistory = allHistory.filter(h => 
-    h && matchesProductVariety({ id: pId, name: pName }, h, products) && Number(h.quantityAdded || 0) > 0
-  );
-
-  // Only genuine physical restock delivery records contribute to physical restock intervals
-  const restockDeliveries = matchingHistory.filter(h => h.type === 'restock_delivery');
-
-  if (restockDeliveries.length < 2) {
-    fallbackResult.observationCount = restockDeliveries.length;
-    return fallbackResult;
-  }
-
-  const usableHistory = restockDeliveries;
-
-  // 2. Sort chronologically ascending
-  const sorted = [...usableHistory].sort((a, b) => {
-    const tA = new Date(a.timestamp || `${a.date}T${a.time || '00:00'}`).getTime();
-    const tB = new Date(b.timestamp || `${b.date}T${b.time || '00:00'}`).getTime();
-    return tA - tB;
-  });
-
-  // 3. Compute empirical intervals between consecutive restocks
-  const intervalsInDays = [];
-  for (let i = 1; i < sorted.length; i++) {
-    const prev = new Date(sorted[i - 1].timestamp || `${sorted[i - 1].date}T${sorted[i - 1].time || '00:00'}`).getTime();
-    const curr = new Date(sorted[i].timestamp || `${sorted[i].date}T${sorted[i].time || '00:00'}`).getTime();
-    if (!isNaN(prev) && !isNaN(curr)) {
-      const diffDays = (curr - prev) / (1000 * 60 * 60 * 24);
-      if (diffDays > 0.1) intervalsInDays.push(diffDays);
-    }
-  }
-
-  if (intervalsInDays.length === 0) {
-    fallbackResult.observationCount = sorted.length;
-    return fallbackResult;
-  }
-
-  // 4. Calculate empirical summary statistics
-  intervalsInDays.sort((a, b) => a - b);
-  const medianInterval = intervalsInDays[Math.floor(intervalsInDays.length / 2)];
-  const minInterval = intervalsInDays[0];
-  const maxInterval = intervalsInDays[intervalsInDays.length - 1];
-  const stepDays = Math.max(1, Math.round(medianInterval));
-
-  // 5. Project next physical delivery date from the latest actual restock
-  const lastEntry = sorted[sorted.length - 1];
-  const lastDate = new Date(lastEntry.timestamp || `${lastEntry.date}T${lastEntry.time || '00:00'}`);
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
-  let projectedArrival = new Date(lastDate.getTime() + stepDays * 24 * 60 * 60 * 1000);
-  while (projectedArrival < today) {
-    projectedArrival = new Date(projectedArrival.getTime() + stepDays * 24 * 60 * 60 * 1000);
-  }
-
-  // 6. Define prediction window based on empirical variance
-  const windowPaddingDays = Math.max(1, Math.round((maxInterval - minInterval) / 2) || 2);
-  const windowStart = new Date(projectedArrival.getTime() - Math.min(windowPaddingDays, 2) * 24 * 60 * 60 * 1000);
-  if (windowStart < today) windowStart.setTime(today.getTime());
-  const windowEnd = new Date(projectedArrival.getTime() + windowPaddingDays * 24 * 60 * 60 * 1000);
-
-  // 7. Account for active FIFO reservation queue demand vs incoming batch size
+  const products = typeof getProducts === 'function' ? getProducts() : [];
   const allOrders = typeof getOrders === 'function' ? getOrders() : [];
-  const pendingReservations = allOrders.filter(o => {
-    if (!o || o.status === 'cancelled' || o.status === 'completed') return false;
-    const isRes = o.isPreOrder || o.status === 'pre-order' || (Array.isArray(o.items) && o.items.some(it => it && it.isReservation));
-    if (!isRes) return false;
-    return Array.isArray(o.items) && o.items.some(it => 
-      matchesProductVariety({ id: it.productId || it.product?.id, name: it.productName || it.product?.name }, { id: pId, name: pName }, products)
-    );
-  });
 
-  const reservedSacksQueue = pendingReservations.reduce((sum, o) => {
-    const item = (o.items || []).find(it => 
-      matchesProductVariety({ id: it.productId || it.product?.id, name: it.productName || it.product?.name }, { id: pId, name: pName }, products)
-    );
-    return sum + (Number(item?.quantity) || 0);
-  }, 0);
+  return predictStockAvailabilityML(productIdOrName, allHistory, products, allOrders);
+}
 
-  const avgBatchSize = Math.round(sorted.reduce((s, h) => s + (Number(h.quantityAdded) || 0), 0) / sorted.length);
+export function evaluateStockAvailabilitySufficiency() {
+  const allHistory = typeof getInventoryHistory === 'function' ? getInventoryHistory() : [];
+  const products = typeof getProducts === 'function' ? getProducts() : [];
+  const allOrders = typeof getOrders === 'function' ? getOrders() : [];
 
-  let publicStatus = 'Projected Available for Public Purchase';
-  if (avgBatchSize > 0 && reservedSacksQueue >= avgBatchSize) {
-    publicStatus = `FIFO Queue Priority: Incoming batch (~${avgBatchSize} sacks) projected to be absorbed by ${reservedSacksQueue} queued pre-order sacks`;
-  } else if (reservedSacksQueue > 0) {
-    publicStatus = `Partial Queue Allocation: ${reservedSacksQueue} sacks allocated to queue; surplus (~${Math.max(0, avgBatchSize - reservedSacksQueue)} sacks) for public checkout`;
-  }
+  return evaluateStockAvailabilityDataSufficiency(allHistory, products, allOrders);
+}
 
-  const formatDate = d => d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-  const displayDate = windowStart.getTime() === windowEnd.getTime()
-    ? formatDate(projectedArrival)
-    : `${formatDate(windowStart)} – ${formatDate(windowEnd)}`;
-
-  return {
-    status: 'predicted',
-    displayDate,
-    predictedDate: projectedArrival.toISOString().split('T')[0],
-    predictedWindowStart: windowStart.toISOString().split('T')[0],
-    predictedWindowEnd: windowEnd.toISOString().split('T')[0],
-    isPreliminary: sorted.length < 5,
-    observationCount: sorted.length,
-    intervalCount: intervalsInDays.length,
-    averageIntervalDays: Math.round(medianInterval * 10) / 10,
-    method: 'Historical Restock Interval Analysis',
-    targetVariety: pName,
-    publicAvailabilityStatus: publicStatus,
-    reservedQueueSacks: reservedSacksQueue,
-    avgBatchSacks: avgBatchSize,
-    confidenceNote: sorted.length < 5
-      ? `Preliminary estimate based on ${intervalsInDays.length} observed interval(s). Not statistically guaranteed.`
-      : `Empirical estimate based on ${intervalsInDays.length} observed restock intervals.`
-  };
+export function trainStockAvailabilityModel() {
+  const allOrders = typeof getOrders === 'function' ? getOrders() : [];
+  return trainStockAvailabilityRidgeRegression(allOrders);
 }
 
 /**
@@ -9812,17 +9701,51 @@ export function predictStockAvailability(productIdOrName, options = {}) {
  * Estimates the warehouse preparation readiness lead time (moment the order is staged
  * and marked ready for customer pickup or courier dispatch).
  * 
- * Method: Empirical Lead-Time Analysis
- * - Evaluates historical elapsed time between order placement and administrative readiness (preparedAt).
- * - Filters out anomalies (< 2 mins for batch clicks, > 5 days for administrative holds).
- * - Distinguishes pickup vs. delivery fulfillment modes.
- * - Specifically avoids labeling the output as physical bagging duration.
- * - Falls back to operational baseline if genuine historical records are sparse.
+ * Method:
+ * 1. Primary: Multi-variable Ridge Regression (L2 Regularized) trained on genuine historical
+ *    order preparation milestones (createdAt -> preparedAt).
+ *    Evaluated with Leave-One-Out Cross-Validation (LOOCV) for out-of-sample error (MAE, RMSE).
+ * 2. Fallback: Empirical Lead-Time Analysis or Baseline Operational Fallback (1 to 2 business days)
+ *    if historical preparation milestones are insufficient (< 5).
+ * 
+ * Strictly prevents data leakage: Features rely only on information known at order placement.
+ * Does not label empirical percentiles or operational baselines as Ridge Regression.
  *
  * @param {Object} [orderOrOrderData] - Target order object or parameters
  * @returns {Object} Structured readiness prediction with metadata, lead time, and method disclosure
  */
 export function predictServiceReadinessTime(orderOrOrderData = {}) {
+  const allOrders = typeof getOrders === 'function' ? getOrders() : [];
+
+  // 1. Attempt Multi-Variable Ridge Regression ML prediction
+  try {
+    const mlResult = predictServiceReadinessML(orderOrOrderData, null, allOrders);
+    if (mlResult && mlResult.status === 'predicted' && !mlResult.isFallback) {
+      return {
+        status: 'predicted',
+        displayTime: mlResult.displayTime,
+        predictedHours: mlResult.predictedHours,
+        sampleCount: mlResult.sampleCount,
+        observationCount: mlResult.sampleCount,
+        excludedAnomalies: (mlResult.excludedBatchClicks || 0) + (mlResult.excludedHolds || 0),
+        excludedBatchClicks: mlResult.excludedBatchClicks || 0,
+        excludedHolds: mlResult.excludedHolds || 0,
+        cvMAE: mlResult.cvMAE,
+        cvRMSE: mlResult.cvRMSE,
+        r2Score: mlResult.r2Score,
+        isPreliminary: mlResult.sampleCount < 10,
+        method: 'Ridge Regression (L2 Regularized)',
+        modelType: 'Ridge Regression (L2 Regularized)',
+        targetMetric: 'Warehouse Readiness Lead Time (Staging for Pickup/Dispatch)',
+        confidenceNote: mlResult.confidenceNote,
+        featureContributions: mlResult.featureContributions
+      };
+    }
+  } catch (mlErr) {
+    console.warn('[PREDICTION] Ridge regression evaluation note:', mlErr);
+  }
+
+  // 2. Fallback: Empirical or Operational Baseline
   const fallbackDisplay = (orderOrOrderData && typeof getEstimatedArrivalDate === 'function')
     ? getEstimatedArrivalDate(orderOrOrderData)
     : '1 to 2 business days';
@@ -9835,37 +9758,46 @@ export function predictServiceReadinessTime(orderOrOrderData = {}) {
     p75Hours: null,
     isPreliminary: true,
     observationCount: 0,
+    sampleCount: 0,
     excludedBatchClicks: 0,
     excludedHolds: 0,
     method: 'Baseline Operational Fallback',
     targetMetric: 'Warehouse Readiness Lead Time (Staging for Pickup/Dispatch)',
-    confidenceNote: 'Preliminary baseline. Genuine staging timestamps are accumulating in the system.'
+    confidenceNote: 'Preliminary baseline. Awaiting more completed order preparation milestones to fit regression model.'
   };
 
-  const allOrders = typeof getOrders === 'function' ? getOrders() : [];
   const preparationRecords = [];
+  const seenIds = new Set();
   let excludedBatchClicks = 0;
   let excludedHolds = 0;
 
   allOrders.forEach(o => {
     if (!o || o.status === 'cancelled') return;
     if (!o.preparedAt) return;
+
+    const orderId = String(o.id || o.orderId || '').trim();
+    if (orderId && seenIds.has(orderId)) return;
+
     const tPrepared = new Date(o.preparedAt).getTime();
-    const tCreated = new Date(o.createdAt || o.date || o.timestamp).getTime();
-    if (isNaN(tPrepared) || isNaN(tCreated)) return;
+    const rawCreate = o.createdAt || o.date || o.timestamp;
+    if (!rawCreate) return;
+    const tCreated = new Date(rawCreate).getTime();
+    if (isNaN(tPrepared) || isNaN(tCreated) || tPrepared <= tCreated) return;
     const durationHours = (tPrepared - tCreated) / (1000 * 60 * 60);
 
     // Anomaly filtering:
     // < 0.033 hrs (2 mins) = Batch administrative click
-    // > 120 hrs (5 days) = Administrative hold / forgotten click
+    // > 168 hrs (7 days) = Administrative hold / forgotten click
     if (durationHours < 0.033) {
       excludedBatchClicks++;
       return;
     }
-    if (durationHours > 120) {
+    if (durationHours > 168) {
       excludedHolds++;
       return;
     }
+
+    if (orderId) seenIds.add(orderId);
 
     preparationRecords.push({
       durationHours,
@@ -9876,6 +9808,7 @@ export function predictServiceReadinessTime(orderOrOrderData = {}) {
 
   if (preparationRecords.length < 5) {
     fallbackResult.observationCount = preparationRecords.length;
+    fallbackResult.sampleCount = preparationRecords.length;
     fallbackResult.excludedBatchClicks = excludedBatchClicks;
     fallbackResult.excludedHolds = excludedHolds;
     return fallbackResult;
@@ -9911,6 +9844,7 @@ export function predictServiceReadinessTime(orderOrOrderData = {}) {
     p75Hours: Math.round(p75Hours * 10) / 10,
     isPreliminary: preparationRecords.length < 10,
     observationCount: preparationRecords.length,
+    sampleCount: preparationRecords.length,
     excludedBatchClicks,
     excludedHolds,
     method: 'Empirical Lead-Time Analysis',
@@ -12444,8 +12378,11 @@ export function getDashboardTotalOrdersData(options = {}) {
     }
   }
 
-  function itemMatchesVariety(item) {
-    if (!item || item.isReservation) return false;
+  function itemMatchesVariety(item, parentOrder = null) {
+    // Reservation-marked items are normally excluded from order metrics, but
+    // transferred reservation tickets are active fulfillment orders and must
+    // remain visible in their product-specific counts.
+    if (!item || (item.isReservation && !isTransferredReservationToOrder(parentOrder))) return false;
     if (currentProd === 'all') return true;
     const pId = String(item.product?.id || item.productId || item.id || '');
     const pName = String(item.product?.name || item.name || item.productName || '').trim().toLowerCase();
@@ -12460,17 +12397,17 @@ export function getDashboardTotalOrdersData(options = {}) {
   let orders = [];
   if (!isFilterActive) {
     orders = liveOrders.filter(o =>
-      !isReservationOrder(o) && !isCancelledOrRejectedOrder(o) && !o.isReplacement
+      !isSalesReservationOrder(o) && !isCancelledOrRejectedOrder(o) && !o.isReplacement
     );
   } else {
     orders = liveOrders.filter(o => {
-      if (isReservationOrder(o) || isCancelledOrRejectedOrder(o) || o.isReplacement) return false;
+      if (isSalesReservationOrder(o) || isCancelledOrRejectedOrder(o) || o.isReplacement) return false;
       if (isDateOrRangeFiltered) {
         const d = parseDashboardOrderDate(o);
         if (d < rangeStart || d > rangeEnd) return false;
       }
       if (currentProd !== 'all') {
-        return (o.items || []).some(item => itemMatchesVariety(item));
+        return (o.items || []).some(item => itemMatchesVariety(item, o));
       }
       return true;
     });
@@ -12571,8 +12508,8 @@ export function getDashboardTotalSalesData(options = {}) {
     }
   }
 
-  function itemMatchesVariety(item) {
-    if (!item || item.isReservation) return false;
+  function itemMatchesVariety(item, parentOrder = null) {
+    if (!item || (item.isReservation && !(parentOrder && isTransferredReservationToOrder(parentOrder)))) return false;
     if (currentProd === 'all') return true;
     const pId = String(item.product?.id || item.productId || item.id || '');
     const pName = String(item.product?.name || item.name || item.productName || '').trim().toLowerCase();
@@ -12589,6 +12526,9 @@ export function getDashboardTotalSalesData(options = {}) {
 
   if (!isFilterActive) {
     liveOrders.forEach(o => {
+      // Keep Dashboard Total Sales consistent with Sales Overview: only count
+      // verified payments from eligible, non-reservation, non-cancelled orders.
+      if (!o || o.isReplacement || isSalesReservationOrder(o) || isCancelledOrRejectedOrder(o)) return;
       const info = getVerifiedCustomerPaymentInfo(o);
       if (!info || !info.isVerified) return;
       const verifiedAmount = Number(info.amount || 0);
@@ -12603,6 +12543,8 @@ export function getDashboardTotalSalesData(options = {}) {
     });
   } else {
     liveOrders.forEach(o => {
+      // Apply the same eligibility rules when a date or product filter is active.
+      if (!o || o.isReplacement || isSalesReservationOrder(o) || isCancelledOrRejectedOrder(o)) return;
       const info = getVerifiedCustomerPaymentInfo(o);
       if (!info || !info.isVerified) return;
       if (isDateOrRangeFiltered) {
@@ -12615,7 +12557,7 @@ export function getDashboardTotalSalesData(options = {}) {
       } else {
         let orderVarietySum = 0;
         (o.items || []).forEach(item => {
-          if (itemMatchesVariety(item)) {
+          if (itemMatchesVariety(item, o)) {
             const qty = Number(item.quantity || 0);
             const price = Number(item.product?.price || item.price || 0);
             orderVarietySum += (price * qty);
@@ -12952,6 +12894,11 @@ export function getDashboardAvailableStockData(options = {}) {
 
 export function isActiveReservation(order) {
   if (!order) return false;
+  // Once Process Order transfers a reservation into Order Management, it is no longer
+  // an active reservation. This must be checked before isReservationOrder(), because
+  // legacy RES-prefixed IDs can otherwise continue to classify the transferred order
+  // as a reservation even after isPreOrder has been set to false.
+  if (order.isPreOrder === false) return false;
   if (!isReservationOrder(order)) return false;
 
   const rawStatus = String(order.status || '').toLowerCase().trim();

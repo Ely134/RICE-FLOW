@@ -958,6 +958,9 @@
       isReservationInPaymentVerificationStage,
       getPaymentVerificationEntryTime,
       evaluateOrderCompletion,
+      hasUnresolvedIssue,
+      orderRequiresCashAudit,
+      isOrderCashAuditVerified,
       normalizePhilippinePhone,
       checkPhoneExists,
       compressImageFile,
@@ -978,6 +981,7 @@
       updateAllLiveDeadlineCountdowns,
       confirmContinueUnallocatedReservation
     } from './src/app/shared.js';
+    import { renderQueueEtaCard } from './src/app/queue-eta.js';
     import { auth, saveFirestoreDoc, initFirestoreSync, syncOrdersFromFirestore } from './src/lib/firebase.js';
     import { onAuthStateChanged } from 'firebase/auth';
 
@@ -2781,6 +2785,7 @@
                     <span class="font-black text-sm text-gray-900 dark:text-gray-100 block">${regularOrderEstimatedFulfillment}</span>
                   </div>
                 </div>
+                ${renderQueueEtaCard(order, getOrders())}
               `}
             </div>
 
@@ -3877,15 +3882,21 @@
             const deliveryVerifiedBy = order.deliveryVerificationBy || order.verifiedBy || 'Staff';
             const authDeliveredStr = !hasReservations ? getAuthoritativeDeliveredDate(order) : null;
             const deliveryTimeStr = authDeliveredStr || order.deliveredDate || order.deliveryVerificationDate || order.deliveredAt || order.deliveryVerifiedAt || '';
+            const isCustConfirmed = Boolean(order.customerConfirmation === true || order.customerConfirmation === 'Confirmed');
+            const requiresCash = orderRequiresCashAudit(order);
+            const isCashAudited = isOrderCashAuditVerified(order);
+
             stateExplanationBlockHtml = `
               <div class="bg-emerald-50/70 dark:bg-emerald-950/40 border border-emerald-150 dark:border-emerald-800/60 rounded-xl p-5 text-left text-sm font-semibold text-emerald-950 dark:text-emerald-200 leading-relaxed space-y-3">
                 <div class="flex items-center justify-between border-b pb-2 border-emerald-100 dark:border-emerald-900/50">
                   <p class="font-extrabold flex items-center gap-1.5 text-emerald-950 dark:text-emerald-100 text-sm">🚚 Order Delivered Successfully!</p>
-                  <span class="text-xs text-emerald-750 dark:text-emerald-300 font-black uppercase tracking-wider bg-emerald-100/70 dark:bg-emerald-900/60 px-2 py-0.5 rounded-md">Awaiting Confirmation</span>
+                  <span class="text-xs ${isCustConfirmed ? 'text-amber-800 dark:text-amber-300 bg-amber-100 dark:bg-amber-900/60' : 'text-emerald-750 dark:text-emerald-300 bg-emerald-100/70 dark:bg-emerald-900/60'} font-black uppercase tracking-wider px-2 py-0.5 rounded-md">${isCustConfirmed ? (requiresCash && !isCashAudited ? 'Receipt Confirmed • Audit Pending' : 'Receipt Confirmed') : 'Awaiting Confirmation'}</span>
                 </div>
                 <p class="text-xs text-gray-900 dark:text-gray-100 font-semibold">
-                  Your order has been verified and marked as delivered by <span class="font-bold text-gray-900 dark:text-gray-100">${deliveryVerifiedBy}</span>${deliveryTimeStr ? ` on <span class="font-bold text-gray-900 dark:text-gray-100">${deliveryTimeStr}</span>` : ''}. 
-                  Please inspect your package carefully. If everything is correct, confirm below.
+                  ${isCustConfirmed 
+                    ? `You have confirmed receipt of this order${order.customerConfirmationDate ? ` on <span class="font-bold text-gray-900 dark:text-gray-100">${order.customerConfirmationDate}</span>` : ''}. ${requiresCash && !isCashAudited ? 'This order requires cash turnover verification by an administrator before final completion.' : 'Final order completion is being processed.'}`
+                    : `Your order has been verified and marked as delivered by <span class="font-bold text-gray-900 dark:text-gray-100">${deliveryVerifiedBy}</span>${deliveryTimeStr ? ` on <span class="font-bold text-gray-900 dark:text-gray-100">${deliveryTimeStr}</span>` : ''}. Please inspect your package carefully. If everything is correct, confirm below.`
+                  }
                 </p>
                 <div class="grid grid-cols-2 gap-y-1 text-xs font-semibold text-emerald-800 dark:text-emerald-300 border-t pt-2 border-emerald-100 dark:border-emerald-900/50">
                   <span>Delivered Date:</span>
@@ -3893,20 +3904,31 @@
                   
                   <span>Auto-Completion Deadline:</span>
                   <span class="text-right text-red-600 dark:text-red-400 font-bold">${order.customerConfirmationDeadline ? new Date(order.customerConfirmationDeadline).toLocaleString() : 'After 48 hours'}</span>
+
+                  ${requiresCash ? `
+                    <span>Cash Turnover Audit:</span>
+                    <span class="text-right ${isCashAudited ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'} font-bold">${isCashAudited ? '✅ Audited & Verified' : '⏳ Pending Audit'}</span>
+                  ` : ''}
                 </div>
-                <div class="pt-2 border-t border-emerald-100 dark:border-emerald-900/50 flex gap-2 justify-end flex-wrap">
+                <div class="pt-2 border-t border-emerald-100 dark:border-emerald-900/50 flex gap-2 justify-end flex-wrap items-center">
                   <button 
                     data-id="${order.id}"
                     class="btn-report-issue-trigger px-4 py-2 bg-red-50 dark:bg-red-950/40 hover:bg-red-100 dark:hover:bg-red-900/60 text-red-600 dark:text-red-300 border border-red-200 dark:border-red-800 font-extrabold rounded-xl text-xs sm:text-sm cursor-pointer transition-all flex items-center justify-center gap-1"
                   >
                     ⚠️ Report an Issue
                   </button>
-                  <button 
-                    data-id="${order.id}"
-                    class="btn-mark-delivered-active px-4 py-2 bg-[#1E6C02] text-white hover:bg-[#145001] font-bold rounded-xl cursor-pointer text-xs sm:text-sm transition-colors"
-                  >
-                    ✔ Mark as Completed
-                  </button>
+                  ${isCustConfirmed ? `
+                    <span class="px-4 py-2 bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 font-bold rounded-xl text-xs sm:text-sm inline-flex items-center gap-1">
+                      ✔ Receipt Confirmed
+                    </span>
+                  ` : `
+                    <button 
+                      data-id="${order.id}"
+                      class="btn-mark-delivered-active px-4 py-2 bg-[#1E6C02] text-white hover:bg-[#145001] font-bold rounded-xl cursor-pointer text-xs sm:text-sm transition-colors"
+                    >
+                      ✔ Mark as Completed
+                    </button>
+                  `}
                 </div>
               </div>
             `;
@@ -4596,7 +4618,7 @@
                       <h5 class="text-xs sm:text-[13px] font-semibold text-[#1E6C02] dark:text-emerald-300 uppercase tracking-wider flex items-center gap-1.5">
                         ✔ Order Delivered Successfully
                       </h5>
-                      <p class="text-base sm:text-[17px] font-bold text-[#145001] dark:text-emerald-200 leading-tight">Package Received & Awaiting Your Confirmation</p>
+                      <p class="text-base sm:text-[17px] font-bold text-[#145001] dark:text-emerald-200 leading-tight">${order.customerConfirmation ? (orderRequiresCashAudit(order) && !isOrderCashAuditVerified(order) ? 'Receipt Confirmed • Awaiting Cash Audit' : 'Package Received & Confirmed') : 'Package Received & Awaiting Your Confirmation'}</p>
                       ${(!hasReservations && getAuthoritativeDeliveredDate(order)) ? `
                         <p class="text-xs sm:text-sm text-[#145001] dark:text-emerald-300 font-extrabold">
                           Delivered: ${getAuthoritativeDeliveredDate(order)}
@@ -4604,7 +4626,7 @@
                       ` : ''}
                       <p class="text-xs sm:text-sm text-gray-900 dark:text-gray-100 font-normal">
                         Verified by: <span class="font-bold text-gray-900 dark:text-gray-100">${order.deliveryVerificationBy || order.verifiedBy || 'Staff'}</span>
-                        • Automatic completion: <span class="font-bold text-red-600 dark:text-red-400">${order.customerConfirmationDeadline ? new Date(order.customerConfirmationDeadline).toLocaleString() : 'After 48 hours'}</span>
+                        • Automatic completion: <span class="font-bold text-red-600 dark:text-red-400">${order.customerConfirmationDeadline ? new Date(order.customerConfirmationDeadline).toLocaleString() : 'After 48 hours'}</span>${order.customerConfirmation && orderRequiresCashAudit(order) && !isOrderCashAuditVerified(order) ? ' (Pending Cash Turnover Audit)' : ''}
                       </p>
                     </div>
                   </div>
@@ -5014,13 +5036,17 @@
           });
         });
 
-        // 3. Mark order as received
+        // 3. Mark order as received (Routes through customer confirmation modal)
         document.querySelectorAll('.btn-mark-delivered').forEach(btn => {
-          btn.addEventListener('click', () => {
+          btn.addEventListener('click', (e) => {
+            e.stopPropagation();
             const id = btn.getAttribute('data-id');
-            updateOrderStatus(id, 'completed');
-            showToast('Thank you! Order successfully closed.');
-            renderMyOrdersList();
+            const hiddenInput = document.getElementById('confirm-delivery-id-hidden');
+            const modal = document.getElementById('confirm-delivery-modal');
+            if (hiddenInput && modal) {
+              hiddenInput.value = id;
+              modal.classList.remove('hidden');
+            }
           });
         });
 

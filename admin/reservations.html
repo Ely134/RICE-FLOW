@@ -36,7 +36,43 @@
       background-color: #111827;
       color: #F9FAFB;
     }
-  </style>
+  
+      /* Review Payment-only layout: two independent vertical stacks, without cross-column row gaps. */
+      #admin-layout-container .payment-review-layout { align-items: start; }
+      #admin-layout-container .payment-review-column { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+      #admin-layout-container .payment-review-column > * { width: 100%; min-width: 0; }
+      #admin-layout-container .payment-review-left-card { grid-column: 1; min-width: 0; }
+      #admin-layout-container .payment-review-right-card { grid-column: 2; min-width: 0; }
+      #admin-layout-container .payment-review-left-row-1, #admin-layout-container .payment-review-right-row-1 { grid-row: 1; }
+      #admin-layout-container .payment-review-left-row-2, #admin-layout-container .payment-review-right-row-2 { grid-row: 2; }
+      #admin-layout-container .payment-review-left-row-3, #admin-layout-container .payment-review-right-row-3 { grid-row: 3; }
+      #admin-layout-container .payment-review-left-row-4, #admin-layout-container .payment-review-right-row-4 { grid-row: 4; }
+      #admin-layout-container .payment-review-left-row-5 { grid-row: 5; }
+      #admin-layout-container .payment-review-proof-card { background: #F8FAFC; border-color: #D8E2EA; }
+      #admin-layout-container .payment-review-proof-card > div:first-child { gap: 12px; }
+      #admin-layout-container .payment-review-proof-card .payment-proof-content {
+        padding: 12px; background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 12px; align-items: stretch;
+      }
+      #admin-layout-container .payment-review-proof-card .payment-proof-image-frame {
+        min-height: 220px; max-height: 360px; padding: 12px; background: #F1F5F9; border-color: #D8E2EA;
+      }
+      #admin-layout-container .payment-review-proof-card #review-payment-proof-image {
+        display: block; max-width: 100%; max-height: 320px; width: auto; height: auto; object-fit: contain; margin: auto;
+      }
+      #admin-layout-container .payment-review-proof-card .payment-proof-metadata {
+        display: grid; grid-template-columns: 1fr; gap: 8px; text-align: left; border-top: 1px solid #E2E8F0;
+      }
+      #admin-layout-container .payment-review-proof-card .payment-proof-metadata p {
+        padding: 8px 10px; background: #F8FAFC; border-radius: 8px; line-height: 1.45; overflow-wrap: anywhere;
+      }
+      #admin-layout-container .payment-review-proof-card #btn-zoom-proof { align-self: flex-start; }
+      @media (max-width: 1023px) {
+        #admin-layout-container .payment-review-layout { grid-template-columns: minmax(0, 1fr); }
+        #admin-layout-container .payment-review-left-card,
+        #admin-layout-container .payment-review-right-card { grid-column: 1; grid-row: auto; }
+      }
+
+</style>
   <link rel="stylesheet" href="../src/styles/index.css">
   <style>
     /* Scoped custom styling for the Reservation Queue Table horizontal scrollbars */
@@ -314,6 +350,198 @@
     }
   </style>
   <style id="auth-guard-style">body { visibility: hidden !important; }</style>
+
+  <style id="reservation-table-visual-polish">
+    /* UI-only layout correction. Keep the original Manage Reservation visual design intact. */
+    #admin-layout-container #reservation-table-card,
+    #admin-layout-container #reservation-table-container,
+    #admin-layout-container #reservation-queue-table {
+      font-family: 'Source Sans 3', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+    }
+    #admin-layout-container #reservation-queue-table {
+      width: 100% !important;
+      table-layout: fixed !important;
+      border-collapse: separate !important;
+      border-spacing: 0 !important;
+    }
+    #admin-layout-container #reservation-queue-table thead th {
+      background: #FFFFFF !important;
+      color: #111111 !important;
+      border-bottom: 2px solid #16803C !important;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+      font-size: 12px !important;
+      font-weight: 700 !important;
+      letter-spacing: .035em !important;
+      padding: 15px 16px !important;
+      vertical-align: middle !important;
+      overflow-wrap: anywhere;
+      text-align: center !important;
+    }
+    /* Balanced column grid: keep variety and quantity adjacent, give status enough room, and contain actions. */
+    #admin-layout-container #reservation-queue-table th:nth-child(1),
+    #admin-layout-container #reservation-queue-table td:nth-child(1) { width: 22% !important; }
+    #admin-layout-container #reservation-queue-table th:nth-child(2),
+    #admin-layout-container #reservation-queue-table td:nth-child(2) { width: 18% !important; }
+    #admin-layout-container #reservation-queue-table th:nth-child(3),
+    #admin-layout-container #reservation-queue-table td:nth-child(3) { width: 13% !important; }
+    #admin-layout-container #reservation-queue-table th:nth-child(4),
+    #admin-layout-container #reservation-queue-table td:nth-child(4) { width: 21% !important; }
+    #admin-layout-container #reservation-queue-table th:nth-child(5),
+    #admin-layout-container #reservation-queue-table td:nth-child(5) { width: 26% !important; }
+    #admin-layout-container #reservation-queue-table thead th:nth-child(4) { text-align: center !important; }
+    #admin-layout-container #reservation-queue-table tbody td {
+      box-sizing: border-box !important;
+      padding: 13px 12px !important;
+      color: #111111 !important;
+      vertical-align: middle !important;
+      overflow-wrap: anywhere;
+      border-bottom: 1px solid #D7F5DF !important;
+      font-family: 'Source Sans 3', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+    }
+    #admin-layout-container #reservation-queue-table tbody tr,
+    #admin-layout-container #reservation-queue-table tbody tr.res-row-even,
+    #admin-layout-container #reservation-queue-table tbody tr.res-row-odd {
+      background: #FFFFFF !important;
+    }
+    #admin-layout-container #reservation-queue-table tbody tr:hover {
+      background: #F0FFF4 !important;
+    }
+    #admin-layout-container #reservation-queue-table .customer-name-text,
+    #admin-layout-container #reservation-queue-table .product-name-text {
+      font-family: 'Source Sans 3', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+      font-weight: 600 !important;
+      color: #111111 !important;
+      white-space: normal !important;
+      overflow-wrap: anywhere;
+    }
+    #admin-layout-container #reservation-queue-table td:nth-child(5) > div {
+      display: flex !important;
+      flex-direction: row !important;
+      flex-wrap: nowrap !important;
+      align-items: center !important;
+      justify-content: center !important;
+      gap: 10px !important;
+      width: 100% !important;
+      min-width: 0 !important;
+    }
+    /* Geometry only for the existing primary action: its original green gradient is defined above. */
+    #admin-layout-container #reservation-queue-table td:nth-child(5) .btn-manage-reservation,
+    #admin-layout-container #reservation-queue-table td:nth-child(5) .btn-review-payment,
+    #admin-layout-container #reservation-queue-table td:nth-child(5) .btn-reservation-audit {
+      box-sizing: border-box !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      flex: 0 1 200px !important;
+      min-width: 0 !important;
+      width: 200px !important;
+      max-width: 200px !important;
+      height: 42px !important;
+      min-height: 42px !important;
+      padding: 0 12px !important;
+      border-radius: 12px !important;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+      font-size: 13px !important;
+      line-height: 1.2 !important;
+      font-weight: 600 !important;
+      letter-spacing: 0 !important;
+      text-align: center !important;
+      white-space: nowrap !important;
+      text-decoration: none !important;
+      cursor: pointer !important;
+      transition: background .15s ease, border-color .15s ease, transform .15s ease !important;
+    }
+    /* Review Payment copies the original Manage Reservation green gradient and text treatment. */
+    html:not(.dark) #admin-layout-container #reservation-queue-table td:nth-child(5) .btn-review-payment {
+      color: #123B1E !important;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.40) 0%, rgba(255,255,255,.12) 38%, rgba(255,255,255,0) 48%),
+        linear-gradient(180deg, #62E440 0%, #46D42E 25%, #2EC01F 58%, #1BA813 100%) !important;
+      background-color: #2EC01F !important;
+      border: 1px solid #23A018 !important;
+      border-top-color: #72EC52 !important;
+      border-bottom-color: #158510 !important;
+      box-shadow: 0 1px 2px rgba(0,0,0,.06), 0 2px 4px rgba(27,168,19,.18), inset 0 1px 0 rgba(255,255,255,.55) !important;
+      text-shadow: 0 1px 0 rgba(255,255,255,.28) !important;
+    }
+    html:not(.dark) #admin-layout-container #reservation-queue-table td:nth-child(5) .btn-review-payment:hover:not(:disabled) {
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.32) 0%, rgba(255,255,255,.08) 38%, rgba(255,255,255,0) 48%),
+        linear-gradient(180deg, #54DA32 0%, #39C822 25%, #24B216 58%, #14940D 100%) !important;
+      background-color: #24B216 !important;
+      border-color: #1A8A12 !important;
+      border-top-color: #63E444 !important;
+      border-bottom-color: #0E6C08 !important;
+      color: #0D2D16 !important;
+      box-shadow: 0 2px 5px rgba(0,0,0,.10), 0 3px 6px rgba(20,148,13,.24), inset 0 1px 0 rgba(255,255,255,.48) !important;
+      transform: translateY(-1px);
+    }
+    html.dark #admin-layout-container #reservation-queue-table td:nth-child(5) .btn-review-payment {
+      background-color: rgba(6,78,59,.6) !important;
+      color: #A7F3D0 !important;
+      border: 1px solid #047857 !important;
+      box-shadow: 0 1px 2px rgba(0,0,0,.2) !important;
+    }
+    html.dark #admin-layout-container #reservation-queue-table td:nth-child(5) .btn-review-payment:hover:not(:disabled) {
+      background-color: #1E6C02 !important;
+      border-color: #145001 !important;
+      color: #FFFFFF !important;
+    }
+    #admin-layout-container #reservation-queue-table td:nth-child(5) .btn-review-payment * {
+      color: inherit !important;
+    }
+    /* Audit Log keeps the Orders-side outlined design, matches primary button height, and uses a narrower width. */
+    #admin-layout-container #reservation-queue-table td:nth-child(5) .btn-reservation-audit {
+      flex: 0 0 84px !important;
+      width: 84px !important;
+      min-width: 84px !important;
+      max-width: 84px !important;
+      height: 42px !important;
+      min-height: 42px !important;
+      padding-left: 6px !important;
+      padding-right: 6px !important;
+      font-size: 12px !important;
+      background: #FFFFFF !important;
+      background-color: #FFFFFF !important;
+      color: #111111 !important;
+      border: 1px solid #111111 !important;
+      box-shadow: none !important;
+      text-shadow: none !important;
+      font-weight: 600 !important;
+    }
+    #admin-layout-container #reservation-queue-table td:nth-child(5) .btn-reservation-audit:hover:not(:disabled) {
+      background: #F0FFF4 !important;
+      background-color: #F0FFF4 !important;
+      border-color: #16803C !important;
+      color: #111111 !important;
+      transform: translateY(-1px);
+    }
+    #admin-layout-container #reservation-queue-table td:nth-child(5) .btn-manage-reservation:focus-visible,
+    #admin-layout-container #reservation-queue-table td:nth-child(5) .btn-review-payment:focus-visible,
+    #admin-layout-container #reservation-queue-table td:nth-child(5) .btn-reservation-audit:focus-visible {
+      outline: 3px solid #0E8A3A !important;
+      outline-offset: 2px !important;
+    }
+    @media (max-width: 1200px) {
+      #admin-layout-container #reservation-queue-table th,
+      #admin-layout-container #reservation-queue-table td { padding-left: 9px !important; padding-right: 9px !important; }
+      #admin-layout-container #reservation-queue-table td:nth-child(5) > div { flex-wrap: wrap !important; }
+      #admin-layout-container #reservation-queue-table td:nth-child(5) .btn-manage-reservation,
+      #admin-layout-container #reservation-queue-table td:nth-child(5) .btn-review-payment {
+        flex: 1 1 190px !important; width: 200px !important; max-width: 100% !important;
+      }
+      #admin-layout-container #reservation-queue-table td:nth-child(5) .btn-reservation-audit {
+        flex: 0 0 84px !important; width: 84px !important; min-width: 84px !important; max-width: 84px !important;
+      }
+    }
+    @media (max-width: 760px) {
+      #admin-layout-container #reservation-queue-table td:nth-child(5) > div { flex-wrap: wrap !important; justify-content: flex-start !important; }
+      #admin-layout-container #reservation-queue-table td:nth-child(5) .btn-manage-reservation,
+      #admin-layout-container #reservation-queue-table td:nth-child(5) .btn-review-payment { flex: 1 1 100% !important; width: 100% !important; max-width: 100% !important; }
+      #admin-layout-container #reservation-queue-table td:nth-child(5) .btn-reservation-audit { flex: 0 0 88px !important; width: 88px !important; min-width: 88px !important; max-width: 88px !important; }
+    }
+  </style>
+
 </head>
 <body class="bg-[#F8F9FA] min-h-screen text-gray-800 antialiased">
   <div id="auth-guard-loader" class="fixed inset-0 bg-[#F5F5F5] z-[99999] flex flex-col items-center justify-center font-sans">
@@ -387,8 +615,25 @@
 
   <!-- RESERVATION DETAILS MODAL -->
   <div id="details-modal" class="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden">
-    <div id="details-modal-box" class="bg-white rounded-2xl max-w-lg w-full shadow-xl p-6 border border-gray-200 animate-in fade-in zoom-in duration-150 text-left max-h-[95vh] overflow-y-auto">
+    <div id="details-modal-box" class="bg-white rounded-2xl w-full max-w-6xl shadow-xl p-5 sm:p-6 border border-gray-200 animate-in fade-in zoom-in duration-150 text-left max-h-[95vh] overflow-y-auto">
       <!-- Dynamically rendered based on order status -->
+    </div>
+  </div>
+
+  <!-- RESERVATION AUDIT LOG MODAL -->
+  <div id="reservation-audit-modal" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-[65] flex items-center justify-center p-4 hidden" role="dialog" aria-modal="true" aria-labelledby="reservation-audit-title">
+    <div class="bg-white dark:bg-[#111827] w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl border border-gray-200 dark:border-slate-700 shadow-2xl p-5 sm:p-6">
+      <div class="flex items-start justify-between gap-4 border-b border-gray-200 dark:border-slate-700 pb-4 mb-4">
+        <div>
+          <h3 id="reservation-audit-title" class="text-xl font-black text-gray-950 dark:text-white">Reservation Audit Log</h3>
+          <p id="reservation-audit-subtitle" class="text-sm text-gray-600 dark:text-gray-300 mt-1"></p>
+        </div>
+        <button type="button" id="btn-close-reservation-audit" class="shrink-0 px-3 py-2 rounded-lg border border-gray-300 dark:border-slate-600 text-gray-800 dark:text-gray-100 font-bold hover:bg-gray-100 dark:hover:bg-slate-800">Close</button>
+      </div>
+      <div class="bg-gray-50 dark:bg-slate-900/60 border border-gray-200 dark:border-slate-700 rounded-xl p-4 sm:p-5">
+        <h4 class="font-black text-gray-950 dark:text-white mb-4">History &amp; Timeline</h4>
+        <div id="reservation-audit-timeline"></div>
+      </div>
     </div>
   </div>
 
@@ -1267,44 +1512,6 @@
       // Draw Main Page Content
       function drawContentLayout() {
         targetSpace.innerHTML = `
-          <!-- PAGE HEADER -->
-          <div class="bg-white dark:bg-[#111827] border border-gray-200/90 dark:border-slate-800 rounded-2xl p-6 sm:p-7 shadow-xs mb-6 text-left transition-all">
-            <div class="flex flex-col md:flex-row md:items-center justify-between gap-5">
-              <div class="space-y-1.5 max-w-2xl">
-                <div class="flex items-center gap-3 flex-wrap">
-                  <div class="w-11 h-11 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 text-[#1E6C02] dark:text-emerald-400 flex items-center justify-center shrink-0 border border-emerald-100 dark:border-emerald-800/60 shadow-2xs text-xl">
-                    🌾
-                  </div>
-                  <div>
-                    <h2 class="text-2xl sm:text-[28px] font-black text-gray-950 dark:text-white tracking-tight leading-tight">
-                      Reservation Queue
-                    </h2>
-                  </div>
-                  <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs sm:text-[13px] font-extrabold bg-emerald-50 dark:bg-emerald-950/60 text-[#1E6C02] dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60 shrink-0">
-                    <span class="w-2.5 h-2.5 rounded-full bg-[#1E6C02] dark:bg-emerald-400 animate-pulse"></span>
-                    First-Come, First-Served Active
-                  </span>
-                </div>
-                <p class="text-sm sm:text-base text-gray-800 dark:text-gray-200 font-medium leading-relaxed pt-1">
-                  View and track all customer reservations waiting for stock. Reservations are served in the order they arrived.
-                </p>
-              </div>
-
-              <!-- Right Info Indicator balancing the header -->
-              <div class="flex items-center gap-3 shrink-0 self-start md:self-center">
-                <div class="bg-gray-50/90 dark:bg-slate-800/70 border border-gray-200/80 dark:border-slate-700/80 rounded-2xl px-4.5 py-3 flex items-center gap-3 shadow-2xs">
-                  <div class="w-10 h-10 rounded-xl bg-emerald-500/10 text-[#1E6C02] dark:text-emerald-400 flex items-center justify-center text-lg shrink-0">
-                    ⚡
-                  </div>
-                  <div>
-                    <p class="text-sm font-bold text-gray-950 dark:text-white leading-tight">Queue Updates</p>
-                    <p class="text-xs font-semibold text-gray-700 dark:text-gray-300 mt-0.5">Reservations are updated automatically.</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
           <!-- SEARCH & FILTER BAR -->
           <div class="bg-white dark:bg-[#111827] p-4 sm:p-5 rounded-2xl border border-gray-200/90 dark:border-slate-800 shadow-xs mb-6 text-left">
             <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3.5">
@@ -1379,60 +1586,16 @@
 
           <!-- RESERVATION QUEUE TABLE CARD -->
           <div id="reservation-table-card" class="bg-white dark:bg-[#111827] rounded-2xl border border-gray-200/90 dark:border-slate-800 shadow-xs relative">
-            <!-- TOP HORIZONTAL SCROLLBAR CONTROLLER (Accessible at top & sticky while scrolling) -->
-            <div id="reservation-top-scroll-wrapper" class="sticky top-0 z-20 bg-white/95 dark:bg-[#111827]/95 backdrop-blur-xs border-b border-gray-200/90 dark:border-slate-800 px-5 py-2.5 rounded-t-2xl transition-all">
-              <div class="flex items-center justify-between gap-3 text-xs mb-1.5 select-none">
-                <div class="flex items-center gap-2 font-bold text-gray-700 dark:text-gray-300">
-                  <span class="inline-flex items-center justify-center w-5 h-5 rounded-md bg-emerald-50 dark:bg-emerald-950/60 text-[#1E6C02] dark:text-emerald-400 text-xs shadow-2xs">
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path>
-                    </svg>
-                  </span>
-                  <span class="font-extrabold text-gray-900 dark:text-white">Horizontal Scroll</span>
-                  <span id="reservation-scroll-indicator" class="text-[11px] font-medium text-gray-500 dark:text-gray-400 hidden sm:inline-block">
-                    (drag bar or use buttons to navigate all columns)
-                  </span>
-                </div>
-                <div class="flex items-center gap-1.5 shrink-0">
-                  <button 
-                    type="button" 
-                    id="btn-scroll-table-left" 
-                    class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-gray-300 dark:border-slate-700 bg-gray-50 dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-700 text-gray-800 dark:text-gray-200 text-xs font-bold transition-all cursor-pointer shadow-2xs focus:outline-none"
-                    title="Scroll table to the left"
-                    aria-label="Scroll left"
-                  >
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"></path></svg>
-                    <span class="hidden sm:inline">Left</span>
-                  </button>
-                  <button 
-                    type="button" 
-                    id="btn-scroll-table-right" 
-                    class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-gray-300 dark:border-slate-700 bg-gray-50 dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-700 text-gray-800 dark:text-gray-200 text-xs font-bold transition-all cursor-pointer shadow-2xs focus:outline-none"
-                    title="Scroll table to the right"
-                    aria-label="Scroll right"
-                  >
-                    <span class="hidden sm:inline">Right</span>
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"></path></svg>
-                  </button>
-                </div>
-              </div>
-              <!-- Top Native Scrollbar Track (synced with the table) -->
-              <div id="reservation-top-scrollbar" class="overflow-x-auto reservation-custom-scrollbar h-2.5 sm:h-3 cursor-ew-resize">
-                <div id="reservation-top-scrollbar-dummy" class="h-1 pointer-events-none"></div>
-              </div>
-            </div>
-
             <!-- TABLE CONTAINER -->
-            <div id="reservation-table-container" class="overflow-x-auto reservation-custom-scrollbar rounded-b-2xl">
-              <table id="reservation-queue-table" class="w-full text-left border-collapse min-w-[1060px]">
+            <div id="reservation-table-container" class="rounded-b-2xl">
+              <table id="reservation-queue-table" class="w-full table-fixed text-left border-collapse">
                 <thead>
                   <tr class="bg-gray-50/90 dark:bg-slate-800/80 border-b border-gray-200/90 dark:border-slate-800 text-[13px] sm:text-[14px] font-semibold text-gray-900 dark:text-gray-100 uppercase tracking-wider">
-                    <th class="py-4 px-6 min-w-[270px]">Customer</th>
-                    <th class="py-4 px-6 min-w-[240px]">Rice Variety</th>
-                    <th class="py-4 px-5 text-center w-[130px] whitespace-nowrap">Quantity</th>
-                    <th class="py-4 px-6 min-w-[190px] whitespace-nowrap">Reserved Date</th>
-                    <th class="py-4 px-6 min-w-[240px]">Status</th>
-                    <th class="py-4 px-5 text-center min-w-[190px] whitespace-nowrap">Actions</th>
+                    <th class="py-3 px-3 w-[24%]">Customer</th>
+                    <th class="py-3 px-3 w-[23%]">Rice Variety</th>
+                    <th class="py-3 px-2 text-center w-[10%]">Quantity</th>
+                    <th class="py-3 px-3 w-[18%]">Status</th>
+                    <th class="py-3 px-2 text-center w-[25%]">Actions</th>
                   </tr>
                 </thead>
                 <tbody id="queue-table-body" class="divide-y divide-gray-100 dark:divide-slate-800/80">
@@ -2070,7 +2233,7 @@
             actionButtonHtml = `
               <button 
                 data-id="${order.id}"
-                class="btn-view-details w-[150px] h-9.5 inline-flex items-center justify-center bg-amber-600 hover:bg-amber-700 dark:bg-amber-500 dark:hover:bg-amber-600 text-white font-semibold rounded-xl px-3.5 transition-all duration-150 cursor-pointer shadow-xs text-xs sm:text-[13px] whitespace-nowrap text-center"
+                class="btn-view-details h-9 inline-flex items-center justify-center bg-amber-600 hover:bg-amber-700 dark:bg-amber-500 dark:hover:bg-amber-600 text-white font-semibold rounded-xl px-3.5 transition-all duration-150 cursor-pointer shadow-xs text-xs sm:text-[13px] whitespace-nowrap text-center"
               >
                 Review Status
               </button>
@@ -2079,7 +2242,7 @@
             actionButtonHtml = `
               <button 
                 data-id="${order.id}"
-                class="btn-view-details btn-review-payment w-[150px] h-9.5 inline-flex items-center justify-center bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white font-semibold rounded-xl px-3.5 transition-all duration-150 cursor-pointer shadow-xs text-xs sm:text-[13px] whitespace-nowrap text-center"
+                class="btn-view-details btn-review-payment h-9 inline-flex items-center justify-center bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white font-semibold rounded-xl px-3.5 transition-all duration-150 cursor-pointer shadow-xs text-xs sm:text-[13px] whitespace-nowrap text-center"
               >
                 Review Payment
               </button>
@@ -2088,7 +2251,7 @@
             actionButtonHtml = `
               <button 
                 data-id="${order.id}"
-                class="btn-view-details btn-manage-reservation min-w-[165px] h-10 inline-flex items-center justify-center font-semibold rounded-xl px-4.5 py-2 cursor-pointer text-[14px] sm:text-[14.5px] whitespace-nowrap text-center disabled:opacity-50 disabled:cursor-not-allowed"
+                class="btn-view-details btn-manage-reservation h-9 inline-flex items-center justify-center font-semibold rounded-xl px-4.5 py-2 cursor-pointer text-[14px] sm:text-[14.5px] whitespace-nowrap text-center disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Manage Reservation
               </button>
@@ -2097,19 +2260,21 @@
             actionButtonHtml = `
               <button 
                 data-id="${order.id}"
-                class="btn-view-details btn-manage-reservation min-w-[165px] h-10 inline-flex items-center justify-center font-semibold rounded-xl px-4.5 py-2 cursor-pointer text-[14px] sm:text-[14.5px] whitespace-nowrap text-center disabled:opacity-50 disabled:cursor-not-allowed"
+                class="btn-view-details btn-manage-reservation h-9 inline-flex items-center justify-center font-semibold rounded-xl px-4.5 py-2 cursor-pointer text-[14px] sm:text-[14.5px] whitespace-nowrap text-center disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Manage Reservation
               </button>
             `;
           }
 
+          actionButtonHtml = `<div class="flex flex-wrap items-center justify-center gap-1.5">${actionButtonHtml}<button type="button" data-audit-id="${order.id}" class="btn-reservation-audit inline-flex items-center justify-center h-9 px-2.5 border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-950/50 text-amber-900 dark:text-amber-200 hover:bg-amber-100 dark:hover:bg-amber-900/60 text-xs font-bold rounded-lg cursor-pointer whitespace-nowrap" title="View reservation history and timeline">Audit Log</button></div>`;
+
           const altRowClass = idx % 2 === 0 ? 'res-row-even' : 'res-row-odd';
 
           return `
             <tr id="reservation-row-${order.id}" class="${altRowClass} ${rowBgClass}">
               <!-- Customer + Queue Badge -->
-              <td class="py-4.5 px-6 align-middle">
+              <td class="py-3 px-3 align-middle">
                 <div class="flex items-center gap-3">
                   ${queuePosHtml}
                   <div class="min-w-0 space-y-1">
@@ -2124,7 +2289,7 @@
               </td>
 
               <!-- Product variety & Image -->
-              <td class="py-4.5 px-6 align-middle">
+              <td class="py-3 px-3 align-middle">
                 <div class="flex items-center gap-3 min-w-0">
                   <img src="${productImg}" alt="${productName}" class="w-10 h-10 rounded-xl object-cover border border-gray-200/80 dark:border-slate-700 shrink-0 shadow-2xs" />
                   <div class="min-w-0 space-y-1">
@@ -2139,20 +2304,17 @@
               </td>
 
               <!-- Quantity -->
-              <td class="py-4.5 px-5 text-center align-middle whitespace-nowrap">
+              <td class="py-3 px-2 text-center align-middle">
                 <span class="inline-flex items-center justify-center px-3.5 py-1.5 rounded-xl bg-gray-100/90 dark:bg-slate-800/90 border border-gray-300 dark:border-slate-700 text-gray-950 dark:text-white font-semibold text-[15px] sm:text-[16px]">
                   ${qty} <span class="text-[13px] sm:text-[14px] font-normal text-gray-700 dark:text-gray-300 ml-1.5">Sack${qty > 1 ? 's' : ''}</span>
                 </span>
               </td>
 
-              <!-- Reservation Date -->
-              <td class="py-4.5 px-6 align-middle whitespace-nowrap">${dateAndAvailabilityHtml}</td>
-
               <!-- Status -->
-              <td class="py-4.5 px-6 align-middle">${statusBadge}</td>
+              <td class="py-3 px-3 align-middle">${statusBadge}</td>
 
               <!-- Consolidated Actions -->
-              <td class="py-4.5 px-5 text-center align-middle whitespace-nowrap">${actionButtonHtml}</td>
+              <td class="py-3 px-2 text-center align-middle">${actionButtonHtml}</td>
             </tr>
           `;
         }).join('');
@@ -2163,6 +2325,11 @@
             const id = btn.getAttribute('data-id');
             openDetailsModal(id);
           });
+        });
+
+        // Attach listeners for reservation audit logs (read-only timeline view)
+        document.querySelectorAll('.btn-reservation-audit').forEach(btn => {
+          btn.addEventListener('click', () => openReservationAuditLog(btn.getAttribute('data-audit-id')));
         });
 
         // Attach listener for Process Order
@@ -2530,23 +2697,66 @@
         const details = order.addressDetails || order.shippingAddressDetails || null;
         if (!details) return '';
         const parts = [];
-        if (details.houseDetails && details.houseDetails !== 'No house number') parts.push(`<span class="font-bold text-gray-700 dark:text-gray-300">House/Bldg:</span> ${details.houseDetails}`);
-        if (details.street) parts.push(`<span class="font-bold text-gray-700 dark:text-gray-300">Street/Purok:</span> ${details.street}`);
-        if (details.barangay) parts.push(`<span class="font-bold text-gray-700 dark:text-gray-300">Brgy:</span> ${details.barangay}`);
-        if (details.city) parts.push(`<span class="font-bold text-gray-700 dark:text-gray-300">City/Mun:</span> ${details.city}`);
-        if (details.province) parts.push(`<span class="font-bold text-gray-700 dark:text-gray-300">Province:</span> ${details.province}`);
-        if (details.region) parts.push(`<span class="font-bold text-gray-700 dark:text-gray-300">Region:</span> ${details.region}`);
+        if (details.houseDetails && details.houseDetails !== 'No house number') parts.push(['House / Building', details.houseDetails]);
+        if (details.street) parts.push(['Street / Purok', details.street]);
+        if (details.barangay) parts.push(['Barangay', details.barangay]);
+        if (details.city) parts.push(['City / Municipality', details.city]);
+        if (details.province) parts.push(['Province', details.province]);
+        if (details.region) parts.push(['Region', details.region]);
 
         if (parts.length === 0) return '';
         return `
-          <div class="mt-2 text-xs sm:text-sm text-gray-700 dark:text-gray-300 bg-white/80 dark:bg-slate-800/80 p-2.5 rounded-xl border border-gray-200 dark:border-slate-700 space-y-1">
-            <p class="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1">Address Details:</p>
-            <div class="flex flex-wrap gap-x-3 gap-y-1">
-              ${parts.map(p => `<span>${p}</span>`).join('<span class="text-gray-400">•</span>')}
+          <section class="mt-3 rounded-xl border border-slate-200 bg-slate-50/80 p-3.5 sm:p-4 dark:border-slate-700 dark:bg-slate-800/60" aria-label="Address details">
+            <div class="mb-3 flex items-center gap-2 border-b border-slate-200 pb-2.5 dark:border-slate-700">
+              <span class="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-emerald-50 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300" aria-hidden="true">⌖</span>
+              <div>
+                <h5 class="text-sm font-semibold text-slate-800 dark:text-slate-100">Address Details</h5>
+                <p class="mt-0.5 text-xs font-normal text-slate-500 dark:text-slate-400">Breakdown of the saved delivery location</p>
+              </div>
             </div>
-          </div>
+            <dl class="grid grid-cols-1 gap-x-5 gap-y-3 sm:grid-cols-2">
+              ${parts.map(([label, value]) => `
+                <div class="min-w-0">
+                  <dt class="text-[11px] font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">${label}</dt>
+                  <dd class="mt-0.5 break-words text-sm font-normal leading-5 text-slate-800 dark:text-slate-100">${value}</dd>
+                </div>
+              `).join('')}
+            </dl>
+          </section>
         `;
       }
+
+      // Read-only audit log modal; displays the existing reservation status history without editing records.
+      function openReservationAuditLog(orderId) {
+        const order = getAllOrders().find(o => String(o.id) === String(orderId));
+        if (!order) return;
+        const modal = document.getElementById('reservation-audit-modal');
+        const title = document.getElementById('reservation-audit-title');
+        const subtitle = document.getElementById('reservation-audit-subtitle');
+        const timeline = document.getElementById('reservation-audit-timeline');
+        if (!modal || !timeline) return;
+        if (title) title.textContent = `Reservation Audit Log — #${order.id}`;
+        if (subtitle) subtitle.textContent = `${order.fullName || order.customerName || order.name || 'Customer'} · ${order.items?.[0]?.product?.name || 'Reserved item'}`;
+        const history = Array.isArray(order.statusHistory) ? order.statusHistory : [];
+        timeline.innerHTML = history.length ? `
+          <div class="relative pl-7 space-y-5 text-left">
+            <div class="absolute left-2.5 top-2 bottom-2 w-0.5 bg-gray-300 dark:bg-slate-700"></div>
+            ${history.map((step, idx) => `
+              <div class="relative pl-7">
+                <div class="absolute left-0 top-1.5 w-3 h-3 rounded-full bg-emerald-600 ring-4 ring-emerald-100 dark:ring-emerald-950"></div>
+                <p class="font-bold text-sm uppercase text-gray-950 dark:text-white">${step.status || 'Status update'} ${idx === history.length - 1 ? '<span class="bg-blue-600 text-white text-[10px] font-black uppercase px-2 py-0.5 rounded ml-2">Latest</span>' : ''}</p>
+                <p class="text-xs sm:text-sm text-gray-600 dark:text-gray-300 font-semibold mt-1">By: ${step.changedBy || 'System'} · ${step.changedAt || 'Date unavailable'}</p>
+                ${step.note ? `<p class="text-sm text-gray-800 dark:text-gray-200 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg p-3 mt-2">${step.note}</p>` : ''}
+              </div>
+            `).join('')}
+          </div>` : '<p class="text-sm font-semibold text-gray-600 dark:text-gray-300 py-2">No history logs recorded.</p>';
+        modal.classList.remove('hidden');
+      }
+
+      const closeReservationAuditButton = document.getElementById('btn-close-reservation-audit');
+      if (closeReservationAuditButton) closeReservationAuditButton.addEventListener('click', () => document.getElementById('reservation-audit-modal')?.classList.add('hidden'));
+      const reservationAuditModal = document.getElementById('reservation-audit-modal');
+      if (reservationAuditModal) reservationAuditModal.addEventListener('click', (event) => { if (event.target === reservationAuditModal) reservationAuditModal.classList.add('hidden'); });
 
       // DETAILS MODAL CONTROLLER
       function openDetailsModal(orderId) {
@@ -2718,7 +2928,7 @@
         box.innerHTML = `
           <div class="flex justify-between items-center pb-4 border-b border-gray-200 mb-6 text-left">
             <div>
-              <h3 class="text-2xl sm:text-[26px] font-black text-gray-950 flex items-center gap-2">🟣 Manage Reservation #${order.id}</h3>
+              <h3 class="text-xl sm:text-2xl font-semibold text-gray-950 flex items-center gap-2">🟣 Manage Reservation #${order.id}</h3>
               <p class="text-sm sm:text-base text-gray-700 font-medium mt-1">View reservation status, queue standing, and stock updates.</p>
             </div>
             <button id="close-details-modal-btn" class="text-gray-700 hover:text-black bg-gray-100 hover:bg-gray-200 p-2 rounded-full transition-colors cursor-pointer" title="Close">
@@ -2726,16 +2936,68 @@
             </button>
           </div>
 
-          <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 text-left">
-            <div class="lg:col-span-7 space-y-6">
+          <div class="grid grid-cols-1 ${isPaymentVerificationModal ? 'lg:grid-cols-2 payment-review-layout' : 'lg:grid-cols-12'} gap-4 lg:gap-5 text-left items-start">
+            <div class="${isPaymentVerificationModal ? 'contents' : 'lg:col-span-6 space-y-4 min-w-0'}">
+              <!-- Ordered Items -->
+              <div class="${isPaymentVerificationModal ? 'payment-review-left-card payment-review-left-row-3' : ''} bg-gray-50/70 p-6 border border-gray-200 rounded-2xl">
+                <h4 class="text-base font-semibold text-gray-950 tracking-wide mb-4 flex items-center gap-1.5">
+                  <span>🌾</span> Reserved Variety
+                </h4>
+                <div class="space-y-4">${itemsHtml}</div>
+              </div>
+
+              <!-- Customer Profile -->
+              <div class="${isPaymentVerificationModal ? 'payment-review-left-card payment-review-left-row-2' : ''} bg-gray-50/70 p-6 border border-gray-200 rounded-2xl">
+                <div class="flex items-center justify-between mb-4">
+                  <h4 class="text-base font-semibold text-gray-950 tracking-wide flex items-center gap-1.5">
+                    <span>👤</span> Customer Profile
+                  </h4>
+                  ${modalAvatarUrl ? `
+                    <div class="w-11 h-11 rounded-full overflow-hidden border border-gray-300 shadow-2xs shrink-0">
+                      <img src="${modalAvatarUrl}" alt="${modalCustomerName}" class="w-full h-full object-cover" />
+                    </div>
+                  ` : `
+                    <div class="w-11 h-11 rounded-full bg-emerald-50 border border-emerald-300 flex items-center justify-center text-sm font-semibold text-[#1E6C02] shadow-2xs shrink-0 select-none">
+                      ${modalInitial}
+                    </div>
+                  `}
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 text-sm sm:text-base font-normal text-gray-950">
+                  <div>
+                    <p class="text-gray-700 font-medium text-xs sm:text-sm uppercase tracking-wide">Contact Name</p>
+                    <p class="font-semibold text-gray-950 text-base mt-1">${order.fullName || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <p class="text-gray-700 font-medium text-xs sm:text-sm uppercase tracking-wide">Contact Number</p>
+                    <p class="font-semibold text-gray-950 text-base mt-1">${order.phone || 'N/A'}</p>
+                  </div>
+                  <div class="sm:col-span-2 border-t border-gray-200 pt-3.5">
+                    <p class="text-gray-700 font-medium text-xs sm:text-sm uppercase tracking-wide">Fulfillment Option</p>
+                    <p class="font-semibold text-gray-950 text-base mt-1 uppercase">${order.deliveryOption === 'delivery' ? 'Home Delivery' : 'Store Pick-up'}</p>
+                  </div>
+                  ${order.deliveryOption === 'delivery' ? `
+                  <div class="sm:col-span-2 border-t border-gray-200 pt-3.5 pb-3 mb-3">
+                    <div class="flex items-center justify-between gap-3">
+                      <p class="text-gray-700 font-medium text-xs sm:text-sm uppercase tracking-wide">Saved Delivery Address</p>
+                      ${resMapLinkHtml}
+                    </div>
+                    <p class="font-normal text-gray-950 text-base mt-2 leading-relaxed">${resDeliveryAddress}</p>
+                    ${resAddressBreakdownHtml}
+                  </div>
+                  ` : ''}
+                </div>
+              </div>
+
+            </div>
+            <div class="${isPaymentVerificationModal ? 'contents' : 'lg:col-span-6 space-y-4 min-w-0'}">
               <!-- Queue Position & Status Card -->
-              <div class="bg-purple-50 border border-purple-200 p-6 rounded-2xl flex justify-between items-center text-left">
+              <div class="${isPaymentVerificationModal ? 'payment-review-left-card payment-review-left-row-1' : ''} bg-purple-50 border border-purple-200 p-6 rounded-2xl flex justify-between items-center text-left">
                 <div>
-                  <h4 class="text-xs sm:text-sm font-bold text-gray-900 uppercase tracking-wider mb-1">Queue Standing</h4>
-                  <p class="text-[34px] font-black text-purple-700 leading-none">${dynamicPos ? '#' + dynamicPos : 'Not in Line'}</p>
+                  <h4 class="text-xs sm:text-sm font-semibold text-gray-800 tracking-wide mb-1">Queue Standing</h4>
+                  <p class="text-[32px] font-semibold text-purple-700 leading-none">${dynamicPos ? '#' + dynamicPos : 'Not in Line'}</p>
                 </div>
                 <div class="text-right">
-                  <h4 class="text-xs sm:text-sm font-bold text-gray-900 uppercase tracking-wider mb-1">Status</h4>
+                  <h4 class="text-xs sm:text-sm font-semibold text-gray-800 tracking-wide mb-1">Status</h4>
                   <div>${statusBadge}</div>
                   ${modalAllocatedQty > 0 ? `
                     <p class="text-xs sm:text-sm font-bold text-emerald-900 mt-1.5">Allocated: ${modalAllocatedQty} / ${pQty} Sacks</p>
@@ -2746,69 +3008,34 @@
                 </div>
               </div>
 
-              <!-- Customer Profile -->
-              <div class="bg-gray-50/70 p-6 border border-gray-200 rounded-2xl">
-                <div class="flex items-center justify-between mb-4">
-                  <h4 class="text-[18px] font-bold text-gray-950 uppercase tracking-wider flex items-center gap-1.5">
-                    <span>👤</span> Customer Profile
-                  </h4>
-                  ${modalAvatarUrl ? `
-                    <div class="w-11 h-11 rounded-full overflow-hidden border border-gray-300 shadow-2xs shrink-0">
-                      <img src="${modalAvatarUrl}" alt="${modalCustomerName}" class="w-full h-full object-cover" />
-                    </div>
-                  ` : `
-                    <div class="w-11 h-11 rounded-full bg-emerald-50 border border-emerald-300 flex items-center justify-center text-sm font-black text-[#1E6C02] shadow-2xs shrink-0 select-none">
-                      ${modalInitial}
-                    </div>
-                  `}
+              <!-- Reservation Dates -->
+              <div class="${isPaymentVerificationModal ? 'payment-review-right-card payment-review-right-row-1' : ''} bg-white border border-gray-200 p-5 rounded-2xl space-y-3">
+                <h4 class="text-base font-semibold text-gray-950 tracking-wide">Reservation Dates</h4>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div class="rounded-xl bg-gray-50 border border-gray-200 p-3">
+                    <p class="text-xs font-medium uppercase tracking-wide text-gray-600 mb-1">Reserved Date</p>
+                    <p class="text-sm font-semibold text-gray-950">${dateStr}</p>
+                  </div>
+                  <div class="rounded-xl bg-gray-50 border border-gray-200 p-3">
+                    <p class="text-xs font-medium uppercase tracking-wide text-gray-600 mb-1">${order.deliveryOption === 'pickup' ? 'Estimated Pickup' : 'Estimated Delivery'}</p>
+                    <p class="text-sm font-semibold text-gray-950">${getEstimatedArrivalDate(order)}</p>
+                  </div>
                 </div>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 text-sm sm:text-base font-normal text-gray-950">
-                  <div>
-                    <p class="text-gray-800 font-bold text-xs sm:text-sm uppercase tracking-wider">Contact Name</p>
-                    <p class="font-bold text-gray-950 text-base mt-1">${order.fullName || 'N/A'}</p>
-                  </div>
-                  <div>
-                    <p class="text-gray-800 font-bold text-xs sm:text-sm uppercase tracking-wider">Contact Number</p>
-                    <p class="font-bold text-gray-950 text-base mt-1">${order.phone || 'N/A'}</p>
-                  </div>
-                  <div class="sm:col-span-2 border-t border-gray-200 pt-3.5">
-                    <p class="text-gray-800 font-bold text-xs sm:text-sm uppercase tracking-wider">Fulfillment Option</p>
-                    <p class="font-bold text-gray-950 text-base mt-1 uppercase">${order.deliveryOption === 'delivery' ? 'Home Delivery' : 'Store Pick-up'}</p>
-                  </div>
-                  ${order.deliveryOption === 'delivery' ? `
-                  <div class="sm:col-span-2 border-t border-gray-200 pt-3.5">
-                    <div class="flex items-center justify-between">
-                      <p class="text-gray-800 font-bold text-xs sm:text-sm uppercase tracking-wider">Saved Delivery Address</p>
-                      ${resMapLinkHtml}
-                    </div>
-                    <p class="font-semibold text-gray-950 text-base mt-1 leading-relaxed">${resDeliveryAddress}</p>
-                    ${resAddressBreakdownHtml}
-                  </div>
-                  ` : ''}
-                </div>
-              </div>
-
-              <!-- Ordered Items -->
-              <div class="bg-gray-50/70 p-6 border border-gray-200 rounded-2xl">
-                <h4 class="text-[18px] font-bold text-gray-950 uppercase tracking-wider mb-4 flex items-center gap-1.5">
-                  <span>🌾</span> Reserved Variety
-                </h4>
-                <div class="space-y-4">${itemsHtml}</div>
               </div>
 
               <!-- Estimated Restock / Availability Details -->
-              <div class="bg-gray-50/70 p-6 border border-gray-200 rounded-2xl space-y-5">
-                <h4 class="text-[18px] font-bold text-gray-950 uppercase tracking-wider flex items-center gap-1.5">
+              <div class="${isPaymentVerificationModal ? 'payment-review-left-card payment-review-left-row-4' : ''} bg-gray-50/70 p-6 border border-gray-200 rounded-2xl space-y-5">
+                <h4 class="text-base font-semibold text-gray-950 tracking-wide flex items-center gap-1.5">
                   <span>📅</span> Estimated Availability Details
                 </h4>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
                   <div>
-                    <label class="block text-xs sm:text-sm text-gray-900 font-bold uppercase mb-2">Restock Target Date</label>
-                    <input type="date" id="det-restock-date" value="${(order.estimatedRestockDate && !isNaN(new Date(order.estimatedRestockDate).getTime())) ? new Date(order.estimatedRestockDate).toISOString().split('T')[0] : ''}" class="w-full text-sm sm:text-base font-semibold p-3.5 bg-white border border-gray-300 rounded-xl outline-none focus:border-purple-600 text-gray-950">
+                    <label class="block text-xs sm:text-sm text-gray-800 font-medium uppercase tracking-wide mb-2">Restock Target Date</label>
+                    <input type="date" id="det-restock-date" value="${(order.estimatedRestockDate && !isNaN(new Date(order.estimatedRestockDate).getTime())) ? new Date(order.estimatedRestockDate).toISOString().split('T')[0] : ''}" class="w-full text-sm sm:text-base font-normal p-3 bg-white border border-gray-300 rounded-xl outline-none focus:border-purple-600 text-gray-950">
                   </div>
                   <div>
-                    <label class="block text-xs sm:text-sm text-gray-900 font-bold uppercase mb-2">Estimated Dispatch Batch</label>
-                    <select id="det-restock-slot" class="w-full text-sm sm:text-base font-semibold p-3.5 bg-white border border-gray-300 rounded-xl outline-none focus:border-purple-600 text-gray-950">
+                    <label class="block text-xs sm:text-sm text-gray-800 font-medium uppercase tracking-wide mb-2">Estimated Dispatch Batch</label>
+                    <select id="det-restock-slot" class="w-full text-sm sm:text-base font-normal p-3 bg-white border border-gray-300 rounded-xl outline-none focus:border-purple-600 text-gray-950">
                       <option value="Morning Shift" ${order.estimatedSlot === 'Morning Shift' ? 'selected' : ''}>Morning Batch</option>
                       <option value="Afternoon Shift" ${order.estimatedSlot === 'Afternoon Shift' ? 'selected' : ''}>Afternoon Batch</option>
                       <option value="Late Shipment" ${order.estimatedSlot === 'Late Shipment' ? 'selected' : ''}>Late Shipment Batch</option>
@@ -2823,11 +3050,11 @@
               </div>
 
               <!-- Reservation Notes -->
-              <div class="bg-gray-50/70 p-6 border border-gray-200 rounded-2xl space-y-3">
-                <h4 class="text-[18px] font-bold text-gray-950 uppercase tracking-wider flex items-center gap-1.5">
+              <div class="${isPaymentVerificationModal ? 'payment-review-left-card payment-review-left-row-5' : ''} bg-gray-50/70 p-6 border border-gray-200 rounded-2xl space-y-3">
+                <h4 class="text-base font-semibold text-gray-950 tracking-wide flex items-center gap-1.5">
                   <span>📝</span> Reservation Notes
                 </h4>
-                <textarea id="det-admin-notes-input" rows="3" class="w-full bg-white border border-gray-300 text-sm font-semibold text-gray-950 p-3.5 rounded-xl outline-none focus:border-[#1E6C02] transition-colors" placeholder="Type customer remarks, dispatch exceptions, or notes...">${order.adminNotes || ''}</textarea>
+                <textarea id="det-admin-notes-input" rows="3" class="w-full bg-white border border-gray-300 text-sm font-normal text-gray-950 p-3 rounded-xl outline-none focus:border-[#1E6C02] transition-colors" placeholder="Type customer remarks, dispatch exceptions, or notes...">${order.adminNotes || ''}</textarea>
                 <div class="flex justify-end">
                   <button id="det-save-notes-btn" class="px-6 py-3 bg-[#1E6C02] hover:bg-[#145001] text-white text-sm font-bold rounded-xl transition-all cursor-pointer shadow-xs">
                     Save Notes
@@ -2836,7 +3063,6 @@
               </div>
             </div>
 
-            <div class="lg:col-span-5 space-y-6">
               ${isCancelledModal ? `
               <div class="bg-red-50/70 border border-red-200 p-6 rounded-2xl space-y-4 text-left">
                 <div class="flex items-center justify-between border-b border-red-200 pb-3">
@@ -2894,8 +3120,8 @@
               ` : ''}
 
               ${(!isCancelledModal && (!isWaitingModal || order.paymentVerified)) ? `
-              <div class="bg-white border border-gray-200 p-6 rounded-2xl shadow-inner text-sm sm:text-base font-normal text-gray-950 space-y-4">
-                <h4 class="text-[18px] font-bold text-gray-950 uppercase tracking-wider border-b pb-2 flex items-center gap-1.5">📊 Reservation Payment</h4>
+              <div class="${isPaymentVerificationModal ? 'payment-review-right-card payment-review-right-row-2' : ''} bg-white border border-gray-200 p-6 rounded-2xl shadow-inner text-sm sm:text-base font-normal text-gray-950 space-y-4">
+                <h4 class="text-base font-semibold text-gray-950 tracking-wide border-b pb-2 flex items-center gap-1.5">📊 Reservation Payment</h4>
                 <div class="flex justify-between items-center border-b pb-3">
                   <span class="text-gray-800 font-bold">Total Bill:</span>
                   <span class="font-black text-gray-950 text-base sm:text-lg">₱${totalVal.toLocaleString()}.00</span>
@@ -2913,10 +3139,10 @@
 
               <!-- Payment Proof (Rendered during Payment Verification or Re-upload waiting or when proof exists) -->
               ${(isPaymentVerificationModal || isReuploadWaitingModal || order.paymentProof || order.paymentProofDataUrl) ? `
-              <div class="bg-gray-50/70 p-6 border border-gray-200 rounded-2xl space-y-4">
+              <div class="${isPaymentVerificationModal ? 'payment-review-right-card payment-review-right-row-3 payment-review-proof-card' : ''} bg-gray-50/70 p-6 border border-gray-200 rounded-2xl space-y-4">
                 <div class="flex items-center justify-between">
-                  <h4 class="text-[18px] font-bold text-gray-950 uppercase tracking-wider flex items-center gap-1.5">
-                    <span>📱</span> Payment Proof
+                  <h4 class="text-base font-semibold text-gray-950 tracking-wide flex items-center gap-1.5">
+                    <span>📱</span> ${isPaymentVerificationModal ? 'Reservation Payment Proof' : 'Payment Proof'}
                   </h4>
                   ${order.hasCorrectedProof ? `
                     <span class="px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-900 text-xs font-bold uppercase">Corrected Proof</span>
@@ -2935,11 +3161,11 @@
                   </div>
                 ` : ''}
 
-                <div class="border border-gray-200 bg-white rounded-xl p-4 flex flex-col items-center justify-center space-y-4">
-                  <div class="w-full border border-gray-200 rounded-xl overflow-hidden shadow-xs bg-gray-50 flex items-center justify-center">
+                <div class="payment-proof-content border border-gray-200 bg-white rounded-xl p-4 flex flex-col items-center justify-center space-y-4">
+                  <div class="payment-proof-image-frame w-full border border-gray-200 rounded-xl overflow-hidden shadow-xs bg-gray-50 flex items-center justify-center">
                     <img id="review-payment-proof-image" src="${order.paymentProofUrl || order.paymentProofDataUrl || order.paymentProof || ''}" alt="Payment Proof" class="max-h-56 w-auto object-contain cursor-zoom-in transition-all hover:scale-102" />
                   </div>
-                  <div class="text-xs sm:text-sm text-gray-800 font-semibold text-center space-y-1.5 w-full border-t border-gray-100 pt-3">
+                  <div class="payment-proof-metadata text-xs sm:text-sm text-gray-800 font-semibold text-center space-y-1.5 w-full border-t border-gray-100 pt-3">
                     <p><span class="font-bold text-gray-950">Payment Amount:</span> <span class="text-emerald-800 font-black">₱${paidVal.toLocaleString()}.00</span></p>
                     <p><span class="font-bold text-gray-950">Uploaded Date:</span> ${order.paymentUploadedAt || 'N/A'}</p>
                     <p><span class="font-bold text-gray-950">Verification Status:</span> <span class="${isReuploadWaitingModal ? 'text-amber-800' : 'text-blue-800'} font-black">${isReuploadWaitingModal ? 'Proof Rejected — Awaiting Re-upload' : 'Pending Review'}</span></p>
@@ -2951,12 +3177,6 @@
               </div>
               ` : ''}
 
-              <div class="bg-gray-50/50 p-6 border border-gray-200 rounded-2xl">
-                <h4 class="text-[18px] font-bold text-gray-950 uppercase tracking-wider mb-4 border-b pb-2 flex items-center gap-1.5">
-                  <span>⏱️</span> History & Timeline
-                </h4>
-                <div id="det-timeline-stack">${historyHtml}</div>
-              </div>
             </div>
           </div>
 
@@ -2966,8 +3186,8 @@
             </div>
             <div class="flex flex-wrap gap-2">
               ${isPaymentVerificationModal ? `
-                <button id="btn-det-action-verify-payment" class="px-5 py-3 text-sm sm:text-base font-bold bg-[#1E6C02] hover:bg-[#145001] text-white rounded-xl cursor-pointer transition-colors shadow-xs">✔ Verify Reservation</button>
                 <button id="btn-det-action-reject-payment" class="px-5 py-3 text-sm sm:text-base font-bold bg-red-50 hover:bg-red-100 border border-red-300 text-red-800 rounded-xl cursor-pointer transition-colors shadow-xs">Reject Payment Proof</button>
+                <button id="btn-det-action-verify-payment" class="px-5 py-3 text-sm sm:text-base font-bold bg-[#1E6C02] hover:bg-[#145001] text-white rounded-xl cursor-pointer transition-colors shadow-xs">✔ Verify Reservation</button>
               ` : ''}
               ${isReuploadWaitingModal ? `
                 <div class="inline-flex items-center gap-2 px-4 py-2.5 bg-amber-50 border border-amber-300 rounded-xl text-amber-900 text-xs sm:text-sm font-bold">
@@ -2988,6 +3208,38 @@
             </div>
           </div>
         `;
+
+        // Review Payment only: create independent left/right stacks in the exact requested order.
+        // This avoids CSS grid row sizing leaving awkward blank space between cards of different heights.
+        if (isPaymentVerificationModal) {
+          const reviewGrid = box.querySelector('.payment-review-layout');
+          if (reviewGrid) {
+            const leftStack = document.createElement('div');
+            leftStack.className = 'payment-review-column payment-review-column-left';
+            const rightStack = document.createElement('div');
+            rightStack.className = 'payment-review-column payment-review-column-right';
+            const appendCard = (stack, selector) => {
+              const card = reviewGrid.querySelector(selector);
+              if (card) {
+                card.classList.remove('payment-review-left-row-1', 'payment-review-left-row-2', 'payment-review-left-row-3', 'payment-review-left-row-4', 'payment-review-left-row-5', 'payment-review-right-row-1', 'payment-review-right-row-2', 'payment-review-right-row-3');
+                card.classList.remove('payment-review-left-card', 'payment-review-right-card');
+                stack.appendChild(card);
+              }
+            };
+            // Left: Queue Standing/Status → Reserved Variety → Customer Profile → Availability → Notes.
+            appendCard(leftStack, '.payment-review-left-row-1');
+            appendCard(leftStack, '.payment-review-left-row-3');
+            appendCard(leftStack, '.payment-review-left-row-2');
+            appendCard(leftStack, '.payment-review-left-row-4');
+            appendCard(leftStack, '.payment-review-left-row-5');
+            // Right: Reservation Dates → Reservation Payment → Reservation Payment Proof.
+            appendCard(rightStack, '.payment-review-right-row-1');
+            appendCard(rightStack, '.payment-review-right-row-2');
+            appendCard(rightStack, '.payment-review-right-row-3');
+            reviewGrid.appendChild(leftStack);
+            reviewGrid.appendChild(rightStack);
+          }
+        }
 
         // Close modal helpers
         const closeFn = () => {

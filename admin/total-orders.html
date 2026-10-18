@@ -111,7 +111,8 @@
       protectAdminPage,
       renderAdminLayout,
       getDashboardTotalOrdersData,
-      parseDashboardOrderDate
+      parseDashboardOrderDate,
+      isTransferredReservationToOrder
     } from '../src/app/shared.js';
 
     document.addEventListener('DOMContentLoaded', async () => {
@@ -221,7 +222,9 @@
               const rawId = String(order.id || order.orderNumber || '').trim();
               const ticketNumber = rawId.startsWith('#') ? rawId : `#${rawId}`;
               const customerName = order.fullName || order.customerName || order.userName || 'Customer';
-              const regularItems = (order.items || []).filter(i => i && !i.isReservation);
+              const regularItems = (order.items || []).filter(i =>
+                i && (!i.isReservation || isTransferredReservationToOrder(order))
+              );
 
               const riceProductsText = regularItems.length > 0
                 ? regularItems.map(i => i.product?.name || i.name || i.productName || 'Rice Product').join(', ')

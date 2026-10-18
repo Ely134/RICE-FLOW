@@ -391,6 +391,8 @@
       getProducts,
       getVerifiedCustomerPaymentInfo,
       isReservationOrder,
+      isSalesReservationOrder,
+      isTransferredReservationToOrder,
       isCancelledOrRejectedOrder,
       showToast
     } from '../src/app/shared.js';
@@ -568,9 +570,9 @@
             </div>
 
             <div class="so-summary-card p-5 rounded-2xl flex flex-col justify-between gap-2 shadow-xs hover:shadow-sm transition-all min-h-[120px]">
-              <p class="so-text-sub text-xs font-extrabold uppercase tracking-wider">Sacks Sold</p>
+              <p class="so-text-sub text-xs font-extrabold uppercase tracking-wider">Sacks Ordered</p>
               <p id="card-timeframe-sacks" class="so-text-main text-xl sm:text-2xl font-black tabular-nums tracking-tight">0 Sacks</p>
-              <p class="text-xs text-slate-700 dark:text-slate-200 font-semibold">Total sacks sold</p>
+              <p class="text-xs text-slate-700 dark:text-slate-200 font-semibold">Sacks in approved orders</p>
             </div>
           </div>
 
@@ -579,7 +581,7 @@
             <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800 flex-wrap gap-2">
               <div>
                 <h3 class="so-text-main font-bold text-lg tracking-tight">Sales Chart</h3>
-                <p class="so-text-sub text-xs sm:text-sm font-semibold mt-0.5">Taller bars show higher sales. Hover over any bar to see sales, sacks sold, and orders.</p>
+                <p class="so-text-sub text-xs sm:text-sm font-semibold mt-0.5">Bars show verified or audited revenue. Hover over a bar to see approved order tickets, sacks ordered, and counted revenue.</p>
               </div>
               <span class="so-activity-badge text-xs font-extrabold px-3 py-1 rounded-full">Sales Trend</span>
             </div>
@@ -1067,10 +1069,11 @@
         return new Date(0);
       }
 
-      // Authoritative Completed Order status checker - strictly actual 'completed' status
+      // Match Admin Orders' Completed filter: any order whose actual status is 'completed'.
+      // Replacement orders remain visible in the completed-order count, but are excluded
+      // from sales totals below so replacement fulfillment does not create duplicate revenue.
       function isOrderActuallyCompleted(order) {
         if (!order) return false;
-        if (order.isReplacement) return false;
         if (typeof isCancelledOrRejectedOrder === 'function' && isCancelledOrRejectedOrder(order)) return false;
         const s = String(order.status || '').trim().toLowerCase().replace(/_/g, '-');
         return s === 'completed';
@@ -1162,8 +1165,8 @@
           }
         }
 
-        function itemMatchesVariety(item) {
-          if (!item || item.isReservation) return false;
+        function itemMatchesVariety(item, parentOrder = null) {
+          if (!item || (item.isReservation && !(parentOrder && isTransferredReservationToOrder(parentOrder)))) return false;
           if (currentProd === 'all') return true;
           const pId = String(item.product?.id || item.productId || item.id || '');
           const pName = String(item.product?.name || item.name || item.productName || '').trim().toLowerCase();
@@ -1178,8 +1181,8 @@
           if (currentProd === 'all') {
             return info.amount;
           }
-          const allItems = (o.items || []).filter(item => item && !item.isReservation);
-          const matchingItems = allItems.filter(item => itemMatchesVariety(item));
+          const allItems = (o.items || []).filter(item => item && (!item.isReservation || isTransferredReservationToOrder(o)));
+          const matchingItems = allItems.filter(item => itemMatchesVariety(item, o));
           if (matchingItems.length === 0) return 0;
           if (matchingItems.length === allItems.length) {
             return info.amount;
@@ -1201,7 +1204,7 @@
         function getOrderVerifiedSacks(o) {
           let sacks = 0;
           (o.items || []).forEach(item => {
-            if (itemMatchesVariety(item)) {
+            if (itemMatchesVariety(item, o)) {
               sacks += Number(item.quantity || 0);
             }
           });
@@ -1210,11 +1213,47 @@
 
         const isDateOrRangeFiltered = Boolean(selectedSalesDate || currentRange !== 'all');
 
+        // Sales revenue is payment-based, but order/sack activity must include
+        // approved tickets already transferred to Order Processing—even if COD
+        // collection or delivery is still pending. Pure reservations and cancelled
+        // records remain excluded; converted reservations count as their own active ticket.
+        const approvedProcessingStatuses = new Set([
+          'approved', 'confirmed', 'processing', 'preparing', 'to-ship',
+          'to-receive', 'shipped', 'in-transit', 'delivered', 'completed',
+          'ready-for-processing', 'ready', 'ready-for-pickup'
+        ]);
+        const approvedOrderTickets = liveOrders.filter(o => {
+          if (!o || o.isReplacement || isSalesReservationOrder(o) || isCancelledOrRejectedOrder(o)) return false;
+          const statusClean = String(o.status || '').toLowerCase().replace(/_/g, '-').trim();
+          const isTransferredReservation = isTransferredReservationToOrder(o);
+          // Normal approval moves a verified non-reservation order to Processing.
+          // Also recognize explicit approval/payment-verification fields for older
+          // records whose status was not updated consistently. Pure reservations,
+          // rejected/cancelled orders, and replacement tickets remain excluded.
+          const hasApprovalEvidence = Boolean(
+            o.approvedAt || o.verifiedBy || o.paymentVerified === true ||
+            o.isVerifiedPayment === true || o.paymentConfirmed === true ||
+            o.paymentStatus === 'verified' || o.paymentStatus === 'paid'
+          );
+          if (!approvedProcessingStatuses.has(statusClean) && !isTransferredReservation && !hasApprovalEvidence) return false;
+          if (isDateOrRangeFiltered) {
+            const oDate = parseOrderDate(o);
+            if (oDate < rangeStart || oDate > rangeEnd) return false;
+          }
+          return true;
+        });
+
+        let matchingApprovedOrders = approvedOrderTickets;
+        if (currentProd !== 'all') {
+          matchingApprovedOrders = approvedOrderTickets.filter(o =>
+            (o.items || []).some(item => itemMatchesVariety(item, o))
+          );
+        }
+
         const verifiedSalesOrders = liveOrders.filter(o => {
-          if (!o || o.isReplacement || isReservationOrder(o) || isCancelledOrRejectedOrder(o)) return false;
+          if (!o || o.isReplacement || isSalesReservationOrder(o) || isCancelledOrRejectedOrder(o)) return false;
           const info = getVerifiedCustomerPaymentInfo(o);
           if (!info || !info.isVerified) return false;
-          
           if (isDateOrRangeFiltered) {
             const oDate = parseOrderDate(o);
             if (oDate < rangeStart || oDate > rangeEnd) return false;
@@ -1224,16 +1263,18 @@
 
         let matchingOrders = verifiedSalesOrders;
         if (currentProd !== 'all') {
-          matchingOrders = verifiedSalesOrders.filter(o => {
-            return (o.items || []).some(item => itemMatchesVariety(item));
-          });
+          matchingOrders = verifiedSalesOrders.filter(o =>
+            (o.items || []).some(item => itemMatchesVariety(item, o))
+          );
         }
 
         let timeframeSacksSum = 0;
         let timeframeSalesSum = 0;
 
-        matchingOrders.forEach(o => {
+        matchingApprovedOrders.forEach(o => {
           timeframeSacksSum += getOrderVerifiedSacks(o);
+        });
+        matchingOrders.forEach(o => {
           timeframeSalesSum += getOrderVerifiedSales(o);
         });
 
@@ -1269,16 +1310,19 @@
           }
 
           if (currentProd !== 'all') {
-            return (o.items || []).some(item => itemMatchesVariety(item));
+            return (o.items || []).some(item => itemMatchesVariety(item, o));
           }
           return true;
         });
 
         let strictlyCompletedSalesAmount = 0;
         strictlyCompletedOrders.forEach(o => {
+          // Count completed replacement orders in the order count, but do not count
+          // replacement fulfillment as new sales revenue.
+          if (o.isReplacement) return;
           if (currentProd !== 'all') {
-            const allItems = (o.items || []).filter(item => item && !item.isReservation);
-            const matchingItems = allItems.filter(item => itemMatchesVariety(item));
+            const allItems = (o.items || []).filter(item => item && (!item.isReservation || isTransferredReservationToOrder(o)));
+            const matchingItems = allItems.filter(item => itemMatchesVariety(item, o));
             const allSum = allItems.reduce((acc, item) => acc + (Number(item.quantity || 0) * Number(item.product?.price || item.price || 0)), 0);
             const varSum = matchingItems.reduce((acc, item) => acc + (Number(item.quantity || 0) * Number(item.product?.price || item.price || 0)), 0);
             const orderTot = Number(o.total || o.totalPrice || o.totalBill || o.amountPaid || 0);
@@ -1344,7 +1388,9 @@
           let ordersInBucket = 0;
           let salesInBucket = 0;
 
-          matchingOrders.forEach(o => {
+          // Counts/sacks represent approved Order Processing tickets; revenue
+          // remains restricted to verified payments/audited collections.
+          matchingApprovedOrders.forEach(o => {
             const oDate = parseOrderDate(o);
             const inBucket = (isMonthlyRange || (!selectedSalesDate && currentRange === '1week'))
               ? (oDate >= bStart && oDate <= bEnd)
@@ -1354,9 +1400,15 @@
               if (oSacks > 0 || currentProd === 'all') {
                 ordersInBucket++;
                 sacksInBucket += oSacks;
-                salesInBucket += getOrderVerifiedSales(o);
               }
             }
+          });
+          matchingOrders.forEach(o => {
+            const oDate = parseOrderDate(o);
+            const inBucket = (isMonthlyRange || (!selectedSalesDate && currentRange === '1week'))
+              ? (oDate >= bStart && oDate <= bEnd)
+              : ((i === numBuckets - 1) ? (oDate >= bStart && oDate <= bEnd) : (oDate >= bStart && oDate < bEnd));
+            if (inBucket) salesInBucket += getOrderVerifiedSales(o);
           });
 
           buckets.push({
@@ -1424,23 +1476,30 @@
 
                 <!-- Dynamic bars -->
                 ${buckets.map(b => {
+                  const hasZeroSalesActivity = b.sales <= 0 && (b.sacks > 0 || b.orders > 0);
                   const heightPercent = maxSalesVal > 0 ? Math.min((b.sales / maxSalesVal) * 100, 100) : 0;
                   const formattedSales = b.sales.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-                  const isHighlighted = Boolean((b.label && /(sep|oct)/i.test(b.label)) || b.sales > 0);
+                  const isHighlighted = Boolean((b.label && /(sep|oct)/i.test(b.label)) || b.sales > 0 || hasZeroSalesActivity);
                   const barColorClass = isHighlighted
                     ? 'bg-[#1E6C02] hover:bg-[#145001] dark:bg-emerald-500 dark:hover:bg-emerald-400 so-bar-sep shadow-xs'
                     : 'bg-slate-200 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600';
                   const labelClass = isHighlighted
                     ? 'so-text-main text-xs font-black absolute top-full mt-3 truncate w-full text-center tracking-tight text-[#1E6C02] dark:text-emerald-400 so-bar-label-sep'
                     : 'so-text-main text-xs font-extrabold absolute top-full mt-3 truncate w-full text-center tracking-tight';
+                  const barStyle = b.sales > 0
+                    ? `height: ${heightPercent}%; min-height: 4px;`
+                    : (hasZeroSalesActivity ? 'height: 6px; min-height: 6px;' : 'height: 0%;');
+                  const tooltipNote = hasZeroSalesActivity
+                    ? ' · ₱0 verified sales; baseline indicator shows approved order activity'
+                    : '';
                   return `
                     <div class="flex-1 flex flex-col items-center group relative h-full justify-end cursor-pointer z-10 self-stretch">
                       <!-- Tooltip -->
                       <div class="absolute bottom-full mb-2 bg-white dark:bg-slate-900 text-slate-950 dark:text-white text-xs font-bold py-2 px-3.5 rounded-xl border border-slate-300 dark:border-slate-700 opacity-0 group-hover:opacity-100 pointer-events-none transition-all z-30 whitespace-nowrap shadow-xl">
-                        <span class="text-[#14532D] dark:text-emerald-400 font-black">${b.label}:</span> <span class="text-slate-950 dark:text-white font-black">₱${formattedSales}</span> <span class="text-slate-800 dark:text-slate-100 font-semibold">(${b.sacks} Sacks sold · ${b.orders} Order${b.orders !== 1 ? 's' : ''})</span>
+                        <span class="text-[#14532D] dark:text-emerald-400 font-black">${b.label}:</span> <span class="text-slate-950 dark:text-white font-black">₱${formattedSales}</span> <span class="text-slate-800 dark:text-slate-100 font-semibold">(${b.sacks} sacks ordered · ${b.orders} approved order${b.orders !== 1 ? 's' : ''}${tooltipNote})</span>
                       </div>
                       <!-- Bar item -->
-                      <div class="${barColorClass} rounded-t-xl transition-all w-full max-w-[54px]" style="height: ${heightPercent}%; ${b.sales > 0 ? 'min-height: 4px;' : ''}"></div>
+                      <div class="${barColorClass} rounded-t-xl transition-all w-full max-w-[54px]" style="${barStyle}"></div>
                       <span class="${labelClass}" title="${b.label}">${b.label}</span>
                     </div>
                   `;
@@ -1534,6 +1593,9 @@
 
         let completedTotalAmount = 0;
         completedOrders.forEach(o => {
+          // Keep completed-order counts aligned with Admin Orders while excluding
+          // replacement orders from revenue totals to avoid double-counting sales.
+          if (o.isReplacement) return;
           if (selectedProd && selectedProd !== 'all') {
             const allItems = (o.items || []).filter(item => item && !item.isReservation);
             const matchingItems = allItems.filter(item => {

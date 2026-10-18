@@ -603,7 +603,6 @@
       // Filter State Variables
       let invTimeRange = 'all';
       let invProductFilter = 'all';
-      let aiSectionProductFilter = null; // Independent variety filter for Expected Stock section
       let invCustomStart = '';
       let invCustomEnd = '';
       let draftInvStart = '';
@@ -889,6 +888,8 @@
               </table>
             </div>
           </div>
+
+
         </div>
       `;
 
@@ -1238,110 +1239,6 @@
         return scored[0]?.product || activeProducts[0];
       }
 
-      function populateAiSectionDropdown(activeProducts, selectedId) {
-        const selAiProd = document.getElementById('sel-ai-stock-product');
-        if (!selAiProd) return;
-
-        let html = '';
-        activeProducts.forEach(p => {
-          const pId = String(p.id);
-          const sacks = p.availableStock !== undefined
-            ? Math.max(0, Number(p.availableStock))
-            : (p.stock !== undefined ? Math.max(0, Number(p.stock)) : 0);
-
-          let note = '';
-          if (sacks === 0) note = ' — Out of Stock';
-          else if (sacks <= 15) note = ` — ${sacks} sacks (Low)`;
-          else note = ` — ${sacks} sacks`;
-
-          const isSelected = String(pId) === String(selectedId) ? ' selected' : '';
-          html += `<option value="${pId}"${isSelected}>${p.name}${note}</option>`;
-        });
-
-        selAiProd.innerHTML = html;
-        if (selectedId) {
-          selAiProd.value = String(selectedId);
-        }
-      }
-
-      function updateAiPredictionSection(chosenVarietyId) {
-        const productsList = typeof getProducts === 'function' ? getProducts() : [];
-        const activeProducts = productsList.filter(p =>
-          p && p.name && !p.isArchived && !p.archived && p.status !== 'archived'
-        );
-
-        let targetProduct = null;
-        if (chosenVarietyId && chosenVarietyId !== 'all') {
-          targetProduct = activeProducts.find(p => String(p.id) === String(chosenVarietyId)) ||
-                          productsList.find(p => String(p.id) === String(chosenVarietyId));
-        }
-
-        // If no target product chosen, automatically evaluate most urgent stock concern
-        if (!targetProduct) {
-          targetProduct = findMostUrgentStockVariety(activeProducts, productsList);
-        }
-
-        const targetVarietyId = targetProduct ? String(targetProduct.id) : (activeProducts[0]?.id || '2');
-        const targetVarietyName = targetProduct ? targetProduct.name : (activeProducts[0]?.name || 'Rice Variety');
-
-        // Populate/sync the section's dropdown with live data
-        populateAiSectionDropdown(activeProducts, targetVarietyId);
-
-        const stockVarietyEl = document.getElementById('ai-stock-variety-tag');
-        const stockWindowEl = document.getElementById('ai-stock-window');
-        const stockStatusDescEl = document.getElementById('ai-stock-status-desc');
-        const stockMethodEl = document.getElementById('ai-stock-method');
-        const stockSampleCountEl = document.getElementById('ai-stock-sample-count');
-        const stockPublicAvailEl = document.getElementById('ai-stock-public-avail');
-        const stockDisclaimerEl = document.getElementById('ai-stock-disclaimer');
-
-        const serviceLeadTimeEl = document.getElementById('ai-service-leadtime');
-        const serviceDescEl = document.getElementById('ai-service-desc');
-        const serviceMethodEl = document.getElementById('ai-service-method');
-        const serviceSampleCountEl = document.getElementById('ai-service-sample-count');
-        const serviceDisclaimerEl = document.getElementById('ai-service-disclaimer');
-
-        if (stockVarietyEl) stockVarietyEl.textContent = targetVarietyName;
-
-        if (typeof predictStockAvailability === 'function') {
-          const stockPred = predictStockAvailability(targetVarietyId);
-          if (stockWindowEl) stockWindowEl.textContent = stockPred.displayDate || 'Waiting for Restock';
-          if (stockStatusDescEl) {
-            if (stockPred.status === 'predicted') {
-              stockStatusDescEl.textContent = `Expected restock window based on an average of ${stockPred.averageIntervalDays} days between past deliveries.`;
-            } else {
-              stockStatusDescEl.textContent = 'We need more past delivery records before we can estimate when new stock will arrive.';
-            }
-          }
-          if (stockMethodEl) stockMethodEl.textContent = 'Past delivery dates';
-          if (stockSampleCountEl) stockSampleCountEl.textContent = `${stockPred.observationCount} past deliveries (${stockPred.intervalCount} intervals)`;
-          if (stockPublicAvailEl) stockPublicAvailEl.textContent = stockPred.publicAvailabilityStatus || 'First-come, first-served queue';
-          if (stockDisclaimerEl) {
-            if (stockPred.status === 'predicted' && stockPred.confidenceNote) {
-              stockDisclaimerEl.textContent = stockPred.confidenceNote;
-            } else {
-              stockDisclaimerEl.textContent = 'Not enough past delivery records to estimate the next restock date yet.';
-            }
-          }
-        }
-
-        if (typeof predictServiceReadinessTime === 'function') {
-          const servicePred = predictServiceReadinessTime();
-          if (serviceLeadTimeEl) serviceLeadTimeEl.textContent = servicePred.displayTime || '1 to 2 business days';
-          if (serviceDescEl) {
-            if (servicePred.status === 'predicted') {
-              serviceDescEl.textContent = `Expected warehouse prep time: about ${servicePred.predictedHours} hours based on past completed orders.`;
-            } else {
-              serviceDescEl.textContent = 'This is the estimated time needed to prepare an order in the warehouse.';
-            }
-          }
-          if (serviceMethodEl) serviceMethodEl.textContent = 'Past order preparation times';
-          if (serviceSampleCountEl) serviceSampleCountEl.textContent = `${servicePred.observationCount} completed orders`;
-          if (serviceDisclaimerEl) serviceDisclaimerEl.textContent = 'This estimate is based on past orders. Actual preparation time may be different.';
-        }
-      }
-
-      // Main calculation and render function
       function renderInventoryAnalyticsPage() {
         populateProductDropdown();
         const history = typeof getInventoryHistory === 'function' ? getInventoryHistory() : [];
@@ -1637,8 +1534,6 @@
           }
         }
 
-        // ----------------- AI Prediction Intelligence Dynamic Updates -----------------
-        updateAiPredictionSection(currentProd !== 'all' ? currentProd : aiSectionProductFilter);
       }
 
       // Event listeners for dropdown filters
@@ -1662,33 +1557,16 @@
       if (selProd) {
         selProd.addEventListener('change', () => {
           invProductFilter = selProd.value;
-          // Synchronize section filter when main filter changes
-          if (invProductFilter !== 'all') {
-            aiSectionProductFilter = invProductFilter;
-          } else {
-            // When returning to all varieties, reset section filter to automatically prioritize urgent stock concerns
-            aiSectionProductFilter = null;
-          }
           renderInventoryAnalyticsPage();
         });
       }
 
-      // Independent rice variety filter for Expected Stock & Delivery Timing section
-      const selAiProd = document.getElementById('sel-ai-stock-product');
-      if (selAiProd) {
-        selAiProd.addEventListener('change', () => {
-          aiSectionProductFilter = selAiProd.value;
-          // Updates only the Expected Stock & Delivery Timing section
-          updateAiPredictionSection(aiSectionProductFilter);
-        });
-      }
 
       const resetBtn = document.getElementById('btn-reset-inv-filters');
       if (resetBtn) {
         resetBtn.addEventListener('click', () => {
           invTimeRange = 'all';
           invProductFilter = 'all';
-          aiSectionProductFilter = null;
           invCustomStart = '';
           invCustomEnd = '';
           if (selRange) selRange.value = 'all';

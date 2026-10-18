@@ -206,17 +206,17 @@
           order.cashAuditStatus === 'Audited';
 
         if (paymentInfo && paymentInfo.isReservation) {
-          return (tot > 0 && verifiedAmount >= tot)
+          return paymentInfo.isFullPayment
             ? 'Reservation · Full Payment Verified'
-            : 'Reservation · Verified Payment';
+            : 'Reservation · Partial Payment Verified';
         }
-        if (isTurnoverVerified) {
-          return 'Cash Turnover Verified';
+        if (paymentInfo && paymentInfo.isAudited) {
+          return 'Cash Turnover Audited';
         }
-        if (statusClean === 'completed' || statusClean === 'fulfilled' || (tot > 0 && verifiedAmount >= tot)) {
+        if (paymentInfo && paymentInfo.isFullPayment) {
           return 'Full Payment Verified';
         }
-        if (tot > 0 && verifiedAmount < tot) {
+        if (paymentInfo && paymentInfo.isDownPayment) {
           return 'Down Payment Verified';
         }
         return 'Payment Verified';

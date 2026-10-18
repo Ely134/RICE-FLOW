@@ -187,9 +187,15 @@
                         <span class="bg-[#E2F9E5] text-[#1E6C02] dark:bg-emerald-950/60 dark:text-emerald-300 text-[9px] font-black px-1.5 py-0.5 rounded-md tracking-wider">SAVED INFO</span>
                       </div>
 
-                      <p id="summary-address-text" class="text-sm font-semibold text-gray-800 dark:text-gray-200 leading-snug break-words"></p>
+                      <div class="space-y-1">
+                        <label for="inp-address" class="text-[11px] font-bold text-gray-700 dark:text-gray-300 flex items-center justify-between">
+                          <span>Delivery Address</span>
+                          <span class="text-[10px] font-semibold text-[#1E6C02] dark:text-emerald-400">Editable for this order</span>
+                        </label>
+                        <textarea name="address" id="inp-address" rows="2" placeholder="House/Unit No., Street, Barangay, City, Province" class="w-full bg-[#F8F9FA] dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-sm font-semibold text-gray-900 dark:text-gray-100 p-3 rounded-xl outline-none focus:bg-white dark:focus:bg-slate-700 focus:ring-1 focus:ring-[#1E6C02] transition-all placeholder-gray-500 dark:placeholder-gray-400 shadow-none resize-none leading-snug"></textarea>
+                        <p id="summary-address-text" class="hidden text-sm font-semibold text-gray-800 dark:text-gray-200 leading-snug break-words"></p>
+                      </div>
                       <p id="summary-coords-text" class="text-[11px] font-mono text-emerald-700 dark:text-emerald-400"></p>
-                      <input type="hidden" name="address" id="inp-address" />
                     </div>
                   </div>
 
@@ -775,6 +781,59 @@
       let activeCheckoutAddress = null; // { address, coordinates, addressDetails, isConfirmed }
       let currentSelectedCoordinates = null;
       let isCoordinatesConfirmed = false;
+      let confirmedAddressText = '';
+      let confirmedAddressDetails = null;
+      let confirmedCoordinates = null;
+
+      function hasDeliveryLocationChanged(newAddrStr, originalAddrStr, addressDetails) {
+        if (!newAddrStr || !newAddrStr.trim()) return true;
+        const clean = s => (s || '').toLowerCase().replace(/[\.,#-]/g, ' ').replace(/\s+/g, ' ').trim();
+        const normNew = clean(newAddrStr);
+        const normOrig = clean(originalAddrStr);
+        if (normNew === normOrig) return false;
+
+        // 1. If structured details exist from the confirmed pin, check if locality (city/municipality, province, barangay) was altered
+        if (addressDetails && typeof addressDetails === 'object') {
+          const city = clean(addressDetails.city || addressDetails.cityMunicipality || '');
+          const prov = clean(addressDetails.province || '');
+          const brgy = clean(addressDetails.barangay || '');
+
+          if (city && !normNew.includes(city)) return true;
+          if (prov && !normNew.includes(prov)) return true;
+          if (brgy && !normNew.includes(brgy)) return true;
+
+          // Check delivery minimum rule alignment
+          const storeSettings = typeof getStoreSettings === 'function' ? getStoreSettings() : null;
+          const oldCheck = evaluateDeliveryMinimum(originalAddrStr, 1, storeSettings);
+          const newCheck = evaluateDeliveryMinimum(newAddrStr, 1, storeSettings);
+          if (oldCheck?.matchedRuleName !== newCheck?.matchedRuleName) {
+            return true;
+          }
+
+          return false; // Locality preserved; ordinary text correction (street, unit, landmark, notes)
+        }
+
+        // 2. Unstructured address string: compare delivery minimum rule zone and major address locality segments
+        const storeSettings = typeof getStoreSettings === 'function' ? getStoreSettings() : null;
+        const oldCheck = evaluateDeliveryMinimum(originalAddrStr, 1, storeSettings);
+        const newCheck = evaluateDeliveryMinimum(newAddrStr, 1, storeSettings);
+        if (oldCheck?.matchedRuleName !== newCheck?.matchedRuleName) {
+          return true;
+        }
+
+        // Check locality segments from original address (e.g. City / Province)
+        const origParts = (originalAddrStr || '').split(',').map(s => clean(s)).filter(Boolean);
+        if (origParts.length >= 2) {
+          const localitySegments = origParts.slice(-2);
+          for (const seg of localitySegments) {
+            if (seg.length > 2 && !normNew.includes(seg)) {
+              return true;
+            }
+          }
+        }
+
+        return false;
+      }
 
       function syncCheckoutAddressUI() {
         const confirmedView = document.getElementById('address-confirmed-view');
@@ -783,6 +842,7 @@
         const sumPhone = document.getElementById('summary-recipient-phone');
         const sumAddress = document.getElementById('summary-address-text');
         const sumCoords = document.getElementById('summary-coords-text');
+        const badgePinned = document.getElementById('badge-address-pinned');
         const btnChange = document.getElementById('btn-change-address');
         const btnAdd = document.getElementById('btn-add-address');
 
@@ -819,15 +879,16 @@
           };
         }
 
-        // 3. Fallback to customer's saved profile address if text address exists
+        // 3. Fallback to customer's saved profile address if text address exists but coordinates missing
         if (!sessionAddr && user && user.address && typeof user.address === 'string' && user.address.trim()) {
+          const hasCoords = Boolean(user.coordinates && typeof user.coordinates.lat === 'number' && typeof user.coordinates.lng === 'number');
           sessionAddr = {
             userId: currentUserId,
             userEmail: currentUserEmail,
             address: user.address.trim(),
-            coordinates: (user.coordinates && typeof user.coordinates.lat === 'number') ? user.coordinates : { lat: 7.9628, lng: 123.5826 },
+            coordinates: hasCoords ? user.coordinates : null,
             addressDetails: user.addressDetails || null,
-            isConfirmed: true
+            isConfirmed: hasCoords
           };
         }
 
@@ -838,6 +899,9 @@
             lng: Math.round(sessionAddr.coordinates.lng * 1e6) / 1e6
           };
           isCoordinatesConfirmed = true;
+          confirmedAddressText = sessionAddr.address;
+          confirmedAddressDetails = sessionAddr.addressDetails || null;
+          confirmedCoordinates = { ...currentSelectedCoordinates };
 
           if (inpAddress) inpAddress.value = sessionAddr.address;
           if (sumName) sumName.textContent = inpFullName?.value || user.fullName || user.name || 'Valued Customer';
@@ -845,7 +909,37 @@
           if (sumAddress) sumAddress.textContent = sessionAddr.address;
           if (sumCoords) {
             sumCoords.textContent = `📍 Pinned coordinates: ${currentSelectedCoordinates.lat.toFixed(4)}, ${currentSelectedCoordinates.lng.toFixed(4)}`;
+            sumCoords.className = 'text-[11px] font-mono text-emerald-700 dark:text-emerald-400';
           }
+          if (badgePinned) {
+            badgePinned.textContent = '📍 Pin Confirmed';
+            badgePinned.className = 'text-[10px] font-extrabold text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/50 border border-blue-200 dark:border-blue-800 px-2 py-0.5 rounded-full';
+          }
+          if (btnChange) btnChange.innerHTML = '<span>Change Address</span> <span>›</span>';
+
+          if (confirmedView) confirmedView.classList.remove('hidden');
+          if (emptyView) emptyView.classList.add('hidden');
+        } else if (sessionAddr && sessionAddr.address) {
+          activeCheckoutAddress = { ...sessionAddr, isConfirmed: false, coordinates: null };
+          currentSelectedCoordinates = null;
+          isCoordinatesConfirmed = false;
+          confirmedAddressText = '';
+          confirmedAddressDetails = sessionAddr.addressDetails || null;
+          confirmedCoordinates = null;
+
+          if (inpAddress) inpAddress.value = sessionAddr.address;
+          if (sumName) sumName.textContent = inpFullName?.value || user.fullName || user.name || 'Valued Customer';
+          if (sumPhone) sumPhone.textContent = inpPhone?.value || user.phone || '09XXXXXXXXX';
+          if (sumAddress) sumAddress.textContent = sessionAddr.address;
+          if (sumCoords) {
+            sumCoords.textContent = '⚠️ Pin Confirmation Required: Click "Confirm Pin on Map" to verify delivery coordinates.';
+            sumCoords.className = 'text-[11px] font-semibold text-amber-700 dark:text-amber-400';
+          }
+          if (badgePinned) {
+            badgePinned.textContent = '⚠️ Pin Required';
+            badgePinned.className = 'text-[10px] font-extrabold text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/50 border border-amber-300 dark:border-amber-800 px-2 py-0.5 rounded-full';
+          }
+          if (btnChange) btnChange.innerHTML = '<span>Confirm Pin on Map</span> <span>›</span>';
 
           if (confirmedView) confirmedView.classList.remove('hidden');
           if (emptyView) emptyView.classList.add('hidden');
@@ -853,6 +947,9 @@
           activeCheckoutAddress = null;
           currentSelectedCoordinates = null;
           isCoordinatesConfirmed = false;
+          confirmedAddressText = '';
+          confirmedAddressDetails = null;
+          confirmedCoordinates = null;
           if (inpAddress) inpAddress.value = '';
 
           if (confirmedView) confirmedView.classList.add('hidden');
@@ -875,6 +972,75 @@
         inpPhone.addEventListener('input', () => {
           const sumPhone = document.getElementById('summary-recipient-phone');
           if (sumPhone) sumPhone.textContent = inpPhone.value.trim() || '09XXXXXXXXX';
+        });
+      }
+
+      if (inpAddress) {
+        inpAddress.addEventListener('input', () => {
+          const updatedVal = inpAddress.value;
+          const sumAddress = document.getElementById('summary-address-text');
+          const badgePinned = document.getElementById('badge-address-pinned');
+          const sumCoords = document.getElementById('summary-coords-text');
+          const btnChange = document.getElementById('btn-change-address');
+
+          if (sumAddress) sumAddress.textContent = updatedVal;
+
+          const locationChanged = hasDeliveryLocationChanged(updatedVal, confirmedAddressText, confirmedAddressDetails);
+
+          if (locationChanged) {
+            // Location has changed: Invalidate previous location confirmation and coordinates
+            isCoordinatesConfirmed = false;
+            currentSelectedCoordinates = null;
+            if (activeCheckoutAddress) {
+              activeCheckoutAddress.isConfirmed = false;
+              activeCheckoutAddress.coordinates = null;
+              activeCheckoutAddress.address = updatedVal;
+              try {
+                sessionStorage.setItem('riceflow-active-checkout-address', JSON.stringify(activeCheckoutAddress));
+              } catch (_) {}
+            }
+
+            if (badgePinned) {
+              badgePinned.textContent = '⚠️ Pin Confirmation Required';
+              badgePinned.className = 'text-[10px] font-extrabold text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/50 border border-amber-300 dark:border-amber-800 px-2 py-0.5 rounded-full';
+            }
+            if (sumCoords) {
+              sumCoords.textContent = '⚠️ Location modified: Please click "Confirm Pin on Map" to update and verify your delivery coordinates.';
+              sumCoords.className = 'text-[11px] font-semibold text-amber-700 dark:text-amber-400';
+            }
+            if (btnChange) {
+              btnChange.innerHTML = '<span>Confirm Pin on Map</span> <span>›</span>';
+            }
+          } else {
+            // Ordinary address-text correction (e.g. unit number, typo, landmark) that does NOT change the delivery locality
+            if (confirmedCoordinates) {
+              currentSelectedCoordinates = { ...confirmedCoordinates };
+              isCoordinatesConfirmed = true;
+            }
+            if (activeCheckoutAddress) {
+              activeCheckoutAddress.address = updatedVal;
+              activeCheckoutAddress.isConfirmed = isCoordinatesConfirmed;
+              activeCheckoutAddress.coordinates = currentSelectedCoordinates;
+              try {
+                sessionStorage.setItem('riceflow-active-checkout-address', JSON.stringify(activeCheckoutAddress));
+              } catch (_) {}
+            }
+            if (badgePinned) {
+              badgePinned.textContent = '📍 Pin Confirmed';
+              badgePinned.className = 'text-[10px] font-extrabold text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/50 border border-blue-200 dark:border-blue-800 px-2 py-0.5 rounded-full';
+            }
+            if (sumCoords && currentSelectedCoordinates) {
+              sumCoords.textContent = `📍 Pinned coordinates: ${currentSelectedCoordinates.lat.toFixed(4)}, ${currentSelectedCoordinates.lng.toFixed(4)}`;
+              sumCoords.className = 'text-[11px] font-mono text-emerald-700 dark:text-emerald-400';
+            }
+            if (btnChange) {
+              btnChange.innerHTML = '<span>Change Address</span> <span>›</span>';
+            }
+          }
+
+          if (isCheckoutReady && typeof updateDeliveryMinimumStatus === 'function') {
+            updateDeliveryMinimumStatus();
+          }
         });
       }
 
@@ -2280,11 +2446,8 @@
             addrVal = activeCheckoutAddress.address.trim();
             if (addressInput) addressInput.value = addrVal;
           }
-          if (addrVal && (!currentSelectedCoordinates || !isCoordinatesConfirmed)) {
-            currentSelectedCoordinates = (activeCheckoutAddress && activeCheckoutAddress.coordinates) || (user && user.coordinates) || { lat: 7.9628, lng: 123.5826 };
-            isCoordinatesConfirmed = true;
-          }
-          if (!addrVal || !currentSelectedCoordinates || !isCoordinatesConfirmed) {
+
+          if (!addrVal) {
             showToast('A complete delivery address is required to proceed with delivery.', 'error');
             const emptyView = document.getElementById('address-empty-view');
             const confirmedView = document.getElementById('address-confirmed-view');
@@ -2295,6 +2458,21 @@
               emptyView.scrollIntoView({ behavior: 'smooth', block: 'center' });
             } else if (confirmedView) {
               confirmedView.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+            return;
+          }
+
+          if (!isCoordinatesConfirmed || !currentSelectedCoordinates || typeof currentSelectedCoordinates.lat !== 'number' || typeof currentSelectedCoordinates.lng !== 'number') {
+            showToast('Please confirm your delivery location on the map before proceeding.', 'error');
+            const btnChange = document.getElementById('btn-change-address');
+            const btnAdd = document.getElementById('btn-add-address');
+            const confirmedView = document.getElementById('address-confirmed-view');
+            if (btnChange && confirmedView && !confirmedView.classList.contains('hidden')) {
+              btnChange.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              btnChange.focus();
+            } else if (btnAdd && !btnAdd.classList.contains('hidden')) {
+              btnAdd.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              btnAdd.focus();
             }
             return;
           }
@@ -2587,10 +2765,6 @@
             address = activeCheckoutAddress.address.trim();
             if (addressInput) addressInput.value = address;
           }
-          if (address && (!currentSelectedCoordinates || !isCoordinatesConfirmed)) {
-            currentSelectedCoordinates = (activeCheckoutAddress && activeCheckoutAddress.coordinates) || (user && user.coordinates) || { lat: 7.9628, lng: 123.5826 };
-            isCoordinatesConfirmed = true;
-          }
         }
         const rawNotes = (document.getElementById('inp-notes')?.value || '').trim();
         const pickupNotes = deliveryOption === 'pickup' ? rawNotes : '';
@@ -2599,7 +2773,7 @@
         // Strict validation in the actual order-submission path: prevent unconfirmed address/pin from reaching database
         if (deliveryOption === 'delivery') {
           if (!address || !isCoordinatesConfirmed || !currentSelectedCoordinates || typeof currentSelectedCoordinates.lat !== 'number' || typeof currentSelectedCoordinates.lng !== 'number') {
-            showToast('Delivery order cannot be submitted without a complete delivery address.', 'error');
+            showToast('Delivery order cannot be submitted without a confirmed pin on the map.', 'error');
             isSubmitting = false;
             if (btnSubmit) {
               btnSubmit.disabled = false;

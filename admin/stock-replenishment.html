@@ -698,6 +698,10 @@
       predictStockAvailability,
       predictServiceReadinessTime
     } from '../src/app/shared.js';
+    import {
+      trainProductDemandModel,
+      predictProductDemand
+    } from '../src/app/product-demand-model.js';
 
     function parseOrderDate(order) {
       if (!order) return new Date(0);
@@ -811,10 +815,10 @@
                   </svg>
                 </div>
                 <div class="min-w-0">
-                  <div class="flex items-center gap-3 flex-wrap">
+                    <div class="flex items-center gap-3 flex-wrap">
                     <h1 class="srg-main-title text-slate-900 dark:text-white">Stock Needs Guide</h1>
                     <span id="srg-period-badge-text" class="srg-period-badge text-xs font-semibold px-3 py-1 rounded-full uppercase tracking-wider">
-                      Past 30 Days
+                      Expected Sales in Next 30 Days
                     </span>
                   </div>
                   <p id="srg-subtitle-text" class="srg-desc-text text-slate-800 dark:text-slate-100 mt-1.5">
@@ -826,11 +830,11 @@
               <!-- Controls: Period Selector, Custom Date Button & Urgency Filter -->
               <div class="flex items-center gap-3 flex-wrap">
                 <select id="sel-analysis-period" class="ia-control-select h-10 px-3.5 py-2 rounded-xl outline-none cursor-pointer transition-colors shadow-2xs shrink-0">
-                  <option value="30d" selected>Past 30 Days</option>
-                  <option value="7d">Past 7 Days</option>
-                  <option value="3m">Past 3 Months</option>
-                  <option value="6m">Past 6 Months</option>
-                  <option value="1y">Past 1 Year</option>
+                  <option value="30d" selected>Next 30 Days</option>
+                  <option value="7d">Next 7 Days</option>
+                  <option value="3m">Next 3 Months</option>
+                  <option value="6m">Next 6 Months</option>
+                  <option value="1y">Next Year</option>
                   <option value="custom">Custom Date Range</option>
                 </select>
 
@@ -882,11 +886,67 @@
 
                 <select id="sel-replenish-filter" class="ia-control-select h-10 px-3.5 py-2 rounded-xl outline-none cursor-pointer transition-colors shadow-2xs shrink-0">
                   <option value="all" selected>All Items</option>
-                  <option value="replenish">🔴 Need More Stock</option>
-                  <option value="prepare">🟡 Low Stock</option>
-                  <option value="sufficient">🟢 Stock Is Enough</option>
+                  <option value="replenish">🔴 Low Stock &amp; Out of Stock</option>
+                  <option value="prepare">🟡 Stock Running Low</option>
+                  <option value="sufficient">🟢 Stock Available</option>
                   <option id="opt-replenish-nosales" value="insufficient">⚪ No Recent Sales</option>
                 </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Section 1.5: Forecast Information -->
+          <div class="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 rounded-2xl p-6 sm:p-7 shadow-xs space-y-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3.5 border-b border-slate-200 dark:border-slate-800">
+              <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-xl bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-800/60 text-blue-700 dark:text-blue-400 flex items-center justify-center shrink-0">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                </div>
+                <div>
+                  <h3 class="srg-section-title text-slate-900 dark:text-white">Forecast Information</h3>
+                  <p class="srg-desc-text text-slate-700 dark:text-slate-300 text-xs sm:text-sm mt-0.5">
+                    Clear stock estimates based on verified store sales and physical warehouse stock.
+                  </p>
+                </div>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-400 border border-blue-200 dark:border-blue-800/60 whitespace-nowrap">
+                  <span class="w-2 h-2 rounded-full bg-blue-500"></span>
+                  30-Day Sales Baseline
+                </span>
+              </div>
+            </div>
+
+            <!-- 3 Forecast Information Blocks -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <!-- Block 1: 30-Day Sales Baseline -->
+              <div class="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-900/40 space-y-1.5">
+                <div class="flex items-center justify-between">
+                  <span class="srg-label-sm uppercase font-semibold text-slate-700 dark:text-slate-300">Sales History Window</span>
+                  <span class="text-xs font-bold text-slate-900 dark:text-white">Past 30 Days</span>
+                </div>
+                <p id="srg-readiness-orders-summary" class="text-sm font-semibold text-slate-900 dark:text-white tabular-nums">Loading verified sales...</p>
+                <p class="text-xs text-slate-600 dark:text-slate-400">Fixed 30-day sales window used to find the average sacks sold per day for each variety.</p>
+              </div>
+
+              <!-- Block 2: Forecast Model Status -->
+              <div class="p-4 rounded-xl border border-amber-200 dark:border-amber-800/60 bg-amber-50/40 dark:bg-amber-950/30 space-y-1.5">
+                <div class="flex items-center justify-between">
+                  <span class="srg-label-sm uppercase font-semibold text-amber-800 dark:text-amber-300">Forecast Status</span>
+                  <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-amber-100 dark:bg-amber-900/60 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-700">Data Accumulating</span>
+                </div>
+                <p id="srg-readiness-span-summary" class="text-sm font-semibold text-slate-900 dark:text-white">20 recorded days / 20 sales</p>
+                <p class="text-xs text-slate-700 dark:text-slate-300">Store dataset is accumulating sales records. Forecasts currently use verified 30-day sales averages.</p>
+              </div>
+
+              <!-- Block 3: How Needs Are Calculated -->
+              <div class="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-900/40 space-y-1.5">
+                <div class="flex items-center justify-between">
+                  <span class="srg-label-sm uppercase font-semibold text-slate-700 dark:text-slate-300">How Needs Are Calculated</span>
+                  <span class="text-xs font-mono font-bold text-slate-900 dark:text-white">Estimate Based on Past Sales</span>
+                </div>
+                <p class="text-sm font-semibold text-slate-900 dark:text-white">Average Sacks Sold per Day &times; Days + Waiting Reservations</p>
+                <p class="text-xs text-slate-600 dark:text-slate-400">Estimate calculated from verified 30-day past sales plus customer reservations.</p>
               </div>
             </div>
           </div>
@@ -898,42 +958,42 @@
               <span class="srg-label-sm font-semibold text-slate-800 dark:text-slate-100">Live Status Snapshot</span>
             </div>
             <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-              <!-- 1. Need More Stock -->
+              <!-- 1. Low Stock & Out of Stock -->
               <div class="srg-stat-critical rounded-2xl p-5 shadow-xs flex flex-col justify-between">
                 <div class="flex items-start gap-3.5">
                   <div class="w-9 h-9 rounded-xl bg-red-50 dark:bg-red-950/70 border border-red-200 dark:border-red-800/60 text-red-600 dark:text-red-400 flex items-center justify-center shrink-0 mt-0.5">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="w-4.5 h-4.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
                   </div>
                   <div class="min-w-0 flex-1">
-                    <span class="srg-card-label srg-label-sm uppercase block font-semibold">Need More Stock</span>
+                    <span class="srg-card-label srg-label-sm uppercase block font-semibold">Low / Out of Stock</span>
                     <p id="replenish-stat-now" class="srg-card-num text-3xl font-bold tabular-nums mt-1 leading-none">0</p>
                   </div>
                 </div>
-                <p class="srg-card-sub srg-advice-text mt-3">Restock needed now</p>
+                <p class="srg-card-sub srg-advice-text mt-3">Stock needs attention</p>
               </div>
 
-              <!-- 2. Prepare More Soon -->
+              <!-- 2. Stock Running Low -->
               <div class="srg-stat-warning rounded-2xl p-5 shadow-xs flex flex-col justify-between">
                 <div class="flex items-start gap-3.5">
                   <div class="w-9 h-9 rounded-xl bg-amber-50 dark:bg-amber-950/70 border border-amber-200 dark:border-amber-800/60 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0 mt-0.5">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="w-4.5 h-4.5"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
                   </div>
                   <div class="min-w-0 flex-1">
-                    <span class="srg-card-label srg-label-sm uppercase block font-semibold">Prepare More Soon</span>
+                    <span class="srg-card-label srg-label-sm uppercase block font-semibold">Stock Running Low</span>
                     <p id="replenish-stat-soon" class="srg-card-num text-3xl font-bold tabular-nums mt-1 leading-none">0</p>
                   </div>
                 </div>
-                <p class="srg-card-sub srg-advice-text mt-3">Low stock: prepare stock</p>
+                <p class="srg-card-sub srg-advice-text mt-3">Consider preparing more</p>
               </div>
 
-              <!-- 3. Stock Is Enough -->
+              <!-- 3. Stock Available -->
               <div class="srg-stat-healthy rounded-2xl p-5 shadow-xs flex flex-col justify-between">
                 <div class="flex items-start gap-3.5">
                   <div class="w-9 h-9 rounded-xl bg-emerald-50 dark:bg-emerald-950/70 border border-emerald-200 dark:border-emerald-800/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 mt-0.5">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="w-4.5 h-4.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
                   </div>
                   <div class="min-w-0 flex-1">
-                    <span class="srg-card-label srg-label-sm uppercase block font-semibold">Stock Is Enough</span>
+                    <span class="srg-card-label srg-label-sm uppercase block font-semibold">Stock Available</span>
                     <p id="replenish-stat-sufficient" class="srg-card-num text-3xl font-bold tabular-nums mt-1 leading-none">0</p>
                   </div>
                 </div>
@@ -947,11 +1007,11 @@
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="w-4.5 h-4.5"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
                   </div>
                   <div class="min-w-0 flex-1">
-                    <span id="srg-card-nosales-label" class="srg-card-label srg-label-sm uppercase block font-semibold">No Sales Recently</span>
+                    <span id="srg-card-nosales-label" class="srg-card-label srg-label-sm uppercase block font-semibold">No Recent Sales</span>
                     <p id="replenish-stat-insufficient" class="srg-card-num text-3xl font-bold tabular-nums mt-1 leading-none">0</p>
                   </div>
                 </div>
-                <p id="srg-card-nosales-sub" class="srg-card-sub srg-advice-text mt-3">No recent customer sales</p>
+                <p id="srg-card-nosales-sub" class="srg-card-sub srg-advice-text mt-3">No verified sales in past 30 days</p>
               </div>
             </div>
           </div>
@@ -961,20 +1021,22 @@
             <div class="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-800 mb-2">
               <div>
                 <h2 class="srg-section-title text-slate-900 dark:text-white">Rice Varieties Stock Breakdown</h2>
-                <p class="srg-desc-text text-slate-800 dark:text-slate-100 mt-0.5">Complete breakdown of inventory quantities, projected period demand, and actionable replenishment advice.</p>
+                <p class="srg-desc-text text-slate-800 dark:text-slate-100 mt-0.5">Complete breakdown of inventory quantities, sales per day, expected sales, and stock advice.</p>
               </div>
             </div>
 
             <div class="overflow-x-auto replenish-table-scroll-container">
-              <table class="w-full text-left border-collapse min-w-[780px]">
+              <table class="w-full text-left border-collapse min-w-[960px]">
                 <thead>
-                  <tr class="border-b border-slate-200 dark:border-slate-800 uppercase tracking-wider text-slate-900 dark:text-slate-100">
+                  <tr class="border-b border-slate-200 dark:border-slate-800 uppercase tracking-wider text-slate-900 dark:text-slate-100 text-xs">
                     <th class="py-3.5 px-4">Rice Variety</th>
-                    <th class="py-3.5 px-3 text-center">In Warehouse</th>
-                    <th class="py-3.5 px-3 text-center">Reserved</th>
-                    <th class="py-3.5 px-3 text-center">Available</th>
-                    <th id="srg-col-need-header" class="py-3.5 px-3 text-center">Needed for Selected Period</th>
-                    <th class="py-3.5 px-4">Status &amp; Advice</th>
+                    <th class="py-3.5 px-3 text-center" title="Stock physically stored in warehouse">Stock in Warehouse</th>
+                    <th class="py-3.5 px-3 text-center" title="Stock set aside for customer orders (allocated from warehouse stock plus unallocated waiting reservations)">Set Aside for Customer Orders<span class="block text-[10px] font-normal text-slate-500 dark:text-slate-400 lowercase">(allocated &amp; waiting)</span></th>
+                    <th class="py-3.5 px-3 text-center" title="Stock ready to sell for new customer orders (Warehouse Stock minus Allocated Stock)">Sacks Ready to Sell<span class="block text-[10px] font-normal text-slate-500 dark:text-slate-400 lowercase">(available now)</span></th>
+                    <th class="py-3.5 px-3 text-center" title="Average sacks sold per day over the 30-day verified sales (estimated from past sales)">Average Sacks Sold per Day<span class="block text-[10px] font-normal text-slate-500 dark:text-slate-400 lowercase">(estimate based on past sales)</span></th>
+                    <th id="srg-col-need-header" class="py-3.5 px-3 text-center" title="Expected sales for the selected period">Expected Sales in Next 30 Days</th>
+                    <th class="py-3.5 px-3 text-center" title="Extra sacks needed if available stock cannot cover expected sales and reservations">Extra Sacks Needed</th>
+                    <th class="py-3.5 px-4">Stock Status &amp; Advice</th>
                   </tr>
                 </thead>
                 <tbody id="replenish-guide-tbody">
@@ -1024,7 +1086,7 @@
               </div>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
               <!-- Panel 1: Stock Availability Prediction -->
               <div class="p-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/40 space-y-4 flex flex-col justify-between shadow-2xs">
                 <div class="space-y-2">
@@ -1035,7 +1097,7 @@
                     <span id="ai-stock-variety-tag" class="ia-small-label px-2.5 py-0.5 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 truncate max-w-[160px]">All Varieties</span>
                   </div>
                   <div>
-                    <p id="ai-stock-window" class="ia-important-num tracking-tight">Waiting for Restock</p>
+                    <p id="ai-stock-window" class="ia-important-num tracking-tight">Cannot Estimate Restock Date Yet</p>
                     <p id="ai-stock-status-desc" class="ia-normal-text mt-1 leading-snug">We need more past delivery records before we can estimate when new stock will arrive.</p>
                   </div>
                 </div>
@@ -1089,7 +1151,43 @@
                   <p id="ai-service-disclaimer" class="ia-small-label italic pt-1 leading-normal">This estimate is based on past orders. Actual preparation time may be different.</p>
                 </div>
               </div>
-            </div>
+
+              <!-- Panel 3: Experimental AI Variety Demand Forecast (Poisson GLM) -->
+              <div id="ai-demand-forecast-panel" class="p-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/40 space-y-4 flex flex-col justify-between shadow-2xs">
+                <div class="space-y-2">
+                  <div class="flex items-center justify-between gap-2">
+                    <span class="ia-small-label font-semibold uppercase tracking-wider text-purple-800 dark:text-purple-300 flex items-center gap-1.5">
+                      <span>🌾</span> 3. AI Sales Guess (Still Testing)
+                    </span>
+                    <span id="ai-demand-variety-tag" class="ia-small-label px-2.5 py-0.5 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 truncate max-w-[160px]">All Varieties</span>
+                  </div>
+                  <div>
+                    <p id="ai-demand-headline" class="ia-important-num tracking-tight">Not Enough Sales Yet</p>
+                    <p id="ai-demand-status-note" class="text-xs font-medium text-slate-600 dark:text-slate-400 mt-0.5">More verified sales history is needed before a sales guess can be made for this variety.</p>
+                    <p id="ai-demand-desc" class="ia-normal-text mt-1 leading-snug">Sales guess trained on historical daily sack sales and customer reservations.</p>
+                  </div>
+                </div>
+
+                <div class="pt-3 border-t border-slate-200 dark:border-slate-800 space-y-2">
+                  <div class="flex justify-between items-center ia-small-label">
+                    <span>Model status:</span>
+                    <span class="font-semibold" id="ai-demand-status-badge">Not Enough Sales Yet</span>
+                  </div>
+                  <div class="flex justify-between items-center ia-small-label">
+                    <span>Forecast horizon:</span>
+                    <span class="font-semibold" id="ai-demand-horizon">30 Days (Selected Coverage)</span>
+                  </div>
+                  <div class="flex justify-between items-center ia-small-label">
+                    <span>Uncertainty bound:</span>
+                    <span class="font-semibold text-right truncate max-w-[210px]" id="ai-demand-uncertainty" title="Uncertainty intervals require more sales data.">None (Waiting for more sales)</span>
+                  </div>
+                  <div class="flex justify-between items-center ia-small-label">
+                    <span>Readiness checks:</span>
+                    <span class="font-semibold text-right truncate max-w-[210px]" id="ai-demand-readiness-metrics">Evaluating records...</span>
+                  </div>
+                  <p id="ai-demand-disclaimer" class="ia-small-label italic pt-1 leading-normal text-slate-500 dark:text-slate-400">Experimental &amp; advisory only. Does not allocate stock or alter standard FIFO queue operations.</p>
+                </div>
+              </div>
           </div>
         </div>
       `;
@@ -1120,34 +1218,34 @@
       function getReplenishmentPeriodRange() {
         const now = new Date();
         let coverageDays = 30;
-        let periodLabel = 'Needed for 30 Days';
-        let periodName = '30 Days';
-        let periodBadgeText = 'Needed for 30 Days';
+        let periodLabel = 'Expected Sales in Next 30 Days';
+        let periodName = 'Next 30 Days';
+        let periodBadgeText = 'Expected Sales in Next 30 Days';
         let periodShortTag = '30d';
 
         if (replenishPeriod === '7d') {
           coverageDays = 7;
-          periodLabel = 'Needed for 7 Days';
-          periodName = '7 Days';
-          periodBadgeText = 'Needed for 7 Days';
+          periodLabel = 'Expected Sales in Next 7 Days';
+          periodName = 'Next 7 Days';
+          periodBadgeText = 'Expected Sales in Next 7 Days';
           periodShortTag = '7d';
         } else if (replenishPeriod === '3m') {
           coverageDays = 90;
-          periodLabel = 'Needed for 3 Months';
-          periodName = '3 Months';
-          periodBadgeText = 'Needed for 3 Months';
+          periodLabel = 'Expected Sales in Next 3 Months';
+          periodName = 'Next 3 Months';
+          periodBadgeText = 'Expected Sales in Next 3 Months';
           periodShortTag = '3m';
         } else if (replenishPeriod === '6m') {
           coverageDays = 180;
-          periodLabel = 'Needed for 6 Months';
-          periodName = '6 Months';
-          periodBadgeText = 'Needed for 6 Months';
+          periodLabel = 'Expected Sales in Next 6 Months';
+          periodName = 'Next 6 Months';
+          periodBadgeText = 'Expected Sales in Next 6 Months';
           periodShortTag = '6m';
         } else if (replenishPeriod === '1y') {
           coverageDays = 365;
-          periodLabel = 'Needed for 1 Year';
-          periodName = '1 Year';
-          periodBadgeText = 'Needed for 1 Year';
+          periodLabel = 'Expected Sales in Next Year';
+          periodName = 'Next Year';
+          periodBadgeText = 'Expected Sales in Next Year';
           periodShortTag = '1y';
         } else if (replenishPeriod === 'custom') {
           const sVal = replenishCustomStart;
@@ -1160,9 +1258,9 @@
             const diffMs = dEnd.getTime() - dStart.getTime();
             const elapsedDays = Math.max(1, Math.round(diffMs / (1000 * 60 * 60 * 24)));
             coverageDays = elapsedDays;
-            periodLabel = `Needed for ${elapsedDays} Day${elapsedDays === 1 ? '' : 's'}`;
-            periodName = `${elapsedDays} Day${elapsedDays === 1 ? '' : 's'}`;
-            periodBadgeText = `Needed for ${elapsedDays} Day${elapsedDays === 1 ? '' : 's'} (${formatCompactCustomRangeLabel(sVal, eVal)})`;
+            periodLabel = `Expected Sales for Selected Dates`;
+            periodName = `${elapsedDays} Days`;
+            periodBadgeText = `Expected Sales for Selected Dates (${formatCompactCustomRangeLabel(sVal, eVal)})`;
             periodShortTag = 'Custom';
           }
         }
@@ -1196,7 +1294,7 @@
 
         const subtitleEl = document.getElementById('srg-subtitle-text');
         if (subtitleEl) {
-          subtitleEl.textContent = `Estimated stock needed for ${periodName.toLowerCase()} based on sales history and current stock.`;
+          subtitleEl.textContent = `Expected sales and current stock levels for ${periodName.toLowerCase()}.`;
         }
 
         const needHeaderEl = document.getElementById('srg-col-need-header');
@@ -1206,7 +1304,7 @@
         if (noSalesCardLabel) noSalesCardLabel.textContent = 'No Recent Sales';
 
         const noSalesCardSub = document.getElementById('srg-card-nosales-sub');
-        if (noSalesCardSub) noSalesCardSub.textContent = 'No sales in past 30 days';
+        if (noSalesCardSub) noSalesCardSub.textContent = 'No verified sales in past 30 days';
 
         const optNoSales = document.getElementById('opt-replenish-nosales');
         if (optNoSales) optNoSales.textContent = '⚪ No Recent Sales';
@@ -1271,7 +1369,9 @@
         const rows = activeProducts.map(p => {
           const currentStock = p.currentStock !== undefined ? Math.max(0, Number(p.currentStock)) : Math.max(0, Number(p.stock || 0));
           const reservedStock = p.reservedStock !== undefined ? Math.max(0, Number(p.reservedStock)) : 0;
-          const availableStock = p.availableStock !== undefined ? Math.max(0, Number(p.availableStock)) : Math.max(0, currentStock - reservedStock);
+          const allocatedStock = p.allocatedStock !== undefined ? Math.max(0, Number(p.allocatedStock)) : 0;
+          const availableStock = p.availableStock !== undefined ? Math.max(0, Number(p.availableStock)) : Math.max(0, currentStock - allocatedStock);
+          const totalSetAside = allocatedStock + reservedStock;
 
           const baselineSales = baselineSalesMap[p.id] || 0;
           const dailySalesRate = baselineSales / baselineDays;
@@ -1281,61 +1381,53 @@
           const periodDemand = estimatedNeed;
           const waitingReservations = reservedStock;
           const totalDemand = periodDemand + waitingReservations;
+          const shortfall = Math.max(0, totalDemand - availableStock);
 
           let recommendation = '';
           let badgeClass = '';
           let dotClass = '';
           let explanation = '';
-          let rank = 4; // 1=Need More Stock, 2=Prepare More Soon, 3=No Recent Sales, 4=Stock Is Enough
+          let rank = 5; // 1=Out of Stock, 2=Low Stock, 3=Stock Running Low, 4=No Recent Sales, 5=Stock Available
 
           if (totalDemand === 0) {
             if (availableStock <= 0) {
-              recommendation = 'Need More Stock';
+              recommendation = 'Out of Stock';
               badgeClass = 'srg-badge-critical';
               dotClass = 'bg-red-500 shadow-[0_0_6px_rgba(239,68,68,0.7)]';
-              explanation = 'Out of stock for new orders.';
+              explanation = 'No sacks ready to sell for new orders.';
               rank = 1;
             } else {
               recommendation = 'No Recent Sales';
               badgeClass = 'srg-badge-neutral';
               dotClass = 'bg-slate-400 dark:bg-slate-400';
-              explanation = `No recent sales or active reservations recorded (${availableStock} sack${availableStock > 1 ? 's' : ''} available for new orders).`;
-              rank = 3;
+              explanation = 'No verified sales in the past 30 days. Check current stock and reservations.';
+              rank = 4;
             }
           } else {
             if (availableStock <= 0) {
-              recommendation = 'Need More Stock';
+              recommendation = 'Out of Stock';
               badgeClass = 'srg-badge-critical';
               dotClass = 'bg-red-500 shadow-[0_0_6px_rgba(239,68,68,0.7)]';
-              explanation = `Out of stock for new orders (${waitingReservations > 0 ? waitingReservations + ' sack' + (waitingReservations > 1 ? 's' : '') + ' waiting allocation' : 'estimated need is ' + periodDemand + ' sacks'}).`;
+              explanation = 'No sacks ready to sell for new orders.';
               rank = 1;
             } else if (availableStock < totalDemand) {
-              recommendation = 'Need More Stock';
+              recommendation = 'Low Stock';
               badgeClass = 'srg-badge-critical';
               dotClass = 'bg-red-500 shadow-[0_0_6px_rgba(239,68,68,0.7)]';
-              const detail = waitingReservations > 0 && periodDemand > 0
-                ? `: ${periodDemand} needed + ${waitingReservations} reserved`
-                : (waitingReservations > 0 ? `: ${waitingReservations} reserved` : '');
-              explanation = `Available stock (${availableStock} sacks) cannot cover total need (${totalDemand} sacks${detail}). Need more stock.`;
-              rank = 1;
+              explanation = 'Available stock may not cover expected sales and reservations. Check if more stock is needed.';
+              rank = 2;
             } else if (availableStock < Math.ceil(totalDemand * 1.5)) {
-              recommendation = 'Prepare More Soon';
+              recommendation = 'Stock Running Low';
               badgeClass = 'srg-badge-warning';
               dotClass = 'bg-amber-500 shadow-[0_0_6px_rgba(245,158,11,0.7)]';
-              const detail = waitingReservations > 0 && periodDemand > 0
-                ? `: ${periodDemand} needed + ${waitingReservations} reserved`
-                : (waitingReservations > 0 ? `: ${waitingReservations} reserved` : '');
-              explanation = `Available stock (${availableStock} sacks) is getting low compared to total need (${totalDemand} sacks${detail}). Low Stock Warning: prepare more soon.`;
-              rank = 2;
+              explanation = 'Stock may be enough for now, but consider preparing more.';
+              rank = 3;
             } else {
-              recommendation = 'Stock Is Enough';
+              recommendation = 'Stock Available';
               badgeClass = 'srg-badge-healthy';
               dotClass = 'bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.7)]';
-              const detail = waitingReservations > 0 && periodDemand > 0
-                ? `: ${periodDemand} needed + ${waitingReservations} reserved`
-                : (waitingReservations > 0 ? `: ${waitingReservations} reserved` : '');
-              explanation = `Available stock (${availableStock} sacks) has enough extra stock to cover total need (${totalDemand} sacks${detail}). Stock is enough for now.`;
-              rank = 4;
+              explanation = 'Stock can cover expected sales and reservations, with extra stock remaining.';
+              rank = 5;
             }
           }
 
@@ -1343,11 +1435,14 @@
             product: p,
             currentStock,
             reservedStock,
+            allocatedStock,
+            totalSetAside,
             availableStock,
             baselineSales,
             dailySalesRate,
             periodDemand,
             totalDemand,
+            shortfall,
             recommendation,
             badgeClass,
             dotClass,
@@ -1356,11 +1451,45 @@
           };
         });
 
+        // Calculate data readiness indicators based on live orders
+        const totalVerifiedOrders = verifiedBaselineSales.length;
+        const totalVerifiedSacks = Object.values(baselineSalesMap).reduce((a, b) => a + b, 0);
+
+        const validOrderDates = liveOrders
+          .map(o => parseOrderDate(o))
+          .filter(d => d instanceof Date && !isNaN(d.getTime()) && d.getTime() > 0)
+          .sort((a, b) => a.getTime() - b.getTime());
+
+        const earliestOrderDate = validOrderDates[0] || null;
+        const latestOrderDate = validOrderDates[validOrderDates.length - 1] || null;
+        const recordedSpanDays = (earliestOrderDate && latestOrderDate)
+          ? Math.max(1, Math.round((latestOrderDate.getTime() - earliestOrderDate.getTime()) / (1000 * 60 * 60 * 24)))
+          : 0;
+
+        const distinctSalesDates = new Set(
+          verifiedBaselineSales
+            .map(o => {
+              const d = parseOrderDate(o);
+              return (d && !isNaN(d.getTime())) ? d.toISOString().split('T')[0] : null;
+            })
+            .filter(Boolean)
+        ).size;
+
+        const elOrdersSummary = document.getElementById('srg-readiness-orders-summary');
+        if (elOrdersSummary) {
+          elOrdersSummary.textContent = `${totalVerifiedOrders} verified sales orders (${totalVerifiedSacks} sacks in 30d baseline)`;
+        }
+
+        const elSpanSummary = document.getElementById('srg-readiness-span-summary');
+        if (elSpanSummary) {
+          elSpanSummary.textContent = `${recordedSpanDays} recorded days observed (${distinctSalesDates} active sales days)`;
+        }
+
         // Summary Counts
-        const countNow = rows.filter(r => r.recommendation === 'Need More Stock').length;
-        const countSoon = rows.filter(r => r.recommendation === 'Prepare More Soon').length;
-        const countSufficient = rows.filter(r => r.recommendation === 'Stock Is Enough').length;
-        const countInsufficient = rows.filter(r => r.rank === 3).length;
+        const countNow = rows.filter(r => r.recommendation === 'Out of Stock' || r.recommendation === 'Low Stock').length;
+        const countSoon = rows.filter(r => r.recommendation === 'Stock Running Low').length;
+        const countSufficient = rows.filter(r => r.recommendation === 'Stock Available').length;
+        const countInsufficient = rows.filter(r => r.recommendation === 'No Recent Sales').length;
 
         const statNow = document.getElementById('replenish-stat-now');
         if (statNow) statNow.textContent = countNow;
@@ -1373,17 +1502,17 @@
 
         // Filter rows
         let filteredRows = rows;
-        if (replenishFilter === 'replenish') {
-          filteredRows = rows.filter(r => r.recommendation === 'Need More Stock');
+        if (replenishFilter === 'replenish' || replenishFilter === 'critical') {
+          filteredRows = rows.filter(r => r.recommendation === 'Out of Stock' || r.recommendation === 'Low Stock');
         } else if (replenishFilter === 'prepare') {
-          filteredRows = rows.filter(r => r.recommendation === 'Prepare More Soon');
+          filteredRows = rows.filter(r => r.recommendation === 'Stock Running Low');
         } else if (replenishFilter === 'sufficient') {
-          filteredRows = rows.filter(r => r.recommendation === 'Stock Is Enough');
+          filteredRows = rows.filter(r => r.recommendation === 'Stock Available');
         } else if (replenishFilter === 'insufficient') {
-          filteredRows = rows.filter(r => r.rank === 3);
+          filteredRows = rows.filter(r => r.recommendation === 'No Recent Sales');
         }
 
-        // Sort by urgency rank (1 = Replenish Now, 2 = Prepare Soon, 3 = Insufficient/No Sales, 4 = Sufficient)
+        // Sort by urgency rank (1 = Out of Stock, 2 = Low Stock, 3 = Stock Running Low, 4 = No Recent Sales, 5 = Stock Available)
         // Secondary sort: available stock ascending
         filteredRows.sort((a, b) => {
           if (a.rank !== b.rank) return a.rank - b.rank;
@@ -1393,7 +1522,7 @@
         if (filteredRows.length === 0) {
           tbody.innerHTML = `
             <tr class="srg-row">
-              <td colspan="6" class="srg-text-main py-12 px-4 text-center font-semibold text-sm">
+              <td colspan="8" class="srg-text-main py-12 px-4 text-center font-semibold text-sm">
                 ${activeProducts.length === 0 ? 'No active rice varieties found in catalog.' : 'No rice varieties match the selected recommendation filter.'}
               </td>
             </tr>
@@ -1412,23 +1541,15 @@
           const hasImg = rawImg.length > 0 && rawImg !== 'null' && rawImg !== 'undefined';
 
           const availNumClass = r.availableStock === 0 
-            ? 'srg-num-critical font-black' 
-            : (r.availableStock <= 10 || r.rank === 1 ? 'srg-num-warning font-extrabold' : 'srg-num-healthy font-extrabold');
-
-          const availBarColor = r.availableStock === 0
-            ? 'srg-bar-needstock'
-            : (r.availableStock <= 10 || r.rank === 1 ? 'srg-bar-lowstock' : 'srg-bar-enough');
-
-          const stockNowPct = r.currentStock > 0 ? Math.min(100, Math.max(8, Math.round((r.currentStock / maxStockRef) * 100))) : 0;
-          const reservedPct = r.reservedStock > 0 ? Math.min(100, Math.max(10, Math.round((r.reservedStock / Math.max(r.currentStock, maxStockRef)) * 100))) : 0;
-          const availPct = r.availableStock > 0 ? Math.min(100, Math.max(8, Math.round((r.availableStock / maxStockRef) * 100))) : 0;
-          const demandPct = r.periodDemand > 0 ? Math.min(100, Math.max(10, Math.round((r.periodDemand / maxDemandRef) * 100))) : 0;
+            ? 'srg-num-critical font-black text-red-600 dark:text-red-400' 
+            : (r.availableStock <= 10 || r.rank <= 2 ? 'srg-num-warning font-extrabold text-amber-600 dark:text-amber-400' : 'srg-num-healthy font-extrabold text-emerald-600 dark:text-emerald-400');
 
           return `
-            <tr class="srg-row transition-colors">
+            <tr class="srg-row transition-colors border-b border-slate-100 dark:border-slate-800/80 hover:bg-slate-50/70 dark:hover:bg-slate-800/40">
+              <!-- 1. Rice Variety -->
               <td class="py-4 px-4 align-middle">
                 <div class="flex items-center gap-3.5 min-w-[190px]">
-                  <div class="srg-avatar w-11 h-11 rounded-full overflow-hidden shrink-0 flex items-center justify-center shadow-2xs relative">
+                  <div class="srg-avatar w-11 h-11 rounded-full overflow-hidden shrink-0 flex items-center justify-center shadow-2xs relative bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
                     ${hasImg ? `
                       <img src="${rawImg}" alt="${pName}" class="w-full h-full object-cover rounded-full" loading="lazy" onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='flex';" />
                       <span style="display:none;" class="srg-text-main w-full h-full items-center justify-center">
@@ -1441,27 +1562,70 @@
                     `}
                   </div>
                   <div class="min-w-0">
-                    <div class="srg-product-name text-slate-900 dark:text-white leading-snug truncate">${pName}</div>
+                    <div class="srg-product-name text-slate-900 dark:text-white leading-snug truncate" title="${pName}">${pName}</div>
                     <div class="srg-variety-tag text-slate-800 dark:text-slate-100 mt-0.5">${pType}</div>
                   </div>
                 </div>
               </td>
+
+              <!-- 2. Stock in Warehouse -->
               <td class="py-4 px-3 text-center align-middle tabular-nums whitespace-nowrap">
-                <span class="srg-stock-num font-semibold">${r.currentStock}</span>
-                <span class="srg-unit-label ml-1">sacks</span>
+                <span class="srg-stock-num font-semibold text-slate-900 dark:text-white">${r.currentStock}</span>
+                <span class="srg-unit-label ml-1 text-xs text-slate-500 dark:text-slate-400">sacks</span>
               </td>
+
+              <!-- 3. Set Aside for Customer Orders (Allocated + Waiting) -->
               <td class="py-4 px-3 text-center align-middle tabular-nums whitespace-nowrap">
-                <span class="srg-stock-num font-semibold">${r.reservedStock > 0 ? r.reservedStock : 0}</span>
-                <span class="srg-unit-label ml-1">sacks</span>
+                <div class="inline-flex flex-col items-center">
+                  <div>
+                    <span class="srg-stock-num font-semibold text-slate-900 dark:text-white">${r.totalSetAside}</span>
+                    <span class="srg-unit-label ml-1 text-xs text-slate-500 dark:text-slate-400">sacks</span>
+                  </div>
+                  <span class="block text-[10.5px] font-medium text-slate-500 dark:text-slate-400 mt-0.5" title="${r.currentStock} warehouse stock − ${r.allocatedStock} allocated − ${r.reservedStock} waiting = ${r.availableStock} ready to sell">
+                    ${r.allocatedStock} allocated · ${r.reservedStock} waiting
+                  </span>
+                </div>
               </td>
+
+              <!-- 4. Sacks Ready to Sell -->
               <td class="py-4 px-3 text-center align-middle tabular-nums whitespace-nowrap">
-                <span class="srg-stock-num font-semibold">${r.availableStock}</span>
-                <span class="srg-unit-label ml-1">sacks</span>
+                <div class="inline-flex flex-col items-center">
+                  <div>
+                    <span class="srg-stock-num ${availNumClass}">${r.availableStock}</span>
+                    <span class="srg-unit-label ml-1 text-xs text-slate-500 dark:text-slate-400">sacks</span>
+                  </div>
+                  <span class="block text-[10px] font-normal text-slate-500 dark:text-slate-400 mt-0.5" title="${r.currentStock} warehouse stock − ${r.allocatedStock} allocated − ${r.reservedStock} waiting = ${r.availableStock} ready to sell">
+                    ready to sell (${r.currentStock} − ${r.allocatedStock})
+                  </span>
+                </div>
               </td>
+
+              <!-- 5. Average Sacks Sold per Day -->
               <td class="py-4 px-3 text-center align-middle tabular-nums whitespace-nowrap">
-                <span class="srg-stock-num font-semibold">${r.periodDemand > 0 ? r.periodDemand : '—'}</span>
-                ${r.periodDemand > 0 ? `<span class="srg-unit-label ml-1">sacks</span>` : ''}
+                <span class="srg-stock-num font-semibold text-slate-900 dark:text-white">${r.dailySalesRate > 0 ? (Math.round(r.dailySalesRate * 100) / 100).toFixed(2) : '0.00'}</span>
+                <span class="srg-unit-label ml-0.5 block text-[11px] text-slate-500 dark:text-slate-400">sacks / day (past sales)</span>
+                <span class="text-[10px] text-slate-600 dark:text-slate-400 font-medium block">(${r.baselineSales} in 30 days)</span>
               </td>
+
+              <!-- 6. Expected Sales in Period -->
+              <td class="py-4 px-3 text-center align-middle tabular-nums whitespace-nowrap">
+                <span class="srg-stock-num font-semibold text-slate-900 dark:text-white">${r.periodDemand > 0 ? r.periodDemand : '0'}</span>
+                <span class="srg-unit-label ml-1 text-xs text-slate-500 dark:text-slate-400">sacks</span>
+                ${r.reservedStock > 0 ? `<span class="text-[10.5px] text-amber-700 dark:text-amber-400 font-medium block">+${r.reservedStock} reserved</span>` : ''}
+              </td>
+
+              <!-- 7. Extra Sacks Needed -->
+              <td class="py-4 px-3 text-center align-middle tabular-nums whitespace-nowrap">
+                ${r.shortfall > 0 
+                  ? `<span class="inline-flex items-center gap-1 font-bold text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/60 border border-red-200 dark:border-red-800/60 px-2.5 py-1 rounded-lg text-xs tabular-nums">
+                       ${r.shortfall} sacks
+                     </span>`
+                  : `<span class="inline-flex items-center gap-1 font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800/60 px-2.5 py-1 rounded-lg text-xs">
+                       0 (Stock Available)
+                     </span>`}
+              </td>
+
+              <!-- 8. Stock Status & Advice -->
               <td class="py-4 px-4 align-middle">
                 <div class="space-y-1.5 max-w-[310px]">
                   <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold shadow-2xs ${r.badgeClass}">
@@ -1640,7 +1804,11 @@
 
         if (typeof predictStockAvailability === 'function') {
           const stockPred = predictStockAvailability(targetVarietyId);
-          if (stockWindowEl) stockWindowEl.textContent = stockPred.displayDate || 'Waiting for Restock';
+          let displayWindow = stockPred.displayDate || 'Cannot Estimate Restock Date Yet';
+          if (displayWindow === 'Waiting for Restock' || displayWindow === 'Restock Schedule Pending') {
+            displayWindow = 'Cannot Estimate Restock Date Yet';
+          }
+          if (stockWindowEl) stockWindowEl.textContent = displayWindow;
           if (stockStatusDescEl) {
             if (stockPred.status === 'predicted') {
               stockStatusDescEl.textContent = `Expected restock window based on an average of ${stockPred.averageIntervalDays} days between past deliveries.`;
@@ -1648,7 +1816,7 @@
               stockStatusDescEl.textContent = 'We need more past delivery records before we can estimate when new stock will arrive.';
             }
           }
-          if (stockMethodEl) stockMethodEl.textContent = 'Past delivery dates';
+          if (stockMethodEl) stockMethodEl.textContent = stockPred.method || 'Past delivery dates';
           if (stockSampleCountEl) stockSampleCountEl.textContent = `${stockPred.observationCount} past deliveries (${stockPred.intervalCount} intervals)`;
           if (stockPublicAvailEl) stockPublicAvailEl.textContent = stockPred.publicAvailabilityStatus || 'First-come, first-served queue';
           if (stockDisclaimerEl) {
@@ -1662,38 +1830,188 @@
 
         if (typeof predictServiceReadinessTime === 'function') {
           const servicePred = predictServiceReadinessTime();
-          const isFallback = !servicePred || servicePred.status === 'baseline_fallback' || servicePred.isPreliminary;
+          const isTrainedML = servicePred && servicePred.status === 'predicted' && servicePred.method === 'Ridge Regression (L2 Regularized)';
+          const isFallback = !servicePred || servicePred.status === 'baseline_fallback' || servicePred.isPreliminary || !isTrainedML;
 
           if (serviceLeadTimeEl) serviceLeadTimeEl.textContent = servicePred.displayTime || '1 to 2 business days';
 
           if (serviceFallbackNoteEl) {
-            if (isFallback) {
-              serviceFallbackNoteEl.textContent = 'Default estimate only — not based on enough completed orders yet.';
+            if (isTrainedML) {
+              serviceFallbackNoteEl.textContent = `Trained Ridge ML model (LOOCV MAE: ${servicePred.cvMAE} hrs cross-validation error, R²: ${servicePred.r2Score})`;
+              serviceFallbackNoteEl.className = 'text-xs font-semibold text-emerald-700 dark:text-emerald-400 mt-0.5';
               serviceFallbackNoteEl.style.display = 'block';
             } else {
-              serviceFallbackNoteEl.textContent = '';
-              serviceFallbackNoteEl.style.display = 'none';
+              serviceFallbackNoteEl.textContent = 'Operational baseline estimate — awaiting sufficient completed order preparation records.';
+              serviceFallbackNoteEl.className = 'text-xs font-medium text-amber-600 dark:text-amber-400 mt-0.5';
+              serviceFallbackNoteEl.style.display = 'block';
             }
           }
 
           if (serviceDescEl) {
-            if (servicePred.status === 'predicted') {
-              serviceDescEl.textContent = `Expected warehouse prep time: about ${servicePred.predictedHours} hours based on past completed orders.`;
+            if (isTrainedML) {
+              serviceDescEl.textContent = `Predicted preparation duration: ~${servicePred.predictedHours} hours based on placement parameters (CV MAE: ${servicePred.cvMAE} hrs average validation error).`;
+            } else if (servicePred.status === 'predicted' && servicePred.predictedHours) {
+              serviceDescEl.textContent = `Empirical warehouse prep time: ~${servicePred.predictedHours} hours based on median completed orders.`;
             } else {
-              serviceDescEl.textContent = 'This is the estimated time needed to prepare an order in the warehouse.';
+              serviceDescEl.textContent = 'Operational baseline for warehouse preparation lead time before pickup or delivery dispatch.';
             }
           }
           if (serviceMethodEl) {
-            serviceMethodEl.textContent = isFallback ? 'Baseline operational default' : 'Past order preparation times';
+            serviceMethodEl.textContent = servicePred.method || (isFallback ? 'Baseline operational default' : 'Ridge Regression (L2 Regularized)');
           }
           if (serviceSampleCountEl) {
             if (Number(servicePred.observationCount) === 0) {
               serviceSampleCountEl.textContent = 'Based on 0 valid completed orders.';
+            } else if (isTrainedML) {
+              serviceSampleCountEl.textContent = `${servicePred.sampleCount} completed orders (${servicePred.excludedAnomalies || 0} anomalies excluded)`;
             } else {
-              serviceSampleCountEl.textContent = `${servicePred.observationCount} completed orders`;
+              serviceSampleCountEl.textContent = `${servicePred.observationCount} completed orders (insufficient to train regression)`;
             }
           }
-          if (serviceDisclaimerEl) serviceDisclaimerEl.textContent = 'This estimate is based on past orders. Actual preparation time may be different.';
+          if (serviceDisclaimerEl) {
+            serviceDisclaimerEl.textContent = servicePred.confidenceNote || 'This estimate is based on past order milestones. Actual preparation time may vary.';
+          }
+        }
+
+        // ---------------------------------------------------------------------
+        // 3. Experimental AI Variety Demand Forecast (Poisson GLM)
+        // ---------------------------------------------------------------------
+        const demandVarietyEl = document.getElementById('ai-demand-variety-tag');
+        const demandHeadlineEl = document.getElementById('ai-demand-headline');
+        const demandStatusNoteEl = document.getElementById('ai-demand-status-note');
+        const demandDescEl = document.getElementById('ai-demand-desc');
+        const demandStatusBadgeEl = document.getElementById('ai-demand-status-badge');
+        const demandHorizonEl = document.getElementById('ai-demand-horizon');
+        const demandUncertaintyEl = document.getElementById('ai-demand-uncertainty');
+        const demandReadinessMetricsEl = document.getElementById('ai-demand-readiness-metrics');
+        const demandDisclaimerEl = document.getElementById('ai-demand-disclaimer');
+
+        if (demandVarietyEl) demandVarietyEl.textContent = targetVarietyName;
+
+        try {
+          // Use verified, reliable coverage period for AI horizon
+          let verifiedHorizon = 30;
+          try {
+            const periodInfo = typeof getReplenishmentPeriodRange === 'function' ? getReplenishmentPeriodRange() : null;
+            const days = periodInfo && Number.isFinite(periodInfo.coverageDays) ? Math.round(periodInfo.coverageDays) : null;
+            if (days && days >= 1 && days <= 365) {
+              verifiedHorizon = days;
+            }
+          } catch (e) {
+            verifiedHorizon = 30;
+          }
+
+          if (demandHorizonEl) {
+            demandHorizonEl.textContent = `${verifiedHorizon} Days (Selected Coverage)`;
+          }
+
+          const liveOrders = typeof getAllOrders === 'function' ? getAllOrders() : [];
+          const waitingRes = targetProduct ? Math.max(0, Number(targetProduct.reservedStock || 0)) : 0;
+
+          let demandModel = null;
+          if (typeof trainProductDemandModel === 'function') {
+            demandModel = trainProductDemandModel(liveOrders, targetVarietyId, {
+              waitingReservations: waitingRes
+            });
+          }
+
+          let demandPred = null;
+          if (demandModel && typeof predictProductDemand === 'function') {
+            demandPred = predictProductDemand(demandModel, verifiedHorizon, {
+              waitingReservations: waitingRes
+            });
+          }
+
+          // Strict gate: display AI forecast only when model returns forecastReady === true,
+          // isPredicted === true, isFallback === false, and valid finite forecast value.
+          const isTrainedAndReady = Boolean(
+            demandModel &&
+            demandModel.status === 'trained' &&
+            demandModel.forecastReady === true &&
+            demandPred &&
+            demandPred.status === 'predicted' &&
+            demandPred.forecastReady === true &&
+            demandPred.isPredicted === true &&
+            demandPred.isFallback === false &&
+            Number.isFinite(demandPred.predictedSacks) &&
+            demandPred.predictedSacks >= 0
+          );
+
+          if (isTrainedAndReady) {
+            if (demandHeadlineEl) {
+              demandHeadlineEl.textContent = `~${demandPred.predictedSacks} sacks`;
+            }
+            if (demandStatusNoteEl) {
+              demandStatusNoteEl.textContent = `Expected continuous demand: ~${demandPred.expectedContinuousSacks} sacks (~${demandPred.dailyRateEstimate} sacks/day) over ${verifiedHorizon} days.`;
+              demandStatusNoteEl.className = 'text-xs font-semibold text-purple-700 dark:text-purple-400 mt-0.5';
+            }
+            if (demandDescEl) {
+              demandDescEl.textContent = `Trained Poisson GLM demand forecast based on historical sales momentum and ${waitingRes} waiting reservation sacks.`;
+            }
+            if (demandStatusBadgeEl) {
+              demandStatusBadgeEl.innerHTML = `<span class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-purple-100 dark:bg-purple-950/70 text-purple-800 dark:text-purple-300 border border-purple-200 dark:border-purple-800">Trained (Advisory Only)</span>`;
+            }
+            if (demandUncertaintyEl) {
+              const ci = demandPred.confidenceInterval;
+              demandUncertaintyEl.textContent = ci
+                ? `${ci.lowerBound} to ${ci.upperBound} sacks (Uncalibrated theoretical Poisson dispersion bound)`
+                : 'Uncalibrated theoretical Poisson dispersion bound';
+              demandUncertaintyEl.title = 'Theoretical normal approximation to Poisson distribution: sum(lambda) +/- 1.96*sqrt(sum(lambda)). Not empirically calibrated.';
+            }
+            if (demandReadinessMetricsEl) {
+              const m = demandModel.readiness?.metrics;
+              demandReadinessMetricsEl.textContent = m
+                ? `${m.distinctOrders} orders, ${m.nonZeroSalesDays} sales days, ${m.inStockDays} in-stock days`
+                : `${demandModel.sampleCount || 0} observations`;
+            }
+            if (demandDisclaimerEl) {
+              demandDisclaimerEl.textContent = 'Experimental & advisory only. Forecast uses provisional readiness thresholds; does not guarantee real-world accuracy or allocate stock.';
+            }
+          } else {
+            // Insufficient data or unready model: show neutral message and exact missing criteria; NO fabricated numbers
+            const readiness = demandModel?.readiness;
+            const metrics = readiness?.metrics;
+            const thresholds = readiness?.thresholds;
+
+            if (demandHeadlineEl) {
+              demandHeadlineEl.textContent = 'Not Enough Sales Yet';
+            }
+            if (demandStatusNoteEl) {
+              demandStatusNoteEl.textContent = 'More verified sales history is needed before a sales guess can be made for this variety.';
+              demandStatusNoteEl.className = 'text-xs font-medium text-slate-600 dark:text-slate-400 mt-0.5';
+            }
+            if (demandDescEl) {
+              demandDescEl.textContent = 'Requires more verified sales orders across distinct days before a sales guess can be made.';
+            }
+            if (demandStatusBadgeEl) {
+              demandStatusBadgeEl.innerHTML = `<span class="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">Not Enough Sales Yet</span>`;
+            }
+            if (demandUncertaintyEl) {
+              demandUncertaintyEl.textContent = 'None (Waiting for more sales)';
+              demandUncertaintyEl.title = 'Uncertainty intervals require a trained model and remain uncalibrated when trained.';
+            }
+            if (demandReadinessMetricsEl) {
+              if (metrics && thresholds) {
+                demandReadinessMetricsEl.textContent = `Orders: ${metrics.distinctOrders}/${thresholds.minDistinctOrders} | Active days: ${metrics.nonZeroSalesDays}/${thresholds.minNonZeroSalesDays}`;
+              } else {
+                demandReadinessMetricsEl.textContent = 'Not enough sales yet';
+              }
+            }
+            if (demandDisclaimerEl) {
+              demandDisclaimerEl.textContent = 'Still testing. Operational stock needs use the estimate based on past sales in the table above.';
+            }
+          }
+        } catch (err) {
+          console.warn('[RiceFlow] Error evaluating experimental demand model:', err);
+          if (demandHeadlineEl) demandHeadlineEl.textContent = 'Not Enough Sales Yet';
+          if (demandStatusNoteEl) {
+            demandStatusNoteEl.textContent = 'Demand model evaluation temporarily unavailable. Standard replenishment calculations remain active.';
+            demandStatusNoteEl.className = 'text-xs font-medium text-slate-500 dark:text-slate-400 mt-0.5';
+          }
+          if (demandStatusBadgeEl) {
+            demandStatusBadgeEl.innerHTML = `<span class="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700">Not Enough Sales Yet</span>`;
+          }
+          if (demandUncertaintyEl) demandUncertaintyEl.textContent = 'None (Waiting for more sales)';
         }
       }
 
