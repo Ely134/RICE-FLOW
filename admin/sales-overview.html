@@ -576,6 +576,20 @@
             </div>
           </div>
 
+          <!-- Stock planning estimates moved here from Stock Needs -->
+          <section class="grid grid-cols-1 sm:grid-cols-2 gap-4" aria-label="Sales demand estimates">
+            <div class="so-summary-card p-5 rounded-2xl flex flex-col justify-between gap-2 shadow-xs min-h-[120px]">
+              <p class="so-text-sub text-xs font-extrabold uppercase tracking-wider">Average Sacks Sold per Day</p>
+              <p id="so-average-sacks-per-day" class="so-text-main text-xl sm:text-2xl font-black tabular-nums">0.00 sacks</p>
+              <p class="text-xs text-slate-700 dark:text-slate-200 font-semibold">Based on verified sales in the past 30 days</p>
+            </div>
+            <div class="so-summary-card p-5 rounded-2xl flex flex-col justify-between gap-2 shadow-xs min-h-[120px]">
+              <p class="so-text-sub text-xs font-extrabold uppercase tracking-wider">Expected Sales in Next 30 Days</p>
+              <p id="so-expected-sacks-next-30" class="so-text-main text-xl sm:text-2xl font-black tabular-nums">0 sacks</p>
+              <p class="text-xs text-slate-700 dark:text-slate-200 font-semibold">Estimate based on recent verified sales</p>
+            </div>
+          </section>
+
           <!-- Main Detailed Bar Chart Card -->
           <div class="bg-white dark:bg-[#111827] border border-slate-200/80 dark:border-slate-800 rounded-2xl p-6 sm:p-7 shadow-xs space-y-4">
             <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800 flex-wrap gap-2">
@@ -1348,6 +1362,24 @@
           cardVariety.title = activeVarietyLabel;
         }
         if (cardSacks) cardSacks.textContent = `${timeframeSacksSum} Sack${timeframeSacksSum !== 1 ? 's' : ''}`;
+
+        // Stock planning estimates: use a fixed recent 30-day window, independent of page filters.
+        const demandEnd = new Date();
+        const demandStart = new Date(demandEnd.getFullYear(), demandEnd.getMonth(), demandEnd.getDate() - 29, 0, 0, 0, 0);
+        let recentVerifiedSacks = 0;
+        liveOrders.forEach(order => {
+          if (!order || order.isReplacement || isSalesReservationOrder(order) || isCancelledOrRejectedOrder(order)) return;
+          const paymentInfo = getVerifiedCustomerPaymentInfo(order);
+          if (!paymentInfo || !paymentInfo.isVerified) return;
+          const orderDate = parseOrderDate(order);
+          if (!orderDate || isNaN(orderDate.getTime()) || orderDate < demandStart || orderDate > demandEnd) return;
+          recentVerifiedSacks += Math.max(0, Number(getOrderVerifiedSacks(order) || 0));
+        });
+        const avgSacksPerDay = recentVerifiedSacks / 30;
+        const averageSacksEl = document.getElementById('so-average-sacks-per-day');
+        const expectedSacksEl = document.getElementById('so-expected-sacks-next-30');
+        if (averageSacksEl) averageSacksEl.textContent = `${avgSacksPerDay.toFixed(2)} sacks`;
+        if (expectedSacksEl) expectedSacksEl.textContent = `${Math.ceil(avgSacksPerDay * 30)} sacks`;
 
         // Build time buckets for Sales Overview Bar Chart
         const totalDurationMs = rangeEnd.getTime() - rangeStart.getTime();

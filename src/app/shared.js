@@ -86,7 +86,8 @@ import {
   trainServiceTimeRidgeRegression, 
   trainStockAvailabilityRidgeRegression,
   extractOrderPlacementFeatures,
-  evaluateStockAvailabilityDataSufficiency
+  evaluateStockAvailabilityDataSufficiency,
+  isGenuineRestockDelivery
 } from './prediction-engine.js';
 
 export { 
@@ -9108,10 +9109,8 @@ export function calculateReservationFulfillmentRestockDate(order) {
     .filter(history => {
       if (!history) return false;
 
-      const quantity = Number(history.quantityAdded || 0);
-
-      // Only actual stock additions count as restocks.
-      if (quantity <= 0) return false;
+      // Filter strictly genuine supplier deliveries (excludes order cancellations, initial stock, and admin adjustments)
+      if (!isGenuineRestockDelivery(history)) return false;
 
       const historyProductId = String(
         history.productId || ''
@@ -9144,16 +9143,18 @@ export function calculateReservationFulfillmentRestockDate(order) {
       return false;
     })
     .map(history => {
-      const date = new Date(
-        `${history.date}T${history.time || '00:00'}`
-      );
+      const dateStr = history.date || (history.timestamp ? String(history.timestamp).split('T')[0] : '');
+      const timeStr = history.time || '00:00';
+      const parsedDate = history.timestamp && !isNaN(new Date(history.timestamp).getTime())
+        ? new Date(history.timestamp)
+        : new Date(`${dateStr}T${timeStr}`);
 
       return {
         ...history,
-        parsedDate: date
+        parsedDate
       };
     })
-    .filter(history => !isNaN(history.parsedDate.getTime()))
+    .filter(history => history.parsedDate && !isNaN(history.parsedDate.getTime()))
     .sort(
       (a, b) =>
         a.parsedDate.getTime() -
@@ -9642,11 +9643,9 @@ export function getEstimatedArrivalDate(order) {
     }
   }
 
-  if (order.estimatedFulfillmentDate && order.estimatedFulfillmentDate !== 'Waiting for Restock' && order.estimatedFulfillmentDate !== 'Not yet scheduled') {
-    return order.estimatedFulfillmentDate;
-  }
-
-  // When no reliable estimated restock date can be calculated from available data or deferred beyond predictable restocks
+  // When genuine restock data is insufficient (< 2 genuine supplier deliveries) and no confirmed
+  // restock schedule exists, unallocated reservations must return 'Waiting for Restock'.
+  // An old, unsupported estimatedFulfillmentDate must never override this.
   return 'Waiting for Restock';
 }
 

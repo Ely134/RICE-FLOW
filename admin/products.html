@@ -381,6 +381,42 @@
     #admin-products-table-scroll::-webkit-scrollbar-thumb:hover {
       background: #145001;
     }
+
+    /* Stock Needs Navigation: Temporary Matching Product Row Highlight */
+    .srg-target-product-highlight {
+      position: relative !important;
+      outline: 2px solid #1E6C02 !important;
+      outline-offset: -2px !important;
+      box-shadow: 0 4px 18px -2px rgba(30, 108, 2, 0.28) !important;
+      transition: background-color 0.4s ease, outline-color 0.4s ease, box-shadow 0.4s ease !important;
+    }
+    html:not(.dark) .srg-target-product-highlight,
+    html:not(.dark) .srg-target-product-highlight td {
+      background-color: #ECFDF5 !important; /* Soft emerald highlight */
+    }
+    html.dark .srg-target-product-highlight {
+      outline-color: #34D399 !important;
+      box-shadow: 0 4px 18px -2px rgba(52, 211, 153, 0.35) !important;
+    }
+    html.dark .srg-target-product-highlight,
+    html.dark .srg-target-product-highlight td {
+      background-color: rgba(6, 95, 70, 0.35) !important;
+    }
+
+    /* Smooth fading out back to original state */
+    .srg-target-product-highlight.srg-highlight-fading {
+      outline-color: transparent !important;
+      box-shadow: none !important;
+      transition: background-color 0.8s ease, outline-color 0.8s ease, box-shadow 0.8s ease !important;
+    }
+    html:not(.dark) .srg-target-product-highlight.srg-highlight-fading,
+    html:not(.dark) .srg-target-product-highlight.srg-highlight-fading td {
+      background-color: transparent !important;
+    }
+    html.dark .srg-target-product-highlight.srg-highlight-fading,
+    html.dark .srg-target-product-highlight.srg-highlight-fading td {
+      background-color: transparent !important;
+    }
   </style>
   <style id="auth-guard-style">body { visibility: hidden !important; }</style>
 </head>
@@ -1892,38 +1928,82 @@
       // Initial loading render
       renderCatalog();
 
-      // Deep Linking handler for notifications
+      // Deep Linking & Navigation handler (e.g. from Stock Needs or Notifications)
       try {
         const urlParams = new URLSearchParams(window.location.search);
-        const productId = urlParams.get('productId');
-        if (productId) {
+        const targetId = urlParams.get('productId') || urlParams.get('id') || urlParams.get('highlightId');
+        const targetVariety = urlParams.get('variety') || urlParams.get('name') || urlParams.get('productName');
+
+        if (targetId || targetVariety) {
           const products = getProducts();
-          const product = products.find(p => p.id === productId);
-          if (product) {
-            // If product is archived, show archived toggle to true so they can locate it
-            if (product.archived && !showArchived) {
+          let matchedProduct = null;
+
+          // 1. Match by exact product ID
+          if (targetId) {
+            const cleanId = String(targetId).trim();
+            matchedProduct = products.find(p => p && String(p.id).trim() === cleanId);
+          }
+
+          // 2. Fallback to product variety or name matching
+          if (!matchedProduct && targetVariety) {
+            const cleanName = String(targetVariety).trim().toLowerCase();
+            matchedProduct = products.find(p => p && String(p.name || '').trim().toLowerCase() === cleanName);
+            if (!matchedProduct) {
+              matchedProduct = products.find(p => {
+                const pName = String(p.name || '').trim().toLowerCase();
+                const pType = String(p.type || '').trim().toLowerCase();
+                return pName.includes(cleanName) || cleanName.includes(pName) || (pType && cleanName.includes(pType));
+              });
+            }
+          }
+
+          // 3. Fallback: if targetId itself was passed as a name string
+          if (!matchedProduct && targetId) {
+            const cleanTarget = String(targetId).trim().toLowerCase();
+            matchedProduct = products.find(p => p && String(p.name || '').trim().toLowerCase() === cleanTarget);
+          }
+
+          if (matchedProduct) {
+            // If the matching product is archived and currently showing active, toggle to archived
+            if ((matchedProduct.archived || matchedProduct.isArchived) && !showArchived) {
               showArchived = true;
-              document.getElementById('btn-show-archived').textContent = "Show Active Varieties";
+              const btnArchived = document.getElementById('btn-toggle-archived');
+              if (btnArchived) btnArchived.textContent = 'View Active';
               renderCatalog();
             }
-            
-            // Scroll to the product and highlight it
-            setTimeout(() => {
-              const row = document.getElementById(`product-row-${productId}`);
+
+            const rowId = `product-row-${matchedProduct.id}`;
+            let attempts = 0;
+            const maxAttempts = 35; // 35 * 70ms = ~2.5s poll
+            const pollRowInterval = setInterval(() => {
+              attempts++;
+              const row = document.getElementById(rowId);
               if (row) {
-                row.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                row.classList.add('ring-4', 'ring-green-400', 'bg-green-50/50', 'transition-all', 'duration-500');
+                clearInterval(pollRowInterval);
+
+                // Scroll smoothly to center the product row
+                row.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+
+                // Apply soft visible highlight outline & background
+                row.classList.add('srg-target-product-highlight');
+
+                // Gracefully fade out after 3.5 seconds
                 setTimeout(() => {
-                  row.classList.remove('ring-4', 'ring-green-400', 'bg-green-50/50');
-                }, 4000);
+                  row.classList.add('srg-highlight-fading');
+                  setTimeout(() => {
+                    row.classList.remove('srg-target-product-highlight', 'srg-highlight-fading');
+                  }, 800);
+                }, 3500);
+              } else if (attempts >= maxAttempts) {
+                clearInterval(pollRowInterval);
               }
-            }, 500);
+            }, 70);
           } else {
-            showToast("The related record is no longer available.", "error");
+            showToast('The related product record is no longer available in the catalog.', 'error');
           }
         }
       } catch (err) {
-        console.warn('[DEEP LINKING] Failed to handle link:', err);
+        console.warn('[PRODUCT NAVIGATION DEEP LINKING] Failed to handle link:', err);
       }
 
       // Stock status filter focus & scroll handler (from Dashboard Inventory Health clicks)
