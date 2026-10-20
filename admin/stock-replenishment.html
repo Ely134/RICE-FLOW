@@ -861,7 +861,7 @@
       color: #F8FAFC;
     }
 
-    /* Relocated Expected Stock & Delivery Timing Section Typography */
+    /* Expected Stock & Delivery Timing presentation styles */
     .ia-section-heading {
       font-size: 18px !important;
       line-height: 1.4 !important;
@@ -1347,136 +1347,92 @@
             </a>
           </div>
 
-          <!-- Expected Stock & Delivery Timing (At the absolute bottom of Stock Needs) -->
-          <div class="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 rounded-2xl p-6 sm:p-7 shadow-xs space-y-6">
-            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3 pb-4 border-b border-slate-200 dark:border-slate-800">
-              <div class="flex items-center gap-3">
-                <div class="w-9 h-9 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-700 flex items-center justify-center text-sm font-bold text-[#1E6C02] dark:text-emerald-400 shrink-0">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" class="w-5 h-5"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+          <!-- Expected Stock & Delivery Timing: presentation-only redesign. Keep all IDs used by existing logic. -->
+          <section class="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 rounded-2xl p-4 sm:p-6 shadow-sm space-y-5">
+            <div class="flex flex-col xl:flex-row xl:items-center justify-between gap-4 pb-4 border-b border-slate-200 dark:border-slate-800">
+              <div class="flex items-start gap-3">
+                <div class="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 flex items-center justify-center text-[#1E6C02] dark:text-emerald-400 shrink-0">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-5 h-5"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
                 </div>
-                <div>
+                <div class="min-w-0">
                   <h2 class="ia-section-heading">Expected Stock &amp; Delivery Timing</h2>
-                  <p class="ia-normal-text mt-0.5">Automatic estimates based on past warehouse deliveries and order history.</p>
+                  <p class="text-sm text-slate-600 dark:text-slate-300 mt-1">Simple estimates from past deliveries and orders.</p>
                 </div>
               </div>
-
-              <!-- Independent Rice Variety Selector for this section -->
-              <div class="flex items-center gap-3 flex-wrap sm:flex-nowrap">
-                <div class="flex items-center gap-2">
-                  <label for="sel-ai-stock-product" class="ia-small-label font-semibold text-slate-700 dark:text-slate-300 whitespace-nowrap">Restock Variety:</label>
-                  <select id="sel-ai-stock-product" class="ia-control-select h-10 px-3.5 py-1.5 rounded-xl outline-none cursor-pointer text-xs font-semibold shadow-2xs border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 min-w-[200px] max-w-[280px] truncate" title="Select rice variety for restock estimate" aria-label="Rice variety for expected restock estimate">
-                    <option value="">Loading varieties...</option>
-                  </select>
-                </div>
-                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full ia-small-label font-semibold bg-emerald-50 dark:bg-emerald-950/60 text-[#1E6C02] dark:text-emerald-400 border border-emerald-300 dark:border-emerald-700 w-fit shrink-0">
-                  Smart Estimates
-                </span>
+              <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+                <label for="sel-ai-stock-product" class="text-sm font-semibold text-slate-700 dark:text-slate-200 whitespace-nowrap">Rice variety</label>
+                <select id="sel-ai-stock-product" class="ia-control-select h-10 px-3 rounded-xl outline-none cursor-pointer text-sm font-semibold border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 min-w-0 sm:min-w-[220px] max-w-full" title="Select rice variety for restock estimate" aria-label="Rice variety for expected restock estimate">
+                  <option value="">Loading varieties...</option>
+                </select>
+                <span class="inline-flex items-center gap-2 px-3 py-2 rounded-full text-xs font-semibold bg-emerald-50 dark:bg-emerald-950/60 text-[#1E6C02] dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 w-fit">Smart Estimates</span>
               </div>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-              <!-- Panel 1: Stock Availability Prediction -->
-              <div class="p-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/40 space-y-4 flex flex-col justify-between shadow-2xs">
-                <div class="space-y-2">
-                  <div class="flex items-center justify-between gap-2">
-                    <span class="ia-small-label font-semibold uppercase tracking-wider text-emerald-800 dark:text-emerald-300 flex items-center gap-1.5">
-                      <span>📦</span> Expected Restock
-                    </span>
-                    <span id="ai-stock-variety-tag" class="ia-small-label px-2.5 py-0.5 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 truncate max-w-[160px]">All Varieties</span>
-                  </div>
-                  <div>
-                    <p id="ai-stock-window" class="ia-important-num tracking-tight">Cannot Estimate Restock Date Yet</p>
-                    <p id="ai-stock-status-desc" class="ia-normal-text mt-1 leading-snug">We need more past delivery records before we can estimate when new stock will arrive.</p>
-                  </div>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 items-stretch">
+              <!-- Restock card: primary result first; detailed diagnostics remain available below. -->
+              <article class="rounded-xl border border-rose-200 dark:border-rose-900/70 bg-gradient-to-br from-rose-50 via-white to-white dark:from-rose-950/30 dark:via-slate-900 dark:to-slate-900 p-4 sm:p-5 flex flex-col gap-3 min-w-0">
+                <div class="flex items-center gap-2 text-rose-800 dark:text-rose-300"><span class="text-lg" aria-hidden="true">📦</span><h3 class="text-sm font-bold">Expected Restock</h3></div>
+                <span id="ai-stock-variety-tag" class="hidden">All Varieties</span>
+                <p id="ai-stock-window" class="text-2xl font-bold leading-tight tracking-tight text-slate-900 dark:text-white">Cannot Estimate Restock Date Yet</p>
+                <p id="ai-stock-status-desc" class="text-sm leading-relaxed text-slate-700 dark:text-slate-200">We need more past delivery records before we can estimate when new stock will arrive.</p>
+                <div class="mt-auto pt-3 border-t border-rose-100 dark:border-rose-900/60">
+                  <p class="text-xs text-slate-600 dark:text-slate-300">Delivery records checked: <strong id="ai-stock-sample-count" class="font-semibold">0 past deliveries</strong></p>
+                  <p id="ai-stock-disclaimer" class="text-xs leading-relaxed text-slate-600 dark:text-slate-300 mt-2">Not enough past delivery records to estimate the next restock date yet.</p>
+                  <details class="mt-3 group">
+                    <summary class="cursor-pointer select-none text-sm font-semibold text-slate-700 dark:text-slate-200 hover:text-[#1E6C02]">View calculation details</summary>
+                    <div class="mt-3 rounded-lg bg-white/80 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-700 p-3 space-y-2 text-xs text-slate-700 dark:text-slate-200">
+                      <div class="flex flex-col sm:flex-row sm:justify-between gap-1"><span>Method used</span><strong id="ai-stock-method" class="font-semibold text-left sm:text-right">Past delivery dates</strong></div>
+                      <div class="flex flex-col sm:flex-row sm:justify-between gap-1"><span>Stock priority</span><strong id="ai-stock-public-avail" class="font-semibold text-left sm:text-right">First-come, first-served queue</strong></div>
+                    </div>
+                  </details>
                 </div>
+              </article>
 
-                <div class="pt-3 border-t border-slate-200 dark:border-slate-800 space-y-2">
-                  <div class="flex justify-between items-center ia-small-label">
-                    <span>Based on</span>
-                    <span class="font-semibold" id="ai-stock-method">Past delivery dates</span>
-                  </div>
-                  <div class="flex justify-between items-center ia-small-label">
-                    <span>Delivery records checked:</span>
-                    <span class="font-semibold" id="ai-stock-sample-count">0 past deliveries</span>
-                  </div>
-                  <div class="flex justify-between items-center ia-small-label">
-                    <span>Stock priority:</span>
-                    <span class="font-semibold text-right truncate max-w-[210px]" id="ai-stock-public-avail">First-come, first-served queue</span>
-                  </div>
-                  <p id="ai-stock-disclaimer" class="ia-small-label italic pt-1 leading-normal">Not enough past delivery records to estimate the next restock date yet.</p>
+              <!-- Preparation card -->
+              <article class="rounded-xl border border-blue-200 dark:border-blue-900/70 bg-gradient-to-br from-blue-50 via-white to-white dark:from-blue-950/30 dark:via-slate-900 dark:to-slate-900 p-4 sm:p-5 flex flex-col gap-3 min-w-0">
+                <div class="flex items-center gap-2 text-blue-800 dark:text-blue-300"><span class="text-lg" aria-hidden="true">⏱️</span><h3 class="text-sm font-bold">Order Preparation</h3></div>
+                <p id="ai-service-leadtime" class="text-2xl font-bold leading-tight tracking-tight text-slate-900 dark:text-white">1 to 2 business days</p>
+                <p id="ai-service-desc" class="text-sm leading-relaxed text-slate-700 dark:text-slate-200">Estimated time needed to prepare an order in the warehouse.</p>
+                <p id="ai-service-fallback-note" class="text-xs leading-relaxed text-amber-700 dark:text-amber-300">Default estimate only — not based on enough completed orders yet.</p>
+                <div class="mt-auto pt-3 border-t border-blue-100 dark:border-blue-900/60">
+                  <p class="text-xs text-slate-600 dark:text-slate-300">Completed orders checked: <strong id="ai-service-sample-count" class="font-semibold">Based on 0 valid completed orders.</strong></p>
+                  <p id="ai-service-disclaimer" class="text-xs leading-relaxed text-slate-600 dark:text-slate-300 mt-2">This estimate is based on past orders. Actual preparation time may be different.</p>
+                  <details class="mt-3 group">
+                    <summary class="cursor-pointer select-none text-sm font-semibold text-slate-700 dark:text-slate-200 hover:text-[#1E6C02]">View calculation details</summary>
+                    <div class="mt-3 rounded-lg bg-white/80 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-700 p-3 space-y-2 text-xs text-slate-700 dark:text-slate-200">
+                      <div class="flex flex-col sm:flex-row sm:justify-between gap-1"><span>Estimate meaning</span><strong class="font-semibold text-left sm:text-right">Time needed to prepare an order</strong></div>
+                      <div class="flex flex-col sm:flex-row sm:justify-between gap-1"><span>Method used</span><strong id="ai-service-method" class="font-semibold text-left sm:text-right">Past order preparation times</strong></div>
+                    </div>
+                  </details>
                 </div>
-              </div>
+              </article>
 
-              <!-- Panel 2: Service Time Prediction -->
-              <div class="p-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/40 space-y-4 flex flex-col justify-between shadow-2xs">
-                <div class="space-y-2">
-                  <div class="flex items-center justify-between gap-2">
-                    <span class="ia-small-label font-semibold uppercase tracking-wider text-indigo-800 dark:text-indigo-300 flex items-center gap-1.5">
-                      <span>⏱️</span> 2. Order Preparation Time
-                    </span>
-                    <span class="ia-small-label px-2.5 py-0.5 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">Warehouse Prep</span>
-                  </div>
-                  <div>
-                    <p id="ai-service-leadtime" class="ia-important-num tracking-tight">1 to 2 business days</p>
-                    <p id="ai-service-fallback-note" class="text-xs font-medium text-amber-600 dark:text-amber-400 mt-0.5">Default estimate only — not based on enough completed orders yet.</p>
-                    <p id="ai-service-desc" class="ia-normal-text mt-1 leading-snug">This is the estimated time needed to prepare an order in the warehouse.</p>
+              <!-- AI forecast: full width so the status and simple explanation are easy to read. -->
+              <article id="ai-demand-forecast-panel" class="lg:col-span-2 rounded-xl border border-emerald-200 dark:border-emerald-900/70 bg-gradient-to-br from-emerald-50/80 via-white to-white dark:from-emerald-950/25 dark:via-slate-900 dark:to-slate-900 p-4 sm:p-5 flex flex-col gap-3 min-w-0">
+                <div class="flex flex-col sm:flex-row sm:items-start gap-3">
+                  <div class="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-900/60 flex items-center justify-center text-xl shrink-0" aria-hidden="true">🌾</div>
+                  <div class="flex-1 min-w-0">
+                    <div class="flex flex-wrap items-center gap-2"><h3 class="text-sm font-bold text-emerald-900 dark:text-emerald-200">AI Sales Forecast</h3><span id="ai-demand-variety-tag" class="hidden">All Varieties</span></div>
+                    <p id="ai-demand-headline" class="text-xl sm:text-2xl font-bold leading-tight tracking-tight text-slate-900 dark:text-white mt-2">Not Enough Sales Yet</p>
+                    <p id="ai-demand-status-note" class="text-sm leading-relaxed text-slate-700 dark:text-slate-200 mt-2">More verified sales history is needed before a sales guess can be made for this variety.</p>
+                    <p id="ai-demand-desc" class="text-sm leading-relaxed text-slate-600 dark:text-slate-300 mt-1">Sales guess trained on historical daily sack sales and customer reservations.</p>
                   </div>
                 </div>
-
-                <div class="pt-3 border-t border-slate-200 dark:border-slate-800 space-y-2">
-                  <div class="flex justify-between items-center ia-small-label">
-                    <span>What this means:</span>
-                    <span class="font-semibold">Time needed to prepare an order</span>
-                  </div>
-                  <div class="flex justify-between items-center ia-small-label">
-                    <span>Based on</span>
-                    <span class="font-semibold" id="ai-service-method">Past order preparation times</span>
-                  </div>
-                  <div class="flex justify-between items-center ia-small-label">
-                    <span>Completed orders checked:</span>
-                    <span class="font-semibold" id="ai-service-sample-count">Based on 0 valid completed orders.</span>
-                  </div>
-                  <p id="ai-service-disclaimer" class="ia-small-label italic pt-1 leading-normal">This estimate is based on past orders. Actual preparation time may be different.</p>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-3 border-t border-emerald-100 dark:border-emerald-900/60">
+                  <div class="rounded-lg bg-white/80 dark:bg-slate-950/40 border border-emerald-100 dark:border-emerald-900/60 p-3"><p class="text-xs text-slate-500 dark:text-slate-400">Forecast period</p><p id="ai-demand-horizon" class="text-sm font-semibold text-slate-900 dark:text-white mt-1">30 Days (Selected Coverage)</p></div>
+                  <div class="rounded-lg bg-white/80 dark:bg-slate-950/40 border border-emerald-100 dark:border-emerald-900/60 p-3"><p class="text-xs text-slate-500 dark:text-slate-400">Forecast status</p><p id="ai-demand-status-badge" class="text-sm font-semibold text-slate-900 dark:text-white mt-1">Not Enough Sales Yet</p></div>
                 </div>
-              </div>
-
-              <!-- Panel 3: Experimental AI Variety Demand Forecast (Poisson GLM) -->
-              <div id="ai-demand-forecast-panel" class="p-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/40 space-y-4 flex flex-col justify-between shadow-2xs">
-                <div class="space-y-2">
-                  <div class="flex items-center justify-between gap-2">
-                    <span class="ia-small-label font-semibold uppercase tracking-wider text-purple-800 dark:text-purple-300 flex items-center gap-1.5">
-                      <span>🌾</span> 3. AI Sales Guess (Still Testing)
-                    </span>
-                    <span id="ai-demand-variety-tag" class="ia-small-label px-2.5 py-0.5 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 truncate max-w-[160px]">All Varieties</span>
+                <p id="ai-demand-disclaimer" class="text-xs leading-relaxed text-slate-600 dark:text-slate-300">Experimental &amp; advisory only. Does not allocate stock or alter standard FIFO queue operations.</p>
+                <details class="group">
+                  <summary class="cursor-pointer select-none text-sm font-semibold text-slate-700 dark:text-slate-200 hover:text-[#1E6C02]">View AI forecast details</summary>
+                  <div class="mt-3 rounded-lg bg-white/80 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-700 p-3 space-y-2 text-xs text-slate-700 dark:text-slate-200">
+                    <div class="flex flex-col sm:flex-row sm:justify-between gap-1"><span>Uncertainty range</span><strong id="ai-demand-uncertainty" class="font-semibold text-left sm:text-right">None (Waiting for more sales)</strong></div>
+                    <div class="flex flex-col sm:flex-row sm:justify-between gap-1"><span>Readiness checks</span><strong id="ai-demand-readiness-metrics" class="font-semibold text-left sm:text-right">Evaluating records...</strong></div>
                   </div>
-                  <div>
-                    <p id="ai-demand-headline" class="ia-important-num tracking-tight">Not Enough Sales Yet</p>
-                    <p id="ai-demand-status-note" class="text-xs font-medium text-slate-600 dark:text-slate-400 mt-0.5">More verified sales history is needed before a sales guess can be made for this variety.</p>
-                    <p id="ai-demand-desc" class="ia-normal-text mt-1 leading-snug">Sales guess trained on historical daily sack sales and customer reservations.</p>
-                  </div>
-                </div>
-
-                <div class="pt-3 border-t border-slate-200 dark:border-slate-800 space-y-2">
-                  <div class="flex justify-between items-center ia-small-label">
-                    <span>Model status:</span>
-                    <span class="font-semibold" id="ai-demand-status-badge">Not Enough Sales Yet</span>
-                  </div>
-                  <div class="flex justify-between items-center ia-small-label">
-                    <span>Forecast horizon:</span>
-                    <span class="font-semibold" id="ai-demand-horizon">30 Days (Selected Coverage)</span>
-                  </div>
-                  <div class="flex justify-between items-center ia-small-label">
-                    <span>Uncertainty bound:</span>
-                    <span class="font-semibold text-right truncate max-w-[210px]" id="ai-demand-uncertainty" title="Uncertainty intervals require more sales data.">None (Waiting for more sales)</span>
-                  </div>
-                  <div class="flex justify-between items-center ia-small-label">
-                    <span>Readiness checks:</span>
-                    <span class="font-semibold text-right truncate max-w-[210px]" id="ai-demand-readiness-metrics">Evaluating records...</span>
-                  </div>
-                  <p id="ai-demand-disclaimer" class="ia-small-label italic pt-1 leading-normal text-slate-500 dark:text-slate-400">Experimental &amp; advisory only. Does not allocate stock or alter standard FIFO queue operations.</p>
-                </div>
-              </div>
-          </div>
+                </details>
+              </article>
+            </div>
+          </section>
         </div>
       `;
 

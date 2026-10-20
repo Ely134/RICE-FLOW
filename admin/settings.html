@@ -426,7 +426,7 @@
 
   <!-- Interactive administrative settings script -->
   <script type="module">
-    import { protectAdminPage, renderAdminLayout, addActivityLog, showToast, getStoreSettings, DEFAULT_DELIVERY_MINIMUM_SETTINGS } from '../src/app/shared.js';
+    import { protectAdminPage, renderAdminLayout, addActivityLog, showToast, getStoreSettings, DEFAULT_DELIVERY_MINIMUM_SETTINGS, DEFAULT_DELIVERY_FEE_SETTINGS } from '../src/app/shared.js';
     import { auth, saveFirestoreDoc, storage, storageRef, uploadBytes, getDownloadURL } from '../src/lib/firebase.js';
     import { updatePassword } from 'firebase/auth';
 
@@ -456,6 +456,8 @@
       let gcashNumber = settings.gcashNumber;
       let gcashQrBase64 = settings.gcashQr;
       let deliveryMinimumSettings = JSON.parse(JSON.stringify(settings.deliveryMinimumSettings || DEFAULT_DELIVERY_MINIMUM_SETTINGS));
+      let deliveryFeeSettings = JSON.parse(JSON.stringify(settings.deliveryFeeSettings || DEFAULT_DELIVERY_FEE_SETTINGS));
+      let editingFeeRuleId = null;
       let selectedLogoFile = null;
       let selectedBannerFile = null;
       let selectedGcashQrFile = null;
@@ -607,6 +609,166 @@
               deliveryMinimumSettings.locationRules.splice(ruleIdx, 1);
               renderLocationRulesRows();
               showToast(`Removed rule for "${removedName}". Click "Save Delivery Minimum Settings" to apply.`, 'info');
+            }
+          });
+        });
+      }
+
+      function renderDeliveryFeeRulesRows() {
+        const tbody = document.getElementById('tbody-delivery-fee-rules');
+        if (!tbody) return;
+        const rules = deliveryFeeSettings.feeRules || [];
+        if (rules.length === 0) {
+          tbody.innerHTML = `
+            <tr>
+              <td colspan="3" class="py-6 text-center text-gray-500 text-xs">
+                No delivery fee rules configured. Customers will be alerted that delivery fees need confirmation.
+              </td>
+            </tr>
+          `;
+          return;
+        }
+
+        tbody.innerHTML = rules.map((r) => {
+          const isEditing = editingFeeRuleId === r.id;
+          if (isEditing) {
+            return `
+              <tr class="bg-emerald-50/40">
+                <td class="py-3 px-4">
+                  <input
+                    type="text"
+                    id="inp-edit-fee-area-${r.id}"
+                    value="${r.areaName ? r.areaName.replace(/"/g, '&quot;') : ''}"
+                    class="w-full bg-white border border-[#1E6C02] rounded-lg px-2.5 py-1 text-sm font-bold text-black outline-none"
+                  />
+                </td>
+                <td class="py-3 px-4 text-center">
+                  <div class="inline-flex items-center gap-1">
+                    <span class="text-xs font-bold text-gray-700">₱</span>
+                    <input
+                      type="number"
+                      id="inp-edit-fee-amount-${r.id}"
+                      min="0"
+                      step="1"
+                      value="${r.fee}"
+                      class="w-24 bg-white border border-[#1E6C02] rounded-lg px-2 py-1 text-sm font-bold text-black text-center outline-none"
+                    />
+                  </div>
+                </td>
+                <td class="py-3 px-3 text-right">
+                  <div class="inline-flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      data-rule-id="${r.id}"
+                      class="btn-save-edit-fee px-2.5 py-1 text-xs font-bold text-emerald-800 bg-emerald-100 hover:bg-emerald-200 rounded-lg border border-emerald-300 transition-colors cursor-pointer"
+                    >
+                      ✓ Save
+                    </button>
+                    <button
+                      type="button"
+                      class="btn-cancel-edit-fee px-2 py-1 text-xs font-semibold text-gray-600 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            `;
+          }
+
+          return `
+            <tr class="hover:bg-gray-50 transition-colors">
+              <td class="py-3 px-4 font-bold text-black text-sm">
+                <span class="inline-flex items-center gap-2">
+                  <span class="text-gray-400">📍</span>
+                  <span>${r.areaName}</span>
+                </span>
+              </td>
+              <td class="py-3 px-4 text-center font-extrabold text-[#1E6C02] text-sm">
+                ₱${Number(r.fee).toLocaleString()}.00
+              </td>
+              <td class="py-3 px-3 text-right">
+                <div class="inline-flex items-center gap-1">
+                  <button
+                    type="button"
+                    data-rule-id="${r.id}"
+                    class="btn-edit-delivery-fee-rule px-2.5 py-1 text-xs font-bold text-blue-700 hover:text-blue-900 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer border border-transparent hover:border-blue-200"
+                    title="Edit area name or fee"
+                  >
+                    ✏️ Edit
+                  </button>
+                  <button
+                    type="button"
+                    data-rule-id="${r.id}"
+                    class="btn-delete-delivery-fee-rule px-2.5 py-1 text-xs font-bold text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-colors cursor-pointer border border-transparent hover:border-red-200"
+                    title="Remove this rule"
+                  >
+                    ✕ Remove
+                  </button>
+                </div>
+              </td>
+            </tr>
+          `;
+        }).join('');
+
+        // Bind Edit buttons
+        tbody.querySelectorAll('.btn-edit-delivery-fee-rule').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            const ruleId = e.currentTarget.getAttribute('data-rule-id');
+            editingFeeRuleId = ruleId;
+            renderDeliveryFeeRulesRows();
+          });
+        });
+
+        // Bind Save Edit buttons
+        tbody.querySelectorAll('.btn-save-edit-fee').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            const ruleId = e.currentTarget.getAttribute('data-rule-id');
+            const inpArea = document.getElementById(`inp-edit-fee-area-${ruleId}`);
+            const inpAmount = document.getElementById(`inp-edit-fee-amount-${ruleId}`);
+
+            const newArea = inpArea ? inpArea.value.trim() : '';
+            const newFee = inpAmount ? parseFloat(inpAmount.value) : NaN;
+
+            if (!newArea) {
+              showToast('Delivery area name cannot be empty.', 'error');
+              return;
+            }
+            if (isNaN(newFee) || newFee < 0) {
+              showToast('Delivery fee must be a valid non-negative number.', 'error');
+              return;
+            }
+
+            const rule = (deliveryFeeSettings.feeRules || []).find(r => r.id === ruleId);
+            if (rule) {
+              rule.areaName = newArea;
+              rule.fee = Math.round(newFee);
+            }
+            editingFeeRuleId = null;
+            renderDeliveryFeeRulesRows();
+            showToast(`Updated fee rule for "${newArea}". Click "Save Delivery Fee Settings" to apply.`, 'info');
+          });
+        });
+
+        // Bind Cancel Edit buttons
+        tbody.querySelectorAll('.btn-cancel-edit-fee').forEach(btn => {
+          btn.addEventListener('click', () => {
+            editingFeeRuleId = null;
+            renderDeliveryFeeRulesRows();
+          });
+        });
+
+        // Bind Delete buttons
+        tbody.querySelectorAll('.btn-delete-delivery-fee-rule').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            const ruleId = e.currentTarget.getAttribute('data-rule-id');
+            const idx = (deliveryFeeSettings.feeRules || []).findIndex(r => r.id === ruleId);
+            if (idx >= 0) {
+              const removedName = deliveryFeeSettings.feeRules[idx].areaName;
+              deliveryFeeSettings.feeRules.splice(idx, 1);
+              if (editingFeeRuleId === ruleId) editingFeeRuleId = null;
+              renderDeliveryFeeRulesRows();
+              showToast(`Removed rule for "${removedName}". Click "Save Delivery Fee Settings" to apply.`, 'info');
             }
           });
         });
@@ -928,6 +1090,106 @@
               </div>
             </div>
 
+            <!-- Delivery Fee Settings Section -->
+            <div class="bg-white rounded-3xl border border-gray-200 shadow-sm p-8 sm:p-10 space-y-8">
+              <div class="pb-6 border-b border-gray-200 flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+                <div>
+                  <div class="flex items-center gap-3 flex-wrap">
+                    <h3 class="setting-section-title text-lg font-semibold text-black tracking-tight">Delivery Fee Settings</h3>
+                    <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-900 border border-emerald-300">Location-Based Rates</span>
+                  </div>
+                  <p class="setting-desc text-[15px] text-black font-normal mt-1 leading-relaxed">
+                    Configure delivery fee rates in pesos (₱) by delivery area or locality. During checkout, customer addresses are matched to these areas to determine the delivery fee. Store pickup always has a ₱0 delivery fee.
+                  </p>
+                </div>
+              </div>
+
+              <!-- Information Banner -->
+              <div class="p-4 rounded-2xl bg-emerald-50/80 border border-emerald-200 text-xs text-emerald-950 space-y-1">
+                <div class="flex items-center gap-2 font-bold text-sm text-emerald-900">
+                  <span>🚚</span>
+                  <span>Location-Based Delivery Fee Rules</span>
+                </div>
+                <p class="leading-relaxed font-normal">
+                  Add specific delivery areas (e.g. municipality, city, province, or neighborhood) and their corresponding delivery fee in pesos. If a customer's address does not match any configured delivery area, checkout prevents unverified fee submissions and alerts the customer that the fee needs confirmation.
+                </p>
+              </div>
+
+              <!-- Fee Rules Table & Add/Edit Form -->
+              <div class="space-y-4 pt-2">
+                <div class="flex items-center justify-between flex-wrap gap-2">
+                  <div>
+                    <h4 class="text-base font-bold text-black">Configured Delivery Fee Rules</h4>
+                    <p class="text-xs text-gray-700">Manage delivery fee amounts (in pesos) by area name. Edit or remove rules anytime.</p>
+                  </div>
+                </div>
+
+                <!-- Rules List Table -->
+                <div class="overflow-x-auto border border-gray-200 rounded-2xl">
+                  <table class="w-full text-left text-sm border-collapse min-w-[500px]">
+                    <thead>
+                      <tr class="bg-gray-50/90 border-b border-gray-200 text-xs font-bold uppercase text-gray-700">
+                        <th class="py-3 px-4">Delivery Area Name</th>
+                        <th class="py-3 px-4 text-center">Delivery Fee (₱)</th>
+                        <th class="py-3 px-3 text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody id="tbody-delivery-fee-rules" class="divide-y divide-gray-100">
+                      <!-- Dynamically rendered -->
+                    </tbody>
+                  </table>
+                </div>
+
+                <!-- Add New Fee Rule Sub-Card -->
+                <div class="p-5 rounded-2xl bg-gray-50/80 border border-gray-200 space-y-4">
+                  <h5 class="text-sm font-bold text-black flex items-center gap-1.5">
+                    <span>➕</span> Add Delivery Fee Rule
+                  </h5>
+                  <div class="grid grid-cols-1 sm:grid-cols-12 gap-4 text-black text-sm">
+                    <div class="sm:col-span-7 space-y-1">
+                      <label class="text-xs font-bold text-gray-700">Delivery Area Name</label>
+                      <input
+                        type="text"
+                        id="inp-new-fee-area"
+                        placeholder="e.g. Aurora, Pagadian, or Molave"
+                        class="w-full bg-white border border-gray-300 rounded-xl px-3 py-2 text-sm text-black outline-none focus:border-[#1E6C02]"
+                      />
+                    </div>
+                    <div class="sm:col-span-3 space-y-1">
+                      <label class="text-xs font-bold text-gray-700">Delivery Fee (₱)</label>
+                      <input
+                        type="number"
+                        id="inp-new-fee-amount"
+                        min="0"
+                        step="1"
+                        placeholder="80"
+                        class="w-full bg-white border border-gray-300 rounded-xl px-3 py-2 text-sm text-black outline-none focus:border-[#1E6C02]"
+                      />
+                    </div>
+                    <div class="sm:col-span-2 flex flex-col justify-end">
+                      <button
+                        type="button"
+                        id="btn-add-delivery-fee-rule"
+                        class="w-full px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-xs font-bold cursor-pointer transition-all shadow-xs"
+                      >
+                        Add Rule
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Save Row -->
+              <div class="pt-6 border-t border-gray-200 flex items-center justify-between">
+                <button
+                  id="btn-save-delivery-fee"
+                  class="px-6 py-3.5 bg-[#1E6C02] hover:bg-[#145001] active:scale-[0.98] text-white font-semibold text-[14.5px] rounded-xl cursor-pointer shadow-md inline-flex items-center justify-center gap-2.5 transition-all hover:scale-[1.01] border border-transparent select-none w-full sm:w-auto"
+                >
+                  💾 Save Delivery Fee Settings
+                </button>
+              </div>
+            </div>
+
             <!-- Change Password Card -->
             <div class="bg-white rounded-3xl border border-gray-200 shadow-sm p-8 sm:p-10 space-y-8">
               <div class="pb-6 border-b border-gray-200">
@@ -968,6 +1230,7 @@
       function bindSettingsActions() {
         // Render current location rules
         renderLocationRulesRows();
+        renderDeliveryFeeRulesRows();
 
         // Sync inputs on change
         const inpDefMinEl = document.getElementById('inp-default-min-sacks');
@@ -1431,6 +1694,106 @@
                 } catch (err) {
                   console.error('[SETTINGS] Error saving delivery minimum settings:', err);
                   showToast('Failed to save delivery minimum settings: ' + (err.message || err), 'error');
+                }
+              }
+            });
+          });
+        }
+
+        // Action: Add Delivery Fee Rule
+        const btnAddFeeRule = document.getElementById('btn-add-delivery-fee-rule');
+        if (btnAddFeeRule) {
+          btnAddFeeRule.addEventListener('click', () => {
+            const inpArea = document.getElementById('inp-new-fee-area');
+            const inpFee = document.getElementById('inp-new-fee-amount');
+
+            const areaName = inpArea ? inpArea.value.trim() : '';
+            if (!areaName) {
+              showToast('Please enter a delivery area name (e.g. city, municipality, or province).', 'error');
+              if (inpArea) inpArea.focus();
+              return;
+            }
+
+            const fee = inpFee ? parseFloat(inpFee.value) : NaN;
+            if (isNaN(fee) || fee < 0) {
+              showToast('Please enter a valid non-negative delivery fee in pesos.', 'error');
+              if (inpFee) inpFee.focus();
+              return;
+            }
+
+            if (!deliveryFeeSettings.feeRules) {
+              deliveryFeeSettings.feeRules = [];
+            }
+
+            const existingIdx = deliveryFeeSettings.feeRules.findIndex(r => r.areaName && r.areaName.toLowerCase() === areaName.toLowerCase());
+            if (existingIdx >= 0) {
+              deliveryFeeSettings.feeRules[existingIdx].fee = Math.round(fee);
+              showToast(`Updated existing rule for "${areaName}" to ₱${Math.round(fee)}. Click "Save Delivery Fee Settings" to apply.`, 'info');
+            } else {
+              deliveryFeeSettings.feeRules.push({
+                id: `fee-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+                areaName: areaName,
+                fee: Math.round(fee)
+              });
+              showToast(`Added delivery fee rule for "${areaName}". Click "Save Delivery Fee Settings" to apply.`, 'success');
+            }
+
+            if (inpArea) inpArea.value = '';
+            if (inpFee) inpFee.value = '';
+
+            renderDeliveryFeeRulesRows();
+          });
+        }
+
+        // Action: Save Delivery Fee Settings
+        const btnSaveDeliveryFee = document.getElementById('btn-save-delivery-fee');
+        if (btnSaveDeliveryFee) {
+          btnSaveDeliveryFee.addEventListener('click', () => {
+            const rules = deliveryFeeSettings.feeRules || [];
+
+            for (const r of rules) {
+              if (!r.areaName || !r.areaName.trim()) {
+                showToast('All configured rules must have an area name.', 'error');
+                return;
+              }
+              if (isNaN(Number(r.fee)) || Number(r.fee) < 0) {
+                showToast(`Rule for "${r.areaName}" has an invalid fee.`, 'error');
+                return;
+              }
+            }
+
+            showConfirmationModal({
+              title: 'Save Delivery Fee Settings',
+              message: `Are you sure you want to update the delivery fee rules?<br><br>
+                <div class="text-left bg-gray-50 p-3 rounded-xl border border-gray-200 text-xs text-gray-700 space-y-1 mt-2">
+                  <div><strong>Configured Area Rules:</strong> ${rules.length} area(s)</div>
+                  <div class="text-[11px] text-gray-500 mt-1 max-h-32 overflow-y-auto divide-y divide-gray-100">
+                    ${rules.map(r => `<div>${r.areaName}: <strong>₱${Number(r.fee).toLocaleString()}.00</strong></div>`).join('')}
+                  </div>
+                </div>
+                <br>These delivery fees will immediately apply to customer checkout calculations.`,
+              cancelText: 'No, Cancel',
+              confirmText: 'Yes, Save Changes',
+              onConfirm: async () => {
+                try {
+                  const currentSettings = getStoreSettings();
+                  currentSettings.deliveryFeeSettings = JSON.parse(JSON.stringify(deliveryFeeSettings));
+
+                  await saveFirestoreDoc('storeSettings', 'main', currentSettings);
+                  localStorage.setItem('aurora-store-settings', JSON.stringify([currentSettings]));
+                  localStorage.setItem('settings-delivery-fee', JSON.stringify(deliveryFeeSettings));
+                  if (typeof window !== 'undefined') {
+                    window.dispatchEvent(new CustomEvent('aurora-sync-event', { detail: { key: 'delivery-fee-settings' } }));
+                    window.dispatchEvent(new CustomEvent('aurora-sync-event', { detail: { key: 'aurora-store-settings' } }));
+                  }
+
+                  addActivityLog('System', `Updated Delivery Fee Settings: ${rules.length} area rule(s) configured`);
+                  showToast('Delivery fee settings saved and synchronized successfully.', 'success');
+                  saveCurrentInputStates();
+                  renderSettingsPanel();
+                } catch (err) {
+                  console.error('[SETTINGS] Error saving delivery fee settings:', err);
+                  showToast('Failed to save delivery fee settings: ' + (err.message || err), 'error');
                 }
               }
             });

@@ -1313,6 +1313,7 @@ export async function syncStoreSettingsFromFirestore() {
       if (s.gcashName) safeLocalStorageSet('settings-gcash-name', s.gcashName);
       if (s.gcashNumber) safeLocalStorageSet('settings-gcash-number', s.gcashNumber);
       if (s.gcashQr !== undefined) safeLocalStorageSet('settings-gcash-qr', s.gcashQr);
+      if (s.deliveryFeeSettings) safeLocalStorageSet('settings-delivery-fee', JSON.stringify(s.deliveryFeeSettings));
 
       if (typeof document !== 'undefined' && s.logo) {
         const navLogo = document.getElementById('navbar-store-logo');
@@ -1430,6 +1431,7 @@ export async function initFirestoreSync(force = false) {
             if (s.gcashName) safeLocalStorageSet('settings-gcash-name', s.gcashName);
             if (s.gcashNumber) safeLocalStorageSet('settings-gcash-number', s.gcashNumber);
             if (s.gcashQr !== undefined) safeLocalStorageSet('settings-gcash-qr', s.gcashQr);
+            if (s.deliveryFeeSettings) safeLocalStorageSet('settings-delivery-fee', JSON.stringify(s.deliveryFeeSettings));
 
             if (typeof document !== 'undefined' && s.logo) {
               const navLogo = document.getElementById('navbar-store-logo');
@@ -1470,6 +1472,7 @@ export async function initFirestoreSync(force = false) {
             if (s.gcashName) safeLocalStorageSet('settings-gcash-name', s.gcashName);
             if (s.gcashNumber) safeLocalStorageSet('settings-gcash-number', s.gcashNumber);
             if (s.gcashQr !== undefined) safeLocalStorageSet('settings-gcash-qr', s.gcashQr);
+            if (s.deliveryFeeSettings) safeLocalStorageSet('settings-delivery-fee', JSON.stringify(s.deliveryFeeSettings));
 
             if (typeof document !== 'undefined' && s.logo) {
               const navLogo = document.getElementById('navbar-store-logo');

@@ -559,6 +559,33 @@
       padding: 3px 9px !important;
     }
 
+    /* Stock Needs dashboard card: calm, regular-weight black text. UI-only overrides. */
+    #admin-layout-container #stock-replenishment-guide-section,
+    #admin-layout-container #stock-replenishment-guide-section #srg-dash-ai-note,
+    #admin-layout-container #stock-replenishment-guide-section #srg-dash-ai-status-text,
+    #admin-layout-container #stock-replenishment-guide-section .srg-dash-product-name,
+    #admin-layout-container #stock-replenishment-guide-section .srg-dash-status-pill,
+    #admin-layout-container #stock-replenishment-guide-section .srg-dash-product-name + div,
+    #admin-layout-container #stock-replenishment-guide-section [title*="Extra Sacks Needed"] {
+      font-weight: 400 !important;
+    }
+    html:not(.dark) #admin-layout-container #stock-replenishment-guide-section #srg-dash-ai-note,
+    html:not(.dark) #admin-layout-container #stock-replenishment-guide-section #srg-dash-ai-status-text,
+    html:not(.dark) #admin-layout-container #stock-replenishment-guide-section .srg-dash-product-name,
+    html:not(.dark) #admin-layout-container #stock-replenishment-guide-section .srg-dash-status-pill,
+    html:not(.dark) #admin-layout-container #stock-replenishment-guide-section .srg-dash-product-name + div,
+    html:not(.dark) #admin-layout-container #stock-replenishment-guide-section [title*="Extra Sacks Needed"] {
+      color: #000000 !important;
+    }
+    html.dark #admin-layout-container #stock-replenishment-guide-section #srg-dash-ai-note,
+    html.dark #admin-layout-container #stock-replenishment-guide-section #srg-dash-ai-status-text,
+    html.dark #admin-layout-container #stock-replenishment-guide-section .srg-dash-product-name,
+    html.dark #admin-layout-container #stock-replenishment-guide-section .srg-dash-status-pill,
+    html.dark #admin-layout-container #stock-replenishment-guide-section .srg-dash-product-name + div,
+    html.dark #admin-layout-container #stock-replenishment-guide-section [title*="Extra Sacks Needed"] {
+      color: #FFFFFF !important;
+    }
+
     /* Stock Needs rice variety product names - solid black, ~14.5px, regular/medium weight, comfortable spacing */
     #admin-layout-container #stock-replenishment-guide-section .srg-dash-product-name {
       font-family: 'Inter', sans-serif !important;
@@ -3135,12 +3162,9 @@
                     </div>
                     <div class="min-w-0">
                       <div class="flex items-center gap-2 flex-wrap">
-                        <h4 class="font-bold text-[#0B1B3D] dark:text-white text-base sm:text-[17px] tracking-tight leading-snug">Stock Needs</h4>
-                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 dark:bg-emerald-950/60 text-[#1E6C02] dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/60 whitespace-nowrap">
-                          30-Day Sales Baseline (Non-ML)
-                        </span>
+                        <h4 class="font-medium text-black dark:text-white text-base sm:text-[17px] tracking-normal leading-snug">Stock Needs</h4>
                       </div>
-                      <p class="text-xs sm:text-[13px] text-[#0E244D] dark:text-[#D6E6F8] font-medium mt-0.5 leading-tight">Stock in warehouse, sales per day, and expected sales</p>
+                      <p class="text-xs sm:text-[13px] text-black dark:text-white font-normal mt-1 leading-snug">Warehouse stock, available rice, and estimated sales</p>
                     </div>
                   </div>
                 </div>
@@ -3150,13 +3174,13 @@
                   <!-- Dynamically populated rows -->
                 </div>
 
-                <!-- AI Demand Model Advisory Status Note -->
-                <div id="srg-dash-ai-note" class="pt-2.5 mt-2 border-t border-[#E2EDF7] dark:border-[#1E3563] flex items-center justify-between text-[11px] text-[#2C4A6F] dark:text-[#BDD3ED]">
+                <!-- AI demand status summary -->
+                <div id="srg-dash-ai-note" class="pt-2.5 mt-2 border-t border-[#E2EDF7] dark:border-[#1E3563] flex items-center justify-between text-[11px] text-black dark:text-white font-normal">
                   <div class="flex items-center gap-1.5 min-w-0">
                     <span class="inline-block w-2 h-2 rounded-full bg-slate-400 shrink-0" id="srg-dash-ai-dot"></span>
-                    <span class="font-medium truncate" id="srg-dash-ai-status-text">AI Demand Model (Experimental): Awaiting verified sales history (insufficient data)</span>
+                    <span class="font-normal truncate" id="srg-dash-ai-status-text">AI sales forecast: More verified sales history is needed</span>
                   </div>
-                  <a href="stock-replenishment.html" class="text-xs font-semibold text-emerald-700 dark:text-emerald-400 hover:underline shrink-0 ml-2" title="Inspect experimental AI demand model">Status Details →</a>
+                  <a href="stock-replenishment.html" class="text-xs font-normal text-black dark:text-white hover:underline shrink-0 ml-2" title="View stock and forecast details">View Details →</a>
                 </div>
               </div>
             </div>
@@ -4696,18 +4720,18 @@
                 barColorClass = 'bg-slate-400 dark:bg-slate-500';
               }
 
-              const shortfallHtml = shortfall > 0 
-                ? `<span class="text-red-600 dark:text-red-400 font-bold">${shortfall} extra needed</span>`
-                : `<span class="text-emerald-700 dark:text-emerald-400 font-medium">Stock Available</span>`;
+              const shortfallHtml = shortfall > 0
+                ? `<span class="text-black dark:text-white font-normal">${shortfall} extra needed</span>`
+                : `<span class="text-black dark:text-white font-normal">Stock available</span>`;
 
               return `
                 <div class="flex items-center gap-3 sm:gap-4 py-2.5 px-2.5 hover:bg-slate-50/80 dark:hover:bg-slate-800/40 rounded-xl transition-all border-b border-slate-100/80 dark:border-slate-800/70 last:border-b-0">
                   <!-- Product Name & Average Sacks Sold Subtitle -->
                   <div class="w-36 sm:w-44 md:w-48 shrink-0 min-w-0" title="${pName}">
-                    <div class="srg-dash-product-name truncate text-[14px] font-semibold text-[#000000] dark:text-white leading-tight">
+                    <div class="srg-dash-product-name truncate text-[14px] font-normal text-black dark:text-white leading-tight">
                       ${pName}
                     </div>
-                    <div class="text-[11px] text-slate-600 dark:text-slate-400 font-medium truncate mt-0.5">
+                    <div class="text-[11px] text-black dark:text-white font-normal truncate mt-0.5">
                       ${r.dailySalesRate > 0 ? (Math.round(r.dailySalesRate * 100) / 100).toFixed(2) : '0.00'}/day · ${shortfallHtml}
                     </div>
                   </div>
@@ -4718,13 +4742,13 @@
                   </div>
 
                   <!-- Available Quantity & Physical Stock Breakdown Tooltip -->
-                  <div class="w-16 sm:w-20 shrink-0 text-right font-mono tabular-nums text-xs sm:text-[13px] font-bold text-[#000000] dark:text-white tracking-tight" title="Stock in Warehouse: ${r.currentStock} sacks | Reserved for Customers: ${r.reservedStock} sacks | Available for New Orders: ${stockVal} sacks | Expected Sales: ${r.periodDemand} sacks | Extra Sacks Needed: ${shortfall} sacks">
-                    ${stockVal.toLocaleString('en-US')} <span class="text-[10px] font-sans font-medium text-slate-500 dark:text-slate-400">available</span>
+                  <div class="w-16 sm:w-20 shrink-0 text-right font-mono tabular-nums text-xs sm:text-[13px] font-normal text-black dark:text-white tracking-normal" title="Stock in Warehouse: ${r.currentStock} sacks | Reserved for Customers: ${r.reservedStock} sacks | Available for New Orders: ${stockVal} sacks | Expected Sales: ${r.periodDemand} sacks | Extra Sacks Needed: ${shortfall} sacks">
+                    ${stockVal.toLocaleString('en-US')} <span class="text-[10px] font-sans font-normal text-black dark:text-white">available</span>
                   </div>
 
                   <!-- Status Badge Pill with High-Contrast Text on Colored Background -->
                   <div class="w-32 sm:w-36 shrink-0 text-right">
-                    <span class="srg-dash-status-pill inline-flex items-center justify-center px-2.5 py-0.5 rounded-full text-[12px] font-semibold tracking-normal shadow-2xs whitespace-nowrap ${badgeClass}">
+                    <span class="srg-dash-status-pill inline-flex items-center justify-center px-2.5 py-0.5 rounded-full text-[12px] font-normal tracking-normal shadow-2xs whitespace-nowrap ${badgeClass}">
                       ${displayStatus}
                     </span>
                   </div>
@@ -4755,10 +4779,10 @@
                 }
               }
               if (hasReadyModel) {
-                dashAiText.textContent = 'AI Demand Model: Supervised model ready for 1 or more varieties (advisory)';
+                dashAiText.textContent = 'AI sales forecast is available for one or more rice varieties';
                 if (dashAiDot) dashAiDot.className = 'inline-block w-2 h-2 rounded-full bg-emerald-500 shrink-0';
               } else {
-                dashAiText.textContent = 'AI Demand Model (Experimental): Awaiting verified sales history (insufficient data)';
+                dashAiText.textContent = 'AI sales forecast: More verified sales history is needed';
                 if (dashAiDot) dashAiDot.className = 'inline-block w-2 h-2 rounded-full bg-slate-400 shrink-0';
               }
             }

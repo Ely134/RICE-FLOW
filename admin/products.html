@@ -102,8 +102,6 @@
     button:not(.font-mono),
     #btn-open-add-dialog,
     #btn-toggle-archived,
-    #btn-op-add,
-    #btn-op-ded,
     #btn-stock-qty-minus,
     #btn-stock-qty-plus,
     #btn-stock-confirm,
@@ -212,6 +210,11 @@
       font-size: 0.9375rem !important; /* 15px */
       font-weight: 400 !important;
       line-height: 1.4 !important;
+    }
+    /* Stock Adjustment Quantity Input (Slightly enlarged for clear legibility and error prevention) */
+    #inp-stock-qty {
+      font-size: 1.375rem !important; /* 22px */
+      font-weight: 700 !important;
     }
 
     /* Buttons (14-15px guideline) */
@@ -649,20 +652,6 @@
         </p>
       </div>
 
-      <!-- Segmented Buttons / Tabs for Add & Deduct -->
-      <div class="flex justify-center gap-6 mb-8">
-        <!-- Add Button -->
-        <button id="btn-op-add" class="w-32 h-32 rounded-3xl border-2 flex flex-col items-center justify-center gap-2 cursor-pointer transition-all shadow-sm">
-          <span class="text-2xl font-bold">+</span>
-          <span class="text-[15px] font-semibold">Add</span>
-        </button>
-        <!-- Deduct Button -->
-        <button id="btn-op-ded" class="w-32 h-32 rounded-3xl border-2 flex flex-col items-center justify-center gap-2 cursor-pointer transition-all shadow-sm">
-          <span class="text-2xl font-bold">−</span>
-          <span class="text-[15px] font-semibold">Deduct</span>
-        </button>
-      </div>
-
       <!-- Quantity input with Enter Quantity label -->
       <div class="text-center mb-8 space-y-3">
         <label class="text-[15px] font-semibold text-gray-900 dark:text-white block">Enter Quantity</label>
@@ -674,7 +663,7 @@
           </button>
           
           <!-- Text value input field -->
-          <input type="number" id="inp-stock-qty" min="0" value="0" class="w-48 bg-gray-100 border border-gray-200 text-center text-lg font-semibold text-gray-900 dark:text-white py-2.5 rounded-2xl outline-none focus:bg-white focus:border-[#1E6C02] transition-all [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
+          <input type="number" id="inp-stock-qty" min="0" value="0" class="w-52 bg-gray-100 border border-gray-200 text-center text-xl font-bold text-gray-900 dark:text-white py-3 px-4 rounded-2xl outline-none focus:bg-white focus:border-[#1E6C02] transition-all [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
           
           <!-- Circular plus button -->
           <button type="button" id="btn-stock-qty-plus" class="w-12 h-12 rounded-full border-2 border-gray-300 flex items-center justify-center text-xl font-bold text-gray-900 hover:bg-gray-50 active:scale-95 transition-all cursor-pointer">
@@ -1168,14 +1157,22 @@
             document.getElementById('stock-modal-product-name').textContent = match.name;
             document.getElementById('stock-modal-current-val').textContent = match.availableStock !== undefined ? match.availableStock : (match.stock || 0);
 
-            // Reset operations to unselected (null)
-            stockOperation = null;
-            document.getElementById('inp-stock-qty').value = '0';
+            // Direct stock addition workflow
+            stockOperation = 'add';
+            const qtyInput = document.getElementById('inp-stock-qty');
+            if (qtyInput) {
+              qtyInput.value = '0';
+            }
             
-            updateStockOpButtonsUI();
             validateStockForm();
 
             stockDialog.classList.remove('hidden');
+            if (qtyInput) {
+              setTimeout(() => {
+                qtyInput.focus();
+                qtyInput.select();
+              }, 50);
+            }
           });
         });
 
@@ -1196,52 +1193,20 @@
         });
       }
 
-      // Toggle Add/Deduct Buttons visually
-      const opAdd = document.getElementById('btn-op-add');
-      const opDed = document.getElementById('btn-op-ded');
-
-      function updateStockOpButtonsUI() {
-        if (stockOperation === 'add') {
-          // Add active, Deduct inactive
-          opAdd.className = "w-32 h-32 rounded-3xl border-2 flex flex-col items-center justify-center gap-2 cursor-pointer transition-all shadow-sm border-[#1E6C02] bg-[#1E6C02] text-white";
-          opDed.className = "w-32 h-32 rounded-3xl border-2 flex flex-col items-center justify-center gap-2 cursor-pointer transition-all shadow-sm bg-white border-gray-300 text-black hover:bg-gray-50";
-        } else if (stockOperation === 'deduct') {
-          // Deduct active, Add inactive
-          opAdd.className = "w-32 h-32 rounded-3xl border-2 flex flex-col items-center justify-center gap-2 cursor-pointer transition-all shadow-sm bg-white border-gray-300 text-black hover:bg-gray-50";
-          opDed.className = "w-32 h-32 rounded-3xl border-2 flex flex-col items-center justify-center gap-2 cursor-pointer transition-all shadow-sm border-[#1E6C02] bg-[#1E6C02] text-white";
-        } else {
-          // Both inactive
-          opAdd.className = "w-32 h-32 rounded-3xl border-2 flex flex-col items-center justify-center gap-2 cursor-pointer transition-all shadow-sm bg-white border-gray-300 text-black hover:bg-gray-50";
-          opDed.className = "w-32 h-32 rounded-3xl border-2 flex flex-col items-center justify-center gap-2 cursor-pointer transition-all shadow-sm bg-white border-gray-300 text-black hover:bg-gray-50";
-        }
-      }
-
       function validateStockForm() {
         const qtyInput = document.getElementById('inp-stock-qty');
-        const qty = parseInt(qtyInput.value || '0');
+        const qty = parseInt(qtyInput ? qtyInput.value : '0');
         const confirmBtn = document.getElementById('btn-stock-confirm');
+        if (!confirmBtn) return;
         
         const isQtyValid = !isNaN(qty) && qty > 0;
-        const isOpSelected = stockOperation === 'add' || stockOperation === 'deduct';
         
-        if (isQtyValid && isOpSelected) {
+        if (isQtyValid) {
           confirmBtn.removeAttribute('disabled');
         } else {
           confirmBtn.setAttribute('disabled', 'true');
         }
       }
-
-      opAdd.addEventListener('click', () => {
-        stockOperation = 'add';
-        updateStockOpButtonsUI();
-        validateStockForm();
-      });
-
-      opDed.addEventListener('click', () => {
-        stockOperation = 'deduct';
-        updateStockOpButtonsUI();
-        validateStockForm();
-      });
 
       document.getElementById('btn-stock-qty-minus').addEventListener('click', () => {
         const input = document.getElementById('inp-stock-qty');
@@ -1279,6 +1244,26 @@
           qtyInputEl.value = val;
         }
         validateStockForm();
+      });
+
+      // Handle Enter key on quantity input to directly trigger Confirm Stock Update
+      qtyInputEl.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          const confirmDialog = document.getElementById('confirm-stock-update-dialog');
+          if (confirmDialog && !confirmDialog.classList.contains('hidden')) {
+            return;
+          }
+          const sacksQty = parseInt(qtyInputEl.value || '0');
+          if (sacksQty <= 0) {
+            showToast('Please type a valid quantity!', 'error');
+            return;
+          }
+          const confirmBtn = document.getElementById('btn-stock-confirm');
+          if (confirmBtn && !confirmBtn.disabled) {
+            confirmBtn.click();
+          }
+        }
       });
 
       const closeStockModalBtn = document.getElementById('close-stock-modal');
@@ -1786,10 +1771,7 @@
           return;
         }
 
-        if (!stockOperation) {
-          showToast('Please select either Add or Deduct adjustment!', 'error');
-          return;
-        }
+        stockOperation = 'add';
 
         document.getElementById('confirm-stock-update-dialog').classList.remove('hidden');
       });
@@ -1798,69 +1780,76 @@
         document.getElementById('confirm-stock-update-dialog').classList.add('hidden');
       });
 
+      let isUpdatingStock = false;
       document.getElementById('btn-confirm-stock-yes').addEventListener('click', () => {
-        if (!selectedProductInModal || !stockOperation) return;
+        if (isUpdatingStock) return;
+        if (!selectedProductInModal) return;
+        isUpdatingStock = true;
 
-        const sacksQty = parseInt(document.getElementById('inp-stock-qty').value || '0');
-        const delta = stockOperation === 'add' ? sacksQty : -sacksQty;
-        const rawProducts = JSON.parse(localStorage.getItem('aurora-products') || '[]');
-        const existingRaw = rawProducts.find(p => String(p.id) === String(selectedProductInModal.id));
-        const currentPhysical = existingRaw ? Number(existingRaw.stock || 0) : Number(selectedProductInModal.currentStock !== undefined ? selectedProductInModal.currentStock : selectedProductInModal.stock || 0);
-        const finalSacksStock = Math.max(0, currentPhysical + delta);
-
-        const restockTimestamp = new Date().toISOString();
-        const productsList = getProducts();
-        const updated = productsList.map(p => {
-          if (String(p.id) === String(selectedProductInModal.id)) {
-            return {
-              ...p,
-              stock: finalSacksStock,
-              currentStock: finalSacksStock,
-              lastRestockAt: stockOperation === 'add' ? restockTimestamp : p.lastRestockAt,
-              lastRestockedQty: stockOperation === 'add' ? delta : p.lastRestockedQty
-            };
+        try {
+          const sacksQty = parseInt(document.getElementById('inp-stock-qty').value || '0');
+          if (sacksQty <= 0) {
+            showToast('Please type a valid quantity!', 'error');
+            return;
           }
-          return p;
-        });
 
-        saveProducts(updated);
+          stockOperation = 'add';
+          const delta = sacksQty;
+          const rawProducts = JSON.parse(localStorage.getItem('aurora-products') || '[]');
+          const existingRaw = rawProducts.find(p => String(p.id) === String(selectedProductInModal.id));
+          const currentPhysical = existingRaw ? Number(existingRaw.stock || 0) : Number(selectedProductInModal.currentStock !== undefined ? selectedProductInModal.currentStock : selectedProductInModal.stock || 0);
+          const finalSacksStock = Math.max(0, currentPhysical + delta);
 
-        // Record to Inventory History
-        addInventoryHistory({
-          productId: selectedProductInModal.id,
-          productName: selectedProductInModal.name,
-          quantityAdded: delta,
-          type: stockOperation === 'add' ? 'manual_stock_addition' : 'manual_deduction',
-          remarks: `Manual stock ${stockOperation === 'add' ? 'replenishment' : 'deduction'}`
-        });
+          const restockTimestamp = new Date().toISOString();
+          const productsList = getProducts();
+          const updated = productsList.map(p => {
+            if (String(p.id) === String(selectedProductInModal.id)) {
+              return {
+                ...p,
+                stock: finalSacksStock,
+                currentStock: finalSacksStock,
+                lastRestockAt: restockTimestamp,
+                lastRestockedQty: delta
+              };
+            }
+            return p;
+          });
 
-        // Auto FCFS allocation of stock to waiting reservations
-        if (stockOperation === 'add' && delta > 0) {
-  // ------------------------------------------------------------
-  // AUTOMATIC RESERVATION ALLOCATION
-  // The exact amount added by this restock is passed to the
-  // reservation allocator.
-  // ------------------------------------------------------------
-  const restockQuantity = Number(delta);
+          saveProducts(updated);
 
-  if (restockQuantity > 0) {
-    allocateStockToReservations(
-      String(selectedProductInModal.id),
-      restockQuantity
-    );
-  }
-}
+          // Record to Inventory History
+          addInventoryHistory({
+            productId: selectedProductInModal.id,
+            productName: selectedProductInModal.name,
+            quantityAdded: delta,
+            type: 'manual_stock_addition',
+            remarks: 'Manual stock replenishment'
+          });
 
-        addActivityLog({
-          action: `Adjusted inventory database (${stockOperation === 'add' ? 'addition' : 'reduction'}) of ${sacksQty} sacks for variety: '${selectedProductInModal.name}'`,
-          category: 'Inventory',
-          target: selectedProductInModal.name
-        });
+          // Auto FCFS allocation of stock to waiting reservations
+          if (delta > 0) {
+            const restockQuantity = Number(delta);
+            if (restockQuantity > 0) {
+              allocateStockToReservations(
+                String(selectedProductInModal.id),
+                restockQuantity
+              );
+            }
+          }
 
-        showToast(`Stock updated! Physical stock: ${finalSacksStock} sacks`);
-        document.getElementById('confirm-stock-update-dialog').classList.add('hidden');
-        stockDialog.classList.add('hidden');
-        renderCatalog();
+          addActivityLog({
+            action: `Adjusted inventory database (addition) of ${sacksQty} sacks for variety: '${selectedProductInModal.name}'`,
+            category: 'Inventory',
+            target: selectedProductInModal.name
+          });
+
+          showToast(`Stock updated! Physical stock: ${finalSacksStock} sacks`);
+          document.getElementById('confirm-stock-update-dialog').classList.add('hidden');
+          stockDialog.classList.add('hidden');
+          renderCatalog();
+        } finally {
+          isUpdatingStock = false;
+        }
       });
 
       document.getElementById('btn-stock-cancel').addEventListener('click', () => {

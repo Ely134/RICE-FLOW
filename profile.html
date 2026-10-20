@@ -979,7 +979,8 @@
       getActivePaymentReuploadDeadlineInfo,
       checkAndSendCustomer48HourReminders,
       updateAllLiveDeadlineCountdowns,
-      confirmContinueUnallocatedReservation
+      confirmContinueUnallocatedReservation,
+      getOrderDeliveryFee
     } from './src/app/shared.js';
     import { renderQueueEtaCard } from './src/app/queue-eta.js';
     import { auth, saveFirestoreDoc, initFirestoreSync, syncOrdersFromFirestore } from './src/lib/firebase.js';
@@ -988,18 +989,20 @@
     // Authoritative pricing calculation matching View Order and My Purchases
     function getOrderDisplayTotal(order) {
       if (!order) return 0;
-      const shippingFee = (order.deliveryOption === 'pickup' || order.deliveryMethod === 'pickup') ? 0 : 80;
+      const deliveryFee = getOrderDeliveryFee(order);
       const itemsSubtotal = (order.items && order.items.length > 0)
         ? order.items.reduce((sum, it) => sum + ((it.product?.price ?? it.price ?? 0) * (it.quantity || 1)), 0)
         : 0;
 
+      const isPickup = order.deliveryOption === 'pickup' || order.deliveryMethod === 'pickup' || order.fulfillmentMethod === 'pickup' || order.isPickup === true || order.pickup === true;
+
       if (order.total !== undefined && order.total !== null) {
         const rawTotal = Number(order.total);
-        if (rawTotal === itemsSubtotal + shippingFee || (order.deliveryOption === 'pickup' && rawTotal === itemsSubtotal)) {
+        if (rawTotal === itemsSubtotal + deliveryFee || (isPickup && rawTotal === itemsSubtotal)) {
           return rawTotal;
         }
-        if (order.deliveryOption !== 'pickup' && rawTotal === itemsSubtotal) {
-          return rawTotal + shippingFee;
+        if (!isPickup && itemsSubtotal > 0 && rawTotal === itemsSubtotal && deliveryFee > 0) {
+          return rawTotal + deliveryFee;
         }
         if (rawTotal > 0) {
           return rawTotal;
@@ -1007,10 +1010,14 @@
       }
 
       if (order.totalAmount !== undefined && order.totalAmount !== null && Number(order.totalAmount) > 0) {
-        return Number(order.totalAmount);
+        const rawTotal = Number(order.totalAmount);
+        if (!isPickup && itemsSubtotal > 0 && rawTotal === itemsSubtotal && deliveryFee > 0) {
+          return rawTotal + deliveryFee;
+        }
+        return rawTotal;
       }
 
-      return itemsSubtotal + shippingFee;
+      return itemsSubtotal + deliveryFee;
     }
 
     // Authoritative required down payment calculation matching Order Summary
@@ -1874,9 +1881,12 @@
         detailsContainer.classList.remove('hidden');
 
         // Layout parameters calculation
-        const shippingFee = (order.deliveryOption === 'pickup' || order.deliveryMethod === 'pickup') ? 0 : 80;
+        const shippingFee = getOrderDeliveryFee(order);
         const totalAmount = getOrderDisplayTotal(order);
-        const subtotal = Math.max(0, totalAmount - shippingFee);
+        const itemsSubtotal = (order.items && order.items.length > 0)
+          ? order.items.reduce((sum, it) => sum + ((it.product?.price ?? it.price ?? 0) * (it.quantity || 1)), 0)
+          : 0;
+        const subtotal = itemsSubtotal > 0 ? itemsSubtotal : Math.max(0, totalAmount - shippingFee);
 
         const oStatus = normalizeStatus(order.status);
         const isReservationOrder = isRecReservation;
@@ -5384,17 +5394,17 @@
               <div class="space-y-2 text-xs text-left">
                 <div class="flex justify-between font-semibold text-gray-900 dark:text-gray-100">
                   <span class="text-gray-900 dark:text-gray-100">Inventory Subtotal:</span>
-                  <span class="text-gray-900 dark:text-gray-100 font-extrabold">₱${((match.total ?? 0) - (match.deliveryOption === 'delivery' ? 80 : 0)).toLocaleString()}.00</span>
+                  <span class="text-gray-900 dark:text-gray-100 font-extrabold">₱${((match.items && match.items.length > 0) ? match.items.reduce((s, it) => s + ((it.product?.price ?? it.price ?? 0) * (it.quantity || 1)), 0) : Math.max(0, (match.total ?? 0) - getOrderDeliveryFee(match))).toLocaleString()}.00</span>
                 </div>
-                ${match.deliveryOption === 'delivery' ? `
+                ${(match.deliveryOption === 'delivery' || match.deliveryMethod === 'delivery' || getOrderDeliveryFee(match) > 0) ? `
                   <div class="flex justify-between font-semibold text-gray-900 dark:text-gray-100">
-                    <span class="text-gray-900 dark:text-gray-100">Fixed Delivery Fee:</span>
-                    <span class="text-gray-900 dark:text-gray-100 font-extrabold">₱80.00</span>
+                    <span class="text-gray-900 dark:text-gray-100">Delivery Fee:</span>
+                    <span class="text-gray-900 dark:text-gray-100 font-extrabold">₱${getOrderDeliveryFee(match).toLocaleString()}.00</span>
                   </div>
                 ` : ''}
                 <div class="flex justify-between text-sm font-black border-t pt-2 border-gray-100 dark:border-slate-700">
                   <span class="text-gray-900 dark:text-gray-100">TOTAL PAID SUM:</span>
-                  <span class="text-[#1E6C02] dark:text-emerald-400 text-sm">₱${(match.total ?? 0).toLocaleString()}.00</span>
+                  <span class="text-[#1E6C02] dark:text-emerald-400 text-sm">₱${getOrderDisplayTotal(match).toLocaleString()}.00</span>
                 </div>
               </div>
 
@@ -6315,9 +6325,11 @@
           order.pickupNotes = newNotes;
           order.notes = newNotes; // store in both keys to be safe
 
-          // Recompute total amount based on delivery option + items (keeping quantities unmodified)
+          // Recompute total amount based on delivery option + items (preserving original applied delivery fee)
           const itemsSubtotal = order.items ? order.items.reduce((s, i) => s + (i.product.price * i.quantity), 0) : 0;
-          const deliveryFee = order.deliveryOption === 'delivery' ? 80 : 0;
+          const deliveryFee = order.deliveryOption === 'delivery' 
+            ? (order.deliveryFee !== undefined && !isNaN(Number(order.deliveryFee)) ? Number(order.deliveryFee) : 80) 
+            : 0;
           order.total = itemsSubtotal + deliveryFee;
 
           // Recompute downpayment or remainder if applicable

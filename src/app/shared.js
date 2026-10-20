@@ -5952,7 +5952,11 @@ export async function addOrderAtomic(orderData) {
       const pPrice = Number(it.product?.price || it.price || 0);
       return acc + (it.isReservation ? 0 : pPrice * Number(it.quantity || 0));
     }, 0);
-    const deliveryFee = (isConvertedReservation || finalSubtotal === 0) ? 0 : (orderData.deliveryOption === 'delivery' ? 80 : 0);
+    const deliveryFee = (isConvertedReservation || finalSubtotal === 0) 
+      ? 0 
+      : (orderData.deliveryOption === 'delivery' 
+          ? (orderData.deliveryFee !== undefined && !isNaN(Number(orderData.deliveryFee)) ? Number(orderData.deliveryFee) : 80) 
+          : 0);
 
     let finalTotal = finalSubtotal + (isConvertedReservation ? 0 : deliveryFee);
     let finalAmountPaid = orderData.paymentMethod === 'gcash' ? finalTotal : Math.floor(finalTotal * 0.3);
@@ -5979,6 +5983,8 @@ export async function addOrderAtomic(orderData) {
       fullName: orderData.fullName || '',
       phone: orderData.phone || '',
       deliveryOption: orderData.deliveryOption || 'delivery',
+      deliveryFee: (isConvertedReservation || finalSubtotal === 0) ? 0 : (orderData.deliveryOption === 'delivery' ? deliveryFee : 0),
+      matchedDeliveryArea: orderData.deliveryOption === 'delivery' ? (orderData.matchedDeliveryArea || null) : null,
       address: orderData.address || '',
       coordinates: (orderData.deliveryOption !== 'pickup' && validatedOrderCoordinates) ? validatedOrderCoordinates : null,
       addressDetails: (orderData.deliveryOption !== 'pickup' && orderData.addressDetails) ? orderData.addressDetails : null,
@@ -7570,7 +7576,9 @@ const availStock = Math.max(
 
     if (createdReservation) {
       const newSubtotal = updatedItems.reduce((acc, it) => acc + (it.product?.price || it.price || 0) * it.quantity, 0);
-      const deliveryFee = order.deliveryOption === 'delivery' ? 80 : 0;
+      const deliveryFee = order.deliveryOption === 'delivery' 
+        ? (order.deliveryFee !== undefined && !isNaN(Number(order.deliveryFee)) ? Number(order.deliveryFee) : 80) 
+        : 0;
       order.total = newSubtotal + deliveryFee;
 
       // Available stock order payment calculation
@@ -7604,7 +7612,9 @@ const availStock = Math.max(
       order.stockDeducted = false;
     } else if (!order.isPreOrder) {
       const newSubtotal = updatedItems.reduce((acc, it) => acc + (it.product?.price || it.price || 0) * it.quantity, 0);
-      const deliveryFee = order.deliveryOption === 'delivery' ? 80 : 0;
+      const deliveryFee = order.deliveryOption === 'delivery' 
+        ? (order.deliveryFee !== undefined && !isNaN(Number(order.deliveryFee)) ? Number(order.deliveryFee) : 80) 
+        : 0;
       order.total = newSubtotal + deliveryFee;
       if (order.paymentType === 'full' || order.paymentMethod === 'gcash') {
         order.amountPaid = order.total;
@@ -8850,6 +8860,10 @@ if (typeof window !== 'undefined') {
     get DEFAULT_DELIVERY_MINIMUM_SETTINGS() { return DEFAULT_DELIVERY_MINIMUM_SETTINGS; },
     getDeliveryMinimumSettings(...args) { return getDeliveryMinimumSettings(...args); },
     evaluateDeliveryMinimum(...args) { return evaluateDeliveryMinimum(...args); },
+    get DEFAULT_DELIVERY_FEE_SETTINGS() { return DEFAULT_DELIVERY_FEE_SETTINGS; },
+    getDeliveryFeeSettings(...args) { return getDeliveryFeeSettings(...args); },
+    evaluateDeliveryFee(...args) { return evaluateDeliveryFee(...args); },
+    getOrderDeliveryFee(...args) { return getOrderDeliveryFee(...args); },
     sanitizeInput,
     hashPassword,
     checkLockout,
@@ -10352,6 +10366,250 @@ export function evaluateDeliveryMinimum(deliveryAddress, totalSacks, storeSettin
   };
 }
 
+export const DEFAULT_DELIVERY_FEE_SETTINGS = {
+  feeRules: [
+    {
+      id: 'fee-aurora',
+      areaName: 'Aurora',
+      fee: 50
+    },
+    {
+      id: 'fee-pagadian',
+      areaName: 'Pagadian',
+      fee: 100
+    },
+    {
+      id: 'fee-molave',
+      areaName: 'Molave',
+      fee: 80
+    },
+    {
+      id: 'fee-zamboanga-del-sur',
+      areaName: 'Zamboanga del Sur',
+      fee: 150
+    },
+    {
+      id: 'fee-zamboanga-del-norte',
+      areaName: 'Zamboanga del Norte',
+      fee: 250
+    },
+    {
+      id: 'fee-zamboanga-sibugay',
+      areaName: 'Zamboanga Sibugay',
+      fee: 250
+    }
+  ]
+};
+
+export function getDeliveryFeeSettings() {
+  const settings = getStoreSettings();
+  return settings.deliveryFeeSettings || DEFAULT_DELIVERY_FEE_SETTINGS;
+}
+
+export function evaluateDeliveryFee(deliveryAddress, storeSettings) {
+  const settings = (storeSettings && storeSettings.deliveryFeeSettings) 
+    ? storeSettings.deliveryFeeSettings 
+    : (typeof getStoreSettings === 'function' ? getStoreSettings().deliveryFeeSettings : DEFAULT_DELIVERY_FEE_SETTINGS);
+
+  const rules = (settings && Array.isArray(settings.feeRules)) ? settings.feeRules : [];
+
+  if (!rules || rules.length === 0) {
+    return {
+      isMatched: false,
+      fee: null,
+      matchedAreaName: null,
+      message: 'No delivery fee rules configured. Delivery fee needs confirmation.'
+    };
+  }
+
+  let addrStr = '';
+  let cityName = '';
+  let provinceName = '';
+  let regionName = '';
+
+  if (deliveryAddress && typeof deliveryAddress === 'object') {
+    addrStr = deliveryAddress.fullAddress || deliveryAddress.address || '';
+    cityName = deliveryAddress.city || deliveryAddress.cityMunicipality || '';
+    provinceName = deliveryAddress.province || '';
+    regionName = deliveryAddress.region || '';
+    if (deliveryAddress.addressDetails && typeof deliveryAddress.addressDetails === 'object') {
+      const ad = deliveryAddress.addressDetails;
+      if (!cityName) cityName = ad.city || ad.cityMunicipality || '';
+      if (!provinceName) provinceName = ad.province || '';
+      if (!regionName) regionName = ad.region || '';
+      if (!addrStr) addrStr = ad.fullAddress || ad.address || '';
+    }
+  } else if (typeof deliveryAddress === 'string') {
+    addrStr = deliveryAddress;
+  }
+
+  const normalize = (s) => (s || '').toLowerCase()
+    .replace(/\bcity of\s+/i, '')
+    .replace(/[\.,#-]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const stripCityWord = (s) => (s || '').replace(/\bcity\b/gi, '').trim();
+
+  const normAddr = normalize(addrStr);
+  const normCity = normalize(cityName);
+  const normProvince = normalize(provinceName);
+  const normRegion = normalize(regionName);
+
+  if (!normAddr && !normCity && !normProvince && !normRegion) {
+    return {
+      isMatched: false,
+      fee: null,
+      matchedAreaName: null,
+      message: 'No delivery address provided.'
+    };
+  }
+
+  // Parse comma-delimited segments from raw address
+  const segments = (addrStr || '')
+    .split(',')
+    .map(seg => normalize(seg))
+    .filter(Boolean);
+
+  let matchedRule = null;
+  let matchSpecificity = -1;
+
+  for (const rule of rules) {
+    if (!rule || !rule.areaName) continue;
+    const normRule = normalize(rule.areaName);
+    if (!normRule) continue;
+    const strippedRule = stripCityWord(normRule);
+
+    let score = 0;
+
+    // 1. Direct city match (highest priority: specific municipality/city)
+    if (normCity) {
+      const strippedCity = stripCityWord(normCity);
+      if (normCity === normRule || (strippedCity && strippedCity === strippedRule)) {
+        score = 4.0;
+      } else if (normCity.includes(normRule) || (strippedRule && normCity.includes(strippedRule)) || normRule.includes(normCity)) {
+        score = 3.8;
+      }
+    }
+
+    // 2. Segment match in address string (e.g. "Pagadian City" or "Aurora")
+    if (score === 0 && segments.length > 0) {
+      for (let idx = 0; idx < segments.length; idx++) {
+        const seg = segments[idx];
+        const strippedSeg = stripCityWord(seg);
+        const isLastSegment = (idx === segments.length - 1);
+        
+        if (seg === normRule || (strippedSeg && strippedRule && strippedSeg === strippedRule)) {
+          // If not the last segment (which is usually Province or Country), it is locality/city level
+          score = isLastSegment ? 2.5 : 3.5;
+          break;
+        } else if (seg.includes(normRule) || (strippedSeg && strippedRule && strippedSeg.includes(strippedRule))) {
+          score = isLastSegment ? 2.2 : 3.2;
+          break;
+        }
+      }
+    }
+
+    // 3. Province match
+    if (score === 0 && normProvince) {
+      if (normProvince === normRule) {
+        score = 2.5;
+      } else if (normProvince.includes(normRule) || normRule.includes(normProvince)) {
+        score = 2.0;
+      }
+    }
+
+    // 4. Region match
+    if (score === 0 && normRegion) {
+      if (normRegion === normRule) {
+        score = 1.7;
+      } else if (normRegion.includes(normRule) || normRule.includes(normRegion)) {
+        score = 1.4;
+      }
+    }
+
+    // 5. Full address substring match
+    if (score === 0 && normAddr) {
+      const escapedRule = normRule.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const wordBoundaryRegex = new RegExp(`(^|\\s)${escapedRule}($|\\s)`);
+      if (wordBoundaryRegex.test(normAddr)) {
+        score = 1.2;
+      } else if (normAddr.includes(normRule)) {
+        score = 1.0;
+      }
+    }
+
+    if (score > 0) {
+      if (score > matchSpecificity) {
+        matchedRule = rule;
+        matchSpecificity = score;
+      } else if (score === matchSpecificity && matchedRule) {
+        // Tie-breaker: prefer the longer, more specific area name
+        if (normRule.length > normalize(matchedRule.areaName).length) {
+          matchedRule = rule;
+        }
+      }
+    }
+  }
+
+  if (matchedRule && Number.isFinite(Number(matchedRule.fee)) && Number(matchedRule.fee) >= 0) {
+    return {
+      isMatched: true,
+      fee: Number(matchedRule.fee),
+      matchedAreaName: matchedRule.areaName,
+      matchedRuleId: matchedRule.id
+    };
+  }
+
+  return {
+    isMatched: false,
+    fee: null,
+    matchedAreaName: null,
+    message: 'Delivery fee needs confirmation for this address.'
+  };
+}
+
+/**
+ * Safely extracts or computes the authoritative delivery fee for an order.
+ * Preserves the actual fee saved on the order (e.g. ₱100 for Pagadian),
+ * checks alternate fee property names, and safely falls back for legacy records.
+ * 
+ * @param {Object} order - The order object
+ * @returns {number} The delivery fee in pesos (0 for store pickup)
+ */
+export function getOrderDeliveryFee(order) {
+  if (!order) return 0;
+  const isPickup = order.deliveryOption === 'pickup' || 
+                   order.deliveryMethod === 'pickup' || 
+                   order.fulfillmentMethod === 'pickup' ||
+                   order.isPickup === true || 
+                   order.pickup === true;
+  if (isPickup) return 0;
+
+  // 1. Explicit saved delivery fee fields on the order
+  if (order.deliveryFee !== undefined && order.deliveryFee !== null && !isNaN(Number(order.deliveryFee))) {
+    return Math.max(0, Number(order.deliveryFee));
+  }
+  if (order.shippingFee !== undefined && order.shippingFee !== null && !isNaN(Number(order.shippingFee))) {
+    return Math.max(0, Number(order.shippingFee));
+  }
+  if (order.deliveryCharge !== undefined && order.deliveryCharge !== null && !isNaN(Number(order.deliveryCharge))) {
+    return Math.max(0, Number(order.deliveryCharge));
+  }
+
+  // 2. Safe check if total includes delivery fee over items subtotal
+  const itemsSubtotal = (order.items && order.items.length > 0)
+    ? order.items.reduce((sum, it) => sum + ((it.product?.price ?? it.price ?? 0) * (it.quantity || 1)), 0)
+    : 0;
+  const total = Number(order.total ?? order.totalAmount ?? 0);
+  if (total > 0 && itemsSubtotal > 0 && total > itemsSubtotal) {
+    return total - itemsSubtotal;
+  }
+
+  // 3. Historical fallback for legacy delivery orders without an explicitly saved fee
+  return 80;
+}
+
 export function getStoreSettings() {
   if (typeof window === 'undefined') {
     return {
@@ -10367,7 +10625,8 @@ export function getStoreSettings() {
       gcashName: 'Aurora Rice Store',
       gcashNumber: '09123456789',
       gcashQr: '',
-      deliveryMinimumSettings: DEFAULT_DELIVERY_MINIMUM_SETTINGS
+      deliveryMinimumSettings: DEFAULT_DELIVERY_MINIMUM_SETTINGS,
+      deliveryFeeSettings: DEFAULT_DELIVERY_FEE_SETTINGS
     };
   }
   const p = getPathPrefix();
@@ -10421,6 +10680,33 @@ export function getStoreSettings() {
     } catch (_) {}
   }
 
+  let deliveryFeeSettings = DEFAULT_DELIVERY_FEE_SETTINGS;
+  if (cloudSettings.deliveryFeeSettings && typeof cloudSettings.deliveryFeeSettings === 'object' && Array.isArray(cloudSettings.deliveryFeeSettings.feeRules)) {
+    deliveryFeeSettings = {
+      feeRules: cloudSettings.deliveryFeeSettings.feeRules.map(r => ({
+        id: r.id || `fee-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+        areaName: String(r.areaName || '').trim(),
+        fee: (Number.isFinite(Number(r.fee)) && Number(r.fee) >= 0) ? Number(r.fee) : 0
+      }))
+    };
+  } else {
+    try {
+      const rawFee = localStorage.getItem('settings-delivery-fee');
+      if (rawFee) {
+        const parsedFee = JSON.parse(rawFee);
+        if (parsedFee && Array.isArray(parsedFee.feeRules)) {
+          deliveryFeeSettings = {
+            feeRules: parsedFee.feeRules.map(r => ({
+              id: r.id || `fee-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+              areaName: String(r.areaName || '').trim(),
+              fee: (Number.isFinite(Number(r.fee)) && Number(r.fee) >= 0) ? Number(r.fee) : 0
+            }))
+          };
+        }
+      }
+    } catch (_) {}
+  }
+
   return {
     storeName: localStorage.getItem('settings-store-name') || cloudSettings.storeName || 'Aurora Local Rice',
     tagline: localStorage.getItem('settings-store-tagline') || cloudSettings.tagline || 'Fresh Quality Rice Delivered to Your Doorstep',
@@ -10434,7 +10720,8 @@ export function getStoreSettings() {
     gcashName: localStorage.getItem('settings-gcash-name') || cloudSettings.gcashName || 'Aurora Rice Store',
     gcashNumber: localStorage.getItem('settings-gcash-number') || cloudSettings.gcashNumber || '09123456789',
     gcashQr: localStorage.getItem('settings-gcash-qr') || cloudSettings.gcashQr || '',
-    deliveryMinimumSettings
+    deliveryMinimumSettings,
+    deliveryFeeSettings
   };
 }
 

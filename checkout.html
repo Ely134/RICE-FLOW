@@ -395,8 +395,11 @@
                   <span>Subtotal</span>
                   <span class="font-bold text-gray-950 dark:text-white" id="subtotal-val">₱0.00</span>
                 </div>
-                <div class="flex justify-between text-gray-900 dark:text-gray-100 font-semibold">
-                  <span>Delivery Fee</span>
+                <div class="flex justify-between text-gray-900 dark:text-gray-100 font-semibold items-center">
+                  <div class="flex flex-col">
+                    <span>Delivery Fee</span>
+                    <span id="delivery-fee-area-tag" class="text-[11px] font-normal text-emerald-700 dark:text-emerald-400 hidden"></span>
+                  </div>
                   <span class="font-bold text-gray-950 dark:text-white" id="delivery-val">₱0.00</span>
                 </div>
                 <div class="border-t border-gray-100 pt-3 flex justify-between font-black text-[#111827] dark:text-white text-lg select-none">
@@ -426,6 +429,15 @@
                   <span id="summary-min-alert-title">Below Minimum Delivery Quantity</span>
                 </div>
                 <p id="summary-min-alert-desc" class="text-[11px] leading-snug"></p>
+              </div>
+
+              <!-- Delivery Fee Unconfirmed Warning Alert in Summary -->
+              <div id="summary-fee-unconfirmed-alert" class="hidden p-3.5 bg-rose-50 dark:bg-rose-950/40 border border-rose-300 dark:border-rose-800 rounded-2xl text-xs text-rose-900 dark:text-rose-200 space-y-1">
+                <div class="flex items-center gap-1.5 font-bold text-rose-900 dark:text-rose-200 text-xs">
+                  <span>⚠️</span>
+                  <span id="summary-fee-alert-title">Delivery Fee Needs Confirmation</span>
+                </div>
+                <p id="summary-fee-alert-desc" class="text-[11px] leading-snug">Your delivery address does not match any configured delivery area. Please select a supported delivery location or contact the store to confirm delivery rates before placing your order.</p>
               </div>
 
               <button 
@@ -716,7 +728,9 @@
       getEstimatedArrivalDate,
       getStoreSettings,
       evaluateDeliveryMinimum,
-      DEFAULT_DELIVERY_MINIMUM_SETTINGS
+      DEFAULT_DELIVERY_MINIMUM_SETTINGS,
+      evaluateDeliveryFee,
+      DEFAULT_DELIVERY_FEE_SETTINGS
     } from './src/app/shared.js';
     import { 
       db,
@@ -956,8 +970,9 @@
           if (emptyView) emptyView.classList.remove('hidden');
         }
 
-        if (isCheckoutReady && typeof updateDeliveryMinimumStatus === 'function') {
-          updateDeliveryMinimumStatus();
+        if (isCheckoutReady) {
+          if (typeof executePricing === 'function') executePricing();
+          else if (typeof updateDeliveryMinimumStatus === 'function') updateDeliveryMinimumStatus();
         }
       }
 
@@ -1038,8 +1053,9 @@
             }
           }
 
-          if (isCheckoutReady && typeof updateDeliveryMinimumStatus === 'function') {
-            updateDeliveryMinimumStatus();
+          if (isCheckoutReady) {
+            if (typeof executePricing === 'function') executePricing();
+            else if (typeof updateDeliveryMinimumStatus === 'function') updateDeliveryMinimumStatus();
           }
         });
       }
@@ -1237,6 +1253,20 @@
         </div>
       `;}).join('');
 
+      // Helper to extract full address text and structured details for accurate area matching
+      function getActiveCheckoutAddressObj() {
+        const addrText = (inpAddress ? inpAddress.value : '') || (addressInput ? addressInput.value : '') || '';
+        const details = activeCheckoutAddress?.addressDetails || user?.addressDetails || null;
+        return {
+          address: addrText || activeCheckoutAddress?.address || user?.address || '',
+          fullAddress: addrText || activeCheckoutAddress?.address || user?.address || '',
+          city: details?.city || details?.cityMunicipality || '',
+          province: details?.province || '',
+          region: details?.region || '',
+          addressDetails: details
+        };
+      }
+
       // Calculations execution
       function executePricing() {
         const subtotal = checkoutItems.reduce((acc, item) => {
@@ -1244,28 +1274,82 @@
           return acc + Number(item.product?.price || 0) * availQty;
         }, 0);
 
-        const deliveryFee = deliveryOption === 'delivery' ? 80 : 0;
-        const total = subtotal + deliveryFee;
+        let deliveryFee = 0;
+        let isFeeMatched = true;
+        let matchedAreaName = null;
 
-        // GCash versus cash percentages sums
-        const amountToPay = paymentMethod === 'gcash' ? total : total * 0.3; // 30% Downpayment required for cash
+        if (deliveryOption === 'pickup') {
+          deliveryFee = 0;
+          isFeeMatched = true;
+          matchedAreaName = 'Store Pickup';
+        } else {
+          const storeSettings = getStoreSettings();
+          const activeAddrObj = getActiveCheckoutAddressObj();
+          const feeResult = evaluateDeliveryFee(activeAddrObj, storeSettings);
+          if (feeResult.isMatched) {
+            deliveryFee = Number(feeResult.fee);
+            isFeeMatched = true;
+            matchedAreaName = feeResult.matchedAreaName;
+          } else {
+            deliveryFee = null;
+            isFeeMatched = false;
+            matchedAreaName = null;
+          }
+        }
+
+        const feeAlert = document.getElementById('summary-fee-unconfirmed-alert');
+        const feeAreaTag = document.getElementById('delivery-fee-area-tag');
 
         subtotalVal.textContent = `₱${Number(subtotal).toLocaleString()}.00`;
-        deliveryVal.textContent = `₱${Number(deliveryFee).toLocaleString()}.00`;
-        totalVal.textContent = `₱${Number(total).toLocaleString()}.00`;
 
-        const remainingBalance = Math.max(0, total - amountToPay);
-        document.getElementById('paid-val').textContent = `₱${Number(amountToPay).toLocaleString()}.00`;
-        document.getElementById('remaining-val').textContent = `₱${Number(remainingBalance).toLocaleString()}.00`;
+        if (deliveryOption === 'delivery' && !isFeeMatched) {
+          deliveryVal.textContent = 'Needs Confirmation';
+          deliveryVal.className = 'font-bold text-xs text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/60 px-2.5 py-1 rounded-md border border-rose-200 dark:border-rose-800';
+          if (feeAreaTag) {
+            feeAreaTag.textContent = 'Unmatched area';
+            feeAreaTag.className = 'text-[11px] font-semibold text-rose-600 dark:text-rose-400';
+            feeAreaTag.classList.remove('hidden');
+          }
+          if (feeAlert) feeAlert.classList.remove('hidden');
 
-        // Direct payments cues
-        lblPayAmount.textContent = subtotal === 0 ? `Amount to Pay: ₱0.00 (No Payment Required Now)` : `Amount to Pay: ₱${Number(amountToPay).toLocaleString()}.00`;
-        lblSendAmount.textContent = `₱${Number(amountToPay).toLocaleString()}.00`;
+          totalVal.textContent = subtotal > 0 ? `₱${Number(subtotal).toLocaleString()}.00 + Delivery Fee` : `Needs Confirmation`;
+          document.getElementById('paid-val').textContent = 'Pending Fee Confirmation';
+          document.getElementById('remaining-val').textContent = 'Pending Fee Confirmation';
 
-        if (paymentMethod === 'gcash') {
-          lblSendAmountDesc.textContent = subtotal === 0 ? "NO PAYMENT REQUIRED NOW:" : "FULL PAYMENT (AVAILABLE STOCK ONLY):";
+          lblPayAmount.textContent = 'Delivery Fee Needs Confirmation';
+          lblSendAmount.textContent = 'Pending Fee';
+          lblSendAmountDesc.textContent = 'DELIVERY FEE CONFIRMATION REQUIRED:';
         } else {
-          lblSendAmountDesc.textContent = subtotal === 0 ? "NO PAYMENT REQUIRED NOW:" : "30% DEPOSIT DUE VIA GCASH (AVAILABLE STOCK ONLY):";
+          deliveryVal.textContent = `₱${Number(deliveryFee).toLocaleString()}.00`;
+          deliveryVal.className = 'font-bold text-gray-950 dark:text-white';
+          if (feeAreaTag) {
+            if (deliveryOption === 'delivery' && matchedAreaName) {
+              feeAreaTag.textContent = `Area: ${matchedAreaName} (₱${Number(deliveryFee).toLocaleString()}.00)`;
+              feeAreaTag.className = 'text-[11px] font-medium text-emerald-700 dark:text-emerald-400';
+              feeAreaTag.classList.remove('hidden');
+            } else {
+              feeAreaTag.classList.add('hidden');
+            }
+          }
+          if (feeAlert) feeAlert.classList.add('hidden');
+
+          const total = subtotal + deliveryFee;
+          const amountToPay = paymentMethod === 'gcash' ? total : total * 0.3; // 30% Downpayment required for cash
+
+          totalVal.textContent = `₱${Number(total).toLocaleString()}.00`;
+
+          const remainingBalance = Math.max(0, total - amountToPay);
+          document.getElementById('paid-val').textContent = `₱${Number(amountToPay).toLocaleString()}.00`;
+          document.getElementById('remaining-val').textContent = `₱${Number(remainingBalance).toLocaleString()}.00`;
+
+          lblPayAmount.textContent = subtotal === 0 ? `Amount to Pay: ₱0.00 (No Payment Required Now)` : `Amount to Pay: ₱${Number(amountToPay).toLocaleString()}.00`;
+          lblSendAmount.textContent = `₱${Number(amountToPay).toLocaleString()}.00`;
+
+          if (paymentMethod === 'gcash') {
+            lblSendAmountDesc.textContent = subtotal === 0 ? "NO PAYMENT REQUIRED NOW:" : "FULL PAYMENT (AVAILABLE STOCK ONLY):";
+          } else {
+            lblSendAmountDesc.textContent = subtotal === 0 ? "NO PAYMENT REQUIRED NOW:" : "30% DEPOSIT DUE VIA GCASH (AVAILABLE STOCK ONLY):";
+          }
         }
 
         updateDeliveryMinimumStatus();
@@ -1370,8 +1454,9 @@
       }
 
       window.addEventListener('aurora-sync-event', (e) => {
-        if (e.detail && (e.detail.key === 'delivery-minimum-settings' || e.detail.key === 'aurora-store-settings')) {
+        if (e.detail && (e.detail.key === 'delivery-minimum-settings' || e.detail.key === 'delivery-fee-settings' || e.detail.key === 'aurora-store-settings')) {
           updateDeliveryMinimumStatus();
+          executePricing();
         }
       });
 
@@ -2487,6 +2572,20 @@
             }
             return;
           }
+
+          // Authoritative delivery fee validation: Block proceeding if destination cannot be matched to configured area
+          const storeSettings = getStoreSettings();
+          const addressObj = getActiveCheckoutAddressObj();
+          const feeResult = evaluateDeliveryFee(addressObj, storeSettings);
+          if (!feeResult || !feeResult.isMatched) {
+            showToast('Delivery fee needs confirmation: Your delivery address does not match any configured delivery area. Please select a supported delivery locality or contact the store before proceeding.', 'error');
+            const feeAlert = document.getElementById('summary-fee-unconfirmed-alert');
+            if (feeAlert) {
+              feeAlert.classList.remove('hidden');
+              feeAlert.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+            return;
+          }
         }
 
         if (hasReservations && !blockerCheck.checked) {
@@ -2705,6 +2804,19 @@
             }
             return;
           }
+
+          // Authoritative delivery fee verification: Prevent unconfirmed delivery fee from proceeding
+          const addressObj = getActiveCheckoutAddressObj();
+          const feeResult = evaluateDeliveryFee(addressObj, storeSettings);
+          if (!feeResult || !feeResult.isMatched) {
+            showToast('Cannot submit order: Delivery fee needs confirmation for this destination.', 'error');
+            const feeAlert = document.getElementById('summary-fee-unconfirmed-alert');
+            if (feeAlert) {
+              feeAlert.classList.remove('hidden');
+              feeAlert.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+            return;
+          }
         }
 
         isSubmitting = true;
@@ -2793,7 +2905,29 @@
           return acc + (item.product?.price || item.price || 0) * availQty;
         }, 0);
 
-        const deliveryFee = deliveryOption === 'delivery' ? 80 : 0;
+        let deliveryFee = 0;
+        let matchedDeliveryArea = null;
+
+        if (deliveryOption === 'delivery') {
+          const storeSettings = getStoreSettings();
+          const addressObj = getActiveCheckoutAddressObj();
+          const feeResult = evaluateDeliveryFee(addressObj, storeSettings);
+          if (!feeResult || !feeResult.isMatched) {
+            showToast('Delivery fee needs confirmation before order submission.', 'error');
+            isSubmitting = false;
+            if (btnSubmit) {
+              btnSubmit.disabled = false;
+              btnSubmit.textContent = originalBtnText;
+            }
+            return;
+          }
+          deliveryFee = Number(feeResult.fee);
+          matchedDeliveryArea = feeResult.matchedAreaName;
+        } else {
+          deliveryFee = 0;
+          matchedDeliveryArea = 'Store Pickup';
+        }
+
         const total = isFullReservation ? resSubtotal : (subtotal + deliveryFee);
 
         const amountPaid = isFullReservation ? 0 : (paymentMethod === 'gcash' ? total : total * 0.3);
@@ -2815,6 +2949,8 @@
             paymentType: isFullReservation ? 'none' : (paymentMethod === 'gcash' ? 'full' : 'deposit'),
             amountPaid,
             remainingAmount,
+            deliveryFee: isFullReservation ? 0 : deliveryFee,
+            matchedDeliveryArea: isFullReservation ? null : matchedDeliveryArea,
             paymentProof: isFullReservation ? null : (paymentProofFile ? paymentProofFile.name : 'screenshot.png'),
             paymentProofDataUrl: isFullReservation ? '' : (downloadUrl || ''),
             paymentProofUrl: isFullReservation ? '' : (downloadUrl || ''),
