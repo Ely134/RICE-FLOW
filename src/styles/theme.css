@@ -606,10 +606,10 @@ html:not(.dark) #admin-layout-container .btn-date-filter[class*="bg-[#1E6C02]"],
 html:not(.dark) #admin-layout-container .btn-date-filter[class*="bg-[#1E6C02]"] *,
 html:not(.dark) #admin-layout-container #btn-custom-range[class*="bg-[#1E6C02]"],
 html:not(.dark) #admin-layout-container #btn-custom-range[class*="bg-[#1E6C02]"] *,
-html:not(.dark) [id*="modal"] button[class*="bg-[#1E6C02]"]:not(.btn-mark-read),
-html:not(.dark) [id*="modal"] button[class*="bg-[#1E6C02]"]:not(.btn-mark-read) *,
-html:not(.dark) [id*="modal"] .calendar-day-btn[class*="bg-[#1E6C02]"],
-html:not(.dark) [id*="modal"] .calendar-day-btn[class*="bg-[#1E6C02]"] * {
+html:not(.dark) [id*="modal"] button[class*="bg-[#1E6C02]"]:not(.btn-mark-read):not(.calendar-day-btn),
+html:not(.dark) [id*="modal"] button[class*="bg-[#1E6C02]"]:not(.btn-mark-read):not(.calendar-day-btn) *,
+html:not(.dark) [id*="modal"] .calendar-day-btn.cal-day-selected,
+html:not(.dark) [id*="modal"] .calendar-day-btn.cal-day-selected * {
   color: #FFFFFF !important;
 }
 html:not(.dark) #admin-layout-container button[class*="bg-[#1E6C02]"]:not(.btn-mark-read) svg,

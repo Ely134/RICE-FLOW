@@ -405,30 +405,161 @@
     #btn-custom-range.bg-\[\#1E6C02\] *,
     #btn-custom-range[class*="bg-[#1E6C02]"],
     #btn-custom-range[class*="bg-[#1E6C02]"] *,
-    .calendar-day-btn.bg-\[\#1E6C02\],
-    .calendar-day-btn.bg-\[\#1E6C02\] *,
-    .calendar-day-btn[class*="bg-[#1E6C02]"],
-    .calendar-day-btn[class*="bg-[#1E6C02]"] *,
-    button[class*="bg-[#1E6C02]"]:not(.btn-mark-read),
-    button[class*="bg-[#1E6C02]"]:not(.btn-mark-read) *,
+    .calendar-day-btn.cal-day-selected,
+    .calendar-day-btn.cal-day-selected *,
+    button[class*="bg-[#1E6C02]"]:not(.btn-mark-read):not(.calendar-day-btn),
+    button[class*="bg-[#1E6C02]"]:not(.btn-mark-read):not(.calendar-day-btn) *,
     html:not(.dark) .btn-date-filter[class*="bg-[#1E6C02]"],
     html:not(.dark) .btn-date-filter[class*="bg-[#1E6C02]"] *,
     html:not(.dark) #btn-custom-range[class*="bg-[#1E6C02]"],
     html:not(.dark) #btn-custom-range[class*="bg-[#1E6C02]"] *,
-    html:not(.dark) .calendar-day-btn[class*="bg-[#1E6C02]"],
-    html:not(.dark) .calendar-day-btn[class*="bg-[#1E6C02]"] * {
+    html:not(.dark) .calendar-day-btn.cal-day-selected,
+    html:not(.dark) .calendar-day-btn.cal-day-selected * {
       color: #FFFFFF !important;
     }
     #btn-custom-range[class*="bg-[#1E6C02]"] svg,
     #btn-custom-range.bg-\[\#1E6C02\] svg,
     .btn-date-filter[class*="bg-[#1E6C02]"] svg,
     .btn-date-filter.bg-\[\#1E6C02\] svg,
-    button[class*="bg-[#1E6C02]"]:not(.btn-mark-read) svg,
+    button[class*="bg-[#1E6C02]"]:not(.btn-mark-read):not(.calendar-day-btn) svg,
     html:not(.dark) #btn-custom-range[class*="bg-[#1E6C02]"] svg,
-    html:not(.dark) button[class*="bg-[#1E6C02]"]:not(.btn-mark-read) svg {
+    html:not(.dark) button[class*="bg-[#1E6C02]"]:not(.btn-mark-read):not(.calendar-day-btn) svg {
       color: #FFFFFF !important;
       stroke: #FFFFFF !important;
       fill: none;
+    }
+
+    /* ==========================================================================
+       CUSTOM DATE RANGE POPUP MODAL STYLING & HIGH-CONTRAST READABILITY
+       Ensures crisp text visibility in Day Mode (solid dark text) and Night Mode,
+       preventing unintended inheritance of white text from green button rules.
+       ========================================================================== */
+    #custom-range-modal {
+      color: #0F172A;
+    }
+    html.dark #custom-range-modal {
+      color: #F8FAFC;
+    }
+
+    /* Modal heading, labels, inputs */
+    html:not(.dark) #custom-range-modal h4 {
+      color: #0F172A !important;
+    }
+    html:not(.dark) #custom-range-modal p {
+      color: #475569 !important;
+    }
+    html:not(.dark) #custom-range-modal label {
+      color: #334155 !important;
+    }
+    html:not(.dark) #custom-range-modal input[type="date"] {
+      color: #0F172A !important;
+      background-color: #FFFFFF !important;
+      border-color: #CBD5E1 !important;
+    }
+    html.dark #custom-range-modal input[type="date"] {
+      color: #F8FAFC !important;
+      background-color: #1F2937 !important;
+      border-color: #374151 !important;
+    }
+
+    /* Month Navigation & Month/Year Title */
+    #custom-range-modal .calendar-month-title {
+      color: #0F172A !important;
+      font-weight: 600 !important;
+    }
+    html.dark #custom-range-modal .calendar-month-title {
+      color: #F8FAFC !important;
+    }
+    #btn-prev-month,
+    #btn-next-month {
+      color: #1E293B !important;
+    }
+    html.dark #btn-prev-month,
+    html.dark #btn-next-month {
+      color: #F1F5F9 !important;
+    }
+    #btn-prev-month svg,
+    #btn-next-month svg {
+      stroke: currentColor !important;
+      color: currentColor !important;
+    }
+
+    /* Weekday Headers */
+    #custom-range-modal .calendar-weekday-header {
+      color: #475569 !important;
+      font-weight: 600 !important;
+    }
+    html.dark #custom-range-modal .calendar-weekday-header {
+      color: #94A3B8 !important;
+    }
+
+    /* Normal Calendar Day Buttons (Unselected) - High Contrast Dark in Day Mode */
+    #custom-range-modal .calendar-day-btn.cal-day-normal,
+    #custom-range-modal .calendar-day-btn:not(.cal-day-selected):not(.cal-day-in-range) {
+      color: #0F172A !important;
+      background-color: transparent;
+    }
+    html.dark #custom-range-modal .calendar-day-btn.cal-day-normal,
+    html.dark #custom-range-modal .calendar-day-btn:not(.cal-day-selected):not(.cal-day-in-range) {
+      color: #F1F5F9 !important;
+    }
+    #custom-range-modal .calendar-day-btn.cal-day-normal:hover,
+    #custom-range-modal .calendar-day-btn:not(.cal-day-selected):not(.cal-day-in-range):hover {
+      background-color: #E2E8F0 !important;
+      color: #0F172A !important;
+    }
+    html.dark #custom-range-modal .calendar-day-btn.cal-day-normal:hover,
+    html.dark #custom-range-modal .calendar-day-btn:not(.cal-day-selected):not(.cal-day-in-range):hover {
+      background-color: #334155 !important;
+      color: #FFFFFF !important;
+    }
+
+    /* Today's Date (when not selected) */
+    #custom-range-modal .calendar-day-btn.cal-day-today:not(.cal-day-selected) {
+      color: #15803D !important;
+      font-weight: 700 !important;
+      border: 2px solid #1E6C02 !important;
+      background-color: #F0FDF4 !important;
+    }
+    html.dark #custom-range-modal .calendar-day-btn.cal-day-today:not(.cal-day-selected) {
+      color: #4ADE80 !important;
+      border-color: #22C55E !important;
+      background-color: rgba(34, 197, 94, 0.15) !important;
+    }
+
+    /* Selected Day (Start / End) - Pure White on Deep Green */
+    #custom-range-modal .calendar-day-btn.cal-day-selected,
+    #custom-range-modal .calendar-day-btn.cal-day-selected * {
+      background-color: #1E6C02 !important;
+      color: #FFFFFF !important;
+      font-weight: 700 !important;
+    }
+
+    /* In-Range Days (Between Start and End) */
+    #custom-range-modal .calendar-day-btn.cal-day-in-range {
+      background-color: #DCFCE7 !important;
+      color: #14532D !important;
+      font-weight: 600 !important;
+    }
+    html.dark #custom-range-modal .calendar-day-btn.cal-day-in-range {
+      background-color: rgba(22, 101, 52, 0.45) !important;
+      color: #86EFAC !important;
+    }
+
+    /* Outside Month Days */
+    #custom-range-modal .calendar-day-outside {
+      color: #94A3B8 !important;
+    }
+    html.dark #custom-range-modal .calendar-day-outside {
+      color: #64748B !important;
+    }
+
+    /* Cancel Button */
+    #btn-calendar-cancel {
+      color: #334155 !important;
+    }
+    html.dark #btn-calendar-cancel {
+      color: #CBD5E1 !important;
     }
   </style>
   <style id="auth-guard-style">body { visibility: hidden !important; }</style>
@@ -1352,13 +1483,36 @@
       // CUSTOM CALENDAR POPUP MODAL FUNCTIONALITY
       // ==========================================
 
+      function formatLocalYMD(d) {
+        if (!d || !(d instanceof Date) || isNaN(d.getTime())) return '';
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${y}-${m}-${day}`;
+      }
+
+      function parseLocalYMD(str) {
+        if (!str || typeof str !== 'string') return null;
+        const parts = str.split('-').map(Number);
+        if (parts.length !== 3 || parts.some(isNaN)) return null;
+        return new Date(parts[0], parts[1] - 1, parts[2], 0, 0, 0, 0);
+      }
+
       function openCalendarModal() {
         let calendarModal = document.getElementById('custom-range-modal');
         if (!calendarModal) {
           calendarModal = document.createElement('div');
           calendarModal.id = 'custom-range-modal';
-          calendarModal.className = 'fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 transition-opacity duration-200';
+          calendarModal.className = 'fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 transition-opacity duration-200';
           document.body.appendChild(calendarModal);
+        }
+
+        if (customStartDate && customStartDate instanceof Date && !isNaN(customStartDate.getTime())) {
+          calendarYear = customStartDate.getFullYear();
+          calendarMonth = customStartDate.getMonth();
+        } else {
+          calendarYear = new Date().getFullYear();
+          calendarMonth = new Date().getMonth();
         }
 
         calendarModal.classList.remove('hidden');
@@ -1373,125 +1527,173 @@
 
         const firstDayOfMonth = new Date(calendarYear, calendarMonth, 1).getDay();
         const daysInMonth = new Date(calendarYear, calendarMonth + 1, 0).getDate();
+        const prevMonthLastDate = new Date(calendarYear, calendarMonth, 0).getDate();
         
         let daysHtml = '';
-        for (let i = 0; i < firstDayOfMonth; i++) {
-          daysHtml += `<div class="p-3 text-center text-slate-300 select-none"></div>`;
+
+        // Trailing days from previous month (outside current month)
+        for (let i = firstDayOfMonth - 1; i >= 0; i--) {
+          const prevDay = prevMonthLastDate - i;
+          daysHtml += `
+            <div class="calendar-day-outside w-8 h-8 sm:w-8.5 sm:h-8.5 flex items-center justify-center text-xs font-normal text-slate-300 dark:text-slate-600 select-none">
+              ${prevDay}
+            </div>
+          `;
         }
 
-        const todayDateStr = new Date().toDateString();
+        const today = new Date();
+        const isCurrentYearAndMonth = (today.getFullYear() === calendarYear && today.getMonth() === calendarMonth);
+        const todayDateNum = isCurrentYearAndMonth ? today.getDate() : null;
 
         for (let day = 1; day <= daysInMonth; day++) {
-          const checkDate = new Date(calendarYear, calendarMonth, day);
-          const dateStr = checkDate.toDateString();
+          const checkDate = new Date(calendarYear, calendarMonth, day, 0, 0, 0, 0);
           
           let isSelected = false;
           let isBetween = false;
 
           if (customStartDate && customEndDate) {
-            const startReset = new Date(customStartDate);
-            startReset.setHours(0,0,0,0);
-            const endReset = new Date(customEndDate);
-            endReset.setHours(23,59,59,999);
+            const startReset = new Date(customStartDate.getFullYear(), customStartDate.getMonth(), customStartDate.getDate(), 0, 0, 0, 0);
+            const endReset = new Date(customEndDate.getFullYear(), customEndDate.getMonth(), customEndDate.getDate(), 0, 0, 0, 0);
+            const minD = startReset <= endReset ? startReset : endReset;
+            const maxD = startReset <= endReset ? endReset : startReset;
 
-            if (checkDate >= startReset && checkDate <= endReset) {
-              if (checkDate.toDateString() === startReset.toDateString() || checkDate.toDateString() === endReset.toDateString()) {
-                isSelected = true;
-              } else {
-                isBetween = true;
-              }
+            if (checkDate.getTime() === minD.getTime() || checkDate.getTime() === maxD.getTime()) {
+              isSelected = true;
+            } else if (checkDate > minD && checkDate < maxD) {
+              isBetween = true;
             }
-          } else if (customStartDate && checkDate.toDateString() === customStartDate.toDateString()) {
-            isSelected = true;
+          } else if (customStartDate) {
+            const startReset = new Date(customStartDate.getFullYear(), customStartDate.getMonth(), customStartDate.getDate(), 0, 0, 0, 0);
+            if (checkDate.getTime() === startReset.getTime()) {
+              isSelected = true;
+            }
           }
 
-          let dayClasses = 'cursor-pointer font-medium text-sm transition-all duration-150 rounded-lg focus:outline-none';
+          const isToday = (day === todayDateNum);
+
+          let btnClasses = 'calendar-day-btn w-8 h-8 sm:w-8.5 sm:h-8.5 flex items-center justify-center text-xs sm:text-sm transition-all duration-150 cursor-pointer focus:outline-none';
+
           if (isSelected) {
-            dayClasses += ' bg-[#1E6C02] text-white !text-white rounded-full shadow-xs';
+            btnClasses += ' cal-day-selected bg-[#1E6C02] text-white !text-white font-bold rounded-full shadow-xs';
           } else if (isBetween) {
-            dayClasses += ' bg-emerald-100/80 text-[#1E6C02] rounded-lg';
+            btnClasses += ' cal-day-in-range bg-emerald-100 text-[#065F46] dark:bg-emerald-950/60 dark:text-emerald-300 font-semibold rounded-md';
+          } else if (isToday) {
+            btnClasses += ' cal-day-today border-2 border-[#1E6C02] dark:border-emerald-400 text-[#1E6C02] dark:text-emerald-400 bg-emerald-50/70 dark:bg-emerald-950/30 font-bold rounded-full hover:bg-emerald-100 dark:hover:bg-emerald-900/40';
           } else {
-            dayClasses += ' text-black hover:bg-[#1E6C02]/10 hover:text-[#1E6C02]';
-          }
-
-          if (dateStr === todayDateStr && !isSelected) {
-            dayClasses += ' ring-2 ring-[#1E6C02] ring-offset-1 rounded-full';
+            btnClasses += ' cal-day-normal text-slate-900 dark:text-slate-100 font-semibold rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700';
           }
 
           daysHtml += `
             <button 
+              type="button"
               data-day="${day}" 
-              class="calendar-day-btn p-2.5 text-center text-sm transition-all duration-150 rounded-lg focus:outline-none ${dayClasses}"
+              class="${btnClasses}"
+              aria-label="${monthNames[calendarMonth]} ${day}, ${calendarYear}"
             >
               ${day}
             </button>
           `;
         }
 
+        // Leading days of next month (outside current month) to complete the grid row
+        const totalCells = firstDayOfMonth + daysInMonth;
+        const trailingCells = (7 - (totalCells % 7)) % 7;
+        for (let nextDay = 1; nextDay <= trailingCells; nextDay++) {
+          daysHtml += `
+            <div class="calendar-day-outside w-8 h-8 sm:w-8.5 sm:h-8.5 flex items-center justify-center text-xs font-normal text-slate-300 dark:text-slate-600 select-none">
+              ${nextDay}
+            </div>
+          `;
+        }
+
         modalContainer.innerHTML = `
-          <div class="bg-white rounded-3xl max-w-md w-full border border-slate-100 shadow-2xl p-6 md:p-8 space-y-6 transform transition-all duration-300">
-            <div class="text-center md:text-left">
-              <h4 class="text-lg font-semibold text-black dark:text-white">Custom Date Range</h4>
-              <p class="text-xs font-normal text-gray-600 dark:text-gray-400 mt-1">Select a visual start and end date on the calendar, or specify manually.</p>
+          <div class="bg-white dark:bg-gray-900 rounded-2xl max-w-[360px] sm:max-w-[375px] w-full border border-slate-200 dark:border-gray-800 shadow-2xl p-4 sm:p-5 space-y-3.5 max-h-[92vh] overflow-y-auto transform transition-all duration-200">
+            <div class="flex items-start justify-between">
+              <div>
+                <h4 class="text-base font-semibold text-slate-900 dark:text-white">Custom Date Range</h4>
+                <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Select dates on calendar or type manually</p>
+              </div>
+              <button 
+                type="button" 
+                id="btn-calendar-close-x" 
+                class="text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-gray-800 transition-colors" 
+                title="Close"
+              >
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
             </div>
 
-            <div class="grid grid-cols-2 gap-4">
+            <div class="grid grid-cols-2 gap-2.5">
               <div>
-                <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-1.5">From Date</label>
+                <label class="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 uppercase tracking-wider mb-1">From Date</label>
                 <input 
                   type="date" 
                   id="picker-manual-from" 
-                  class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-gray-800 border border-slate-200 dark:border-gray-700 rounded-xl text-sm font-normal text-black dark:text-white focus:bg-white focus:ring-2 focus:ring-[#1E6C02]/20 outline-none transition-all"
-                  value="${customStartDate ? customStartDate.toISOString().split('T')[0] : ''}"
+                  class="w-full px-2.5 py-1.5 bg-slate-50 dark:bg-gray-800 border border-slate-300 dark:border-gray-700 rounded-lg text-xs sm:text-sm font-normal text-slate-900 dark:text-white focus:bg-white focus:ring-2 focus:ring-[#1E6C02]/20 focus:border-[#1E6C02] outline-none transition-all"
+                  value="${formatLocalYMD(customStartDate)}"
                 />
               </div>
               <div>
-                <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-1.5">To Date</label>
+                <label class="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 uppercase tracking-wider mb-1">To Date</label>
                 <input 
                   type="date" 
                   id="picker-manual-to" 
-                  class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-gray-800 border border-slate-200 dark:border-gray-700 rounded-xl text-sm font-normal text-black dark:text-white focus:bg-white focus:ring-2 focus:ring-[#1E6C02]/20 outline-none transition-all"
-                  value="${customEndDate ? customEndDate.toISOString().split('T')[0] : ''}"
+                  class="w-full px-2.5 py-1.5 bg-slate-50 dark:bg-gray-800 border border-slate-300 dark:border-gray-700 rounded-lg text-xs sm:text-sm font-normal text-slate-900 dark:text-white focus:bg-white focus:ring-2 focus:ring-[#1E6C02]/20 focus:border-[#1E6C02] outline-none transition-all"
+                  value="${formatLocalYMD(customEndDate)}"
                 />
               </div>
             </div>
 
-            <div class="bg-slate-50 dark:bg-gray-800 rounded-2xl border border-slate-200/50 dark:border-gray-700 p-4 space-y-4">
-              <div class="flex items-center justify-between">
-                <button id="btn-prev-month" class="p-2 bg-white dark:bg-gray-700 hover:bg-slate-100 dark:hover:bg-gray-600 border border-slate-200 dark:border-gray-600 rounded-xl text-black dark:text-white transition-colors">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-4 h-4"><polyline points="15 18 9 12 15 6"></polyline></svg>
+            <div class="bg-slate-50 dark:bg-gray-800/80 rounded-xl border border-slate-200/80 dark:border-gray-700 p-2.5 space-y-2">
+              <div class="flex items-center justify-between px-1">
+                <button 
+                  type="button"
+                  id="btn-prev-month" 
+                  class="p-1.5 bg-white dark:bg-gray-700 hover:bg-slate-100 dark:hover:bg-gray-600 border border-slate-200 dark:border-gray-600 rounded-lg text-slate-700 dark:text-slate-200 transition-colors"
+                  title="Previous Month"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-3.5 h-3.5"><polyline points="15 18 9 12 15 6"></polyline></svg>
                 </button>
-                <span class="font-semibold text-black dark:text-white text-sm md:text-base">${monthNames[calendarMonth]} ${calendarYear}</span>
-                <button id="btn-next-month" class="p-2 bg-white dark:bg-gray-700 hover:bg-slate-100 dark:hover:bg-gray-600 border border-slate-200 dark:border-gray-600 rounded-xl text-black dark:text-white transition-colors">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-4 h-4"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                <span class="calendar-month-title font-semibold text-xs sm:text-sm text-slate-900 dark:text-white">${monthNames[calendarMonth]} ${calendarYear}</span>
+                <button 
+                  type="button"
+                  id="btn-next-month" 
+                  class="p-1.5 bg-white dark:bg-gray-700 hover:bg-slate-100 dark:hover:bg-gray-600 border border-slate-200 dark:border-gray-600 rounded-lg text-slate-700 dark:text-slate-200 transition-colors"
+                  title="Next Month"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-3.5 h-3.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
                 </button>
               </div>
 
-              <div class="grid grid-cols-7 text-center font-semibold text-xs text-gray-600 dark:text-gray-400 tracking-wider uppercase pb-1 border-b border-slate-200/40 dark:border-gray-700">
-                <div>Su</div>
-                <div>Mo</div>
-                <div>Tu</div>
-                <div>We</div>
-                <div>Th</div>
-                <div>Fr</div>
-                <div>Sa</div>
+              <div class="grid grid-cols-7 text-center font-bold text-[11px] text-slate-600 dark:text-slate-400 tracking-wider uppercase pb-1 border-b border-slate-200/80 dark:border-gray-700">
+                <div class="calendar-weekday-header">Su</div>
+                <div class="calendar-weekday-header">Mo</div>
+                <div class="calendar-weekday-header">Tu</div>
+                <div class="calendar-weekday-header">We</div>
+                <div class="calendar-weekday-header">Th</div>
+                <div class="calendar-weekday-header">Fr</div>
+                <div class="calendar-weekday-header">Sa</div>
               </div>
 
-              <div class="grid grid-cols-7 gap-1">
+              <div class="grid grid-cols-7 gap-1 place-items-center">
                 ${daysHtml}
               </div>
             </div>
 
-            <div class="flex flex-col sm:flex-row gap-3">
+            <div class="flex items-center gap-2.5 pt-1">
               <button 
+                type="button"
                 id="btn-calendar-cancel" 
-                class="w-full sm:flex-1 py-2.5 bg-slate-100 dark:bg-gray-800 hover:bg-slate-200 dark:hover:bg-gray-700 text-black dark:text-gray-200 font-medium text-sm rounded-xl transition-colors cursor-pointer"
+                class="flex-1 py-2 px-3 bg-slate-100 dark:bg-gray-800 hover:bg-slate-200 dark:hover:bg-gray-700 text-slate-700 dark:text-slate-200 font-semibold text-xs sm:text-sm rounded-xl transition-colors cursor-pointer text-center"
               >
                 Cancel
               </button>
               <button 
+                type="button"
                 id="btn-calendar-apply" 
-                class="w-full sm:flex-1 py-2.5 bg-[#1E6C02] hover:bg-[#145001] text-white font-medium text-sm rounded-xl transition-colors cursor-pointer shadow-md shadow-green-900/10"
+                class="flex-1 py-2 px-3 bg-[#1E6C02] hover:bg-[#145001] text-white font-semibold text-xs sm:text-sm rounded-xl transition-colors cursor-pointer shadow-sm shadow-emerald-900/20 text-center"
               >
                 Apply Filter
               </button>
@@ -1503,34 +1705,55 @@
       }
 
       function bindCalendarModalEvents(modalContainer) {
-        document.getElementById('btn-prev-month').addEventListener('click', () => {
-          calendarMonth--;
-          if (calendarMonth < 0) {
-            calendarMonth = 11;
-            calendarYear--;
+        // Backdrop click to close
+        modalContainer.onclick = (e) => {
+          if (e.target === modalContainer) {
+            modalContainer.classList.add('hidden');
           }
-          renderCalendarInModal(modalContainer);
-        });
+        };
 
-        document.getElementById('btn-next-month').addEventListener('click', () => {
-          calendarMonth++;
-          if (calendarMonth > 11) {
-            calendarMonth = 0;
-            calendarYear++;
-          }
-          renderCalendarInModal(modalContainer);
-        });
+        const closeXBtn = document.getElementById('btn-calendar-close-x');
+        if (closeXBtn) {
+          closeXBtn.addEventListener('click', () => {
+            modalContainer.classList.add('hidden');
+          });
+        }
+
+        const prevMonthBtn = document.getElementById('btn-prev-month');
+        if (prevMonthBtn) {
+          prevMonthBtn.addEventListener('click', () => {
+            calendarMonth--;
+            if (calendarMonth < 0) {
+              calendarMonth = 11;
+              calendarYear--;
+            }
+            renderCalendarInModal(modalContainer);
+          });
+        }
+
+        const nextMonthBtn = document.getElementById('btn-next-month');
+        if (nextMonthBtn) {
+          nextMonthBtn.addEventListener('click', () => {
+            calendarMonth++;
+            if (calendarMonth > 11) {
+              calendarMonth = 0;
+              calendarYear++;
+            }
+            renderCalendarInModal(modalContainer);
+          });
+        }
 
         document.querySelectorAll('.calendar-day-btn').forEach(btn => {
           btn.addEventListener('click', () => {
             const clickedDay = parseInt(btn.getAttribute('data-day'));
-            const clickedDate = new Date(calendarYear, calendarMonth, clickedDay);
+            const clickedDate = new Date(calendarYear, calendarMonth, clickedDay, 0, 0, 0, 0);
 
             if (!customStartDate || (customStartDate && customEndDate)) {
               customStartDate = clickedDate;
               customEndDate = null;
             } else if (customStartDate && !customEndDate) {
               if (clickedDate < customStartDate) {
+                customEndDate = customStartDate;
                 customStartDate = clickedDate;
               } else {
                 customEndDate = clickedDate;
@@ -1546,10 +1769,13 @@
         if (manualFrom) {
           manualFrom.addEventListener('change', (e) => {
             if (e.target.value) {
-              customStartDate = new Date(e.target.value);
-              calendarYear = customStartDate.getFullYear();
-              calendarMonth = customStartDate.getMonth();
-              renderCalendarInModal(modalContainer);
+              const parsed = parseLocalYMD(e.target.value);
+              if (parsed) {
+                customStartDate = parsed;
+                calendarYear = customStartDate.getFullYear();
+                calendarMonth = customStartDate.getMonth();
+                renderCalendarInModal(modalContainer);
+              }
             }
           });
         }
@@ -1557,34 +1783,49 @@
         if (manualTo) {
           manualTo.addEventListener('change', (e) => {
             if (e.target.value) {
-              customEndDate = new Date(e.target.value);
-              renderCalendarInModal(modalContainer);
+              const parsed = parseLocalYMD(e.target.value);
+              if (parsed) {
+                customEndDate = parsed;
+                renderCalendarInModal(modalContainer);
+              }
             }
           });
         }
 
-        document.getElementById('btn-calendar-cancel').addEventListener('click', () => {
-          modalContainer.classList.add('hidden');
-        });
+        const cancelBtn = document.getElementById('btn-calendar-cancel');
+        if (cancelBtn) {
+          cancelBtn.addEventListener('click', () => {
+            modalContainer.classList.add('hidden');
+          });
+        }
 
-        document.getElementById('btn-calendar-apply').addEventListener('click', () => {
-          const manualFromVal = document.getElementById('picker-manual-from').value;
-          const manualToVal = document.getElementById('picker-manual-to').value;
+        const applyBtn = document.getElementById('btn-calendar-apply');
+        if (applyBtn) {
+          applyBtn.addEventListener('click', () => {
+            const manualFromVal = document.getElementById('picker-manual-from').value;
+            const manualToVal = document.getElementById('picker-manual-to').value;
 
-          if (manualFromVal) customStartDate = new Date(manualFromVal);
-          if (manualToVal) customEndDate = new Date(manualToVal);
+            if (manualFromVal) customStartDate = parseLocalYMD(manualFromVal);
+            if (manualToVal) customEndDate = parseLocalYMD(manualToVal);
 
-          if (!customStartDate) {
-            showToast('Please select at least a start date.', 'error');
-            return;
-          }
+            if (!customStartDate) {
+              showToast('Please select at least a start date.', 'error');
+              return;
+            }
 
-          dateFilter = 'custom';
-          currentPage = 1; // reset offset
-          modalContainer.classList.add('hidden');
-          renderReportsWorkspace();
-          showToast(`Custom range filter applied: ${getCoverageLabel()}`, 'success');
-        });
+            if (customStartDate && customEndDate && customStartDate > customEndDate) {
+              const temp = customStartDate;
+              customStartDate = customEndDate;
+              customEndDate = temp;
+            }
+
+            dateFilter = 'custom';
+            currentPage = 1; // reset offset
+            modalContainer.classList.add('hidden');
+            renderReportsWorkspace();
+            showToast(`Custom range filter applied: ${getCoverageLabel()}`, 'success');
+          });
+        }
       }
 
 

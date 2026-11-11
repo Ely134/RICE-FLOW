@@ -33,6 +33,7 @@ export default defineConfig({
         productDetails: path.resolve(__dirname, 'product-details.html'),
         cart: path.resolve(__dirname, 'cart.html'),
         checkout: path.resolve(__dirname, 'checkout.html'),
+        address: path.resolve(__dirname, 'address.html'),
         reservation: path.resolve(__dirname, 'reservation.html'),
         profile: path.resolve(__dirname, 'profile.html'),
         adminDashboard: path.resolve(__dirname, 'admin/dashboard.html'),
@@ -59,7 +60,7 @@ export default defineConfig({
         paymentGuide: path.resolve(__dirname, 'payment-guide.html'),
         resetPassword: path.resolve(__dirname, 'reset-password.html'),
         notificationDetails: path.resolve(__dirname, 'notification-details.html'),
-        notifications: path.resolve(__dirname, 'notification-details.html'),
+        notifications: path.resolve(__dirname, 'notifications.html'),
       }
     }
   },
