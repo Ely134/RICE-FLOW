@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Notifications | RiceFlow</title>
+  <script>
+    (function() {
+      try {
+        var d = document.documentElement;
+        var isDark = localStorage.getItem('aurora-dark-mode') === 'true';
+        d.classList.toggle('dark', isDark);
+        d.style.colorScheme = isDark ? 'dark' : 'light';
+      } catch (e) {}
+    })();
+  </script>
+  <style id="riceflow-theme-init">
+    html { background-color: #F8FAFC; color-scheme: light; }
+    #navbar-container { min-height: 5rem; background-color: #FFFFFF; border-bottom: 1px solid #F3F4F6; }
+    html.dark { background-color: #0F172A !important; color-scheme: dark; }
+    html.dark body,
+    html.dark main,
+    html.dark section,
+    html.dark #navbar-container,
+    html.dark #footer-container {
+      background-color: #0F172A;
+      background-image: none;
+      color: #FFFFFF;
+    }
+    html.dark #auth-guard-loader {
+      background-color: #0F172A !important;
+      color: #FFFFFF !important;
+    }
+    html.dark #navbar-container {
+      border-bottom-color: rgba(255, 255, 255, 0.15);
+    }
+    .notif-filter-active {
+      background-color: #1E6C02 !important;
+      color: #FFFFFF !important;
+      border-color: #1E6C02 !important;
+    }
+  </style>
+  <link rel="stylesheet" href="src/styles/index.css">
+</head>
+<body class="bg-[#F8FAFC] dark:bg-[#0F172A] min-h-screen flex flex-col justify-between text-[#111827] dark:text-gray-100 font-sans">
+
+  <!-- Dynamic Header Bar -->
+  <div id="navbar-container"></div>
+
+  <!-- Main Notifications Content -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+      <div>
+        <div class="flex items-center gap-2 mb-2">
+          <a href="profile.html" class="text-sm sm:text-base font-bold text-gray-700 dark:text-gray-300 hover:text-[#1E6C02] dark:hover:text-emerald-400 flex items-center gap-1.5 transition-colors">
+            <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg>
+            Back to Account
+          </a>
+        </div>
+        <h1 class="text-3xl sm:text-4xl font-extrabold text-[#111827] dark:text-white tracking-tight">Notifications</h1>
+        <p class="text-sm sm:text-base text-gray-700 dark:text-gray-300 font-medium mt-1">Stay updated with your orders, reservations, and account activities.</p>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <button id="btn-mark-all-read" class="px-5 py-2.5 text-sm sm:text-base font-bold bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-xl hover:bg-gray-50 dark:hover:bg-slate-800 text-[#111827] dark:text-white transition-all cursor-pointer shadow-xs flex items-center gap-2">
+          <svg class="w-4 h-4 text-[#1E6C02] dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+          Mark All as Read
+        </button>
+      </div>
+    </div>
+
+    <!-- Filter Tabs -->
+    <div class="flex items-center gap-3 mb-8 border-b border-gray-200 dark:border-slate-800 pb-4 overflow-x-auto">
+      <button data-filter="all" class="notif-tab-btn notif-filter-active px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl text-sm sm:text-base font-bold border border-[#1E6C02] transition-all cursor-pointer flex items-center gap-2 shrink-0 bg-[#1E6C02] text-white shadow-xs">
+        <span>All</span> <span id="badge-count-all" class="tab-badge text-xs sm:text-sm px-2 sm:px-2.5 py-0.5 rounded-full font-extrabold bg-white/25 text-white">0</span>
+      </button>
+      <button data-filter="unread" class="notif-tab-btn bg-white dark:bg-slate-900 text-[#111827] dark:text-white border border-gray-300 dark:border-slate-700 hover:border-[#1E6C02] dark:hover:border-emerald-500 px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl text-sm sm:text-base font-bold transition-all cursor-pointer flex items-center gap-2 shrink-0 shadow-xs">
+        <span>Unread</span> <span id="badge-count-unread" class="tab-badge text-xs sm:text-sm px-2 sm:px-2.5 py-0.5 rounded-full font-extrabold bg-gray-100 dark:bg-slate-800 text-[#111827] dark:text-gray-200">0</span>
+      </button>
+      <button data-filter="read" class="notif-tab-btn bg-white dark:bg-slate-900 text-[#111827] dark:text-white border border-gray-300 dark:border-slate-700 hover:border-[#1E6C02] dark:hover:border-emerald-500 px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl text-sm sm:text-base font-bold transition-all cursor-pointer flex items-center gap-2 shrink-0 shadow-xs">
+        <span>Read</span> <span id="badge-count-read" class="tab-badge text-xs sm:text-sm px-2 sm:px-2.5 py-0.5 rounded-full font-extrabold bg-gray-100 dark:bg-slate-800 text-[#111827] dark:text-gray-200">0</span>
+      </button>
+    </div>
+
+    <!-- Layout Container: List & Detail View -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 items-start">
+      <!-- List Column -->
+      <div id="notif-list-col" class="lg:col-span-5 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl shadow-xs overflow-hidden">
+        <div id="notif-items-container" class="divide-y divide-gray-200 dark:divide-slate-800 max-h-[700px] overflow-y-auto">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+
+      <!-- Detail Card Column -->
+      <div id="notif-detail-col" class="lg:col-span-7 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl p-6 sm:p-8 shadow-xs lg:sticky lg:top-24">
+        <div id="notif-detail-content">
+          <div class="text-center py-16 px-4 text-gray-700 dark:text-gray-300">
+            <div class="w-16 h-16 rounded-2xl bg-gray-100 dark:bg-slate-800 text-gray-400 dark:text-slate-500 flex items-center justify-center mx-auto mb-4 text-3xl">
+              🔔
+            </div>
+            <h3 class="font-extrabold text-lg sm:text-xl text-[#111827] dark:text-white mb-2">Select a Notification</h3>
+            <p class="text-sm sm:text-base text-gray-600 dark:text-gray-300 max-w-sm mx-auto leading-relaxed">
+              Click any notification from the list to view its complete details and related order or reservation information.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Dynamic Footer Bar -->
+  <div id="footer-container"></div>
+
+  <!-- Shared Core Logic & App Scripts -->
+  <script type="module">
+    import {
+      getCurrentUser,
+      getNotifications,
+      markNotificationAsRead,
+      markAllNotificationsAsRead,
+      sortNotificationsDescending,
+      NOTIF_STYLES,
+      renderLayout,
+      showToast
+    } from './src/app/shared.js';
+
+    document.addEventListener('DOMContentLoaded', () => {
+      // Ensure layout renders properly
+      try {
+        renderLayout();
+      } catch (_) {}
+
+      const user = getCurrentUser();
+      if (!user) {
+        window.location.href = 'login.html';
+        return;
+      }
+
+      let activeFilter = 'all';
+      let selectedNotifId = new URLSearchParams(window.location.search).get('id') || null;
+
+      const container = document.getElementById('notif-items-container');
+      const detailContainer = document.getElementById('notif-detail-content');
+      const badgeAll = document.getElementById('badge-count-all');
+      const badgeUnread = document.getElementById('badge-count-unread');
+      const badgeRead = document.getElementById('badge-count-read');
+      const btnMarkAll = document.getElementById('btn-mark-all-read');
+
+      const filterButtons = document.querySelectorAll('.notif-tab-btn');
+      filterButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+          activeFilter = btn.getAttribute('data-filter') || 'all';
+          render();
+        });
+      });
+
+      if (btnMarkAll) {
+        btnMarkAll.addEventListener('click', () => {
+          markAllNotificationsAsRead('customer', user.id);
+          showToast('All notifications marked as read');
+          render();
+        });
+      }
+
+      function getNotifs() {
+        const all = getNotifications() || [];
+        return sortNotificationsDescending(
+          all.filter(n => n.role === 'customer' && String(n.userId) === String(user.id))
+        );
+      }
+
+      function renderDetail(notif) {
+        if (!notif) {
+          detailContainer.innerHTML = `
+            <div class="text-center py-16 px-4 text-gray-700 dark:text-gray-300">
+              <div class="w-16 h-16 rounded-2xl bg-gray-100 dark:bg-slate-800 text-gray-400 dark:text-slate-500 flex items-center justify-center mx-auto mb-4 text-3xl">
+                🔔
+              </div>
+              <h3 class="font-extrabold text-lg sm:text-xl text-[#111827] dark:text-white mb-2">Select a Notification</h3>
+              <p class="text-sm sm:text-base text-gray-600 dark:text-gray-300 max-w-sm mx-auto leading-relaxed">
+                Click any notification from the list to view its complete details and related order or reservation information.
+              </p>
+            </div>
+          `;
+          return;
+        }
+
+        const isUnread = !notif.read;
+        const style = (NOTIF_STYLES && NOTIF_STYLES[notif.type]) ? NOTIF_STYLES[notif.type] : {
+          icon: '🔔',
+          bg: 'bg-green-50 dark:bg-green-950/60 border-green-200 dark:border-green-800',
+          text: 'text-green-800 dark:text-green-300'
+        };
+
+        // Resolve reference ID (orderId or reservationId)
+        const isReservation = notif.type === 'reservation' ||
+          notif.targetType === 'reservation' ||
+          Boolean(notif.reservationId) ||
+          (notif.title && notif.title.toLowerCase().includes('reservation')) ||
+          (notif.orderId && String(notif.orderId).toUpperCase().replace(/^#/, '').startsWith('RES')) ||
+          (notif.targetId && String(notif.targetId).toUpperCase().replace(/^#/, '').startsWith('RES'));
+
+        let relatedTarget = (isReservation ? notif.reservationId : notif.orderId) || notif.orderId || notif.reservationId || notif.targetId;
+        if (!relatedTarget && notif.message) {
+          const matchRes = notif.message.match(/Reservation\s*#?([A-Za-z0-9_-]+)/i);
+          const matchOrder = notif.message.match(/Order\s*#?([A-Za-z0-9_-]+)/i);
+          if (isReservation && matchRes) relatedTarget = matchRes[1];
+          else if (!isReservation && matchOrder) relatedTarget = matchOrder[1];
+          else if (matchRes) relatedTarget = matchRes[1];
+          else if (matchOrder) relatedTarget = matchOrder[1];
+        }
+
+        let actionButtonHtml = '';
+        if (relatedTarget) {
+          const targetTab = isReservation ? 'reservations' : 'all';
+          const paramName = isReservation ? 'reservationId' : 'orderId';
+          actionButtonHtml = `
+            <div class="mt-8 pt-6 border-t border-gray-200 dark:border-slate-800 flex flex-wrap items-center gap-3">
+              <a href="profile.html?tab=${targetTab}&${paramName}=${encodeURIComponent(relatedTarget)}" class="px-6 h-12 bg-[#1E6C02] hover:bg-[#145001] text-white font-extrabold text-sm sm:text-base rounded-xl transition-all shadow-md inline-flex items-center gap-2 cursor-pointer">
+                <span>View ${isReservation ? 'Reservation' : 'Order'} #${relatedTarget}</span>
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+              </a>
+              <a href="profile.html" class="px-5 h-12 border border-gray-300 dark:border-slate-700 text-[#111827] dark:text-white font-bold text-sm sm:text-base rounded-xl hover:bg-gray-50 dark:hover:bg-slate-800 transition-all inline-flex items-center cursor-pointer">
+                Go to Account
+              </a>
+            </div>
+          `;
+        } else {
+          actionButtonHtml = `
+            <div class="mt-8 pt-6 border-t border-gray-200 dark:border-slate-800 flex flex-wrap items-center gap-3">
+              <a href="profile.html" class="px-6 h-12 bg-[#1E6C02] hover:bg-[#145001] text-white font-extrabold text-sm sm:text-base rounded-xl transition-all shadow-md inline-flex items-center gap-2 cursor-pointer">
+                <span>Go to My Account</span>
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+              </a>
+              <a href="products.html" class="px-5 h-12 border border-gray-300 dark:border-slate-700 text-[#111827] dark:text-white font-bold text-sm sm:text-base rounded-xl hover:bg-gray-50 dark:hover:bg-slate-800 transition-all inline-flex items-center cursor-pointer">
+                Rice Catalog
+              </a>
+            </div>
+          `;
+        }
+
+        detailContainer.innerHTML = `
+          <div>
+            <!-- Header bar with category badge, status pill, and timestamp -->
+            <div class="flex flex-wrap items-center justify-between gap-3 mb-5 pb-4 border-b border-gray-200 dark:border-slate-800">
+              <div class="flex items-center gap-2.5 flex-wrap">
+                <div class="w-8 h-8 rounded-lg ${style.bg} border ${style.text} flex items-center justify-center text-sm shrink-0">
+                  ${style.icon}
+                </div>
+                <span class="px-3 py-1 text-xs sm:text-sm font-extrabold uppercase tracking-wider rounded-full ${
+                  isUnread
+                    ? 'bg-amber-100 dark:bg-amber-950/80 text-amber-900 dark:text-amber-200 border border-amber-300 dark:border-amber-700'
+                    : 'bg-emerald-100 dark:bg-emerald-950/80 text-emerald-900 dark:text-emerald-200 border border-emerald-300 dark:border-emerald-700'
+                }">
+                  ${isUnread ? '● Unread' : '✓ Read'}
+                </span>
+                ${notif.type ? `
+                  <span class="px-3 py-1 text-xs sm:text-sm font-bold capitalize rounded-full bg-gray-100 dark:bg-slate-800 text-[#111827] dark:text-gray-200 border border-gray-200 dark:border-slate-700">
+                    ${notif.type}
+                  </span>
+                ` : ''}
+              </div>
+              <div class="text-sm sm:text-base text-gray-600 dark:text-slate-300 font-semibold flex items-center gap-1.5">
+                <svg class="w-4 h-4 text-gray-500 dark:text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke-width="2"></circle><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6l4 2"></path></svg>
+                <span>${notif.createdDate || ''} ${notif.createdTime ? `at ${notif.createdTime}` : ''}</span>
+              </div>
+            </div>
+
+            <!-- Title -->
+            <h2 class="text-2xl sm:text-3xl font-extrabold text-[#111827] dark:text-white mb-5 tracking-tight leading-snug">
+              ${notif.title}
+            </h2>
+
+            <!-- Message Box -->
+            <div class="bg-gray-50/70 dark:bg-slate-800/50 rounded-2xl p-5 sm:p-7 border border-gray-200 dark:border-slate-700/80 text-base sm:text-lg text-[#111827] dark:text-slate-100 font-normal leading-relaxed whitespace-pre-wrap">
+${notif.message}
+            </div>
+
+            <!-- Reference Metadata (if available) -->
+            ${relatedTarget ? `
+              <div class="mt-4 p-4 rounded-xl bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 flex items-center justify-between gap-4">
+                <div class="flex items-center gap-2">
+                  <span class="text-sm font-bold text-gray-600 dark:text-gray-400">Reference:</span>
+                  <span class="text-sm sm:text-base font-extrabold text-[#111827] dark:text-white">${isReservation ? 'Reservation' : 'Order'} #${relatedTarget}</span>
+                </div>
+                <span class="text-xs sm:text-sm font-bold text-[#1E6C02] dark:text-emerald-400 uppercase tracking-wide">Direct Link Available</span>
+              </div>
+            ` : ''}
+
+            <!-- Action Buttons -->
+            ${actionButtonHtml}
+          </div>
+        `;
+      }
+
+      function renderListItems(items, currentSelectedId) {
+        container.innerHTML = items.map(n => {
+          const isSelected = n.id === currentSelectedId;
+          const isUnread = !n.read;
+          const style = (NOTIF_STYLES && NOTIF_STYLES[n.type]) ? NOTIF_STYLES[n.type] : {
+            icon: '🔔',
+            bg: 'bg-green-50 dark:bg-green-950/60 border-green-200 dark:border-green-800',
+            text: 'text-green-800 dark:text-green-300'
+          };
+
+          return `
+            <div data-id="${n.id}" class="notif-item p-4 sm:p-5 transition-all cursor-pointer ${
+              isSelected
+                ? 'bg-emerald-50 dark:bg-emerald-950/40 border-l-4 border-l-[#1E6C02]'
+                : 'bg-white dark:bg-slate-900 hover:bg-gray-50 dark:hover:bg-slate-800/60'
+            }">
+              <div class="flex items-start gap-3">
+                <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl ${style.bg} border ${style.text} flex items-center justify-center shrink-0 text-base shadow-xs mt-0.5">
+                  ${style.icon}
+                </div>
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-start justify-between gap-2 mb-1.5">
+                    <div class="flex items-center gap-2 min-w-0 flex-wrap">
+                      <h4 class="text-base sm:text-lg ${isUnread ? 'font-black text-[#111827] dark:text-white' : 'font-bold text-[#111827] dark:text-gray-100'} break-words leading-snug">
+                        ${n.title}
+                      </h4>
+                      ${isUnread ? `
+                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-black bg-[#1E6C02] text-white shrink-0 shadow-xs">
+                          <span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>NEW
+                        </span>
+                      ` : ''}
+                    </div>
+                    <span class="text-xs sm:text-sm font-semibold text-gray-600 dark:text-slate-300 whitespace-nowrap shrink-0 mt-0.5">
+                      ${n.createdTime || ''}
+                    </span>
+                  </div>
+                  <p class="text-sm sm:text-base text-gray-700 dark:text-gray-200 line-clamp-2 leading-relaxed mb-2 font-normal">
+                    ${n.message}
+                  </p>
+                  <div class="flex items-center justify-between text-xs sm:text-sm text-gray-600 dark:text-slate-300 font-medium pt-1 border-t border-gray-100 dark:border-slate-800">
+                    <span>${n.createdDate || ''}</span>
+                    ${n.type ? `<span class="capitalize font-bold text-[#1E6C02] dark:text-emerald-400">${n.type}</span>` : ''}
+                  </div>
+                </div>
+              </div>
+            </div>
+          `;
+        }).join('');
+
+        container.querySelectorAll('.notif-item').forEach(item => {
+          item.addEventListener('click', () => {
+            const id = item.getAttribute('data-id');
+            if (!id) return;
+            selectedNotifId = id;
+
+            const notifs = getNotifs();
+            const clickedNotif = notifs.find(n => n.id === id);
+            if (clickedNotif) {
+              if (!clickedNotif.read) {
+                markNotificationAsRead(clickedNotif.id, user.id, 'customer');
+                clickedNotif.read = true;
+              }
+              renderDetail(clickedNotif);
+
+              // Update item selection and read state visually in current list
+              renderListItems(items, selectedNotifId);
+
+              // Update filter badge counters in place
+              const unreadCount = notifs.filter(n => !n.read).length;
+              const readCount = notifs.filter(n => n.read).length;
+              if (badgeAll) badgeAll.textContent = notifs.length;
+              if (badgeUnread) badgeUnread.textContent = unreadCount;
+              if (badgeRead) badgeRead.textContent = readCount;
+
+              // On mobile, scroll detail column into view smoothly
+              if (window.innerWidth < 1024) {
+                document.getElementById('notif-detail-col')?.scrollIntoView({ behavior: 'smooth' });
+              }
+            }
+          });
+        });
+      }
+
+      function render() {
+        const notifs = getNotifs();
+        const unreadCount = notifs.filter(n => !n.read).length;
+        const readCount = notifs.filter(n => n.read).length;
+
+        // Update badge counters
+        if (badgeAll) badgeAll.textContent = notifs.length;
+        if (badgeUnread) badgeUnread.textContent = unreadCount;
+        if (badgeRead) badgeRead.textContent = readCount;
+
+        // Update filter button active states
+        filterButtons.forEach(btn => {
+          const f = btn.getAttribute('data-filter');
+          const badge = btn.querySelector('.tab-badge');
+          const isActive = f === activeFilter;
+          if (isActive) {
+            btn.className = 'notif-tab-btn notif-filter-active px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl font-bold border border-[#1E6C02] transition-all cursor-pointer flex items-center gap-2 shrink-0 bg-[#1E6C02] text-white shadow-xs text-sm sm:text-base';
+            if (badge) {
+              badge.className = 'tab-badge text-xs sm:text-sm px-2 sm:px-2.5 py-0.5 rounded-full font-extrabold bg-white/25 text-white';
+            }
+          } else {
+            btn.className = 'notif-tab-btn bg-white dark:bg-slate-900 text-[#111827] dark:text-white border border-gray-300 dark:border-slate-700 hover:border-[#1E6C02] dark:hover:border-emerald-500 px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl font-bold transition-all cursor-pointer flex items-center gap-2 shrink-0 shadow-xs text-sm sm:text-base';
+            if (badge) {
+              badge.className = 'tab-badge text-xs sm:text-sm px-2 sm:px-2.5 py-0.5 rounded-full font-extrabold bg-gray-100 dark:bg-slate-800 text-[#111827] dark:text-gray-200';
+            }
+          }
+        });
+
+        // Determine displayed items
+        let filtered = notifs;
+        if (activeFilter === 'unread') {
+          filtered = notifs.filter(n => !n.read);
+        } else if (activeFilter === 'read') {
+          filtered = notifs.filter(n => n.read);
+        }
+
+        // Handle empty states
+        if (filtered.length === 0) {
+          let emptyTitle = 'No notifications';
+          let emptyDesc = 'You have no notifications matching this filter.';
+          if (notifs.length === 0) {
+            emptyTitle = 'No notifications yet';
+            emptyDesc = 'You will receive updates here about your orders, reservations, and account activities.';
+          } else if (activeFilter === 'unread') {
+            emptyTitle = 'All caught up!';
+            emptyDesc = 'You have no unread notifications right now.';
+          } else if (activeFilter === 'read') {
+            emptyTitle = 'No read notifications';
+            emptyDesc = 'Notifications will appear here after you view them.';
+          }
+
+          container.innerHTML = `
+            <div class="p-8 sm:p-12 text-center text-gray-700 dark:text-gray-300">
+              <div class="text-4xl mb-3">🔔</div>
+              <h3 class="font-extrabold text-base sm:text-lg text-[#111827] dark:text-white mb-1.5">${emptyTitle}</h3>
+              <p class="text-sm sm:text-base text-gray-600 dark:text-gray-300 max-w-xs mx-auto leading-relaxed">${emptyDesc}</p>
+            </div>
+          `;
+          renderDetail(null);
+          return;
+        }
+
+        // Selection resolution
+        let activeObj = filtered.find(n => n.id === selectedNotifId);
+        if (!activeObj) {
+          activeObj = filtered[0];
+          selectedNotifId = activeObj.id;
+        }
+
+        if (activeObj && !activeObj.read) {
+          markNotificationAsRead(activeObj.id, user.id, 'customer');
+          activeObj.read = true;
+          const updatedUnread = notifs.filter(n => !n.read && n.id !== activeObj.id).length;
+          if (badgeUnread) badgeUnread.textContent = updatedUnread;
+        }
+
+        renderDetail(activeObj);
+        renderListItems(filtered, selectedNotifId);
+      }
+
+      // Initial render
+      render();
+
+      // Listen to cross-tab / background storage sync events
+      window.addEventListener('aurora-sync-event', (e) => {
+        if (!e.detail || !e.detail.key || e.detail.key === 'aurora-notifications') {
+          render();
+        }
+      });
+    });
+  </script>
+</body>
+</html>

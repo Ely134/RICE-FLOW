@@ -78,6 +78,9 @@ import {
   getDocs,
   collection,
   query,
+  checkFirebaseReachability,
+  getFriendlyFirebaseErrorMessage,
+  findOrderByReferenceNumber,
 } from '../lib/firebase.js';
 
 import { 
@@ -5609,10 +5612,14 @@ export function generateOrderId(existingOrders = null) {
 export async function addOrderAtomic(orderData) {
   if (!orderData) throw new Error("Order data is required.");
 
-  // Idempotency / duplicate order guard: prevent double-clicks or repeated requests
+  // Guard against offline or unreachable database operations
+  if (!assertCanPerformFirebaseWrite('submit this order')) {
+    throw new Error('Order submission paused: No internet connection or cloud service is unreachable. Your information has been preserved.');
+  }
+
+  // Idempotency / duplicate order guard: probe both local cache and Firestore
   if (orderData.referenceNumber) {
-    const cachedOrders = getOrders();
-    const existing = cachedOrders.find(o => o && o.referenceNumber === orderData.referenceNumber);
+    const existing = await checkExistingOrderByReference(orderData.referenceNumber);
     if (existing) {
       console.warn(`[ATOMIC-ORDER] Duplicate order submission detected for reference: ${orderData.referenceNumber}`);
       return existing;
@@ -5685,7 +5692,9 @@ export async function addOrderAtomic(orderData) {
   });
 
   // Execute atomic Firestore transaction
-  const txResult = await runTransaction(db, async (transaction) => {
+  let txResult;
+  try {
+    txResult = await runTransaction(db, async (transaction) => {
     // -----------------------------------------------------------------
     // PHASE 1: TRANSACTION READS (All reads must precede all writes)
     // -----------------------------------------------------------------
@@ -5952,18 +5961,17 @@ export async function addOrderAtomic(orderData) {
       const pPrice = Number(it.product?.price || it.price || 0);
       return acc + (it.isReservation ? 0 : pPrice * Number(it.quantity || 0));
     }, 0);
-    const deliveryFee = (isConvertedReservation || finalSubtotal === 0) 
-      ? 0 
-      : (orderData.deliveryOption === 'delivery' 
-          ? (orderData.deliveryFee !== undefined && !isNaN(Number(orderData.deliveryFee)) ? Number(orderData.deliveryFee) : 80) 
-          : 0);
+    const deliveryFee = orderData.deliveryOption === 'delivery' 
+      ? (orderData.deliveryFee !== undefined && !isNaN(Number(orderData.deliveryFee)) ? Number(orderData.deliveryFee) : 80) 
+      : 0;
 
     let finalTotal = finalSubtotal + (isConvertedReservation ? 0 : deliveryFee);
     let finalAmountPaid = orderData.paymentMethod === 'gcash' ? finalTotal : Math.floor(finalTotal * 0.3);
     let finalRemaining = Math.max(0, finalTotal - finalAmountPaid);
 
     if (isConvertedReservation) {
-      finalTotal = updatedItems.reduce((acc, it) => acc + (Number(it.product?.price || it.price || 0) * Number(it.quantity || 0)), 0);
+      const resItemsTotal = updatedItems.reduce((acc, it) => acc + (Number(it.product?.price || it.price || 0) * Number(it.quantity || 0)), 0);
+      finalTotal = resItemsTotal + (orderData.deliveryOption === 'delivery' ? deliveryFee : 0);
       finalAmountPaid = 0;
       finalRemaining = finalTotal;
     }
@@ -5983,8 +5991,8 @@ export async function addOrderAtomic(orderData) {
       fullName: orderData.fullName || '',
       phone: orderData.phone || '',
       deliveryOption: orderData.deliveryOption || 'delivery',
-      deliveryFee: (isConvertedReservation || finalSubtotal === 0) ? 0 : (orderData.deliveryOption === 'delivery' ? deliveryFee : 0),
-      matchedDeliveryArea: orderData.deliveryOption === 'delivery' ? (orderData.matchedDeliveryArea || null) : null,
+      deliveryFee: orderData.deliveryOption === 'delivery' ? deliveryFee : 0,
+      matchedDeliveryArea: orderData.deliveryOption === 'delivery' ? (orderData.matchedDeliveryArea || null) : 'Store Pickup',
       address: orderData.address || '',
       coordinates: (orderData.deliveryOption !== 'pickup' && validatedOrderCoordinates) ? validatedOrderCoordinates : null,
       addressDetails: (orderData.deliveryOption !== 'pickup' && orderData.addressDetails) ? orderData.addressDetails : null,
@@ -6075,6 +6083,14 @@ export async function addOrderAtomic(orderData) {
       stockDeductions
     };
   });
+  } catch (txErr) {
+    console.error('[ATOMIC-ORDER] Transaction failed:', txErr);
+    const friendlyMsg = getFriendlyFirebaseErrorMessage(txErr);
+    const customErr = new Error(friendlyMsg);
+    customErr.originalError = txErr;
+    customErr.code = txErr?.code;
+    throw customErr;
+  }
 
   // -----------------------------------------------------------------
   // PHASE 4: POST-TRANSACTION LOCAL RECONCILIATION & NOTIFICATIONS
@@ -7601,14 +7617,23 @@ const availStock = Math.max(
       createdReservation.stockDeducted = false;
     } else if (order.isPreOrder) {
       const newSubtotal = updatedItems.reduce((acc, it) => acc + (it.product?.price || it.price || 0) * it.quantity, 0);
-      order.total = newSubtotal;
-      order.amountPaid = 0;
-      order.remainingAmount = newSubtotal;
-      order.paymentMethod = 'none';
-      order.paymentType = 'none';
-      order.paymentProof = '';
-      order.paymentProofDataUrl = '';
-      order.paymentVerified = false;
+      const deliveryFee = order.deliveryOption === 'delivery' 
+        ? (order.deliveryFee !== undefined && !isNaN(Number(order.deliveryFee)) ? Number(order.deliveryFee) : 0) 
+        : 0;
+      order.deliveryFee = deliveryFee;
+      order.total = newSubtotal + deliveryFee;
+      if (order.paymentMethod === 'gcash' || order.paymentType === 'full') {
+        order.amountPaid = order.total;
+        order.remainingAmount = 0;
+      } else if (order.paymentMethod === 'cash' || order.paymentType === 'deposit') {
+        order.amountPaid = Math.round(order.total * 0.3 * 100) / 100;
+        order.remainingAmount = Math.max(0, order.total - order.amountPaid);
+      } else {
+        order.amountPaid = 0;
+        order.remainingAmount = order.total;
+        order.paymentMethod = 'none';
+        order.paymentType = 'none';
+      }
       order.stockDeducted = false;
     } else if (!order.isPreOrder) {
       const newSubtotal = updatedItems.reduce((acc, it) => acc + (it.product?.price || it.price || 0) * it.quantity, 0);
@@ -8693,6 +8718,523 @@ export function verifyCashTurnover(orderId, remarks = '') {
   return target;
 }
 
+// =========================================================================
+// RICEFLOW INTERNET MONITORING, DATA PRESERVATION & SESSION RECOVERY
+// =========================================================================
+
+export const ConnectionStatus = {
+  ONLINE: 'online',
+  OFFLINE_BROWSER: 'offline_browser',
+  CHECKING_STABILITY: 'checking_stability',
+  FIREBASE_UNAVAILABLE: 'firebase_unavailable',
+  RESTORING: 'restoring'
+};
+
+let currentConnectionState = {
+  status: typeof navigator !== 'undefined' && navigator.onLine ? ConnectionStatus.ONLINE : ConnectionStatus.OFFLINE_BROWSER,
+  isOnline: typeof navigator !== 'undefined' ? navigator.onLine : true,
+  isFirebaseReady: typeof navigator !== 'undefined' ? navigator.onLine : true,
+  lastVerifiedAt: Date.now(),
+  lastCheckError: null
+};
+
+const connectionChangeListeners = new Set();
+let healthProbeTimeout = null;
+let bannerDismissTimeout = null;
+let connectionMonitorInitialized = false;
+
+export function onConnectionStateChange(listener) {
+  if (typeof listener === 'function') {
+    connectionChangeListeners.add(listener);
+    try { listener(currentConnectionState); } catch (_) {}
+  }
+  return () => connectionChangeListeners.delete(listener);
+}
+
+function notifyConnectionStateChanged() {
+  connectionChangeListeners.forEach(fn => {
+    try { fn(currentConnectionState); } catch (e) { console.error('[CONNECTION] Listener error:', e); }
+  });
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('riceflow:connection-change', { detail: currentConnectionState }));
+  }
+}
+
+export function getConnectionState() {
+  return { ...currentConnectionState };
+}
+
+export function isSystemOnline() {
+  const browserOnline = typeof navigator === 'undefined' || navigator.onLine;
+  return browserOnline && currentConnectionState.isFirebaseReady !== false;
+}
+
+export function isFirebaseReachable() {
+  return currentConnectionState.isFirebaseReady === true;
+}
+
+// Ensure the floating top banner exists in the DOM
+function ensureConnectionBannerElement() {
+  if (typeof document === 'undefined') return null;
+  let banner = document.getElementById('riceflow-connection-banner');
+  if (!banner) {
+    banner = document.createElement('div');
+    banner.id = 'riceflow-connection-banner';
+    banner.className = 'fixed top-0 inset-x-0 z-[100000] -translate-y-full transition-transform duration-300 shadow-xl text-xs sm:text-sm font-semibold py-2.5 px-4 pointer-events-auto';
+    banner.setAttribute('role', 'alert');
+    banner.setAttribute('aria-live', 'assertive');
+    banner.innerHTML = `
+      <div class="max-w-6xl mx-auto flex items-center justify-between gap-3">
+        <div class="flex items-center gap-2.5 min-w-0">
+          <span id="riceflow-connection-icon" class="text-base sm:text-lg shrink-0">⚠️</span>
+          <span id="riceflow-connection-message" class="leading-snug truncate sm:whitespace-normal">No Internet Connection. Please check your internet connection to continue using RiceFlow. Your current information will be preserved.</span>
+        </div>
+        <div class="flex items-center gap-2 shrink-0">
+          <button id="riceflow-connection-retry-btn" type="button" class="hidden px-2.5 py-1 text-xs font-bold rounded-lg bg-white/20 hover:bg-white/30 text-white transition-colors cursor-pointer">Check Connection</button>
+          <button id="riceflow-connection-dismiss-btn" type="button" class="hidden text-white/80 hover:text-white p-1 text-sm font-bold cursor-pointer" aria-label="Dismiss">✕</button>
+        </div>
+      </div>
+    `;
+    document.body.prepend(banner);
+
+    const retryBtn = banner.querySelector('#riceflow-connection-retry-btn');
+    if (retryBtn) {
+      retryBtn.addEventListener('click', () => {
+        verifyConnectionNow(true);
+      });
+    }
+
+    const dismissBtn = banner.querySelector('#riceflow-connection-dismiss-btn');
+    if (dismissBtn) {
+      dismissBtn.addEventListener('click', () => {
+        banner.classList.add('-translate-y-full');
+      });
+    }
+  }
+  return banner;
+}
+
+// Update the banner UI depending on the current state
+export function updateConnectionBannerUI(status, customMessage = null) {
+  if (typeof document === 'undefined') return;
+  const banner = ensureConnectionBannerElement();
+  if (!banner) return;
+
+  clearTimeout(bannerDismissTimeout);
+
+  const iconEl = banner.querySelector('#riceflow-connection-icon');
+  const msgEl = banner.querySelector('#riceflow-connection-message');
+  const retryBtn = banner.querySelector('#riceflow-connection-retry-btn');
+  const dismissBtn = banner.querySelector('#riceflow-connection-dismiss-btn');
+
+  // Reset base classes
+  banner.className = 'fixed top-0 inset-x-0 z-[100000] transition-transform duration-300 shadow-xl text-xs sm:text-sm font-semibold py-2.5 px-4 pointer-events-auto ';
+
+  if (status === ConnectionStatus.OFFLINE_BROWSER) {
+    banner.className += 'bg-rose-600 text-white';
+    if (iconEl) {
+      iconEl.className = 'text-base sm:text-lg shrink-0';
+      iconEl.textContent = '📡❌';
+    }
+    if (msgEl) {
+      msgEl.textContent = customMessage || 'No Internet Connection. Please check your internet connection to continue using RiceFlow. Your current information will be preserved.';
+    }
+    if (retryBtn) retryBtn.classList.add('hidden');
+    if (dismissBtn) dismissBtn.classList.add('hidden');
+    banner.classList.remove('-translate-y-full');
+  } else if (status === ConnectionStatus.CHECKING_STABILITY) {
+    banner.className += 'bg-amber-600 text-white';
+    if (iconEl) {
+      iconEl.className = 'text-base sm:text-lg shrink-0 animate-spin inline-block';
+      iconEl.textContent = '🔄';
+    }
+    if (msgEl) {
+      msgEl.textContent = customMessage || 'Internet connection restored. Checking connection stability...';
+    }
+    if (retryBtn) retryBtn.classList.add('hidden');
+    if (dismissBtn) dismissBtn.classList.add('hidden');
+    banner.classList.remove('-translate-y-full');
+  } else if (status === ConnectionStatus.FIREBASE_UNAVAILABLE) {
+    banner.className += 'bg-amber-600 text-white';
+    if (iconEl) {
+      iconEl.className = 'text-base sm:text-lg shrink-0';
+      iconEl.textContent = '☁️⚠️';
+    }
+    if (msgEl) {
+      msgEl.textContent = customMessage || 'Connected to the internet, but RiceFlow cloud services are temporarily unreachable. Retrying...';
+    }
+    if (retryBtn) retryBtn.classList.remove('hidden');
+    if (dismissBtn) dismissBtn.classList.remove('hidden');
+    banner.classList.remove('-translate-y-full');
+  } else if (status === ConnectionStatus.RESTORING || status === 'restored') {
+    banner.className += 'bg-emerald-600 text-white';
+    if (iconEl) {
+      iconEl.className = 'text-base sm:text-lg shrink-0';
+      iconEl.textContent = '✓';
+    }
+    if (msgEl) {
+      msgEl.textContent = customMessage || 'Connection restored and verified. You can now safely continue.';
+    }
+    if (retryBtn) retryBtn.classList.add('hidden');
+    if (dismissBtn) dismissBtn.classList.remove('hidden');
+    banner.classList.remove('-translate-y-full');
+
+    bannerDismissTimeout = setTimeout(() => {
+      banner.classList.add('-translate-y-full');
+    }, 3500);
+  } else {
+    // Normal online state
+    banner.classList.add('-translate-y-full');
+  }
+}
+
+// Active connection verifier
+export async function verifyConnectionNow(showCheckingUi = false) {
+  if (typeof navigator !== 'undefined' && !navigator.onLine) {
+    currentConnectionState.status = ConnectionStatus.OFFLINE_BROWSER;
+    currentConnectionState.isOnline = false;
+    currentConnectionState.isFirebaseReady = false;
+    updateConnectionBannerUI(ConnectionStatus.OFFLINE_BROWSER);
+    notifyConnectionStateChanged();
+    snapshotAllActiveDrafts();
+    return { ok: false, reason: 'offline' };
+  }
+
+  if (showCheckingUi) {
+    currentConnectionState.status = ConnectionStatus.CHECKING_STABILITY;
+    updateConnectionBannerUI(ConnectionStatus.CHECKING_STABILITY);
+    notifyConnectionStateChanged();
+  }
+
+  try {
+    const probe = await checkFirebaseReachability(4000);
+    if (probe && probe.ok) {
+      const wasDisconnected = currentConnectionState.status !== ConnectionStatus.ONLINE;
+      currentConnectionState.status = ConnectionStatus.ONLINE;
+      currentConnectionState.isOnline = true;
+      currentConnectionState.isFirebaseReady = true;
+      currentConnectionState.lastVerifiedAt = Date.now();
+      currentConnectionState.lastCheckError = null;
+
+      if (wasDisconnected) {
+        updateConnectionBannerUI('restored');
+      } else {
+        updateConnectionBannerUI(ConnectionStatus.ONLINE);
+      }
+      notifyConnectionStateChanged();
+      return { ok: true };
+    } else {
+      currentConnectionState.status = ConnectionStatus.FIREBASE_UNAVAILABLE;
+      currentConnectionState.isOnline = true;
+      currentConnectionState.isFirebaseReady = false;
+      currentConnectionState.lastCheckError = probe?.error;
+      updateConnectionBannerUI(ConnectionStatus.FIREBASE_UNAVAILABLE, probe?.message);
+      notifyConnectionStateChanged();
+      snapshotAllActiveDrafts();
+
+      // Schedule next probe
+      clearTimeout(healthProbeTimeout);
+      healthProbeTimeout = setTimeout(() => {
+        if (currentConnectionState.status === ConnectionStatus.FIREBASE_UNAVAILABLE) {
+          verifyConnectionNow(false);
+        }
+      }, 6000);
+
+      return { ok: false, reason: probe?.reason || 'unreachable' };
+    }
+  } catch (err) {
+    currentConnectionState.status = ConnectionStatus.FIREBASE_UNAVAILABLE;
+    currentConnectionState.isOnline = true;
+    currentConnectionState.isFirebaseReady = false;
+    currentConnectionState.lastCheckError = err;
+    updateConnectionBannerUI(ConnectionStatus.FIREBASE_UNAVAILABLE);
+    notifyConnectionStateChanged();
+    snapshotAllActiveDrafts();
+    return { ok: false, reason: 'unreachable', error: err };
+  }
+}
+
+// Initialize system-wide connection monitoring
+export function initConnectionMonitor() {
+  if (connectionMonitorInitialized || typeof window === 'undefined') return;
+  connectionMonitorInitialized = true;
+
+  // Initial check
+  if (!navigator.onLine) {
+    currentConnectionState.status = ConnectionStatus.OFFLINE_BROWSER;
+    currentConnectionState.isOnline = false;
+    currentConnectionState.isFirebaseReady = false;
+    updateConnectionBannerUI(ConnectionStatus.OFFLINE_BROWSER);
+    notifyConnectionStateChanged();
+  }
+
+  // Handle browser offline event
+  window.addEventListener('offline', () => {
+    console.warn('[CONNECTION] Browser offline event detected.');
+    currentConnectionState.status = ConnectionStatus.OFFLINE_BROWSER;
+    currentConnectionState.isOnline = false;
+    currentConnectionState.isFirebaseReady = false;
+    updateConnectionBannerUI(ConnectionStatus.OFFLINE_BROWSER);
+    notifyConnectionStateChanged();
+    snapshotAllActiveDrafts();
+    showToast('No Internet Connection. Your progress has been preserved.', 'error');
+  });
+
+  // Handle browser online event
+  window.addEventListener('online', () => {
+    console.log('[CONNECTION] Browser online event detected. Verifying Firebase reachability...');
+    currentConnectionState.status = ConnectionStatus.CHECKING_STABILITY;
+    currentConnectionState.isOnline = true;
+    updateConnectionBannerUI(ConnectionStatus.CHECKING_STABILITY);
+    notifyConnectionStateChanged();
+
+    // Verify actual Firebase reachability before declaring full restoration
+    setTimeout(() => {
+      verifyConnectionNow(false);
+    }, 400);
+  });
+}
+
+// =========================================================================
+// DATA PRESERVATION & FORM DRAFT ENGINE
+// =========================================================================
+
+const registeredDraftBinders = new Map();
+
+export function saveFormDraft(formId, draftKey, customState = null) {
+  if (typeof window === 'undefined' || !window.localStorage) return false;
+  try {
+    const formEl = document.getElementById(formId);
+    if (!formEl) return false;
+
+    const data = {};
+    const elements = formEl.querySelectorAll('input, select, textarea');
+    elements.forEach(el => {
+      // CRITICAL: NEVER store password fields, tokens, or auth secrets
+      if (el.type === 'password') return;
+      const nameOrId = el.name || el.id;
+      if (!nameOrId) return;
+      if (/password|token|secret|creditcard|cvv|auth/i.test(nameOrId)) return;
+
+      if (el.type === 'checkbox') {
+        data[nameOrId] = el.checked;
+      } else if (el.type === 'radio') {
+        if (el.checked) {
+          data[el.name || nameOrId] = el.value;
+        }
+      } else {
+        data[nameOrId] = el.value;
+      }
+    });
+
+    const payload = {
+      formId,
+      draftKey: draftKey || formId,
+      savedAt: Date.now(),
+      fields: data,
+      customState: customState || null
+    };
+
+    localStorage.setItem(`riceflow_draft_${draftKey || formId}`, JSON.stringify(payload));
+    return true;
+  } catch (err) {
+    console.warn(`[DRAFT] Could not save draft for ${formId}:`, err);
+    return false;
+  }
+}
+
+export function restoreFormDraft(formId, draftKey, options = {}) {
+  if (typeof window === 'undefined' || !window.localStorage) return null;
+  try {
+    const raw = localStorage.getItem(`riceflow_draft_${draftKey || formId}`);
+    if (!raw) return null;
+    const payload = JSON.parse(raw);
+    if (!payload || !payload.fields) return null;
+
+    const formEl = document.getElementById(formId);
+    if (!formEl) return payload;
+
+    let restoredCount = 0;
+    const fields = payload.fields;
+
+    Object.keys(fields).forEach(key => {
+      const val = fields[key];
+      // Check for radio buttons by name
+      const radios = formEl.querySelectorAll(`input[type="radio"][name="${key}"]`);
+      if (radios.length > 0) {
+        radios.forEach(r => {
+          if (r.value === val) {
+            r.checked = true;
+            r.dispatchEvent(new Event('change', { bubbles: true }));
+            restoredCount++;
+          }
+        });
+        return;
+      }
+
+      // Check by ID or name
+      const el = formEl.querySelector(`#${CSS.escape(key)}`) || formEl.querySelector(`[name="${CSS.escape(key)}"]`);
+      if (el) {
+        if (el.type === 'password') return; // never restore passwords
+        if (el.type === 'checkbox') {
+          el.checked = Boolean(val);
+          el.dispatchEvent(new Event('change', { bubbles: true }));
+          restoredCount++;
+        } else if (el.tagName === 'SELECT') {
+          if (val !== undefined && val !== null) {
+            el.value = val;
+            el.dispatchEvent(new Event('change', { bubbles: true }));
+            restoredCount++;
+          }
+        } else {
+          // Input or textarea: restore value
+          if (val !== undefined && val !== null && String(val).trim() !== '') {
+            el.value = val;
+            el.dispatchEvent(new Event('input', { bubbles: true }));
+            el.dispatchEvent(new Event('change', { bubbles: true }));
+            restoredCount++;
+          }
+        }
+      }
+    });
+
+    if (restoredCount > 0 && !options.silent) {
+      showDraftRestoredNotice(formEl, draftKey || formId);
+    }
+
+    return payload;
+  } catch (err) {
+    console.warn(`[DRAFT] Could not restore draft for ${formId}:`, err);
+    return null;
+  }
+}
+
+export function clearFormDraft(draftKey) {
+  if (typeof window === 'undefined' || !window.localStorage) return;
+  try {
+    localStorage.removeItem(`riceflow_draft_${draftKey}`);
+    const notice = document.getElementById(`draft-restored-notice-${draftKey}`);
+    if (notice) notice.remove();
+  } catch (err) {
+    console.warn(`[DRAFT] Could not clear draft ${draftKey}:`, err);
+  }
+}
+
+function showDraftRestoredNotice(formEl, draftKey) {
+  if (!formEl || document.getElementById(`draft-restored-notice-${draftKey}`)) return;
+  const notice = document.createElement('div');
+  notice.id = `draft-restored-notice-${draftKey}`;
+  notice.className = 'rf-draft-notice mb-3 p-3 rounded-xl border border-amber-300 bg-amber-50 dark:bg-amber-950/40 text-amber-900 dark:text-amber-200 text-xs flex items-center justify-between gap-2 animate-in fade-in';
+  notice.innerHTML = `
+    <div class="flex items-center gap-2 min-w-0">
+      <span class="shrink-0">💾</span>
+      <span class="truncate sm:whitespace-normal"><strong>Draft Restored:</strong> Your previously entered information has been preserved.</span>
+    </div>
+    <button type="button" class="px-2 py-1 font-bold rounded-lg border border-amber-300 dark:border-amber-700 hover:bg-amber-100 dark:hover:bg-amber-900/60 text-amber-950 dark:text-amber-100 cursor-pointer text-[11px] shrink-0">Discard Draft</button>
+  `;
+  notice.querySelector('button')?.addEventListener('click', () => {
+    clearFormDraft(draftKey);
+    notice.remove();
+    try { formEl.reset(); } catch (_) {}
+    showToast('Draft discarded.', 'info');
+  });
+  formEl.prepend(notice);
+}
+
+export function autoBindDraftPreservation(formId, draftKey, getCustomState = null, onRestored = null) {
+  if (typeof document === 'undefined') return () => {};
+  
+  const setup = () => {
+    const formEl = document.getElementById(formId);
+    if (!formEl) return;
+
+    // Restore draft if exists
+    const restored = restoreFormDraft(formId, draftKey);
+    if (restored && onRestored && typeof onRestored === 'function') {
+      try { onRestored(restored.customState, restored.fields); } catch (e) { console.warn('[DRAFT] onRestored error:', e); }
+    }
+
+    // Debounced autosave
+    let saveTimeout = null;
+    const triggerSave = () => {
+      clearTimeout(saveTimeout);
+      saveTimeout = setTimeout(() => {
+        const customState = getCustomState && typeof getCustomState === 'function' ? getCustomState() : null;
+        saveFormDraft(formId, draftKey, customState);
+      }, 350);
+    };
+
+    formEl.addEventListener('input', triggerSave);
+    formEl.addEventListener('change', triggerSave);
+
+    // Immediate save when offline or before unload
+    const immediateSave = () => {
+      const customState = getCustomState && typeof getCustomState === 'function' ? getCustomState() : null;
+      saveFormDraft(formId, draftKey, customState);
+    };
+    window.addEventListener('offline', immediateSave);
+    window.addEventListener('beforeunload', immediateSave);
+
+    registeredDraftBinders.set(draftKey, immediateSave);
+  };
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', setup, { once: true });
+  } else {
+    setup();
+  }
+
+  return () => {
+    registeredDraftBinders.delete(draftKey);
+  };
+}
+
+export function snapshotAllActiveDrafts() {
+  registeredDraftBinders.forEach(fn => {
+    try { fn(); } catch (_) {}
+  });
+}
+
+// =========================================================================
+// OPERATION SAFETY GUARDS & IDEMPOTENCY
+// =========================================================================
+
+export function assertCanPerformFirebaseWrite(actionLabel = 'perform this action') {
+  if (typeof navigator !== 'undefined' && !navigator.onLine) {
+    showToast(`Cannot ${actionLabel}: No internet connection. Your current information will be preserved. Please check your connection and try again.`, 'error');
+    updateConnectionBannerUI(ConnectionStatus.OFFLINE_BROWSER);
+    snapshotAllActiveDrafts();
+    return false;
+  }
+
+  if (currentConnectionState.isFirebaseReady === false) {
+    showToast(`Cannot ${actionLabel}: RiceFlow cloud services are temporarily unreachable. Your progress has been preserved. Please retry shortly.`, 'error');
+    updateConnectionBannerUI(ConnectionStatus.FIREBASE_UNAVAILABLE);
+    snapshotAllActiveDrafts();
+    return false;
+  }
+
+  return true;
+}
+
+export async function checkExistingOrderByReference(refNumber) {
+  if (!refNumber) return null;
+  // 1. Check local cached orders
+  try {
+    const cachedOrders = getOrders();
+    const existingCached = cachedOrders.find(o => o && o.referenceNumber === refNumber);
+    if (existingCached) return existingCached;
+  } catch (_) {}
+
+  // 2. Probe Firestore directly
+  try {
+    const match = await findOrderByReferenceNumber(refNumber);
+    if (match) return match;
+  } catch (_) {}
+
+  return null;
+}
+
 // ---------------------- TOAST ALERT POPUP ----------------------
 
 export function showToast(message, type = 'success') {
@@ -8723,6 +9265,12 @@ export function showToast(message, type = 'success') {
   } else if (type === 'error') {
     el.className += 'border-red-300 text-red-900 bg-red-50/95';
     el.innerHTML = `<span class="text-red-500 font-bold">${typeof ICONS !== 'undefined' ? ICONS.close : '✖'}</span><span>${message}</span>`;
+  } else if (type === 'warning' || type === 'amber') {
+    el.className += 'border-amber-300 text-amber-900 bg-amber-50/95';
+    el.innerHTML = `<span class="text-amber-500 font-bold">⚠️</span><span>${message}</span>`;
+  } else if (type === 'offline') {
+    el.className += 'border-rose-400 text-rose-950 bg-rose-50/95';
+    el.innerHTML = `<span class="text-rose-600 font-bold">📡❌</span><span>${message}</span>`;
   } else {
     el.className += 'border-blue-300 text-blue-900 bg-blue-50/95';
     el.innerHTML = (typeof ICONS !== 'undefined' ? ICONS.info : 'ℹ ') + `<span>${message}</span>`;
@@ -10617,9 +11165,11 @@ export function getStoreSettings() {
       tagline: 'Fresh Quality Rice Delivered to Your Doorstep',
       description: 'Aurora Local Rice provides high-quality rice products for households, retailers, and bulk buyers across Aurora, Zamboanga del Sur.',
       contactNumber: '+63 912 345 6789',
+      contactEmail: 'info@auroralocalrice.com',
       storeAddress: 'Aurora, Zamboanga del Sur, Philippines',
       facebookLink: 'https://facebook.com/auroralocalrice',
-      businessHours: '8:00 AM - 5:00 PM (Monday - Saturday)',
+      businessHours: '8:00 AM - 5:00 PM',
+      operatingDays: 'Monday - Saturday',
       logo: './rice_logo.jpg',
       banner: 'https://static.vecteezy.com/system/resources/thumbnails/047/128/443/small/a-bag-of-rice-is-sitting-on-a-wooden-table-with-a-bunch-of-rice-on-the-table-photo.jpg',
       gcashName: 'Aurora Rice Store',
@@ -10707,19 +11257,29 @@ export function getStoreSettings() {
     } catch (_) {}
   }
 
+  const pickStoredSetting = (lsKey, cloudVal, fallback) => {
+    const lsVal = localStorage.getItem(lsKey);
+    if (lsVal !== null) return lsVal;
+    if (cloudVal !== undefined && cloudVal !== null) return String(cloudVal);
+    return fallback;
+  };
+
   return {
+    id: cloudSettings.id || 'main',
     storeName: localStorage.getItem('settings-store-name') || cloudSettings.storeName || 'Aurora Local Rice',
     tagline: localStorage.getItem('settings-store-tagline') || cloudSettings.tagline || 'Fresh Quality Rice Delivered to Your Doorstep',
     description: localStorage.getItem('settings-store-description') || cloudSettings.description || 'Aurora Local Rice provides high-quality rice products for households, retailers, and bulk buyers across Aurora, Zamboanga del Sur.',
     contactNumber: localStorage.getItem('settings-contact-number') || cloudSettings.contactNumber || '+63 912 345 6789',
+    contactEmail: pickStoredSetting('settings-contact-email', cloudSettings.contactEmail, 'info@auroralocalrice.com'),
     storeAddress: localStorage.getItem('settings-store-address') || cloudSettings.storeAddress || 'Aurora, Zamboanga del Sur, Philippines',
-    facebookLink: localStorage.getItem('settings-facebook-link') || cloudSettings.facebookLink || '',
-    businessHours: localStorage.getItem('settings-business-hours') || cloudSettings.businessHours || '8:00 AM - 5:00 PM (Monday - Saturday)',
+    facebookLink: pickStoredSetting('settings-facebook-link', cloudSettings.facebookLink, ''),
+    businessHours: pickStoredSetting('settings-business-hours', cloudSettings.businessHours, '8:00 AM - 5:00 PM'),
+    operatingDays: pickStoredSetting('settings-operating-days', cloudSettings.operatingDays, 'Monday - Saturday'),
     logo: localStorage.getItem('settings-store-logo') || cloudSettings.logo || (p + 'rice_logo.jpg'),
     banner: localStorage.getItem('settings-store-banner') || cloudSettings.banner || 'https://static.vecteezy.com/system/resources/thumbnails/047/128/443/small/a-bag-of-rice-is-sitting-on-a-wooden-table-with-a-bunch-of-rice-on-the-table-photo.jpg',
     gcashName: localStorage.getItem('settings-gcash-name') || cloudSettings.gcashName || 'Aurora Rice Store',
     gcashNumber: localStorage.getItem('settings-gcash-number') || cloudSettings.gcashNumber || '09123456789',
-    gcashQr: localStorage.getItem('settings-gcash-qr') || cloudSettings.gcashQr || '',
+    gcashQr: pickStoredSetting('settings-gcash-qr', cloudSettings.gcashQr, ''),
     deliveryMinimumSettings,
     deliveryFeeSettings
   };
@@ -10852,32 +11412,26 @@ export function initReviewReminderPopup() {
   });
 }
 
-function applyThemeState(isDark, animateTransition = false) {
+function applyThemeState(isDark = false, animateTransition = false) {
   if (typeof document === 'undefined') return;
   const root = document.documentElement;
-  if (animateTransition && root && root.classList) {
-    root.classList.add('theme-transitioning');
-    if (typeof window !== 'undefined') {
-      if (window.__riceflowThemeTransitionTimer) {
-        clearTimeout(window.__riceflowThemeTransitionTimer);
-      }
-      window.__riceflowThemeTransitionTimer = setTimeout(() => {
-        root.classList.remove('theme-transitioning');
-      }, 260);
-    }
-  }
   if (root && root.classList) {
-    root.classList.toggle('dark', isDark);
-    root.style.colorScheme = isDark ? 'dark' : 'light';
+    root.classList.remove('dark');
+    root.classList.remove('theme-transitioning');
+    root.style.colorScheme = 'light';
   }
   if (document.body && document.body.classList) {
-    document.body.classList.toggle('dark', isDark);
+    document.body.classList.remove('dark');
+  }
+  if (typeof localStorage !== 'undefined') {
+    try {
+      localStorage.removeItem('aurora-dark-mode');
+    } catch (_) {}
   }
 }
 
 export function renderLayout() {
-  const isDark = typeof localStorage !== 'undefined' ? (localStorage.getItem('aurora-dark-mode') === 'true') : false;
-  applyThemeState(isDark, false);
+  applyThemeState(false, false);
   const settings = getStoreSettings();
   const headerContainer = document.getElementById('navbar-container');
   const footerContainer = document.getElementById('footer-container');
@@ -10941,11 +11495,6 @@ export function renderLayout() {
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="w-3.5 h-3.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
             </button>
           </div>
-
-          <!-- Night Mode Toggle Button -->
-          <button id="customer-dark-mode-toggle" class="flex items-center justify-center p-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-200/60 dark:border-slate-700 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-xl text-xs font-bold text-[#111827] dark:text-white transition-all cursor-pointer" title="Toggle Day/Night Mode">
-            <span id="customer-dark-mode-icon" class="w-4 h-4 flex items-center justify-center shrink-0"></span>
-          </button>
 
           <!-- Checkout Cart -->
           <a href="${p}cart.html" class="relative p-2.5 rounded-xl border border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-800 hover:border-gray-300 dark:hover:border-slate-600 transition-colors cursor-pointer text-[#111827] dark:text-white">
@@ -11240,71 +11789,6 @@ export function renderLayout() {
         openCustomerLogoutModal();
       };
     }
-
-    // --- DARK MODE TOGGLE LOGIC ---
-    function updateCustomerDarkModeUI(isDarkVal) {
-      const toggleBtn = document.getElementById('customer-dark-mode-toggle');
-      const iconSpan = document.getElementById('customer-dark-mode-icon');
-      const textSpan = document.getElementById('customer-dark-mode-text');
-      
-      const mobToggleBtn = document.getElementById('mobile-customer-dark-mode-toggle');
-      const mobIconSpan = document.getElementById('mobile-customer-dark-mode-icon');
-      const mobTextSpan = document.getElementById('mobile-customer-dark-mode-text');
-
-      const sunSvg = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 text-amber-500"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>`;
-      const moonSvg = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 text-slate-700"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>`;
-
-      if (isDarkVal) {
-        if (iconSpan) iconSpan.innerHTML = sunSvg;
-        if (textSpan) textSpan.textContent = 'Day Mode';
-        if (toggleBtn) {
-          toggleBtn.classList.remove('bg-gray-50', 'text-gray-700', 'border-gray-200/60');
-          toggleBtn.classList.add('bg-gray-800', 'text-gray-200', 'border-gray-700');
-        }
-
-        if (mobIconSpan) mobIconSpan.innerHTML = sunSvg;
-        if (mobTextSpan) mobTextSpan.textContent = 'Day Mode';
-        if (mobToggleBtn) {
-          mobToggleBtn.classList.remove('bg-gray-50', 'text-gray-700', 'border-gray-200/60');
-          mobToggleBtn.classList.add('bg-gray-800', 'text-gray-200', 'border-gray-700');
-        }
-      } else {
-        if (iconSpan) iconSpan.innerHTML = moonSvg;
-        if (textSpan) textSpan.textContent = 'Night Mode';
-        if (toggleBtn) {
-          toggleBtn.classList.add('bg-gray-50', 'text-gray-700', 'border-gray-200/60');
-          toggleBtn.classList.remove('bg-gray-800', 'text-gray-200', 'border-gray-700');
-        }
-
-        if (mobIconSpan) mobIconSpan.innerHTML = moonSvg;
-        if (mobTextSpan) mobTextSpan.textContent = 'Night Mode';
-        if (mobToggleBtn) {
-          mobToggleBtn.classList.add('bg-gray-50', 'text-gray-700', 'border-gray-200/60');
-          mobToggleBtn.classList.remove('bg-gray-800', 'text-gray-200', 'border-gray-700');
-        }
-      }
-    }
-
-    // Set initial toggle state
-    updateCustomerDarkModeUI(isDark);
-
-    const toggleDarkModeAction = () => {
-      const currentDark = localStorage.getItem('aurora-dark-mode') === 'true';
-      const newDark = !currentDark;
-      localStorage.setItem('aurora-dark-mode', newDark ? 'true' : 'false');
-      applyThemeState(newDark, true);
-      updateCustomerDarkModeUI(newDark);
-    };
-
-    const dToggle = document.getElementById('customer-dark-mode-toggle');
-    if (dToggle) {
-      dToggle.addEventListener('click', toggleDarkModeAction);
-    }
-
-    const mToggle = document.getElementById('mobile-customer-dark-mode-toggle');
-    if (mToggle) {
-      mToggle.addEventListener('click', toggleDarkModeAction);
-    }
   }
 
   // 2. DYNAMIC FOOTER
@@ -11347,11 +11831,18 @@ export function renderLayout() {
           <p class="text-green-200 leading-relaxed font-semibold">Store Location:</p>
           <p class="text-green-100/60 mb-4 font-medium">${settings.storeAddress}</p>
           <p class="text-green-200 font-semibold mb-1">Contact Phone:</p>
-          <p class="text-green-100/60 font-medium ${settings.businessHours || settings.facebookLink ? 'mb-4' : ''}">${settings.contactNumber}</p>
-          ${settings.businessHours ? `
+          <p class="text-green-100/60 font-medium ${(settings.businessHours || settings.operatingDays || settings.facebookLink) ? 'mb-4' : ''}">${settings.contactNumber}</p>
+          ${(settings.businessHours || settings.operatingDays) ? (() => {
+            const hrs = String(settings.businessHours || '').trim();
+            const days = String(settings.operatingDays || '').trim();
+            const scheduleText = (hrs && days)
+              ? (hrs.toLowerCase().includes(days.toLowerCase()) ? hrs : `${hrs} (${days})`)
+              : (hrs || days);
+            return `
             <p class="text-green-200 font-semibold mb-1">Business Hours:</p>
-            <p class="text-green-100/60 mb-4 font-medium">${settings.businessHours}</p>
-          ` : ''}
+            <p class="text-green-100/60 mb-4 font-medium">${scheduleText}</p>
+          `;
+          })() : ''}
           ${settings.facebookLink ? `
             <p class="text-green-200 font-semibold mb-1">Facebook Page:</p>
             <p class="text-green-100/60 font-medium"><a href="${settings.facebookLink}" target="_blank" class="hover:text-white underline transition-colors break-all">${settings.facebookLink}</a></p>
@@ -11794,12 +12285,7 @@ export function renderAdminLayout(activeTabId) {
             </div>
           </div>
 
-          <!-- Night Mode Toggle Button -->
-          <button id="admin-dark-mode-toggle" class="flex items-center justify-center p-2.5 bg-gray-50 border border-gray-200/60 hover:bg-gray-100 rounded-xl text-xs font-bold text-gray-700 transition-all cursor-pointer" title="Toggle Day/Night Mode">
-            <span id="admin-dark-mode-icon" class="w-4 h-4 flex items-center justify-center shrink-0"></span>
-          </button>
 
-          <span class="h-6 w-[1px] bg-gray-200"></span>
 
           <!-- Profile Info Badge -->
           <div class="flex items-center gap-3">
@@ -11877,44 +12363,7 @@ export function renderAdminLayout(activeTabId) {
     backdrop.addEventListener('click', closeAdminSidebar);
   }
 
-  // Night Mode (Dark Mode) UI Updater
-  function updateDarkModeUI(isDark) {
-    const toggleBtn = document.getElementById('admin-dark-mode-toggle');
-    const iconSpan = document.getElementById('admin-dark-mode-icon');
-    const textSpan = document.getElementById('admin-dark-mode-text');
-    if (!toggleBtn) return;
-    if (isDark) {
-      if (iconSpan) {
-        iconSpan.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 text-amber-500"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>`;
-      }
-      if (textSpan) textSpan.textContent = 'Day Mode';
-      toggleBtn.classList.remove('bg-gray-50', 'text-gray-700', 'border-gray-200/60');
-      toggleBtn.classList.add('bg-gray-800', 'text-gray-200', 'border-gray-700');
-    } else {
-      if (iconSpan) {
-        iconSpan.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 text-slate-700"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>`;
-      }
-      if (textSpan) textSpan.textContent = 'Night Mode';
-      toggleBtn.classList.add('bg-gray-50', 'text-gray-700', 'border-gray-200/60');
-      toggleBtn.classList.remove('bg-gray-800', 'text-gray-200', 'border-gray-700');
-    }
-  }
-
-  // Set initial state
-  const isDark = localStorage.getItem('aurora-dark-mode') === 'true';
-  applyThemeState(isDark, false);
-  updateDarkModeUI(isDark);
-
-  const darkModeToggle = document.getElementById('admin-dark-mode-toggle');
-  if (darkModeToggle) {
-    darkModeToggle.addEventListener('click', () => {
-      const currentDark = localStorage.getItem('aurora-dark-mode') === 'true';
-      const newDark = !currentDark;
-      localStorage.setItem('aurora-dark-mode', newDark ? 'true' : 'false');
-      applyThemeState(newDark, true);
-      updateDarkModeUI(newDark);
-    });
-  }
+  applyThemeState(false, false);
 
   setupAdminNotifications();
   try {
@@ -13361,19 +13810,18 @@ export function getDashboardTotalReservationsData(options = {}) {
   return getDashboardActiveReservationsData(options);
 }
 
-// Automatically apply dark mode at load time on all pages to prevent theme flashing
+// Enforce Light Mode at load time on all pages
 if (typeof window !== 'undefined' && typeof document !== 'undefined') {
-  const isDarkInit = localStorage.getItem('aurora-dark-mode') === 'true';
-  applyThemeState(isDarkInit, false);
+  applyThemeState(false, false);
 
   window.addEventListener('pageshow', () => {
-    const isDarkNow = localStorage.getItem('aurora-dark-mode') === 'true';
-    applyThemeState(isDarkNow, false);
+    applyThemeState(false, false);
   });
 }
 
-// Automatically invoke layout render as early as possible
+// Automatically invoke connection monitor and layout render as early as possible
 if (typeof document !== 'undefined') {
+  initConnectionMonitor();
   if (document.getElementById('navbar-container') && document.getElementById('footer-container')) {
     renderLayout();
   } else if (document.readyState === 'loading') {

@@ -8,9 +8,9 @@
     (function() {
       try {
         var d = document.documentElement;
-        var isDark = localStorage.getItem('aurora-dark-mode') === 'true';
-        d.classList.toggle('dark', isDark);
-        d.style.colorScheme = isDark ? 'dark' : 'light';
+        d.classList.remove('dark');
+        d.style.colorScheme = 'light';
+        if (typeof localStorage !== 'undefined') { try { localStorage.removeItem('aurora-dark-mode'); } catch(_) {} }
       } catch (e) {}
     })();
   </script>
@@ -19,26 +19,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Source+Sans+3:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400;1,600&display=swap" rel="stylesheet">
   <style id="riceflow-theme-init">
     html { background-color: #F5F5F5; color-scheme: light; }
-    html.dark { background-color: #1F2937 !important; color-scheme: dark; }
-    html.dark body,
-    html.dark #admin-layout-container,
-    html.dark #admin-main-content {
-      background-color: #1F2937;
-      color: #F9FAFB;
-    }
-    html.dark #auth-guard-loader {
-      background-color: #1F2937 !important;
-      color: #F9FAFB !important;
-    }
-    html.dark #admin-sidebar,
-    html.dark aside,
-    html.dark header,
-    html.dark .bg-white,
-    html.dark .bg-gray-50,
-    html.dark .bg-slate-50 {
-      background-color: #111827;
-      color: #F9FAFB;
-    }
+    
   
       /* Order review layout: keep primary cards tidy and the timeline below the full row. */
       .order-payment-review-card { box-sizing: border-box; min-width: 0; }
@@ -163,7 +144,7 @@
         .delivery-info-card .delivery-info-grid > div { padding: 9px; }
         .delivery-info-title { font-size: 16px !important; }
       }
-    </style>
+  </style>
   <style id="hide-smart-route-planner-ui">
     /* Hide route-planning UI only; retain customer address and map/location controls. */
     #btn-open-route-planner,
@@ -1089,6 +1070,43 @@
 }
 </style>
 
+
+  <style id="riceflow-admin-responsive-repair">
+
+/* Targeted responsive repair: Order Management */
+#admin-main-content, #admin-main-content * { min-width: 0; }
+#admin-main-content h1, #admin-main-content h2, #admin-main-content h3,
+#admin-main-content h4, #admin-main-content p, #admin-main-content label,
+#admin-main-content button, #admin-main-content th, #admin-main-content td {
+  overflow-wrap: normal !important; word-break: normal !important; hyphens: manual !important;
+}
+#admin-layout-container > #admin-right-workspace > header { gap: 12px; }
+#admin-main-content .top-scrollbar-container { width: 100%; max-width: 100%; overflow-x: auto !important; overflow-y: hidden !important; transform: none !important; -webkit-overflow-scrolling: touch; }
+#admin-main-content .top-scrollbar-container > table { transform: none !important; }
+#admin-main-content .top-scrollbar-container > table { min-width: 1000px !important; }
+#details-modal-box { width: min(100%, 896px) !important; max-width: calc(100vw - 24px) !important; max-height: calc(100dvh - 24px) !important; overflow-y: auto !important; }
+#order-audit-only-modal > div { width: min(100%, 900px) !important; max-width: calc(100vw - 24px) !important; max-height: calc(100dvh - 24px) !important; overflow-y: auto !important; }
+@media (max-width: 1024px) {
+  #admin-layout-container > #admin-right-workspace > header { min-height: 68px; height: auto; padding: 12px 16px; }
+  #admin-layout-container > #admin-right-workspace > header h2 { font-size: 21px !important; line-height: 1.25 !important; }
+  #admin-main-content { padding: 18px 16px !important; }
+}
+@media (max-width: 640px) {
+  #admin-main-content { padding: 14px 12px !important; }
+  #admin-main-content .top-scrollbar-container { border-radius: 12px; }
+  #admin-main-content .top-scrollbar-container table th,
+  #admin-main-content .top-scrollbar-container table td { padding-left: 9px !important; padding-right: 9px !important; }
+  #admin-main-content #status-filters-stack { display: flex !important; flex-wrap: nowrap !important; overflow-x: auto !important; -webkit-overflow-scrolling: touch; gap: 8px !important; padding-bottom: 6px !important; }
+  #admin-main-content #status-filters-stack::-webkit-scrollbar { height: 4px; }
+  #admin-main-content #status-filters-stack > * { flex: 0 0 auto !important; }
+  #admin-main-content .order-count-badge { font-size: 12px !important; white-space: nowrap !important; }
+  #admin-main-content .bg-white.dark\:bg-\[\#111827\].rounded-2xl.border.p-4.shadow-sm.space-y-4 > div:first-child { align-items: flex-start !important; flex-wrap: wrap !important; gap: 10px !important; }
+  #admin-main-content .bg-white.dark\:bg-\[\#111827\].rounded-2xl.border.p-4.shadow-sm.space-y-4 > div:first-child > div { min-width: 0; }
+  #details-modal-box { padding: 16px !important; }
+  #order-audit-only-modal { padding: 10px !important; }
+}
+
+  </style>
 </head>
 <body class="bg-[#F5F5F5] min-h-screen font-sans">
   <div id="auth-guard-loader" class="fixed inset-0 bg-[#F5F5F5] z-[99999] flex flex-col items-center justify-center font-sans">
@@ -2330,12 +2348,18 @@
             <select id="offline-delivery-option" required class="rf-offline-field-control mt-1 w-full rounded-lg border px-3 py-2.5"><option value="delivery">Home Delivery</option><option value="pickup">Store Pickup</option></select>
           </label>
         </div>
+        <div id="offline-delivery-fee-field" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <label class="rf-offline-field-label block sm:col-span-1">Delivery fee (₱) *
+            <input id="offline-delivery-fee-input" type="number" min="0" step="0.01" value="80.00" class="rf-offline-field-control mt-1 w-full rounded-lg border px-3 py-2.5" placeholder="80.00" />
+            <span class="text-xs text-gray-500 mt-1 block">Default fee from rules; editable by staff for custom delivery arrangements.</span>
+          </label>
+        </div>
         <div id="offline-price-summary" class="rf-offline-price-summary rounded-xl border p-4 space-y-2">
           <div class="flex justify-between gap-3"><span>Price per sack</span><strong id="offline-unit-price">—</strong></div>
           <div class="flex justify-between gap-3"><span>Rice subtotal</span><strong id="offline-subtotal">—</strong></div>
           <div class="flex justify-between gap-3"><span>Delivery fee</span><strong id="offline-delivery-fee">—</strong></div>
           <div class="rf-offline-total-row flex justify-between gap-3"><span>Total amount due</span><strong id="offline-total">—</strong></div>
-          <p class="rf-offline-summary-note pt-1">Home delivery fee: ₱80.00. Store Pickup: ₱0.00. Final total follows RiceFlow’s existing order calculation.</p>
+          <p id="offline-summary-note" class="rf-offline-summary-note pt-1">Delivery fee is editable above for home delivery. Store Pickup: ₱0.00. Final total follows RiceFlow’s existing order calculation.</p>
         </div>
         <label id="offline-address-field" class="rf-offline-field-label block">Delivery address *
           <textarea id="offline-customer-address" rows="2" maxlength="500" class="rf-offline-field-control mt-1 w-full rounded-lg border px-3 py-2.5"></textarea>
@@ -2437,7 +2461,40 @@
 
   <!-- INTERACTION CONTROLLER -->
   <script type="module">
-    import { protectAdminPage, renderAdminLayout, getAllOrders, getProducts, addOrderAtomic, saveOrderDoc, verifyPayment, updateOrderStatus, addActivityLog, showToast, saveOrders, addNotification, getCashToAudit, evaluateOrderCompletion, verifyCashTurnover, getCurrentAdmin, processOrderStockAndSplitIfNeeded, getEstimatedArrivalDate, getReservationQueuePosition, isReservationOrder, updateOrderRefundStatus, getStoreSettings, saveDeliveryRoutePlanDoc, fetchActiveDeliveryRoutePlanFromFirestore, clearDeliveryRoutePlanDoc, orderRequiresCashAudit, isOrderCashAuditVerified, hasUnresolvedIssue } from '../src/app/shared.js';
+    import { 
+      protectAdminPage, 
+      renderAdminLayout, 
+      getAllOrders, 
+      getProducts, 
+      addOrderAtomic, 
+      saveOrderDoc, 
+      verifyPayment, 
+      updateOrderStatus, 
+      addActivityLog, 
+      showToast, 
+      saveOrders, 
+      addNotification, 
+      getCashToAudit, 
+      evaluateOrderCompletion, 
+      verifyCashTurnover, 
+      getCurrentAdmin, 
+      processOrderStockAndSplitIfNeeded, 
+      getEstimatedArrivalDate, 
+      getReservationQueuePosition, 
+      isReservationOrder, 
+      updateOrderRefundStatus, 
+      getStoreSettings, 
+      saveDeliveryRoutePlanDoc, 
+      fetchActiveDeliveryRoutePlanFromFirestore, 
+      clearDeliveryRoutePlanDoc, 
+      orderRequiresCashAudit, 
+      isOrderCashAuditVerified, 
+      hasUnresolvedIssue, 
+      evaluateDeliveryFee,
+      assertCanPerformFirebaseWrite,
+      autoBindDraftPreservation,
+      clearFormDraft
+    } from '../src/app/shared.js';
     import { saveFirestoreDoc } from '../src/lib/firebase.js';
 
     window.getCurrentAdmin = getCurrentAdmin;
@@ -2459,7 +2516,10 @@
       const offlineForm = document.getElementById('offline-order-form');
       const offlineProductSelect = document.getElementById('offline-product-select');
       const offlineDeliverySelect = document.getElementById('offline-delivery-option');
+      const offlineDeliveryFeeField = document.getElementById('offline-delivery-fee-field');
+      const offlineDeliveryFeeInput = document.getElementById('offline-delivery-fee-input');
       const offlineAddressField = document.getElementById('offline-address-field');
+      const offlineCustomerAddress = document.getElementById('offline-customer-address');
       const offlineQuantityInput = document.getElementById('offline-order-quantity');
       const offlineUnitPrice = document.getElementById('offline-unit-price');
       const offlineSubtotal = document.getElementById('offline-subtotal');
@@ -2469,6 +2529,38 @@
       const offlinePaymentState = document.getElementById('offline-payment-state');
       const offlineAmountReceived = document.getElementById('offline-amount-received');
       const offlinePaymentReference = document.getElementById('offline-payment-reference');
+
+      const isProductArchived = (p) => Boolean(
+        p && (
+          p.isArchived === true ||
+          p.archived === true ||
+          p.status === 'archived' ||
+          String(p.status || '').toLowerCase() === 'archived'
+        )
+      );
+
+      let isDeliveryFeeUserModified = false;
+
+      const computeDefaultDeliveryFee = (addressText) => {
+        try {
+          const storeSettings = typeof getStoreSettings === 'function' ? getStoreSettings() : null;
+          if (typeof evaluateDeliveryFee === 'function') {
+            const evalRes = evaluateDeliveryFee(addressText || '', storeSettings);
+            if (evalRes && evalRes.isMatched && Number.isFinite(Number(evalRes.fee))) {
+              return Math.max(0, Number(evalRes.fee));
+            }
+          }
+        } catch (err) {
+          console.warn('[OFFLINE ORDER] Error evaluating delivery fee rule:', err);
+        }
+        return 80;
+      };
+
+      const getOfflineDeliveryFeeValue = () => {
+        if (offlineDeliverySelect?.value !== 'delivery') return 0;
+        const val = Number(offlineDeliveryFeeInput?.value);
+        return Number.isFinite(val) && val >= 0 ? val : 0;
+      };
 
       const getOfflinePaymentMethodLabel = (method) => ({ cash: 'Cash', bank_transfer: 'Bank Transfer', cheque: 'Cheque' }[String(method || '').toLowerCase()] || 'Cash');
       const getOfflinePaymentStateLabel = (state) => ({ unpaid: 'Not yet received / Cash on delivery', pending_verification: 'Reported sent / Pending verification', confirmed: 'Received and confirmed' }[String(state || '').toLowerCase()] || 'Not yet received');
@@ -2484,11 +2576,12 @@
       };
 
       const updateOfflinePriceSummary = () => {
-        const selected = getProducts().find(p => String(p.id) === String(offlineProductSelect?.value));
+        const selected = getProducts().find(p => String(p.id) === String(offlineProductSelect?.value) && !isProductArchived(p));
         const quantity = Math.max(0, Number(offlineQuantityInput?.value) || 0);
         const unitPrice = Number(selected?.price || 0);
         const subtotal = selected && quantity > 0 ? unitPrice * quantity : 0;
-        const deliveryFee = offlineDeliverySelect?.value === 'delivery' ? 80 : 0;
+        const isDelivery = offlineDeliverySelect?.value === 'delivery';
+        const deliveryFee = isDelivery ? getOfflineDeliveryFeeValue() : 0;
         if (offlineUnitPrice) offlineUnitPrice.textContent = selected ? formatOfflineMoney(unitPrice) : '—';
         if (offlineSubtotal) offlineSubtotal.textContent = selected && quantity > 0 ? formatOfflineMoney(subtotal) : '—';
         if (offlineDeliveryFee) offlineDeliveryFee.textContent = formatOfflineMoney(deliveryFee);
@@ -2499,7 +2592,7 @@
       const updateOfflineSubmitLabel = () => {
         const button = document.getElementById('btn-submit-offline-order');
         if (!button) return;
-        const product = getProducts().find(p => String(p.id) === String(offlineProductSelect?.value));
+        const product = getProducts().find(p => String(p.id) === String(offlineProductSelect?.value) && !isProductArchived(p));
         const quantity = Math.max(0, Number(offlineQuantityInput?.value) || 0);
         const available = getProductAvailableStock(product);
         button.textContent = product && quantity > available ? 'Confirm Reservation' : 'Confirm Order';
@@ -2517,7 +2610,7 @@
 
       const openOfflineOrderModal = () => {
         if (!offlineProductSelect) return;
-        const products = getProducts().filter(p => p && p.id && p.name);
+        const products = getProducts().filter(p => p && p.id && p.name && !isProductArchived(p));
         offlineProductSelect.innerHTML = '<option value="">Select rice variety…</option>' + products.map(p => {
           const stock = getProductAvailableStock(p);
           const price = Math.max(0, Number(p.price || 0));
@@ -2525,7 +2618,13 @@
           return `<option value="${String(p.id).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;')}">${String(p.name).replace(/&/g, '&amp;').replace(/</g, '&lt;')} — ₱${price.toFixed(2)} per sack (${stockLabel})</option>`;
         }).join('');
         offlineForm?.reset();
+        isDeliveryFeeUserModified = false;
         if (offlineDeliverySelect) offlineDeliverySelect.value = 'delivery';
+        if (offlineDeliveryFeeInput) {
+          offlineDeliveryFeeInput.disabled = false;
+          offlineDeliveryFeeInput.value = computeDefaultDeliveryFee('').toFixed(2);
+        }
+        if (offlineDeliveryFeeField) offlineDeliveryFeeField.classList.remove('hidden');
         if (offlinePaymentMethod) offlinePaymentMethod.value = 'cash';
         if (offlinePaymentState) offlinePaymentState.value = 'unpaid';
         if (offlineAmountReceived) offlineAmountReceived.value = '0';
@@ -2537,6 +2636,14 @@
         closeOfflineConfirmModal();
         updateOfflinePriceSummary();
         offlineModal?.classList.remove('hidden');
+
+        // Automatically preserve unfinished inputs for the offline order form
+        autoBindDraftPreservation('offline-order-form', 'admin_offline_order', {
+          exclude: ['type=password'],
+          onRestored: () => {
+            updateOfflinePriceSummary();
+          }
+        });
       };
 
       document.addEventListener('click', (event) => {
@@ -2547,12 +2654,35 @@
 
       offlineProductSelect?.addEventListener('change', updateOfflinePriceSummary);
       offlineQuantityInput?.addEventListener('input', updateOfflinePriceSummary);
+
       offlineDeliverySelect?.addEventListener('change', () => {
         const isDelivery = offlineDeliverySelect.value === 'delivery';
         if (offlineAddressField) offlineAddressField.classList.toggle('hidden', !isDelivery);
+        if (offlineDeliveryFeeField) offlineDeliveryFeeField.classList.toggle('hidden', !isDelivery);
+        if (offlineDeliveryFeeInput) {
+          offlineDeliveryFeeInput.disabled = !isDelivery;
+          if (isDelivery && !isDeliveryFeeUserModified) {
+            offlineDeliveryFeeInput.value = computeDefaultDeliveryFee(offlineCustomerAddress?.value || '').toFixed(2);
+          }
+        }
         const addressInput = document.getElementById('offline-customer-address');
         if (addressInput) addressInput.required = isDelivery;
         updateOfflinePriceSummary();
+      });
+
+      offlineDeliveryFeeInput?.addEventListener('input', () => {
+        isDeliveryFeeUserModified = true;
+        updateOfflinePriceSummary();
+      });
+
+      offlineCustomerAddress?.addEventListener('input', () => {
+        if (!isDeliveryFeeUserModified && offlineDeliverySelect?.value === 'delivery') {
+          const calculatedFee = computeDefaultDeliveryFee(offlineCustomerAddress.value);
+          if (offlineDeliveryFeeInput) {
+            offlineDeliveryFeeInput.value = calculatedFee.toFixed(2);
+          }
+          updateOfflinePriceSummary();
+        }
       });
 
       // Submit listener on the input form: validates fields and presents the in-app confirmation dialog
@@ -2561,7 +2691,7 @@
         const submitButton = document.getElementById('btn-submit-offline-order');
         if (!submitButton || submitButton.disabled || isSubmittingOfflineOrder) return;
         const products = getProducts();
-        const selectedProduct = products.find(p => String(p.id) === String(offlineProductSelect?.value));
+        const selectedProduct = products.find(p => String(p.id) === String(offlineProductSelect?.value) && !isProductArchived(p));
         const quantity = Number(document.getElementById('offline-order-quantity')?.value);
         const customerName = String(document.getElementById('offline-customer-name')?.value || '').trim();
         const customerPhone = String(document.getElementById('offline-customer-phone')?.value || '').trim();
@@ -2578,9 +2708,18 @@
           return;
         }
 
+        let deliveryFee = 0;
+        if (deliveryOption === 'delivery') {
+          const parsedFee = Number(offlineDeliveryFeeInput?.value);
+          if (!Number.isFinite(parsedFee) || parsedFee < 0) {
+            showToast('Please enter a valid non-negative delivery fee (₱0 or higher).', 'error');
+            return;
+          }
+          deliveryFee = Math.round(parsedFee * 100) / 100;
+        }
+
         const unitPrice = Number(selectedProduct.price || 0);
         const subtotal = unitPrice * quantity;
-        const deliveryFee = deliveryOption === 'delivery' ? 80 : 0;
         const total = subtotal + deliveryFee;
         const availableStock = getProductAvailableStock(selectedProduct);
         const isAdvanceReservation = quantity > availableStock;
@@ -2652,7 +2791,7 @@
         if (phoneEl) phoneEl.textContent = customerPhone;
         if (prodEl) prodEl.textContent = selectedProduct.name;
         if (qtyEl) qtyEl.textContent = `${quantity} sack${quantity > 1 ? 's' : ''}`;
-        if (fulfillEl) fulfillEl.textContent = deliveryOption === 'delivery' ? 'Home Delivery (₱80.00)' : 'Store Pickup (₱0.00)';
+        if (fulfillEl) fulfillEl.textContent = deliveryOption === 'delivery' ? `Home Delivery (${formatOfflineMoney(deliveryFee)})` : 'Store Pickup (₱0.00)';
         if (addrRow && addrEl) {
           if (deliveryOption === 'delivery') {
             addrRow.classList.remove('hidden');
@@ -2707,6 +2846,10 @@
 
       // Confirm button inside in-app modal: executes authoritative atomic order creation
       document.getElementById('btn-offline-confirm-proceed')?.addEventListener('click', async () => {
+        if (!assertCanPerformFirebaseWrite('record phone / walk-in order')) {
+          return;
+        }
+
         if (!pendingOfflinePayload || isSubmittingOfflineOrder) return;
         const proceedBtn = document.getElementById('btn-offline-confirm-proceed');
         const backBtn = document.getElementById('btn-offline-confirm-back');
@@ -2721,7 +2864,7 @@
         if (submitButton) submitButton.disabled = true;
 
         try {
-          const { selectedProduct, quantity, customerName, customerPhone, deliveryOption, address, notes, isAdvanceReservation, paymentMethod, paymentState, amountReceived, paymentAmountPendingVerification, paymentReference } = pendingOfflinePayload;
+          const { selectedProduct, quantity, customerName, customerPhone, deliveryOption, deliveryFee, address, notes, isAdvanceReservation, paymentMethod, paymentState, amountReceived, paymentAmountPendingVerification, paymentReference, total } = pendingOfflinePayload;
           const now = new Date().toISOString();
 
           const created = await addOrderAtomic({
@@ -2742,6 +2885,7 @@
             paymentVerified: false,
             financialStatus: 'Pending Cash Collection',
             deliveryOption,
+            deliveryFee: deliveryOption === 'delivery' ? deliveryFee : 0,
             address: deliveryOption === 'delivery' ? address : '',
             notes,
             createdAt: now,
@@ -2759,11 +2903,14 @@
             throw new Error('The order could not be confirmed. Please check the order list before retrying.');
           }
 
+          const effectiveTotal = Number(created.total !== undefined ? created.total : total);
           const finalOfflineOrder = {
             ...created,
             orderSource: 'offline_admin',
             orderSourceLabel: 'Phone / Walk-in',
             createdByAdmin: true,
+            deliveryFee: deliveryOption === 'delivery' ? deliveryFee : 0,
+            total: effectiveTotal,
             // Keep payment recording specific to admin-entered orders; the atomic stock/reservation transaction remains unchanged.
             paymentMethod: isAdvanceReservation ? created.paymentMethod : paymentMethod,
             paymentType: isAdvanceReservation ? created.paymentType : (paymentState === 'unpaid' && paymentMethod === 'cash' ? 'cash_on_delivery' : 'offline_recorded'),
@@ -2771,13 +2918,13 @@
             offlinePaymentState: isAdvanceReservation ? 'unpaid' : paymentState,
             paymentReference: isAdvanceReservation ? '' : paymentReference,
             paymentAmountPendingVerification: isAdvanceReservation ? 0 : paymentAmountPendingVerification,
-            paymentStatus: isAdvanceReservation ? 'pending' : (paymentState === 'pending_verification' ? 'pending_verification' : (amountReceived >= Number(created.total || 0) ? 'paid' : (amountReceived > 0 ? 'partially_paid' : 'pending'))),
+            paymentStatus: isAdvanceReservation ? 'pending' : (paymentState === 'pending_verification' ? 'pending_verification' : (amountReceived >= effectiveTotal ? 'paid' : (amountReceived > 0 ? 'partially_paid' : 'pending'))),
             paymentVerified: !isAdvanceReservation && paymentState === 'confirmed',
-            financialStatus: isAdvanceReservation ? 'Pending Cash Collection' : (Number(created.total || 0) - amountReceived > 0 ? 'Pending Turnover' : 'Verified'),
+            financialStatus: isAdvanceReservation ? 'Pending Cash Collection' : (effectiveTotal - amountReceived > 0 ? 'Pending Turnover' : 'Verified'),
             amountPaid: isAdvanceReservation ? 0 : amountReceived,
-            remainingAmount: isAdvanceReservation ? Number(created.total || 0) : Math.max(0, Number(created.total || 0) - amountReceived),
+            remainingAmount: isAdvanceReservation ? effectiveTotal : Math.max(0, effectiveTotal - amountReceived),
             // For the existing cash-turnover workflow, only the outstanding balance remains due for collection.
-            amountCollected: isAdvanceReservation ? Number(created.total || 0) : Math.max(0, Number(created.total || 0) - amountReceived),
+            amountCollected: isAdvanceReservation ? effectiveTotal : Math.max(0, effectiveTotal - amountReceived),
             statusHistory: [...(Array.isArray(created.statusHistory) ? created.statusHistory : []), {
               id: `offline-${Date.now()}`,
               status: isAdvanceReservation ? 'Waiting for Stock' : 'Processing',
@@ -2794,6 +2941,7 @@
 
           closeOfflineConfirmModal();
           closeOfflineOrderModal();
+          clearFormDraft('admin_offline_order');
 
           if (isAdvanceReservation) {
             showToast(`Advance reservation #${finalOfflineOrder.id} recorded in Reservation Management! Stock is pending restock.`, 'success');
@@ -3921,22 +4069,15 @@
                   <span class="order-count-badge text-[15px] font-bold text-black dark:text-white bg-gray-50 dark:bg-gray-800 px-3.5 py-1.5 rounded-lg border border-gray-300 dark:border-gray-700">Count: ${filtered.length} Reports</span>
                 </div>
 
-                <div class="top-scrollbar-container">
-                  <table class="w-full table-fixed text-center text-[16px] font-normal text-black border-collapse">
-                    <colgroup>
-                      <col style="width: 11%" />
-                      <col style="width: 17%" />
-                      <col style="width: 25%" />
-                      <col style="width: 17%" />
-                      <col style="width: 30%" />
-                    </colgroup>
+                <div class="top-scrollbar-container overflow-x-auto w-full scrollbar-thin">
+                  <table class="w-full min-w-[860px] text-center text-[16px] font-normal text-black border-collapse">
                     <thead>
                       <tr class="border-b border-gray-200 text-black font-semibold text-[15px] tracking-wide bg-gray-50/70">
-                        <th class="py-3 px-2 text-center rounded-tl-xl">Order #</th>
-                        <th class="py-3 px-2 text-center">Customer</th>
-                        <th class="py-3 px-2 text-center">Product Name</th>
-                        <th class="py-3 px-2 text-center">Status</th>
-                        <th class="py-3 px-2 text-center rounded-tr-xl">Actions</th>
+                        <th class="py-3 px-3 text-center whitespace-nowrap min-w-[100px] rounded-tl-xl">Order #</th>
+                        <th class="py-3 px-3 text-center whitespace-nowrap min-w-[150px]">Customer</th>
+                        <th class="py-3 px-3 text-center whitespace-nowrap min-w-[200px]">Product Name</th>
+                        <th class="py-3 px-3 text-center whitespace-nowrap min-w-[160px]">Status</th>
+                        <th class="py-3 px-3 text-center whitespace-nowrap min-w-[325px] rounded-tr-xl">Actions</th>
                       </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
@@ -3964,12 +4105,12 @@
 
                         return `
                           <tr id="order-row-${order.id}" class="order-row-${idx % 2 === 0 ? 'even' : 'odd'} transition-colors duration-150 ${idx % 2 === 0 ? 'bg-white dark:bg-[#111827]' : 'bg-[#F8FAFC] dark:bg-[#162032]'} hover:bg-[#F0FDF4] dark:hover:bg-[#1E293B]">
-                            <td class="py-3 px-2 font-semibold text-black text-[15px] text-center align-middle whitespace-nowrap">#${order.id}</td>
-                            <td class="py-3 px-2 text-center align-middle font-normal text-black text-[15px] break-words">${order.fullName || 'N/A'}</td>
-                            <td class="py-3 px-2 text-center align-middle font-normal text-black text-[15px] break-words leading-snug">${itemsText}</td>
-                            <td class="py-3 px-2 text-center align-middle">${subStatusBadge}</td>
-                            <td class="py-3 px-2 text-center align-middle">
-                              <div class="flex flex-row flex-nowrap gap-2 items-center justify-center">
+                            <td class="py-3 px-3 font-semibold text-black text-[15px] text-center align-middle whitespace-nowrap">#${order.id}</td>
+                            <td class="py-3 px-3 text-center align-middle font-normal text-black text-[15px] whitespace-nowrap">${order.fullName || 'N/A'}</td>
+                            <td class="py-3 px-3 text-center align-middle font-normal text-black text-[15px] leading-snug">${itemsText}</td>
+                            <td class="py-3 px-3 text-center align-middle whitespace-nowrap">${subStatusBadge}</td>
+                            <td class="py-3 px-3 text-center align-middle min-w-[325px] whitespace-nowrap">
+                              <div class="flex items-center justify-center gap-2 flex-nowrap">
                                 <button data-id="${order.id}" class="btn-grid-action-trigger issue-review-action inline-flex items-center justify-center w-[148px] min-w-[148px] h-10 px-3 rounded-xl text-white font-semibold text-[15px] transition-all duration-200 cursor-pointer shadow-xs whitespace-nowrap hover:shadow-sm active:scale-[0.98] bg-red-600 hover:bg-red-700">
                                   Review Issue
                                 </button>
@@ -4144,12 +4285,12 @@
                           <input type="checkbox" id="chk-select-all-pending-header" class="w-4 h-4 rounded text-[#1E6C02] cursor-pointer" ${isAllPendingSelected ? 'checked' : ''} />
                         </th>
                       ` : ''}
-                      <th class="py-4.5 px-3 text-center min-w-[115px] ${statusFilter === 'delivered' ? '' : 'rounded-tl-xl'}">Order ID</th>
-                      <th class="py-4.5 px-4 text-center min-w-[160px]">Customer</th>
-                      <th class="py-4.5 px-5 text-center min-w-[240px]">Rice Variety</th>
-                      <th class="py-4.5 px-4 text-center min-w-[170px] font-bold text-black dark:text-white text-base">Status</th>
-                      <th class="py-4.5 px-4 text-center min-w-[170px] font-bold text-black dark:text-white text-base">${statusFilter === 'delivered' ? 'Verified Payment' : 'Delivery Priority'}</th>
-                      <th class="py-4.5 px-4 text-center min-w-[165px] rounded-tr-xl">Actions</th>
+                      <th class="py-4.5 px-3 text-center min-w-[115px] whitespace-nowrap ${statusFilter === 'delivered' ? '' : 'rounded-tl-xl'}">Order ID</th>
+                      <th class="py-4.5 px-4 text-center min-w-[160px] whitespace-nowrap">Customer</th>
+                      <th class="py-4.5 px-5 text-center min-w-[240px] whitespace-nowrap">Rice Variety</th>
+                      <th class="py-4.5 px-4 text-center min-w-[170px] whitespace-nowrap font-bold text-black dark:text-white text-base">Status</th>
+                      <th class="py-4.5 px-4 text-center min-w-[170px] whitespace-nowrap font-bold text-black dark:text-white text-base">${statusFilter === 'delivered' ? 'Verified Payment' : 'Delivery Priority'}</th>
+                      <th class="py-4.5 px-4 text-center min-w-[325px] whitespace-nowrap rounded-tr-xl">Actions</th>
                     </tr>
                   </thead>
                   <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
@@ -4469,8 +4610,8 @@
                           </td>
                           
                           <!-- Actions -->
-                          <td class="py-4.5 px-4 text-center align-middle min-w-[150px]">
-                            <div class="flex flex-col sm:flex-row gap-2 justify-center items-center">
+                          <td class="py-4.5 px-4 text-center align-middle min-w-[325px] whitespace-nowrap">
+                            <div class="flex items-center justify-center gap-2 flex-nowrap">
                               ${actionButton}
                               <button type="button" data-audit-order-id="${order.id}" class="btn-open-order-audit inline-flex items-center justify-center w-[148px] min-w-[148px] h-10 px-3 rounded-xl border border-black bg-white text-black font-semibold text-[15px] hover:bg-green-50 hover:shadow-sm transition-all duration-150 cursor-pointer whitespace-nowrap" title="Open this order's Audit Logs & Timeline">
                                 ⏱️ Audit Logs

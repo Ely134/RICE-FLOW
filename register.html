@@ -8,7 +8,7 @@
     (function() {
       try {
         var d = document.documentElement;
-        var isDark = localStorage.getItem('aurora-dark-mode') === 'true';
+        var isDark = false; // RiceFlow uses Light Mode only.
         d.classList.toggle('dark', isDark);
         d.style.colorScheme = isDark ? 'dark' : 'light';
       } catch (e) {}
@@ -291,7 +291,17 @@
 
   <!-- Embedded controller logical scripts -->
   <script type="module">
-    import { registerUser, checkEmailExists, checkPhoneExists, validatePhilippinePhone, normalizePhilippinePhone, showToast } from './src/app/shared.js';
+    import { 
+      registerUser, 
+      checkEmailExists, 
+      checkPhoneExists, 
+      validatePhilippinePhone, 
+      normalizePhilippinePhone, 
+      showToast,
+      assertCanPerformFirebaseWrite,
+      autoBindDraftPreservation,
+      clearFormDraft
+    } from './src/app/shared.js';
 
     const REGISTRATION_DRAFT_KEY = 'riceflow-registration-draft';
 
@@ -369,6 +379,7 @@
             ref.includes('privacy.html') ||
             ref.includes('register.html');
           if (!isReturningFromLegalOrSelf) {
+            localStorage.removeItem(REGISTRATION_DRAFT_KEY);
             sessionStorage.removeItem(REGISTRATION_DRAFT_KEY);
           }
         }
@@ -376,7 +387,7 @@
 
       const getSavedRegistrationDraft = () => {
         try {
-          const raw = sessionStorage.getItem(REGISTRATION_DRAFT_KEY);
+          const raw = localStorage.getItem(REGISTRATION_DRAFT_KEY) || sessionStorage.getItem(REGISTRATION_DRAFT_KEY);
           if (!raw) return null;
           const parsed = JSON.parse(raw);
           if (!parsed || typeof parsed !== 'object') return null;
@@ -431,7 +442,9 @@
         checkPasswordReqs();
       };
 
+      let registrationCompleted = false;
       const saveRegistrationDraft = () => {
+        if (registrationCompleted) return;
         try {
           const genderChecked = document.querySelector('input[name="gender"]:checked');
           const draft = {
@@ -443,10 +456,14 @@
           };
           const hasAnyValue = Object.values(draft).some((v) => String(v || '').trim() !== '');
           if (hasAnyValue) {
-            sessionStorage.setItem(REGISTRATION_DRAFT_KEY, JSON.stringify(draft));
+            // Persist non-sensitive registration fields across connection loss and page reloads.
+            // Passwords are deliberately excluded from browser storage.
+            localStorage.setItem(REGISTRATION_DRAFT_KEY, JSON.stringify(draft));
           } else {
+            localStorage.removeItem(REGISTRATION_DRAFT_KEY);
             sessionStorage.removeItem(REGISTRATION_DRAFT_KEY);
           }
+          currentDraft = hasAnyValue ? draft : null;
         } catch {}
       };
 
@@ -523,7 +540,21 @@
           return;
         }
         userModifiedForm = true;
+        saveRegistrationDraft();
       });
+
+      // Automatically preserve the registration draft as the user types or changes selections.
+      // This also saves when the connection drops; no Firebase request is needed.
+      [firstNameInp, lastNameInp, emailInp, phoneInp, passwordInp, confirmInp].forEach((inp) => {
+        inp.addEventListener('input', saveRegistrationDraft);
+        inp.addEventListener('change', saveRegistrationDraft);
+      });
+      document.querySelectorAll('input[name="gender"]').forEach((radio) => {
+        radio.addEventListener('change', saveRegistrationDraft);
+      });
+      termsChkbx.addEventListener('change', saveRegistrationDraft);
+      window.addEventListener('pagehide', saveRegistrationDraft);
+      window.addEventListener('beforeunload', saveRegistrationDraft);
 
       window.addEventListener('pageshow', (event) => {
         if (event.persisted || !userModifiedForm) {
@@ -542,8 +573,8 @@
         setTimeout(enforceNoCredentialAutofill, 200);
       });
 
-      // Save non-password draft only when navigating to Terms of Use or Privacy Policy;
-      // clear draft when intentionally navigating away to other pages.
+      // Preserve the draft when opening Terms or Privacy Policy; clear it on intentional
+      // navigation to another page, matching the existing registration-flow behavior.
       document.addEventListener('click', (e) => {
         const link = e.target && e.target.closest ? e.target.closest('a[href]') : null;
         if (!link) return;
@@ -552,6 +583,7 @@
           saveRegistrationDraft();
         } else if (!href.startsWith('#') && !href.startsWith('javascript:')) {
           try {
+            localStorage.removeItem(REGISTRATION_DRAFT_KEY);
             sessionStorage.removeItem(REGISTRATION_DRAFT_KEY);
           } catch {}
         }
@@ -572,6 +604,11 @@
       // Submit registration
       form.addEventListener('submit', async (e) => {
         e.preventDefault();
+        saveRegistrationDraft();
+
+        if (!assertCanPerformFirebaseWrite('create an account')) {
+          return;
+        }
 
         const firstName = firstNameInp.value.trim();
         const lastName = lastNameInp.value.trim();
@@ -683,7 +720,9 @@
             });
 
             if (success) {
+              registrationCompleted = true;
               try {
+                localStorage.removeItem(REGISTRATION_DRAFT_KEY);
                 sessionStorage.removeItem(REGISTRATION_DRAFT_KEY);
               } catch {}
               showToast('Account registered successfully!');

@@ -123,6 +123,76 @@ function testConnection() {
 }
 testConnection();
 
+// Active server reachability probe for network status monitoring
+export async function checkFirebaseReachability(timeoutMs = 4000) {
+  if (typeof navigator !== 'undefined' && !navigator.onLine) {
+    return { ok: false, reason: 'offline', message: 'No internet connection detected on this device.' };
+  }
+  if (!db) {
+    return { ok: false, reason: 'uninitialized', message: 'RiceFlow database connection is not initialized.' };
+  }
+  try {
+    const probePromise = getDocFromServer(doc(db, 'test', 'connection'));
+    const timeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('Firebase connection probe timed out.')), timeoutMs)
+    );
+    await Promise.race([probePromise, timeoutPromise]);
+    return { ok: true, reason: 'online' };
+  } catch (err) {
+    const errMsg = String(err?.message || err || '');
+    const isOffline = errMsg.includes('the client is offline') || errMsg.includes('failed-precondition') || (typeof navigator !== 'undefined' && !navigator.onLine);
+    const isTimeout = errMsg.includes('timed out') || err?.code === 'deadline-exceeded';
+    return {
+      ok: false,
+      reason: isOffline ? 'offline' : (isTimeout ? 'timeout' : 'unreachable'),
+      error: err,
+      message: isOffline 
+        ? 'No internet connection. Please check your network to continue.'
+        : 'RiceFlow cloud services are temporarily unreachable. Retrying connection...'
+    };
+  }
+}
+
+// Map technical Firestore/Storage/Network errors to understandable user messages
+export function getFriendlyFirebaseErrorMessage(err) {
+  if (!err) return 'An unexpected error occurred. Please try again.';
+  if (typeof navigator !== 'undefined' && !navigator.onLine) {
+    return 'No internet connection. Your current information has been preserved. Please check your connection and try again.';
+  }
+  const msg = String(err?.message || err || '');
+  const code = String(err?.code || '');
+  if (msg.includes('the client is offline') || code === 'unavailable') {
+    return 'RiceFlow cloud services could not be reached. Your progress has been preserved locally. Please check your internet connection.';
+  }
+  if (code === 'deadline-exceeded' || msg.includes('timeout') || msg.includes('timed out')) {
+    return 'Request timed out due to unstable connection. Your entered information is preserved. Please retry.';
+  }
+  if (code === 'permission-denied') {
+    return 'Action could not be authorized. Please ensure you are logged in with appropriate permissions.';
+  }
+  if (msg.includes('storage') || code.includes('storage')) {
+    return 'File upload could not complete due to network disruption. Please check your connection and retry uploading.';
+  }
+  return msg;
+}
+
+// Query Firestore orders by referenceNumber for duplicate prevention on retries
+export async function findOrderByReferenceNumber(refNumber) {
+  if (!refNumber || !db) return null;
+  try {
+    const q = query(collection(db, 'orders'), where('referenceNumber', '==', String(refNumber)));
+    const snap = await getDocs(q);
+    if (!snap.empty) {
+      const matchDoc = snap.docs[0];
+      return { id: matchDoc.id, ...matchDoc.data() };
+    }
+    return null;
+  } catch (err) {
+    console.warn('[FIREBASE] Error querying order by referenceNumber:', err);
+    return null;
+  }
+}
+
 export const OperationType = {
   CREATE: 'create',
   UPDATE: 'update',
@@ -1305,15 +1375,18 @@ export async function syncStoreSettingsFromFirestore() {
       if (s.logo) safeLocalStorageSet('settings-store-logo', s.logo);
       if (s.banner) safeLocalStorageSet('settings-store-banner', s.banner);
       if (s.storeName) safeLocalStorageSet('settings-store-name', s.storeName);
-      if (s.description) safeLocalStorageSet('settings-store-description', s.description);
-      if (s.contactNumber) safeLocalStorageSet('settings-contact-number', s.contactNumber);
-      if (s.storeAddress) safeLocalStorageSet('settings-store-address', s.storeAddress);
-      if (s.facebookLink !== undefined) safeLocalStorageSet('settings-facebook-link', s.facebookLink);
-      if (s.businessHours) safeLocalStorageSet('settings-business-hours', s.businessHours);
+      if (s.description !== undefined && s.description !== null) safeLocalStorageSet('settings-store-description', s.description);
+      if (s.contactNumber !== undefined && s.contactNumber !== null) safeLocalStorageSet('settings-contact-number', s.contactNumber);
+      if (s.contactEmail !== undefined && s.contactEmail !== null) safeLocalStorageSet('settings-contact-email', s.contactEmail);
+      if (s.storeAddress !== undefined && s.storeAddress !== null) safeLocalStorageSet('settings-store-address', s.storeAddress);
+      if (s.facebookLink !== undefined && s.facebookLink !== null) safeLocalStorageSet('settings-facebook-link', s.facebookLink);
+      if (s.businessHours !== undefined && s.businessHours !== null) safeLocalStorageSet('settings-business-hours', s.businessHours);
+      if (s.operatingDays !== undefined && s.operatingDays !== null) safeLocalStorageSet('settings-operating-days', s.operatingDays);
       if (s.gcashName) safeLocalStorageSet('settings-gcash-name', s.gcashName);
       if (s.gcashNumber) safeLocalStorageSet('settings-gcash-number', s.gcashNumber);
-      if (s.gcashQr !== undefined) safeLocalStorageSet('settings-gcash-qr', s.gcashQr);
+      if (s.gcashQr !== undefined && s.gcashQr !== null) safeLocalStorageSet('settings-gcash-qr', s.gcashQr);
       if (s.deliveryFeeSettings) safeLocalStorageSet('settings-delivery-fee', JSON.stringify(s.deliveryFeeSettings));
+      if (s.deliveryMinimumSettings) safeLocalStorageSet('settings-delivery-minimum', JSON.stringify(s.deliveryMinimumSettings));
 
       if (typeof document !== 'undefined' && s.logo) {
         const navLogo = document.getElementById('navbar-store-logo');
@@ -1423,15 +1496,18 @@ export async function initFirestoreSync(force = false) {
             if (s.logo) safeLocalStorageSet('settings-store-logo', s.logo);
             if (s.banner) safeLocalStorageSet('settings-store-banner', s.banner);
             if (s.storeName) safeLocalStorageSet('settings-store-name', s.storeName);
-            if (s.description) safeLocalStorageSet('settings-store-description', s.description);
-            if (s.contactNumber) safeLocalStorageSet('settings-contact-number', s.contactNumber);
-            if (s.storeAddress) safeLocalStorageSet('settings-store-address', s.storeAddress);
-            if (s.facebookLink !== undefined) safeLocalStorageSet('settings-facebook-link', s.facebookLink);
-            if (s.businessHours) safeLocalStorageSet('settings-business-hours', s.businessHours);
+            if (s.description !== undefined && s.description !== null) safeLocalStorageSet('settings-store-description', s.description);
+            if (s.contactNumber !== undefined && s.contactNumber !== null) safeLocalStorageSet('settings-contact-number', s.contactNumber);
+            if (s.contactEmail !== undefined && s.contactEmail !== null) safeLocalStorageSet('settings-contact-email', s.contactEmail);
+            if (s.storeAddress !== undefined && s.storeAddress !== null) safeLocalStorageSet('settings-store-address', s.storeAddress);
+            if (s.facebookLink !== undefined && s.facebookLink !== null) safeLocalStorageSet('settings-facebook-link', s.facebookLink);
+            if (s.businessHours !== undefined && s.businessHours !== null) safeLocalStorageSet('settings-business-hours', s.businessHours);
+            if (s.operatingDays !== undefined && s.operatingDays !== null) safeLocalStorageSet('settings-operating-days', s.operatingDays);
             if (s.gcashName) safeLocalStorageSet('settings-gcash-name', s.gcashName);
             if (s.gcashNumber) safeLocalStorageSet('settings-gcash-number', s.gcashNumber);
-            if (s.gcashQr !== undefined) safeLocalStorageSet('settings-gcash-qr', s.gcashQr);
+            if (s.gcashQr !== undefined && s.gcashQr !== null) safeLocalStorageSet('settings-gcash-qr', s.gcashQr);
             if (s.deliveryFeeSettings) safeLocalStorageSet('settings-delivery-fee', JSON.stringify(s.deliveryFeeSettings));
+            if (s.deliveryMinimumSettings) safeLocalStorageSet('settings-delivery-minimum', JSON.stringify(s.deliveryMinimumSettings));
 
             if (typeof document !== 'undefined' && s.logo) {
               const navLogo = document.getElementById('navbar-store-logo');
@@ -1464,15 +1540,18 @@ export async function initFirestoreSync(force = false) {
             if (s.logo) safeLocalStorageSet('settings-store-logo', s.logo);
             if (s.banner) safeLocalStorageSet('settings-store-banner', s.banner);
             if (s.storeName) safeLocalStorageSet('settings-store-name', s.storeName);
-            if (s.description) safeLocalStorageSet('settings-store-description', s.description);
-            if (s.contactNumber) safeLocalStorageSet('settings-contact-number', s.contactNumber);
-            if (s.storeAddress) safeLocalStorageSet('settings-store-address', s.storeAddress);
-            if (s.facebookLink !== undefined) safeLocalStorageSet('settings-facebook-link', s.facebookLink);
-            if (s.businessHours) safeLocalStorageSet('settings-business-hours', s.businessHours);
+            if (s.description !== undefined && s.description !== null) safeLocalStorageSet('settings-store-description', s.description);
+            if (s.contactNumber !== undefined && s.contactNumber !== null) safeLocalStorageSet('settings-contact-number', s.contactNumber);
+            if (s.contactEmail !== undefined && s.contactEmail !== null) safeLocalStorageSet('settings-contact-email', s.contactEmail);
+            if (s.storeAddress !== undefined && s.storeAddress !== null) safeLocalStorageSet('settings-store-address', s.storeAddress);
+            if (s.facebookLink !== undefined && s.facebookLink !== null) safeLocalStorageSet('settings-facebook-link', s.facebookLink);
+            if (s.businessHours !== undefined && s.businessHours !== null) safeLocalStorageSet('settings-business-hours', s.businessHours);
+            if (s.operatingDays !== undefined && s.operatingDays !== null) safeLocalStorageSet('settings-operating-days', s.operatingDays);
             if (s.gcashName) safeLocalStorageSet('settings-gcash-name', s.gcashName);
             if (s.gcashNumber) safeLocalStorageSet('settings-gcash-number', s.gcashNumber);
-            if (s.gcashQr !== undefined) safeLocalStorageSet('settings-gcash-qr', s.gcashQr);
+            if (s.gcashQr !== undefined && s.gcashQr !== null) safeLocalStorageSet('settings-gcash-qr', s.gcashQr);
             if (s.deliveryFeeSettings) safeLocalStorageSet('settings-delivery-fee', JSON.stringify(s.deliveryFeeSettings));
+            if (s.deliveryMinimumSettings) safeLocalStorageSet('settings-delivery-minimum', JSON.stringify(s.deliveryMinimumSettings));
 
             if (typeof document !== 'undefined' && s.logo) {
               const navLogo = document.getElementById('navbar-store-logo');

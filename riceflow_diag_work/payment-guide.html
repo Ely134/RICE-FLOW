@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Payment Methods & Reservation Guide | RiceFlow</title>
+  <script>
+    (function() {
+      try {
+        var d = document.documentElement;
+        var isDark = localStorage.getItem('aurora-dark-mode') === 'true';
+        d.classList.toggle('dark', isDark);
+        d.style.colorScheme = isDark ? 'dark' : 'light';
+      } catch (e) {}
+    })();
+  </script>
+  <style id="riceflow-theme-init">
+    html { background-color: #F5F5F5; color-scheme: light; }
+    #navbar-container { min-height: 5rem; background-color: #FFFFFF; border-bottom: 1px solid #F3F4F6; }
+    html.dark { background-color: #0F172A !important; color-scheme: dark; }
+    html.dark body,
+    html.dark main,
+    html.dark section,
+    html.dark #navbar-container,
+    html.dark #footer-container {
+      background-color: #0F172A;
+      background-image: none;
+      color: #FFFFFF;
+    }
+    html.dark #auth-guard-loader {
+      background-color: #0F172A !important;
+      color: #FFFFFF !important;
+    }
+    html.dark #navbar-container {
+      border-bottom-color: rgba(255, 255, 255, 0.15);
+    }
+    html.dark .bg-white,
+    html.dark .bg-gray-50,
+    html.dark .bg-slate-50 {
+      background-color: #111827;
+      color: #FFFFFF;
+    }
+  </style>
+  <link rel="stylesheet" href="src/styles/index.css">
+</head>
+<body class="bg-[#F5F5F7] min-h-screen font-sans text-gray-900 dark:text-gray-100">
+
+  <!-- Dynamic Header Bar -->
+  <div id="navbar-container"></div>
+
+  <!-- MAIN WRAPPER -->
+  <main class="py-8 max-w-[1240px] mx-auto px-4 sm:px-6 lg:px-8 min-h-screen">
+    
+    <!-- Top Navigation / Breadcrumb -->
+    <div class="mb-6 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <a id="btn-back-nav" href="checkout.html" class="inline-flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-slate-900 hover:bg-gray-100 dark:hover:bg-slate-800 border border-gray-200 dark:border-slate-800 text-gray-950 dark:text-white text-sm font-bold rounded-xl transition-all shadow-xs">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-4 h-4 text-[#1E6C02] dark:text-emerald-400"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+          <span>Back</span>
+        </a>
+        <span class="text-sm font-bold text-gray-400 dark:text-gray-600">/</span>
+        <span class="text-sm font-black text-gray-950 dark:text-white uppercase tracking-wider">Payment Guide</span>
+      </div>
+      <a id="btn-browse-catalog" href="products.html" class="text-sm font-extrabold text-[#1E6C02] dark:text-emerald-400 hover:underline">
+        Browse Grains Catalog →
+      </a>
+    </div>
+
+    <!-- Hero Banner Card -->
+    <div class="bg-gradient-to-br from-[#1E6C02] to-[#145001] rounded-[28px] p-8 sm:p-10 text-white shadow-xl mb-10 relative overflow-hidden">
+      <!-- Decorative Background Circles -->
+      <div class="absolute -right-16 -top-16 w-64 h-64 rounded-full bg-white/10 blur-2xl pointer-events-none"></div>
+      <div class="absolute right-32 -bottom-20 w-80 h-80 rounded-full bg-emerald-400/10 blur-3xl pointer-events-none"></div>
+      
+      <div class="relative z-10 max-w-2xl space-y-3.5">
+        <div class="inline-flex items-center gap-2 px-3.5 py-1.5 bg-white/20 backdrop-blur-md rounded-full text-xs sm:text-sm font-black uppercase tracking-wider text-white border border-white/30">
+          <span>🌾</span> Official Payment & Queue Guide
+        </div>
+        <h1 class="text-3xl sm:text-4xl font-black tracking-tight leading-tight">
+          Simple & Secure Payment Guide
+        </h1>
+        <p class="text-emerald-50 text-base sm:text-lg font-medium leading-relaxed">
+          Learn how to pay for your orders, make down payments, and reserve out-of-stock rice.
+        </p>
+      </div>
+    </div>
+
+    <!-- 3 Core Payment & Reservation Methods Grid -->
+    <div class="grid md:grid-cols-3 gap-6 mb-12">
+      
+      <!-- Option 1: GCash Full Payment -->
+      <div class="bg-white dark:bg-slate-900 rounded-[28px] border border-gray-200 dark:border-slate-800 p-6 sm:p-8 shadow-sm hover:shadow-md transition-all flex flex-col justify-between space-y-6">
+        <div class="space-y-5">
+          <div class="w-14 h-14 rounded-2xl bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 flex items-center justify-center text-3xl border border-blue-200 dark:border-blue-800/60 shadow-xs">
+            📱
+          </div>
+          <div>
+            <div class="flex items-center justify-between gap-2 mb-2">
+              <h2 class="text-2xl font-black text-gray-950 dark:text-white tracking-tight">GCash Full Payment</h2>
+              <span class="bg-blue-100 dark:bg-blue-950/80 text-blue-900 dark:text-blue-200 text-xs font-black uppercase px-3 py-1 rounded-lg border border-blue-300 dark:border-blue-700">Instant</span>
+            </div>
+            <p class="text-sm text-gray-800 dark:text-gray-200 font-semibold leading-relaxed">Best for items in stock. Your order is prepared and sent right away.</p>
+          </div>
+
+          <div class="bg-slate-50 dark:bg-slate-800/80 rounded-2xl p-5 space-y-3.5 text-sm text-gray-950 dark:text-gray-100 font-medium border border-gray-200 dark:border-slate-700">
+            <div class="flex items-start gap-2.5">
+              <span class="text-emerald-600 dark:text-emerald-400 font-bold text-base mt-0.5">✔</span>
+              <span class="leading-relaxed"><strong class="font-bold text-black dark:text-white">Full Payment:</strong> Pay the total order amount and delivery fee through GCash.</span>
+            </div>
+            <div class="flex items-start gap-2.5">
+              <span class="text-emerald-600 dark:text-emerald-400 font-bold text-base mt-0.5">✔</span>
+              <span class="leading-relaxed"><strong class="font-bold text-black dark:text-white">Quick Confirmation:</strong> Our team checks your payment screenshot within a few minutes.</span>
+            </div>
+            <div class="flex items-start gap-2.5">
+              <span class="text-emerald-600 dark:text-emerald-400 font-bold text-base mt-0.5">✔</span>
+              <span class="leading-relaxed"><strong class="font-bold text-black dark:text-white">Fast Preparation:</strong> Your rice is packed and sent for delivery or pickup immediately.</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="pt-4 border-t border-gray-200 dark:border-slate-800 text-sm text-gray-950 dark:text-gray-100 font-bold flex items-center gap-2">
+          <span class="text-base">💡</span> Please attach your GCash payment screenshot at checkout
+        </div>
+      </div>
+
+      <!-- Option 2: Cash on Delivery / Store Pickup (30% Down Payment) -->
+      <div class="bg-white dark:bg-slate-900 rounded-[28px] border border-gray-200 dark:border-slate-800 p-6 sm:p-8 shadow-sm hover:shadow-md transition-all flex flex-col justify-between space-y-6">
+        <div class="space-y-5">
+          <div class="w-14 h-14 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 text-[#1E6C02] dark:text-emerald-400 flex items-center justify-center text-3xl border border-emerald-200 dark:border-emerald-800/60 shadow-xs">
+            💵
+          </div>
+          <div>
+            <div class="flex items-center justify-between gap-2 mb-2">
+              <h2 class="text-2xl font-black text-gray-950 dark:text-white tracking-tight">Cash on Delivery / Pickup</h2>
+              <span class="bg-emerald-100 dark:bg-emerald-950/80 text-[#1E6C02] dark:text-emerald-300 text-xs font-black uppercase px-3 py-1 rounded-lg border border-emerald-300 dark:border-emerald-700">30% Deposit</span>
+            </div>
+            <p class="text-sm text-gray-800 dark:text-gray-200 font-semibold leading-relaxed">Pay 30% first to reserve your rice, and pay the remaining 70% in cash upon arrival.</p>
+          </div>
+
+          <div class="bg-slate-50 dark:bg-slate-800/80 rounded-2xl p-5 space-y-3.5 text-sm text-gray-950 dark:text-gray-100 font-medium border border-gray-200 dark:border-slate-700">
+            <div class="flex items-start gap-2.5">
+              <span class="text-[#1E6C02] dark:text-emerald-400 font-bold text-base mt-0.5">✔</span>
+              <span class="leading-relaxed"><strong class="font-bold text-black dark:text-white">30% Down Payment:</strong> Pay 30% through GCash at checkout to hold your rice sacks.</span>
+            </div>
+            <div class="flex items-start gap-2.5">
+              <span class="text-[#1E6C02] dark:text-emerald-400 font-bold text-base mt-0.5">✔</span>
+              <span class="leading-relaxed"><strong class="font-bold text-black dark:text-white">70% Cash on Arrival:</strong> Pay the remaining 70% in cash directly to the rider or cashier.</span>
+            </div>
+            <div class="flex items-start gap-2.5">
+              <span class="text-[#1E6C02] dark:text-emerald-400 font-bold text-base mt-0.5">✔</span>
+              <span class="leading-relaxed"><strong class="font-bold text-black dark:text-white">Guaranteed Rice:</strong> Ensures your sacks are saved and scheduled for delivery or pickup.</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="pt-4 border-t border-gray-200 dark:border-slate-800 text-sm text-gray-950 dark:text-gray-100 font-bold flex items-center gap-2">
+          <span class="text-base">💡</span> You will receive an official receipt when you pay in cash
+        </div>
+      </div>
+
+      <!-- Option 3: Zero-Payment Reservation Queue -->
+      <div class="bg-white dark:bg-slate-900 rounded-[28px] border border-gray-200 dark:border-slate-800 p-6 sm:p-8 shadow-sm hover:shadow-md transition-all flex flex-col justify-between space-y-6">
+        <div class="space-y-5">
+          <div class="w-14 h-14 rounded-2xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center text-3xl border border-amber-200 dark:border-amber-800/60 shadow-xs">
+            ⏳
+          </div>
+          <div>
+            <div class="flex items-center justify-between gap-2 mb-2">
+              <h2 class="text-2xl font-black text-gray-950 dark:text-white tracking-tight">Pre-Order Reservation</h2>
+              <span class="bg-amber-100 dark:bg-amber-950/80 text-amber-900 dark:text-amber-200 text-xs font-black uppercase px-3 py-1 rounded-lg border border-amber-300 dark:border-amber-700">₱0 Payment Now</span>
+            </div>
+            <p class="text-sm text-gray-800 dark:text-gray-200 font-semibold leading-relaxed">For out-of-stock rice varieties waiting for new warehouse stock.</p>
+          </div>
+
+          <div class="bg-slate-50 dark:bg-slate-800/80 rounded-2xl p-5 space-y-3.5 text-sm text-gray-950 dark:text-gray-100 font-medium border border-gray-200 dark:border-slate-700">
+            <div class="flex items-start gap-2.5">
+              <span class="text-amber-600 dark:text-amber-400 font-bold text-base mt-0.5">✔</span>
+              <span class="leading-relaxed"><strong class="font-bold text-black dark:text-white">₱0 Upfront:</strong> No payment is needed right now while the item is out of stock.</span>
+            </div>
+            <div class="flex items-start gap-2.5">
+              <span class="text-amber-600 dark:text-amber-400 font-bold text-base mt-0.5">✔</span>
+              <span class="leading-relaxed"><strong class="font-bold text-black dark:text-white">First Come, First Served:</strong> Your place in line is saved automatically in our system.</span>
+            </div>
+            <div class="flex items-start gap-2.5">
+              <span class="text-amber-600 dark:text-amber-400 font-bold text-base mt-0.5">✔</span>
+              <span class="leading-relaxed"><strong class="font-bold text-black dark:text-white">48 Hours to Pay:</strong> You only pay after new stock arrives and is assigned to you.</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="pt-4 border-t border-gray-200 dark:border-slate-800 text-sm text-gray-950 dark:text-gray-100 font-bold flex items-center gap-2">
+          <span class="text-base">💡</span> Track your reservation spot anytime on your Profile page
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Detailed Step-by-Step Payment Instructions -->
+    <div class="bg-white dark:bg-slate-900 rounded-[28px] border border-gray-200 dark:border-slate-800 p-8 sm:p-10 shadow-sm mb-12 space-y-8">
+      <div class="border-b border-gray-200 dark:border-slate-800 pb-5">
+        <h2 class="text-2xl sm:text-3xl font-black text-gray-950 dark:text-white tracking-tight">How to Send Payment via GCash</h2>
+        <p class="text-gray-800 dark:text-gray-200 text-sm sm:text-base font-semibold mt-1.5">Follow these 4 simple steps to complete your payment:</p>
+      </div>
+
+      <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        
+        <div class="bg-slate-50 dark:bg-slate-800/80 rounded-2xl p-6 border border-gray-200 dark:border-slate-700 space-y-3.5">
+          <div class="w-10 h-10 rounded-full bg-[#1E6C02] text-white font-black flex items-center justify-center text-sm shadow-xs">1</div>
+          <h3 class="font-black text-gray-950 dark:text-white text-base">Scan QR or Copy Number</h3>
+          <p class="text-sm text-gray-900 dark:text-gray-100 font-medium leading-relaxed">Open your GCash app. Scan the RiceFlow QR code or enter our official number: <strong class="font-bold text-black dark:text-white whitespace-nowrap">0912 345 6789</strong>.</p>
+        </div>
+
+        <div class="bg-slate-50 dark:bg-slate-800/80 rounded-2xl p-6 border border-gray-200 dark:border-slate-700 space-y-3.5">
+          <div class="w-10 h-10 rounded-full bg-[#1E6C02] text-white font-black flex items-center justify-center text-sm shadow-xs">2</div>
+          <h3 class="font-black text-gray-950 dark:text-white text-base">Enter the Due Amount</h3>
+          <p class="text-sm text-gray-900 dark:text-gray-100 font-medium leading-relaxed">Enter the exact amount shown on your checkout screen (100% for full payment, or 30% for down payment).</p>
+        </div>
+
+        <div class="bg-slate-50 dark:bg-slate-800/80 rounded-2xl p-6 border border-gray-200 dark:border-slate-700 space-y-3.5">
+          <div class="w-10 h-10 rounded-full bg-[#1E6C02] text-white font-black flex items-center justify-center text-sm shadow-xs">3</div>
+          <h3 class="font-black text-gray-950 dark:text-white text-base">Save Your Receipt</h3>
+          <p class="text-sm text-gray-900 dark:text-gray-100 font-medium leading-relaxed">Save a screenshot of your GCash receipt showing the reference number, date, and amount paid.</p>
+        </div>
+
+        <div class="bg-slate-50 dark:bg-slate-800/80 rounded-2xl p-6 border border-gray-200 dark:border-slate-700 space-y-3.5">
+          <div class="w-10 h-10 rounded-full bg-[#1E6C02] text-white font-black flex items-center justify-center text-sm shadow-xs">4</div>
+          <h3 class="font-black text-gray-950 dark:text-white text-base">Upload Screenshot</h3>
+          <p class="text-sm text-gray-900 dark:text-gray-100 font-medium leading-relaxed">Attach your screenshot in the upload box at checkout, then submit your order. Our team will verify it quickly.</p>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Frequently Asked Questions -->
+    <div class="bg-white dark:bg-slate-900 rounded-[28px] border border-gray-200 dark:border-slate-800 p-8 sm:p-10 shadow-sm mb-12 space-y-7">
+      <div class="border-b border-gray-200 dark:border-slate-800 pb-5">
+        <h2 class="text-2xl sm:text-3xl font-black text-gray-950 dark:text-white tracking-tight">Frequently Asked Questions</h2>
+        <p class="text-gray-800 dark:text-gray-200 text-sm sm:text-base font-semibold mt-1.5">Common questions about payments, orders, and reservations</p>
+      </div>
+
+      <div class="space-y-5">
+        
+        <div class="bg-slate-50 dark:bg-slate-800/80 rounded-2xl p-6 border border-gray-200 dark:border-slate-700 space-y-2.5">
+          <h3 class="font-black text-gray-950 dark:text-white text-base sm:text-lg">What happens if my GCash payment screenshot is unclear or incorrect?</h3>
+          <p class="text-sm sm:text-base text-gray-900 dark:text-gray-100 font-medium leading-relaxed">If your screenshot is blurry, missing the reference number, or shows the wrong amount, we will ask you to upload it again. You will receive a notification on your RiceFlow Profile page to upload a clear photo.</p>
+        </div>
+
+        <div class="bg-slate-50 dark:bg-slate-800/80 rounded-2xl p-6 border border-gray-200 dark:border-slate-700 space-y-2.5">
+          <h3 class="font-black text-gray-950 dark:text-white text-base sm:text-lg">When do I pay for my out-of-stock rice reservation?</h3>
+          <p class="text-sm sm:text-base text-gray-900 dark:text-gray-100 font-medium leading-relaxed">You do not need to pay when making a reservation. When new stock arrives and it is your turn, we will notify you through your RiceFlow Profile page. You will then have <strong class="font-bold text-black dark:text-white">48 hours</strong> to make your payment. If you do not pay within 48 hours, your reservation will be automatically cancelled.</p>
+        </div>
+
+        <div class="bg-slate-50 dark:bg-slate-800/80 rounded-2xl p-6 border border-gray-200 dark:border-slate-700 space-y-2.5">
+          <h3 class="font-black text-gray-950 dark:text-white text-base sm:text-lg">Why is a 30% down payment required for Cash on Delivery or Pickup?</h3>
+          <p class="text-sm sm:text-base text-gray-900 dark:text-gray-100 font-medium leading-relaxed">The 30% down payment guarantees that physical rice sacks are held exclusively for you. It prevents fake bookings and ensures our warehouse and delivery teams can schedule your rice accurately.</p>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Back to Checkout Action Callout -->
+    <div class="text-center py-6">
+      <a id="btn-proceed-checkout" href="checkout.html" class="inline-flex items-center gap-2 px-9 h-14 bg-[#1E6C02] hover:bg-[#145001] text-white font-extrabold rounded-2xl transition-all shadow-md text-base sm:text-lg cursor-pointer">
+        <span>Proceed to Checkout</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-5 h-5"><polyline points="9 18 15 12 9 6"></polyline></svg>
+      </a>
+    </div>
+
+  </main>
+
+  <!-- Dynamic Footer Bar -->
+  <div id="footer-container"></div>
+
+  <!-- Shared platform initialization -->
+  <script type="module" src="src/app/shared.js"></script>
+
+  <script type="module">
+    import {
+      getCart,
+      getProductById,
+      getCurrentUser,
+      showToast
+    } from './src/app/shared.js';
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const from = urlParams.get('from');
+      const backNav = document.getElementById('btn-back-nav');
+      const browseCatalogBtn = document.getElementById('btn-browse-catalog');
+      const proceedCheckoutBtn = document.getElementById('btn-proceed-checkout');
+
+      function getSavedCheckoutContext() {
+        try {
+          const raw = sessionStorage.getItem('riceflow-checkout-context');
+          if (!raw) return null;
+          return JSON.parse(raw);
+        } catch (_) {
+          return null;
+        }
+      }
+
+      function getSameOriginReferrerInfo() {
+        try {
+          if (!document.referrer) return null;
+          const refUrl = new URL(document.referrer);
+          if (refUrl.origin !== window.location.origin) return null;
+          const path = refUrl.pathname || '';
+          const fileName = path.split('/').pop() || 'index.html';
+          return {
+            fileName,
+            search: refUrl.search || '',
+            relativeUrl: fileName + (refUrl.search || '')
+          };
+        } catch (_) {
+          return null;
+        }
+      }
+
+      function buildQueryFromParams(sourceParams) {
+        const clean = new URLSearchParams();
+        ['productId', 'quantity', 'selection', 'only', 'id'].forEach(key => {
+          const val = sourceParams.get(key);
+          if (val !== null && val !== '') {
+            clean.set(key, val);
+          }
+        });
+        const qs = clean.toString();
+        return qs ? `?${qs}` : '';
+      }
+
+      function hasValidCheckoutItemsForQuery(searchStr, isReservationPage = false) {
+        const params = new URLSearchParams(searchStr || '');
+        if (isReservationPage) {
+          const pid = params.get('productId') || '8';
+          return Boolean(getProductById(pid));
+        }
+
+        const directProductId = params.get('productId');
+        if (directProductId) {
+          return Boolean(getProductById(directProductId));
+        }
+
+        const cart = getCart();
+        if (!Array.isArray(cart) || cart.length === 0) {
+          return false;
+        }
+
+        const queryOnly = params.get('only');
+        if (queryOnly) {
+          return cart.some(item => String(item.product?.id) === String(queryOnly));
+        }
+
+        const querySelection = params.get('selection');
+        if (querySelection) {
+          const ids = querySelection.split(',').map(s => s.trim()).filter(Boolean);
+          return cart.some(item => ids.includes(String(item.product?.id)));
+        }
+
+        return cart.length > 0;
+      }
+
+      function resolveNavigationState() {
+        const refInfo = getSameOriginReferrerInfo();
+        const savedCtx = getSavedCheckoutContext();
+        const urlContextQuery = buildQueryFromParams(urlParams);
+
+        // 1. Check if opened from Reservation Checkout
+        const isFromReservation =
+          from === 'reservation' ||
+          (refInfo && refInfo.fileName === 'reservation.html') ||
+          (!from && savedCtx && savedCtx.page === 'reservation.html');
+
+        if (isFromReservation) {
+          let resSearch = urlContextQuery;
+          if (!resSearch && refInfo && refInfo.fileName === 'reservation.html' && refInfo.search) {
+            resSearch = buildQueryFromParams(new URLSearchParams(refInfo.search));
+          }
+          if (!resSearch && savedCtx && savedCtx.page === 'reservation.html' && savedCtx.search) {
+            resSearch = savedCtx.search;
+          }
+          if (hasValidCheckoutItemsForQuery(resSearch, true)) {
+            const targetUrl = `reservation.html${resSearch}`;
+            return {
+              hasValidCheckout: true,
+              checkoutUrl: targetUrl,
+              backUrl: targetUrl
+            };
+          }
+        }
+
+        // 2. Check if opened from Checkout (or has checkout context)
+        const isFromCheckout =
+          from === 'checkout' ||
+          Boolean(urlContextQuery) ||
+          (refInfo && refInfo.fileName === 'checkout.html') ||
+          (!from && savedCtx && savedCtx.page === 'checkout.html');
+
+        let candidateSearch = urlContextQuery;
+        if (!candidateSearch && refInfo && refInfo.fileName === 'checkout.html' && refInfo.search) {
+          candidateSearch = buildQueryFromParams(new URLSearchParams(refInfo.search));
+        }
+        if (!candidateSearch && isFromCheckout && savedCtx && savedCtx.page === 'checkout.html' && savedCtx.search) {
+          candidateSearch = savedCtx.search;
+        }
+
+        if (candidateSearch && hasValidCheckoutItemsForQuery(candidateSearch, false)) {
+          const targetUrl = `checkout.html${candidateSearch}`;
+          return {
+            hasValidCheckout: true,
+            checkoutUrl: targetUrl,
+            backUrl: (from === 'cart') ? 'cart.html' : targetUrl
+          };
+        }
+
+        // 3. Check if cart itself has items for a standard cart checkout
+        if (hasValidCheckoutItemsForQuery('', false)) {
+          let backTarget = 'checkout.html';
+          if (from === 'cart') {
+            backTarget = 'cart.html';
+          } else if (!isFromCheckout && refInfo && refInfo.fileName && !['payment-guide.html', 'login.html', 'register.html', 'checkout.html'].includes(refInfo.fileName)) {
+            backTarget = refInfo.relativeUrl;
+          }
+          return {
+            hasValidCheckout: true,
+            checkoutUrl: 'checkout.html',
+            backUrl: backTarget
+          };
+        }
+
+        // 4. No valid checkout context exists -> determine safe Back fallback without triggering empty checkout error
+        let safeFallback = 'products.html';
+        if (from === 'cart') {
+          safeFallback = 'cart.html';
+        } else if (refInfo && refInfo.fileName && !['payment-guide.html', 'checkout.html', 'reservation.html', 'login.html', 'register.html'].includes(refInfo.fileName)) {
+          safeFallback = refInfo.relativeUrl;
+        }
+
+        return {
+          hasValidCheckout: false,
+          checkoutUrl: null,
+          backUrl: safeFallback
+        };
+      }
+
+      const initialNav = resolveNavigationState();
+
+      // 1. BACK BUTTON
+      if (backNav) {
+        backNav.href = initialNav.backUrl;
+        backNav.addEventListener('click', (e) => {
+          e.preventDefault();
+          const currentNav = resolveNavigationState();
+          window.location.href = currentNav.backUrl;
+        });
+      }
+
+      // 2. BROWSE GRAIN CATALOG BUTTON
+      if (browseCatalogBtn) {
+        browseCatalogBtn.href = 'products.html';
+        browseCatalogBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          window.location.href = 'products.html';
+        });
+      }
+
+      // 3. PROCEED TO CHECKOUT BUTTON
+      if (proceedCheckoutBtn) {
+        if (initialNav.hasValidCheckout && initialNav.checkoutUrl) {
+          proceedCheckoutBtn.href = initialNav.checkoutUrl;
+        } else {
+          proceedCheckoutBtn.href = 'products.html';
+        }
+
+        proceedCheckoutBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          const currentNav = resolveNavigationState();
+          const user = getCurrentUser();
+
+          if (currentNav.hasValidCheckout && currentNav.checkoutUrl) {
+            if (!user) {
+              sessionStorage.setItem('login-message', 'Please log in to proceed to checkout.');
+              sessionStorage.setItem('login-redirect', currentNav.checkoutUrl);
+              window.location.href = 'login.html';
+              return;
+            }
+            sessionStorage.setItem('riceflow-proceed-from-guide', 'true');
+            window.location.href = currentNav.checkoutUrl;
+            return;
+          }
+
+          // No active checkout items or cart items -> guide customer safely to select a product
+          showToast('Please select a rice variety or add items to your cart before proceeding to checkout.', 'info');
+          setTimeout(() => {
+            window.location.href = 'products.html';
+          }, 700);
+        });
+      }
+    });
+  </script>
+</body>
+</html>

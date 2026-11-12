@@ -1,0 +1,1399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Grain Details | RiceFlow</title>
+  <script>
+    (function() {
+      try {
+        var d = document.documentElement;
+        var isDark = localStorage.getItem('aurora-dark-mode') === 'true';
+        d.classList.toggle('dark', isDark);
+        d.style.colorScheme = isDark ? 'dark' : 'light';
+      } catch (e) {}
+    })();
+  </script>
+  <style id="riceflow-theme-init">
+    html { background-color: #F5F5F5; color-scheme: light; }
+    #navbar-container { min-height: 5rem; background-color: #FFFFFF; border-bottom: 1px solid #F3F4F6; }
+    html.dark { background-color: #0F172A !important; color-scheme: dark; }
+    html.dark body,
+    html.dark main,
+    html.dark section,
+    html.dark #navbar-container,
+    html.dark #footer-container {
+      background-color: #0F172A;
+      background-image: none;
+      color: #FFFFFF;
+    }
+    html.dark #auth-guard-loader {
+      background-color: #0F172A !important;
+      color: #FFFFFF !important;
+    }
+    html.dark #navbar-container {
+      border-bottom-color: rgba(255, 255, 255, 0.15);
+    }
+    html.dark .bg-white,
+    html.dark .bg-gray-50,
+    html.dark .bg-slate-50 {
+      background-color: #111827;
+      color: #FFFFFF;
+    }
+    /* The restock advisory belongs only below the product image on the left.
+       This scoped guard prevents it from appearing in the right-side details panel. */
+    #product-meta-panel #product-restock-advisory {
+      display: none !important;
+    }
+    /* Hide the detailed restock estimate from customers on Product Details.
+       Keep stock availability, delivery estimates, and all prediction logic intact. */
+    #product-left-guidance #product-restock-advisory,
+    #product-meta-panel #product-restock-advisory {
+      display: none !important;
+    }
+    /* Keep the two guidance cards consistent with RiceFlow typography:
+       Inter for headings, Source Sans 3 for readable body text; solid black and moderate weights. */
+    #product-left-guidance #product-restock-advisory,
+    #product-meta-panel #product-delivery-guidance,
+    #product-meta-panel #buy-now-min-alert {
+      font-family: "Source Sans 3", "Source Sans Pro", sans-serif !important;
+      color: #111111 !important;
+      font-weight: 400;
+      background-color: #FFFFFF !important;
+    }
+    #product-left-guidance #product-restock-advisory :is(p, span, div),
+    #product-meta-panel #product-delivery-guidance :is(p, span, div) {
+      color: #111111 !important;
+      text-shadow: none !important;
+    }
+    #product-left-guidance #product-restock-advisory :is(h1, h2, h3, [class*="font-black"], [class*="font-extrabold"], [class*="font-bold"]),
+    #product-meta-panel #product-delivery-guidance :is(h1, h2, h3, [class*="font-black"], [class*="font-extrabold"], [class*="font-bold"]) {
+      font-family: Inter, sans-serif !important;
+      font-weight: 600 !important;
+      color: #111111 !important;
+    }
+    #product-left-guidance #product-restock-advisory :is(p, span, div):not([class*="font-black"]):not([class*="font-extrabold"]):not([class*="font-bold"]),
+    #product-meta-panel #product-delivery-guidance :is(p, span, div):not([class*="font-black"]):not([class*="font-extrabold"]):not([class*="font-bold"]) {
+      font-weight: 400;
+    }
+    #product-meta-panel #buy-now-min-alert strong {
+      font-family: Inter, sans-serif;
+      font-weight: 600;
+      color: #111111 !important;
+    }
+  </style>
+  <link rel="stylesheet" href="src/styles/index.css">
+</head>
+<body class="bg-[#F9F9F9] min-h-screen">
+
+  <!-- Dynamic Header Bar -->
+  <div id="navbar-container"></div>
+
+  <!-- Back bar wrapper -->
+  <div class="bg-[#F8F9FA] border-b border-gray-100 sticky top-20 z-30">
+    <div class="max-w-5xl mx-auto px-4 h-16 flex items-center">
+      <a href="products.html" class="flex items-center gap-2 text-[#1E6C02] hover:text-[#145001] transition-colors font-bold uppercase tracking-wider text-sm">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-4 h-4"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg> Back to Products
+      </a>
+    </div>
+  </div>
+
+  <!-- MAIN WORKSPACE -->
+  <main class="max-w-5xl mx-auto px-4 py-8 lg:py-12" id="main-content">
+    <div class="flex flex-col lg:flex-row gap-12 lg:gap-16">
+      
+      <!-- IMAGE SECTION (Left) -->
+      <div class="lg:w-1/2 space-y-6">
+        <div id="product-img-box" class="bg-white rounded-[32px] overflow-hidden shadow-xs border border-gray-100 aspect-square flex items-center justify-center p-0 relative">
+          <!-- Populated by JS -->
+        </div>
+
+        <!-- Badges features line -->
+        <div class="grid grid-cols-3 gap-4">
+          <div class="bg-white p-4 rounded-2xl border border-gray-100 flex flex-col items-center justify-center text-center space-y-2 shadow-xs">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-6 h-6 text-[#1E6C02]"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><polyline points="9 11 11 13 15 9"></polyline></svg>
+            <span class="text-xs font-medium uppercase tracking-wider text-black">Quality Guaranteed</span>
+          </div>
+          <div class="bg-white p-4 rounded-2xl border border-gray-100 flex flex-col items-center justify-center text-center space-y-2 shadow-xs">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-6 h-6 text-[#1E6C02]"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
+            <span class="text-xs font-medium uppercase tracking-wider text-black">Fast Delivery</span>
+          </div>
+          <div class="bg-white p-4 rounded-2xl border border-gray-100 flex flex-col items-center justify-center text-center space-y-2 shadow-xs">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-6 h-6 text-[#1E6C02]"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+            <span class="text-xs font-medium uppercase tracking-wider text-black">Secure Packing</span>
+          </div>
+        </div>
+
+        <!-- Product availability and delivery guidance moved below the product image/features. -->
+        <div id="product-left-guidance" class="mt-6 space-y-4"></div>
+      </div>
+
+      <!-- DESCRIPTION SECTION (Right) -->
+      <div class="lg:w-1/2 flex flex-col" id="product-meta-panel">
+        <!-- Loaded dynamically by Javascript -->
+      </div>
+    </div>
+  </main>
+
+  <!-- ADD TO CART OUT-OF-STOCK CONFIRM DIALOG -->
+  <div id="addto-reservation-dialog" class="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl p-6 border border-gray-100 animate-in fade-in zoom-in duration-200">
+      <div class="flex items-center gap-3 pb-3 border-b border-gray-100">
+        <span class="text-orange-500">⚠️</span>
+        <h3 class="text-xl font-extrabold text-[#111827] dark:text-white">Add Pre-Order Anyway?</h3>
+      </div>
+      <p class="text-[#111827] dark:text-white font-semibold text-sm leading-relaxed py-5">
+        This product variety is out of stock. Adding it to your cart will tag it as a reservation. You can proceed with a 30% downpayment standard at checkout. Continue?
+      </p>
+      <div class="flex gap-3 pt-3 border-t">
+        <button id="cancel-addto-btn" class="flex-1 py-3 text-[#111827] dark:text-white hover:bg-gray-50 border rounded-xl font-bold transition-all cursor-pointer">Cancel</button>
+        <button id="confirm-addto-btn" class="flex-1 py-3 bg-[#1E6C02] hover:bg-[#145001] text-white rounded-xl font-bold transition-all cursor-pointer">Yes, Add</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- DIRECT DETAILED PRE-ORDER RESERVATION CONFIRM MODAL -->
+  <style>
+    .dark #direct-reservation-dialog > .res-modal-outer {
+      background-color: #0F172A !important;
+      border: 1px solid rgba(255, 255, 255, 0.18) !important;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.65) !important;
+    }
+    .dark #direct-reservation-dialog > .res-modal-outer > .res-modal-nobox {
+      background-color: transparent !important;
+      border: 0 !important;
+      box-shadow: none !important;
+    }
+    .dark #direct-reservation-dialog .res-card-avail,
+    .dark #stock-shortage-modal .res-card-avail {
+      background-color: rgba(6, 78, 59, 0.4) !important;
+      border: 1px solid rgba(16, 185, 129, 0.4) !important;
+    }
+    .dark #direct-reservation-dialog .res-card-reserve,
+    .dark #stock-shortage-modal .res-card-reserve {
+      background-color: rgba(120, 53, 15, 0.4) !important;
+      border: 1px solid rgba(245, 158, 11, 0.4) !important;
+    }
+    .dark #direct-reservation-dialog .res-card-est,
+    .dark #stock-shortage-modal .res-card-est {
+      background-color: rgba(30, 58, 138, 0.4) !important;
+      border: 2px solid rgba(96, 165, 250, 0.55) !important;
+    }
+    .dark #direct-reservation-dialog .res-card-payment,
+    .dark #stock-shortage-modal .res-card-payment {
+      background-color: rgba(120, 53, 15, 0.35) !important;
+      border: 1px solid rgba(245, 158, 11, 0.4) !important;
+    }
+  </style>
+  <div id="direct-reservation-dialog" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-3 sm:p-4 hidden">
+    <div class="res-modal-outer bg-white dark:bg-slate-900 rounded-[24px] sm:rounded-[28px] max-w-lg w-full shadow-2xl overflow-y-auto max-h-[90dvh] animate-in fade-in zoom-in-95 duration-200 border border-gray-200 dark:border-slate-700 p-4 sm:p-7 text-left space-y-4 sm:space-y-5">
+      <!-- Header: Out of Stock Notice -->
+      <div class="res-modal-nobox flex items-center gap-3.5">
+        <div class="bg-amber-100 dark:bg-amber-950/80 border border-amber-200 dark:border-amber-800 p-2.5 rounded-2xl text-amber-700 dark:text-amber-300 shrink-0">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-6 h-6"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+        </div>
+        <div>
+          <h3 class="text-xl sm:text-2xl font-black text-[#111827] dark:text-white tracking-tight">Out of Stock Notice</h3>
+          <p class="text-xs sm:text-sm font-medium text-[#111827] dark:text-white mt-0.5">Reservation Confirmation</p>
+        </div>
+      </div>
+
+      <!-- 1. Reservation: What the customer is reserving -->
+      <div class="res-modal-nobox space-y-1.5">
+        <p class="text-xs font-extrabold uppercase tracking-wider text-[#111827] dark:text-white">Reservation</p>
+        <p class="text-base sm:text-lg font-bold text-[#111827] dark:text-white leading-snug">
+          You're reserving <span id="direct-res-pn" class="text-[#1E6C02] dark:text-emerald-400 font-black"></span>.
+        </p>
+        <p id="direct-res-avail-desc" class="text-sm text-[#111827] dark:text-white font-medium leading-relaxed">
+          Some of the rice is not available right now. The unavailable sacks will be placed in the reservation queue.
+        </p>
+      </div>
+
+      <!-- 2. Availability: Available Now / For Reservation -->
+      <div class="res-modal-nobox space-y-2">
+        <p class="text-xs font-extrabold uppercase tracking-wider text-[#111827] dark:text-white">Availability</p>
+        <div class="grid grid-cols-1 min-[360px]:grid-cols-2 gap-3">
+          <div class="res-card-avail bg-[#F4FAF3] dark:bg-emerald-950/40 border border-[#C6EFCE] dark:border-emerald-800/70 rounded-2xl p-3.5">
+            <span class="block text-xs font-extrabold uppercase tracking-wide text-[#1E6C02] dark:text-emerald-300">Available Now</span>
+            <span id="direct-res-avail-qty" class="block text-lg sm:text-xl font-black text-[#111827] dark:text-white mt-1">0 sacks</span>
+          </div>
+          <div class="res-card-reserve bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/70 rounded-2xl p-3.5">
+            <span class="block text-xs font-extrabold uppercase tracking-wide text-amber-900 dark:text-amber-300">For Reservation</span>
+            <span id="direct-res-reserve-qty" class="block text-lg sm:text-xl font-black text-[#111827] dark:text-white mt-1">1 sack</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. Estimated Delivery or Pickup (Main Visual Focus) -->
+      <div class="res-card-est bg-[#EFF6FF] dark:bg-blue-950/50 border-2 border-[#93C5FD] dark:border-blue-700 rounded-2xl p-4 sm:p-5 shadow-xs">
+        <div class="flex items-center gap-2 text-xs sm:text-sm font-black uppercase tracking-wider text-[#1E3A8A] dark:text-blue-300">
+          <span class="text-base">📅</span>
+          <span id="direct-res-est-label">ESTIMATED DELIVERY</span>
+        </div>
+        <p id="direct-res-est-date" class="text-xl sm:text-2xl font-black text-[#111827] dark:text-white mt-1.5 tracking-tight">
+          Waiting for Restock
+        </p>
+      </div>
+
+      <!-- 4. Payment Reminder -->
+      <div class="res-card-payment bg-[#FFF8EB] dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/70 rounded-2xl p-4 space-y-1.5">
+        <div class="flex items-center gap-2 text-xs sm:text-sm font-extrabold uppercase tracking-wider text-amber-950 dark:text-amber-200">
+          <span>💳</span>
+          <span>Payment Reminder</span>
+        </div>
+        <p class="text-sm sm:text-[15px] font-extrabold text-[#1E6C02] dark:text-emerald-300">
+          No payment is needed yet.
+        </p>
+        <p class="text-xs sm:text-sm text-[#111827] dark:text-white font-medium leading-relaxed">
+          We'll notify you when your reserved rice becomes available. After we notify you, please send the required down payment within <strong>48 hours</strong>. If payment is not sent within 48 hours, your reservation will be cancelled automatically.
+        </p>
+      </div>
+
+      <!-- 5. Acknowledgement Checkbox -->
+      <div class="res-modal-nobox flex items-start gap-3 pt-1">
+        <input 
+          type="checkbox" 
+          id="agreement-check" 
+          class="mt-1 h-5 w-5 text-[#1E6C02] rounded border-gray-300 dark:border-slate-600 focus:ring-[#1E6C02] shrink-0 cursor-pointer"
+        />
+        <label for="agreement-check" class="text-xs sm:text-sm text-[#111827] dark:text-white select-none cursor-pointer leading-relaxed font-semibold">
+          I understand that this rice is currently unavailable and will be provided when stock is replenished.
+        </label>
+      </div>
+
+      <!-- 6. Actions: Cancel / Confirm & Checkout -->
+      <div class="res-modal-nobox flex flex-col-reverse sm:flex-row gap-3 pt-1">
+        <button id="direct-close-btn" class="flex-1 py-3.5 px-4 text-[#111827] dark:text-white bg-white dark:bg-slate-800 hover:bg-gray-100 hover:text-black dark:hover:bg-slate-700 dark:hover:text-white border border-gray-300 dark:border-slate-600 rounded-2xl font-bold text-sm sm:text-base cursor-pointer transition-all">Cancel</button>
+        <button id="direct-confirm-btn" disabled class="flex-1 py-3.5 px-4 bg-gray-200 dark:bg-slate-800 text-[#111827] dark:text-white rounded-2xl font-extrabold text-sm sm:text-base cursor-not-allowed transition-all" style="cursor: not-allowed;">Confirm & Checkout</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- BUY NOW CHECKOUT CONFIRMATION MODAL DIALOG -->
+  <div id="buy-now-confirm-dialog" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white dark:bg-slate-900 rounded-[24px] max-w-md w-full shadow-2xl p-6 sm:p-7 border border-gray-200 dark:border-slate-700 animate-in fade-in zoom-in-95 duration-200 text-left space-y-4">
+      <div class="flex items-center gap-3.5 pb-2 border-b border-gray-150 dark:border-slate-800">
+        <div class="w-11 h-11 rounded-2xl bg-emerald-50 dark:bg-emerald-950/50 text-[#1E6C02] dark:text-emerald-400 flex items-center justify-center font-bold shrink-0 border border-emerald-100 dark:border-emerald-800">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-5 h-5">
+            <circle cx="9" cy="21" r="1"></circle>
+            <circle cx="20" cy="21" r="1"></circle>
+            <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+          </svg>
+        </div>
+        <div>
+          <h3 class="text-xl font-black text-[#111827] dark:text-white">Proceed to Checkout?</h3>
+          <p class="text-xs font-semibold text-gray-500 dark:text-gray-400">RiceFlow Express Order</p>
+        </div>
+      </div>
+      
+      <p class="text-[#111827] dark:text-white text-sm sm:text-base font-normal leading-relaxed">
+        Your selected product and quantity are ready. Continue to checkout?
+      </p>
+
+      <div class="bg-gray-50 dark:bg-slate-800/70 p-3.5 rounded-2xl border border-gray-200/80 dark:border-slate-700 flex items-center justify-between text-sm">
+        <div class="min-w-0 pr-3">
+          <span class="block text-xs uppercase font-extrabold text-gray-500 dark:text-gray-400 tracking-wider">Item Details</span>
+          <span id="buy-now-modal-product-name" class="font-extrabold text-[#111827] dark:text-white truncate block"></span>
+        </div>
+        <div class="text-right shrink-0">
+          <span class="block text-xs uppercase font-extrabold text-gray-500 dark:text-gray-400 tracking-wider">Quantity</span>
+          <span id="buy-now-modal-quantity" class="font-black text-[#1E6C02] dark:text-emerald-400 text-base"></span>
+        </div>
+      </div>
+      
+      <div class="flex flex-col-reverse sm:flex-row gap-3 pt-2">
+        <button 
+          id="buy-now-modal-cancel" 
+          type="button" 
+          class="flex-1 py-3.5 px-4 text-[#111827] dark:text-white bg-white dark:bg-slate-800 hover:bg-gray-100 hover:text-black dark:hover:bg-slate-700 dark:hover:text-white border border-gray-300 dark:border-slate-600 rounded-2xl font-bold text-sm sm:text-base cursor-pointer transition-all"
+        >
+          Cancel
+        </button>
+        <button 
+          id="buy-now-modal-confirm" 
+          type="button" 
+          class="flex-1 py-3.5 px-4 bg-[#1E6C02] hover:bg-[#145001] text-white rounded-2xl font-extrabold text-sm sm:text-base transition-all cursor-pointer shadow-lg shadow-green-900/10 flex items-center justify-center gap-2"
+        >
+          Continue to Checkout
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- STOCK SHORTAGE / FULL-ORDER RESERVATION REQUIRED MODAL DIALOG -->
+  <div id="stock-shortage-modal" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-3 sm:p-4 hidden">
+    <div id="stock-shortage-modal-card" class="bg-white dark:bg-slate-900 rounded-[24px] sm:rounded-[28px] max-w-lg w-full p-4 sm:p-7 shadow-2xl border border-gray-100 dark:border-slate-800 animate-in fade-in zoom-in-95 duration-200 text-center max-h-[90dvh] overflow-y-auto">
+      <div id="stock-shortage-modal-icon" class="h-14 w-14 bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 rounded-2xl flex items-center justify-center mb-3 mx-auto border border-amber-200 dark:border-amber-800/60">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" class="w-7 h-7"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+      </div>
+      <h3 id="stock-shortage-modal-title" class="text-xl sm:text-2xl font-black text-gray-900 dark:text-gray-100 mb-1.5 tracking-tight">Full-Order Reservation Required</h3>
+      <div id="stock-shortage-modal-body" class="res-modal-nobox mb-5">
+        <!-- Injected dynamically -->
+      </div>
+      <div id="stock-shortage-modal-actions" class="res-modal-nobox flex flex-col gap-2.5 sm:gap-3">
+        <!-- Injected dynamically -->
+      </div>
+    </div>
+  </div>
+
+  <!-- BUY AVAILABLE SACKS ONLY (STORE PICKUP CONFIRMATION) MODAL DIALOG -->
+  <div id="buy-avail-only-dialog" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-3 sm:p-4 hidden">
+    <div id="buy-avail-only-card" class="bg-white dark:bg-slate-900 rounded-[24px] sm:rounded-[28px] max-w-lg w-full p-4 sm:p-7 shadow-2xl border border-gray-100 dark:border-slate-800 animate-in fade-in zoom-in-95 duration-200 text-center max-h-[90dvh] overflow-y-auto">
+      <div class="h-14 w-14 bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 rounded-2xl flex items-center justify-center mb-3 mx-auto border border-amber-200 dark:border-amber-800/60">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" class="w-7 h-7"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+      </div>
+      <h3 id="buy-avail-only-title" class="text-xl sm:text-2xl font-black text-gray-900 dark:text-gray-100 mb-1 tracking-tight">Buy Available Sacks Only</h3>
+      <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-4">Store Pickup Confirmation</p>
+      
+      <div id="buy-avail-only-body" class="res-modal-nobox space-y-4 mb-6 text-left">
+        <!-- Injected dynamically -->
+      </div>
+
+      <div class="flex flex-col gap-2.5 sm:gap-3">
+        <button 
+          id="buy-avail-only-confirm" 
+          type="button" 
+          class="w-full h-12 px-4 bg-[#1E6C02] text-white font-extrabold text-xs sm:text-sm rounded-2xl hover:bg-[#145001] transition-all cursor-pointer shadow-lg shadow-green-900/10 text-center flex items-center justify-center"
+        >
+          Proceed with Store Pickup
+        </button>
+        <button 
+          id="buy-avail-only-back" 
+          type="button" 
+          class="w-full h-12 px-4 border border-emerald-600 text-[#1E6C02] dark:text-emerald-400 bg-white dark:bg-slate-800 font-extrabold text-xs sm:text-sm rounded-2xl hover:bg-emerald-50 dark:hover:bg-emerald-950/40 transition-all cursor-pointer text-center flex items-center justify-center"
+        >
+          Back to Full-Order Reservation
+        </button>
+        <button 
+          id="buy-avail-only-cancel" 
+          type="button" 
+          class="w-full h-12 px-4 border border-gray-300 dark:border-slate-700 text-gray-900 dark:text-gray-100 bg-white dark:bg-slate-800 font-bold text-xs sm:text-sm rounded-2xl hover:bg-gray-50 dark:hover:bg-slate-700 transition-all cursor-pointer text-center flex items-center justify-center"
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- LOGIN REQUIRED MODAL DIALOG -->
+  <div id="login-dialog" class="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl max-w-sm w-full shadow-2xl p-6 border text-center">
+      <div class="w-16 h-16 bg-green-50 text-[#1E6C02] rounded-full flex items-center justify-center mx-auto mb-4 border border-green-100 font-bold">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-8 h-8"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+      </div>
+      <h3 class="text-xl font-extrabold text-[#111827] dark:text-white mb-2">Login Required</h3>
+      <p class="text-[#111827] dark:text-white font-medium text-sm leading-relaxed mb-6">Join our network or log in to secure bags, queue pre-orders, and leave grain reviews.</p>
+      <div class="flex flex-col gap-2">
+        <a href="login.html" class="block w-full py-3 bg-[#1E6C02] hover:bg-[#145001] text-white rounded-xl font-bold shadow-lg">Sign In Now</a>
+        <button id="close-login-dialog-btn" class="w-full py-2.5 text-[#111827] dark:text-white hover:text-[#1E6C02] font-bold text-xs uppercase tracking-wider">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dynamic Footer Bar -->
+  <div id="footer-container"></div>
+
+  <!-- Shared dynamic runtime library -->
+  <script type="module" src="src/app/shared.js"></script>
+
+  <!-- Interactive JavaScript -->
+  <script type="module">
+    import { 
+      getProductById, 
+      addToCart, 
+      getCart, 
+      clearCart, 
+      updateCartQty, 
+      getCurrentUser, 
+      showToast, 
+      getEstimatedArrivalDate,
+      getStoreSettings,
+      getDeliveryMinimumSettings,
+      evaluateDeliveryMinimum,
+      predictStockAvailability
+    } from './src/app/shared.js';
+
+    document.addEventListener('DOMContentLoaded', () => {
+      // Find ID in Search Query
+      const urlParams = new URLSearchParams(window.location.search);
+      const prodId = urlParams.get('id');
+      const urlQty = parseInt(urlParams.get('quantity') || urlParams.get('qty'), 10);
+
+      let product = getProductById(prodId);
+      if (!product || product.isArchived || product.archived) {
+        showToast('Grain variety details not found', 'error');
+        setTimeout(() => {
+          window.location.href = '/products.html';
+        }, 1200);
+        return;
+      }
+
+      // Populate Web title
+      document.title = `${product.name} | RiceFlow Details`;
+
+      // 1. Populate Image Element Left
+      const imgBox = document.getElementById('product-img-box');
+      function renderImageBox() {
+        if (!imgBox || !product) return;
+        imgBox.innerHTML = `
+          <img 
+            src="${product.image}" 
+            alt="${product.name}" 
+            class="w-full h-full object-cover transition-transform duration-700 hover:scale-105"
+            referrerPolicy="no-referrer"
+          />
+          ${product.stock === 0 ? `
+            <div class="absolute top-6 left-6 bg-[#EF4444] text-white px-5 py-2 rounded-full font-black text-[10px] uppercase tracking-wider shadow-md z-10 animate-pulse">
+              Out Of Stock
+            </div>
+          ` : product.stock <= 20 ? `
+            <div class="absolute top-6 left-6 bg-[#FF5B00] text-white px-5 py-2.5 rounded-full font-black text-[10px] uppercase tracking-wider shadow-md z-10">
+              LOW STOCK
+            </div>
+          ` : ''}
+        `;
+      }
+      renderImageBox();
+
+      // Resolve active customer address from session or user profile
+      function resolveCustomerDeliveryAddress() {
+        let activeAddr = null;
+        const sessionAddr = sessionStorage.getItem('riceflow-address');
+        if (sessionAddr) {
+          try {
+            activeAddr = JSON.parse(sessionAddr);
+          } catch (e) {
+            activeAddr = sessionAddr;
+          }
+        }
+        const user = getCurrentUser();
+        if (!activeAddr && user) {
+          activeAddr = user.addressDetails || user.address || null;
+        }
+        return activeAddr;
+      }
+
+      // 2. Populate Metainfo Right Column
+      const metaPanel = document.getElementById('product-meta-panel');
+      let currentQuantityValue = (!isNaN(urlQty) && Number.isSafeInteger(urlQty) && urlQty > 0) ? urlQty : 1;
+      let isQuantityInputValid = true;
+      let isNavigatingToCheckout = false;
+      let isDirectReservationNavigating = false;
+
+      // Render details layout
+      function renderMetaPanel() {
+        // Rendering restores the selector from the last valid whole-sack quantity.
+        isQuantityInputValid = true;
+        const totalCost = currentQuantityValue * product.price;
+        const isOutOfStock = product.stock === 0;
+
+        const storeSettings = getStoreSettings();
+        const deliveryMinSettings = getDeliveryMinimumSettings();
+        const activeAddr = resolveCustomerDeliveryAddress();
+        const evalResult = evaluateDeliveryMinimum(activeAddr, currentQuantityValue, storeSettings);
+        const isBuyNowDisabled = !evalResult.isSatisfied;
+        const stockForecast = typeof predictStockAvailability === 'function'
+          ? predictStockAvailability(product.id)
+          : null;
+
+        metaPanel.innerHTML = `
+          <div class="mb-8">
+            <div class="flex items-center gap-3 mb-4">
+              <span class="px-3.5 py-1.5 bg-[#E2F9E5] text-[#1E6C02] text-xs font-black rounded-lg uppercase tracking-wider">
+                ${product.type} Rice
+              </span>
+              <div class="flex items-center gap-2">
+                <div class="w-2 h-2 rounded-full ${isOutOfStock ? 'bg-red-500 animate-pulse' : product.stock <= 20 ? 'bg-[#FF5B00]' : 'bg-[#1DB954]'}"></div>
+                <span class="text-xs font-black uppercase tracking-wider ${isOutOfStock ? 'text-red-650' : product.stock <= 20 ? 'text-[#FF5B00]' : 'text-[#1E6C02]'}">
+                  ${isOutOfStock ? '• Out Of Stock' : '• In Stock'}
+                </span>
+              </div>
+            </div>
+            
+            <h1 class="text-3xl sm:text-5xl lg:text-[44px] font-black text-[#111827] dark:text-white leading-none tracking-tight mb-6">
+              ${product.name}
+            </h1>
+
+            <div class="p-6 bg-white rounded-[24px] border border-gray-100 shadow-xs mb-6 flex flex-col justify-center">
+              <div class="flex items-baseline gap-1 mb-2">
+                <span class="text-[#1E6C02] text-4xl sm:text-5xl font-black">
+                  ₱${product.price.toLocaleString()}
+                </span>
+                <span class="text-[#111827] dark:text-white font-bold text-base">/25kg sack</span>
+              </div>
+              <div class="flex items-center gap-2 text-[#111827] dark:text-white text-sm font-normal leading-none mt-1">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-4 h-4 text-[#1E6C02]"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+                <span>${product.stock} sacks available for new orders${product.currentStock !== undefined && product.currentStock !== product.stock ? ` (${product.currentStock} physically in warehouse)` : ''}</span>
+              </div>
+            </div>
+
+            <!-- Stock Availability & Restock Forecast Card -->
+            ${stockForecast && stockForecast.status === 'predicted' ? `
+              <div id="product-restock-advisory" class="p-5 bg-white rounded-[20px] border border-black shadow-xs mb-6 space-y-4 text-black" style="font-family: 'Source Sans 3', sans-serif; color: #111111;">
+                <div class="flex items-center justify-between gap-3">
+                  <div class="flex items-center gap-2">
+                    <span class="text-base" aria-hidden="true">📅</span>
+                    <span class="text-sm font-semibold uppercase tracking-wide text-black" style="font-family: Inter, sans-serif; font-weight: 600; color: #111111;">
+                      Restock Estimate
+                    </span>
+                  </div>
+                  <span class="text-xs font-semibold px-2.5 py-1 rounded-full border border-black bg-white text-black" style="font-size: 11px; line-height: 1.35; font-weight: 600; color: #111111;">
+                    Based on ${stockForecast.intervalCount} past ${stockForecast.intervalCount === 1 ? 'restock period' : 'restock periods'}
+                  </span>
+                </div>
+                <div>
+                  <div class="text-[13px] text-black font-semibold mb-1" style="font-family: Inter, sans-serif; font-weight: 600; color: #111111;">Estimated Restock Dates</div>
+                  <div class="text-base sm:text-[17px] font-semibold text-black tracking-tight" style="font-family: Inter, sans-serif; font-weight: 600; color: #111111;">
+                    ${stockForecast.displayDate}
+                  </div>
+                </div>
+                ${stockForecast.reservedQueueSacks > 0 ? `
+                  <div class="p-3 bg-white border border-black rounded-xl text-black flex items-start gap-3" style="font-size: 13px; line-height: 1.5; font-weight: 500; color: #111111;">
+                    <span class="shrink-0 mt-0.5 text-base" aria-hidden="true">ℹ️</span>
+                    <span class="leading-relaxed" style="font-weight: 500; color: #111111;"><strong style="font-family: Inter, sans-serif; font-weight: 600; color: #111111;">Queue update:</strong> ${stockForecast.reservedQueueSacks} sacks have been set aside for customers in the waiting line. The remaining stock may be available for new orders, depending on current stock availability.</span>
+                  </div>
+                ` : `
+                  <div class="text-base text-black flex items-start gap-2" style="font-size: 13px; line-height: 1.5; font-weight: 500; color: #111111;">
+                    <span aria-hidden="true">✓</span>
+                    <span>No earlier reservations are waiting for this rice. More stock is expected when the delivery arrives.</span>
+                  </div>
+                `}
+                <p class="text-sm text-black pt-3 border-t border-black leading-relaxed" style="font-size: 12px; line-height: 1.5; font-weight: 500; color: #111111;">
+                  <strong style="font-family: Inter, sans-serif; font-weight: 600; color: #111111;">Please note:</strong> These dates are estimates based on past deliveries, not a promise from the supplier. The actual restock date may change because of harvest or delivery delays.
+                </p>
+              </div>
+            ` : `
+              <div id="product-restock-advisory" class="relative overflow-hidden p-5 sm:p-6 bg-white rounded-[22px] border border-black shadow-sm mb-6 space-y-4 text-black">
+                
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pl-1">
+                  <div class="flex items-center gap-3">
+                    <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-black bg-white text-xl">⏳</span>
+                    <div class="space-y-1">
+                      <span class="block text-sm font-extrabold tracking-tight text-black">
+                        Restock date not available yet
+                      </span>
+                      <span class="block text-xs font-semibold text-black">We need more delivery history</span>
+                    </div>
+                  </div>
+                  <span class="inline-flex w-fit items-center rounded-full border border-black bg-white px-3 py-1.5 text-[11px] font-extrabold text-black">
+                    Not enough data
+                  </span>
+                </div>
+                <p class="pl-1 text-sm font-medium leading-relaxed text-black">
+                  ${stockForecast && stockForecast.observationCount === 1 
+                    ? 'We have recorded 1 supplier delivery for this rice type. We need at least 2 deliveries to estimate when more stock may arrive.' 
+                    : 'No past supplier deliveries are recorded for this rice type yet. We need delivery history before we can estimate when more stock may arrive.'}
+                  This message will update automatically as more verified supplier deliveries are recorded.
+                </p>
+                ${stockForecast && stockForecast.reservedQueueSacks > 0 ? `
+                  <div class="flex items-start gap-3 rounded-xl border border-black bg-white p-3.5 text-sm text-black">
+                    <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-black bg-white">ℹ️</span>
+                    <span class="leading-relaxed"><strong class="font-extrabold">Waiting list update:</strong> ${stockForecast.reservedQueueSacks} sacks are already reserved in the FIFO queue. Orders are handled in the order they are received.</span>
+                  </div>
+                ` : ''}
+                <p class="border-t border-black pt-3 text-xs italic leading-relaxed text-black">
+                  Please note: This is an estimate, not a promise from the supplier. A restock estimate can appear when enough verified delivery records are available.
+                </p>
+              </div>
+            `}
+
+            <!-- Pre-order Out-of-Stock Explanations banner -->
+            ${isOutOfStock ? `
+              <div class="bg-orange-50/70 border-l-4 border-orange-500 rounded-r-2xl p-5 mb-8 shadow-sm">
+                <div class="flex gap-3">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-6 h-6 text-orange-600 flex-shrink-0"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                  <p class="text-orange-900 leading-relaxed font-bold text-sm">
+                    This grain variety is temporarily out of stock. Place a reservation order to queue up for priority shipment as soon as the harvest arrives.
+                  </p>
+                </div>
+              </div>
+            ` : ''}
+
+            <!-- Reactive Counter Control blocks -->
+            <div class="mt-4 pt-4">
+              <div class="grid grid-cols-2 gap-4 mb-6">
+                <div class="space-y-2">
+                  <span class="text-xs font-bold uppercase tracking-wider text-[#111827] dark:text-white block">Quantity (Sacks)</span>
+                  <div class="flex items-center justify-between gap-1 h-14 bg-white rounded-2xl border border-gray-200 px-2 sm:px-3 shadow-xs">
+                    <button 
+                      id="btn-decrement"
+                      class="w-8 sm:w-10 h-10 shrink-0 hover:bg-gray-100 rounded-xl flex items-center justify-center font-black text-[#111827] dark:text-white transition-colors cursor-pointer border-0 bg-transparent"
+                    >
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-4 h-4"><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                    </button>
+                    <input
+                      id="qty-indicator"
+                      type="number"
+                      min="1"
+                      step="1"
+                      inputmode="numeric"
+                      aria-label="Quantity in sacks"
+                      title="Type the number of sacks"
+                      value="${currentQuantityValue}"
+                      class="w-12 sm:w-14 min-w-0 h-10 rounded-lg border border-gray-200 bg-white text-center text-base font-extrabold text-[#111827] outline-none focus:border-[#1E6C02] focus:ring-2 focus:ring-[#1E6C02]/20"
+                    />
+                    <button 
+                      id="btn-increment"
+                      class="w-8 sm:w-10 h-10 shrink-0 hover:bg-gray-100 rounded-xl flex items-center justify-center font-black text-[#111827] dark:text-white transition-colors cursor-pointer border-0 bg-transparent"
+                    >
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-4 h-4"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                    </button>
+                  </div>
+                </div>
+
+                <div class="space-y-2 col-span-1">
+                  <span class="text-xs font-bold uppercase tracking-wider text-[#111827] dark:text-white block">Total Amount</span>
+                  <div class="flex items-center justify-center h-14 bg-[#F1F3F5] dark:bg-slate-800 rounded-2xl font-black text-lg text-[#111827] dark:text-white tracking-tight">
+                    ₱${totalCost.toLocaleString()}
+                  </div>
+                </div>
+
+                <!-- Reactive delivery-minimum warning; detailed minimum summary intentionally removed. -->
+                <div id="product-delivery-guidance" class="col-span-2 -mt-2 space-y-3">
+                  ${!evalResult.isSatisfied ? `
+                    <div id="buy-now-min-alert" class="space-y-2 rounded-xl border border-black bg-white p-4 text-sm text-black">
+                      <div class="flex items-start gap-2.5 font-extrabold leading-snug text-black">
+                        <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-black bg-white">⚠️</span>
+                        <span>${isOutOfStock ? 'To reserve for delivery' : 'To order for delivery'}, you need at least ${evalResult.applicableMinimum} sacks${evalResult.matchedRuleName ? ` (${evalResult.matchedRuleName})` : ''}.</span>
+                      </div>
+                      <p class="pl-10 text-[13px] leading-relaxed text-black">
+                        You selected <strong>${currentQuantityValue} ${currentQuantityValue === 1 ? 'sack' : 'sacks'}</strong>. Add <strong>${evalResult.deficit} more</strong> to enable ${isOutOfStock ? 'Reserve Now' : 'Buy Now'} for delivery. Need fewer sacks? Choose <strong>Add to Cart</strong>, then select <strong>Store Pickup</strong> at checkout.
+                      </p>
+                    </div>
+                  ` : `
+                    <div id="buy-now-min-alert" class="flex items-start gap-3 rounded-xl border border-black bg-white p-3.5 text-sm text-black">
+                      <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-black bg-white font-extrabold text-black">✓</span>
+                      <span class="font-semibold leading-relaxed">Delivery minimum met for ${currentQuantityValue} sacks. You can continue to ${isOutOfStock ? 'reserve' : 'Buy Now'}.</span>
+                    </div>
+                  `}
+                </div>
+              </div>
+
+              <!-- Primary CTA Action Panels -->
+              <div class="grid grid-cols-2 gap-4 mb-8">
+                <button 
+                  id="btn-add-to-cart"
+                  class="h-14 bg-[#1E6C02] hover:bg-[#145001] text-white font-extrabold text-sm rounded-2xl shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer border-0"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-4 h-4"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
+                  ADD TO CART
+                </button>
+                <div id="buy-now-wrapper" class="relative ${isBuyNowDisabled ? 'cursor-not-allowed' : ''}">
+                  <button 
+                    id="btn-buy-now"
+                    ${isBuyNowDisabled ? 'disabled aria-disabled="true"' : ''}
+                    title="${isBuyNowDisabled ? `Delivery requires at least ${evalResult.applicableMinimum} sacks for ${isOutOfStock ? 'Reserve Now' : 'Buy Now'}. Add to Cart for Store Pickup.` : ''}"
+                    class="w-full h-14 ${isBuyNowDisabled 
+                      ? 'border-2 border-gray-200 dark:border-slate-700 bg-gray-100 dark:bg-slate-800 text-gray-400 dark:text-gray-500 font-extrabold text-sm rounded-2xl transition-all flex items-center justify-center cursor-not-allowed select-none opacity-60 shadow-none' 
+                      : 'border-2 border-[#1E6C02] text-[#1E6C02] hover:bg-[#1E6C02] hover:text-white font-extrabold text-sm rounded-2xl transition-all flex items-center justify-center cursor-pointer bg-white'}"
+                  >
+                    ${isOutOfStock ? 'RESERVE NOW' : 'BUY NOW'}
+                  </button>
+                </div>
+              </div>
+
+              <!-- Product Details Text Description -->
+              <div class="mt-8 pt-8 border-t border-gray-150 space-y-4 text-[#111827] dark:text-white leading-relaxed text-base font-normal">
+                <h3 class="text-xl font-bold text-[#111827] dark:text-white mb-4">${product.name} – ${product.type} Rice (Bulk Available)</h3>
+                <p class="text-[#111827] dark:text-white text-base font-normal leading-relaxed">${product.description || `Locally grown organic ${product.type} rice harvested with care. Soft fluff texture, premium grain length. Sourced through certified farming systems in Zamboanga del Sur.`}</p>
+                <p class="text-[#111827] dark:text-white text-base font-normal leading-relaxed">When cooked, ${product.name} becomes tender and fluffy, creating the perfect balance of texture and taste. It is most commonly used for everyday meals, but it can also be used in specialty dishes and traditional recipes.</p>
+                <p class="text-[#111827] dark:text-white text-base font-normal leading-relaxed">Our ${product.name} is carefully selected to ensure quality, freshness, and consistent cooking results. Perfect for restaurants, catering businesses, and home cooks who want authentic, high-quality rice for special recipes.</p>
+                <p class="font-bold text-[#111827] dark:text-white mt-4 text-base">Available in bulk sacks for wholesale and commercial use.</p>
+              </div>
+            </div>
+          </div>
+        `;
+
+        // Move these existing UI-only advisories beneath the product image and feature badges.
+        // Their markup and business logic remain unchanged; moving DOM nodes preserves IDs and listeners.
+        const leftGuidance = document.getElementById('product-left-guidance');
+        const restockAdvisory = document.getElementById('product-restock-advisory');
+        if (leftGuidance && restockAdvisory) {
+          // Move the existing advisory node to the left; do not clone or duplicate it.
+          leftGuidance.appendChild(restockAdvisory);
+        }
+        // Delivery minimum alert stays in the right-side order panel.
+
+        // Bind interactive elements inside card panel
+        const quantityInput = document.getElementById('qty-indicator');
+        if (quantityInput) {
+          quantityInput.addEventListener('input', () => {
+            const rawValue = quantityInput.value.trim();
+            const typedQuantity = Number(rawValue);
+            isQuantityInputValid = rawValue !== '' && Number.isSafeInteger(typedQuantity) && typedQuantity >= 1 && quantityInput.validity.valid;
+            if (isQuantityInputValid) {
+              currentQuantityValue = typedQuantity;
+            }
+          });
+
+          quantityInput.addEventListener('change', () => {
+            const rawValue = quantityInput.value.trim();
+            const typedQuantity = Number(rawValue);
+            isQuantityInputValid = rawValue !== '' && Number.isSafeInteger(typedQuantity) && typedQuantity >= 1 && quantityInput.validity.valid;
+            if (isQuantityInputValid) {
+              currentQuantityValue = typedQuantity;
+            } else {
+              showToast('Enter a whole number of sacks greater than zero.', 'warning');
+            }
+            // Defer re-render until the current click/change sequence finishes.
+            setTimeout(() => renderMetaPanel(), 0);
+          });
+        }
+
+        document.getElementById('btn-decrement').addEventListener('click', () => {
+          isQuantityInputValid = true;
+          if (currentQuantityValue > 1) {
+            currentQuantityValue--;
+            renderMetaPanel();
+          } else if (quantityInput && quantityInput.value !== String(currentQuantityValue)) {
+            renderMetaPanel();
+          }
+        });
+
+        document.getElementById('btn-increment').addEventListener('click', () => {
+          isQuantityInputValid = true;
+          currentQuantityValue++;
+          renderMetaPanel();
+        });
+
+        // Add to cart click logic
+        document.getElementById('btn-add-to-cart').addEventListener('click', () => {
+          if (!isQuantityInputValid) {
+            showToast('Enter a whole number of sacks greater than zero.', 'warning');
+            return;
+          }
+          const user = getCurrentUser();
+          if (!user) {
+            sessionStorage.setItem('login-message', 'Please log in to add products to your cart.');
+            sessionStorage.setItem('login-redirect', window.location.href);
+            window.location.href = 'login.html';
+            return;
+          }
+
+          if (isOutOfStock) {
+            document.getElementById('addto-reservation-dialog').classList.remove('hidden');
+          } else {
+            addToCart(product, currentQuantityValue, false);
+            showToast(`Added ${currentQuantityValue} sacks of '${product.name}' to cart!`);
+            updateNavbarCartCount();
+          }
+        });
+
+        // Wrapper click to notify customer when Buy Now / Reserve Now is disabled below minimum
+        const buyNowWrapper = document.getElementById('buy-now-wrapper');
+        if (buyNowWrapper && isBuyNowDisabled) {
+          buyNowWrapper.addEventListener('click', (e) => {
+            if (isBuyNowDisabled) {
+              e.preventDefault();
+              showToast(`${isOutOfStock ? 'Reserve Now' : 'Buy Now'} requires at least ${evalResult.applicableMinimum} sacks for delivery. Add ${evalResult.deficit} more ${evalResult.deficit === 1 ? 'sack' : 'sacks'}, or use Add to Cart to select Store Pickup at checkout.`, 'warning');
+            }
+          });
+        }
+
+        // Buy now / Reserve now click logic
+        document.getElementById('btn-buy-now').addEventListener('click', (e) => {
+          if (!isQuantityInputValid) {
+            e.preventDefault();
+            e.stopPropagation();
+            showToast('Enter a whole number of sacks greater than zero.', 'warning');
+            return;
+          }
+          // Fresh revalidation in the actual click handler
+          const storeSettings = getStoreSettings();
+          const deliveryMinSettings = getDeliveryMinimumSettings();
+          const activeAddr = resolveCustomerDeliveryAddress();
+          const freshEval = evaluateDeliveryMinimum(activeAddr, currentQuantityValue, storeSettings);
+
+          if (!freshEval.isSatisfied) {
+            e.preventDefault();
+            e.stopPropagation();
+            showToast(`${isOutOfStock ? 'Reserve Now' : 'Buy Now'} requires at least ${freshEval.applicableMinimum} sacks for delivery. Add ${freshEval.deficit} more ${freshEval.deficit === 1 ? 'sack' : 'sacks'}, or use Add to Cart to select Store Pickup at checkout.`, 'warning');
+            return;
+          }
+
+          const user = getCurrentUser();
+          if (!user) {
+            sessionStorage.setItem('login-message', 'Please log in to purchase products.');
+            sessionStorage.setItem('login-redirect', window.location.href);
+            window.location.href = 'login.html';
+            return;
+          }
+
+          const reqQty = Number(currentQuantityValue || 1);
+          const availStock = Math.max(0, Number(product.availableStock !== undefined ? product.availableStock : (product.stock !== undefined ? product.stock : 0)));
+
+          // Case 1: Out of Physical Stock (0 available) -> Open Reservation Confirmation Dialog
+          if (availStock <= 0) {
+            const minQty = freshEval.applicableMinimum;
+            const locStr = freshEval.matchedRuleName
+              ? `to "${freshEval.matchedRuleName}"`
+              : (activeAddr ? `to "${activeAddr.city || activeAddr.cityMunicipality || activeAddr.fullAddress || activeAddr.address || 'your destination'}"` : 'to your destination');
+
+            const previewOrder = {
+              isPreOrder: true,
+              isReservation: true,
+              status: 'pre-order',
+              deliveryOption: 'delivery',
+              productId: product.id,
+              productName: product.name,
+              product: product,
+              estimatedRestockDate: product.restockDate || product.estimatedRestockDate || null,
+              items: [{
+                product: product,
+                productId: product.id,
+                productName: product.name,
+                quantity: reqQty,
+                isReservation: true
+              }]
+            };
+            const estDateText = getEstimatedArrivalDate(previewOrder) || 'Waiting for Restock';
+
+            const directDialog = document.getElementById('direct-reservation-dialog');
+            const directPn = document.getElementById('direct-res-pn');
+            const directDesc = document.getElementById('direct-res-avail-desc');
+            const directAvailQty = document.getElementById('direct-res-avail-qty');
+            const directReserveQty = document.getElementById('direct-res-reserve-qty');
+            const directEstDate = document.getElementById('direct-res-est-date');
+            const directEstLabel = document.getElementById('direct-res-est-label');
+            const agreeCheck = document.getElementById('agreement-check');
+            const directConfirm = document.getElementById('direct-confirm-btn');
+
+            if (directPn) directPn.textContent = `${reqQty} ${reqQty === 1 ? 'sack' : 'sacks'} of ${product.name}`;
+            if (directDesc) {
+              directDesc.innerHTML = `This grain variety is currently out of stock. Your requested order of <strong>${reqQty} sacks</strong> meets the delivery minimum of <strong>${minQty} sacks</strong> ${locStr}. The entire order will enter the reservation queue and be delivered once restocked.`;
+            }
+            if (directAvailQty) directAvailQty.textContent = '0 sacks';
+            if (directReserveQty) directReserveQty.textContent = `${reqQty} ${reqQty === 1 ? 'sack' : 'sacks'}`;
+            if (directEstDate) directEstDate.textContent = estDateText;
+            if (directEstLabel) directEstLabel.textContent = 'ESTIMATED DELIVERY';
+
+            if (agreeCheck) agreeCheck.checked = false;
+            if (directConfirm) {
+              directConfirm.disabled = true;
+              directConfirm.className = "flex-1 py-3.5 px-4 bg-gray-200 dark:bg-slate-800 text-[#111827] dark:text-white rounded-2xl font-extrabold text-sm sm:text-base cursor-not-allowed transition-all";
+              directConfirm.style.cursor = "not-allowed";
+              directConfirm.textContent = 'Confirm & Checkout';
+            }
+            isDirectReservationNavigating = false;
+
+            if (directDialog) directDialog.classList.remove('hidden');
+            return;
+          }
+
+          // Case 2: Stock shortage (Customer requests more sacks than physically available in warehouse)
+          if (reqQty > availStock) {
+            const storeSettings = getStoreSettings();
+            const activeAddr = resolveCustomerDeliveryAddress();
+            const minDeliveryCheck = evaluateDeliveryMinimum(activeAddr, availStock, storeSettings);
+            const isUnderMinDelivery = Boolean(minDeliveryCheck && !minDeliveryCheck.isSatisfied);
+
+            const forRes = Math.max(0, reqQty - availStock);
+            const availSackNoun = availStock === 1 ? 'sack' : 'sacks';
+            const reservedSackNoun = forRes === 1 ? 'sack' : 'sacks';
+            const minQty = minDeliveryCheck ? minDeliveryCheck.applicableMinimum : 20;
+            const locStr = minDeliveryCheck?.matchedRuleName
+              ? `to "${minDeliveryCheck.matchedRuleName}"`
+              : (activeAddr ? `to "${activeAddr.city || activeAddr.cityMunicipality || activeAddr.fullAddress || activeAddr.address || 'your destination'}"` : 'to your destination');
+
+            const previewOrder = {
+              isPreOrder: true,
+              isReservation: true,
+              status: 'pre-order',
+              deliveryOption: 'delivery',
+              productId: product.id,
+              productName: product.name,
+              product: product,
+              estimatedRestockDate: product.restockDate || product.estimatedRestockDate || null,
+              items: [{
+                product: product,
+                productId: product.id,
+                productName: product.name,
+                quantity: isUnderMinDelivery ? reqQty : forRes,
+                isReservation: true
+              }]
+            };
+            const estDateText = getEstimatedArrivalDate(previewOrder) || 'Waiting for Restock';
+
+            const shortageModal = document.getElementById('stock-shortage-modal');
+            const shortageTitle = document.getElementById('stock-shortage-modal-title');
+            const shortageIcon = document.getElementById('stock-shortage-modal-icon');
+            const shortageBody = document.getElementById('stock-shortage-modal-body');
+            const shortageActions = document.getElementById('stock-shortage-modal-actions');
+
+            if (isUnderMinDelivery) {
+              // Case A: Available stock is below delivery minimum -> Full-Order Reservation Required
+              shortageTitle.textContent = 'Full-Order Reservation Required';
+              shortageIcon.className = 'h-14 w-14 bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 rounded-2xl flex items-center justify-center mb-3 mx-auto border border-amber-200 dark:border-amber-800/60';
+              shortageIcon.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" class="w-7 h-7"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>';
+
+              shortageBody.innerHTML = `
+                <span class="block text-left space-y-5 mt-2">
+                  <!-- 1. Delivery Minimum Notice -->
+                  <span class="block space-y-1.5">
+                    <span class="block text-xs font-extrabold uppercase tracking-wider text-amber-700 dark:text-amber-400">Delivery Minimum Notice</span>
+                    <span class="block text-base sm:text-lg font-bold text-gray-900 dark:text-gray-100 leading-snug">
+                      Stock shortage detected for <strong class="text-[#1E6C02] dark:text-emerald-400 font-black">${product.name}</strong>.
+                    </span>
+                    <span class="block text-sm text-gray-900 dark:text-gray-100 font-medium leading-relaxed">
+                      Delivery ${locStr} requires a minimum of <strong>${minQty} sacks</strong>, but only <strong>${availStock} ${availSackNoun}</strong> are currently available in the warehouse.
+                    </span>
+                    <span class="block text-sm text-[#1E6C02] dark:text-emerald-300 font-semibold leading-relaxed">
+                      To ensure your delivery arrives together, your entire requested order of <strong>${reqQty} sacks</strong> will enter the reservation queue and be delivered together once all sacks are ready.
+                    </span>
+                  </span>
+
+                  <!-- 2. Order & Reservation Breakdown -->
+                  <span class="block space-y-2">
+                    <span class="block text-xs font-extrabold uppercase tracking-wider text-gray-900 dark:text-gray-100">Order & Reservation Breakdown</span>
+                    <span class="grid grid-cols-2 gap-3">
+                      <span class="res-card-avail block bg-[#F4FAF3] dark:bg-emerald-950/40 border border-[#C6EFCE] dark:border-emerald-800/70 rounded-2xl p-3.5">
+                        <span class="block text-xs font-extrabold uppercase tracking-wide text-[#1E6C02] dark:text-emerald-300">Available Now</span>
+                        <span class="block text-lg sm:text-xl font-black text-gray-900 dark:text-white mt-1">${availStock} ${availSackNoun}</span>
+                      </span>
+                      <span class="res-card-reserve block bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/70 rounded-2xl p-3.5">
+                        <span class="block text-xs font-extrabold uppercase tracking-wide text-amber-900 dark:text-amber-300">Awaiting Restock</span>
+                        <span class="block text-lg sm:text-xl font-black text-gray-900 dark:text-white mt-1">${forRes} ${reservedSackNoun}</span>
+                      </span>
+                    </span>
+                    <span class="block bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800/70 rounded-2xl p-3 text-center">
+                      <span class="block text-xs font-extrabold uppercase tracking-wide text-blue-900 dark:text-blue-300">Total Order Delivered Together</span>
+                      <span class="block text-lg font-black text-blue-950 dark:text-blue-100 mt-0.5">${reqQty} sacks</span>
+                    </span>
+                  </span>
+
+                  <!-- 3. Estimated Arrival -->
+                  <span class="res-card-est block bg-[#EFF6FF] dark:bg-blue-950/50 border-2 border-[#93C5FD] dark:border-blue-700 rounded-2xl p-4 sm:p-5 shadow-xs">
+                    <span class="flex items-center gap-2 text-xs sm:text-sm font-black uppercase tracking-wider text-[#1E3A8A] dark:text-blue-300">
+                      <span class="text-base">📅</span>
+                      <span>ESTIMATED DELIVERY</span>
+                    </span>
+                    <span class="block text-xl sm:text-2xl font-black text-gray-950 dark:text-white mt-1.5 tracking-tight">
+                      ${estDateText}
+                    </span>
+                  </span>
+
+                  <!-- 4. Payment Reminder -->
+                  <span class="res-card-payment block bg-[#FFF8EB] dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/70 rounded-2xl p-4 space-y-1.5">
+                    <span class="flex items-center gap-2 text-xs sm:text-sm font-extrabold uppercase tracking-wider text-amber-950 dark:text-amber-200">
+                      <span>💳</span>
+                      <span>No Payment Needed Today</span>
+                    </span>
+                    <span class="block text-xs sm:text-sm text-gray-900 dark:text-gray-100 font-medium leading-relaxed">
+                      Your full order reservation will be saved to the queue without charging you. We will notify you once all sacks arrive in warehouse, giving you 48 hours to complete payment before dispatch.
+                    </span>
+                  </span>
+                </span>
+              `;
+
+              shortageActions.innerHTML = `
+                <button id="btn-shortage-reserve-full" type="button" class="w-full h-12 px-4 bg-[#1E6C02] text-white font-extrabold text-xs sm:text-sm rounded-2xl hover:bg-[#145001] transition-all cursor-pointer shadow-lg shadow-green-900/10 text-center flex items-center justify-center">
+                  Reserve Full Order (Delivered Together)
+                </button>
+                <button id="btn-shortage-buy-avail-only" type="button" class="w-full h-12 px-4 border-2 border-emerald-600 dark:border-emerald-500 text-emerald-800 dark:text-emerald-300 bg-emerald-50/60 dark:bg-emerald-950/40 font-extrabold text-xs sm:text-sm rounded-2xl hover:bg-emerald-100 dark:hover:bg-emerald-900/50 transition-all cursor-pointer text-center flex items-center justify-center">
+                  Buy Available Sacks Only
+                </button>
+                <button id="btn-shortage-cancel" type="button" class="w-full h-12 px-4 border border-gray-300 dark:border-slate-700 text-gray-900 dark:text-gray-100 bg-white dark:bg-slate-800 font-bold text-xs sm:text-sm rounded-2xl hover:bg-gray-50 dark:hover:bg-slate-700 transition-all cursor-pointer text-center flex items-center justify-center">
+                  Cancel
+                </button>
+              `;
+
+              document.getElementById('btn-shortage-reserve-full').onclick = () => {
+                shortageModal.classList.add('hidden');
+                window.location.href = `reservation.html?productId=${product.id}&quantity=${reqQty}&fullReservation=true`;
+              };
+
+              document.getElementById('btn-shortage-buy-avail-only').onclick = () => {
+                shortageModal.classList.add('hidden');
+                openBuyAvailOnlyModal(product, availStock, reqQty, minQty, locStr);
+              };
+
+              document.getElementById('btn-shortage-cancel').onclick = () => {
+                shortageModal.classList.add('hidden');
+              };
+
+            } else {
+              // Subcase 2B: Stock Availability Notice (availStock >= delivery minimum, can be delivered!)
+              shortageTitle.textContent = 'Stock Availability Notice';
+              shortageIcon.className = 'h-14 w-14 bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 rounded-2xl flex items-center justify-center mb-3 mx-auto border border-amber-200 dark:border-amber-800/60';
+              shortageIcon.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" class="w-7 h-7"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>';
+
+              shortageBody.innerHTML = `
+                <span class="block text-left space-y-5 mt-2">
+                  <!-- 1. What the customer is reserving -->
+                  <span class="block space-y-1.5">
+                    <span class="block text-xs font-extrabold uppercase tracking-wider text-gray-900 dark:text-gray-100">Reservation Notice</span>
+                    <span class="block text-base sm:text-lg font-bold text-gray-900 dark:text-gray-100 leading-snug">
+                      Stock shortage detected for <strong class="text-[#1E6C02] dark:text-emerald-400 font-black">${product.name}</strong>.
+                    </span>
+                    <span class="block text-sm text-gray-900 dark:text-gray-100 font-medium leading-relaxed">
+                      Only <strong>${availStock} ${availSackNoun}</strong> available right now. Please select how you would like to proceed with your order below.
+                    </span>
+                  </span>
+
+                  <!-- 2. Availability Breakdown -->
+                  <span class="block space-y-2">
+                    <span class="block text-xs font-extrabold uppercase tracking-wider text-gray-900 dark:text-gray-100">Availability Breakdown</span>
+                    <span class="grid grid-cols-2 gap-3">
+                      <span class="res-card-avail block bg-[#F4FAF3] dark:bg-emerald-950/40 border border-[#C6EFCE] dark:border-emerald-800/70 rounded-2xl p-3.5">
+                        <span class="block text-xs font-extrabold uppercase tracking-wide text-[#1E6C02] dark:text-emerald-300">Available Now</span>
+                        <span class="block text-lg sm:text-xl font-black text-gray-900 dark:text-white mt-1">${availStock} ${availSackNoun}</span>
+                      </span>
+                      <span class="res-card-reserve block bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/70 rounded-2xl p-3.5">
+                        <span class="block text-xs font-extrabold uppercase tracking-wide text-amber-900 dark:text-amber-300">For Reservation Queue</span>
+                        <span class="block text-lg sm:text-xl font-black text-gray-900 dark:text-white mt-1">${forRes} ${reservedSackNoun}</span>
+                      </span>
+                    </span>
+                  </span>
+
+                  <!-- 3. Estimated Arrival -->
+                  <span class="res-card-est block bg-[#EFF6FF] dark:bg-blue-950/50 border-2 border-[#93C5FD] dark:border-blue-700 rounded-2xl p-4 sm:p-5 shadow-xs">
+                    <span class="flex items-center gap-2 text-xs sm:text-sm font-black uppercase tracking-wider text-[#1E3A8A] dark:text-blue-300">
+                      <span class="text-base">📅</span>
+                      <span>ESTIMATED DELIVERY</span>
+                    </span>
+                    <span class="block text-xl sm:text-2xl font-black text-gray-950 dark:text-white mt-1.5 tracking-tight">
+                      ${estDateText}
+                    </span>
+                  </span>
+
+                  <!-- 4. Payment Reminder -->
+                  <span class="res-card-payment block bg-[#FFF8EB] dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/70 rounded-2xl p-4 space-y-1.5">
+                    <span class="flex items-center gap-2 text-xs sm:text-sm font-extrabold uppercase tracking-wider text-amber-950 dark:text-amber-200">
+                      <span>💳</span>
+                      <span>Payment Notice</span>
+                    </span>
+                    <span class="block text-sm sm:text-[15px] font-extrabold text-[#1E6C02] dark:text-emerald-300">
+                      You are charged only for the ${availStock} available ${availSackNoun}.
+                    </span>
+                    <span class="block text-xs sm:text-sm text-gray-900 dark:text-gray-100 font-medium leading-relaxed">
+                      No payment is required now for the ${forRes} reserved ${reservedSackNoun}. We will notify you once restocked, giving you 48 hours to complete the reservation deposit.
+                    </span>
+                  </span>
+                </span>
+              `;
+
+              shortageActions.innerHTML = `
+                <button id="btn-shortage-split" type="button" class="w-full h-12 px-4 bg-[#1E6C02] text-white font-extrabold text-xs sm:text-sm rounded-2xl hover:bg-[#145001] transition-all cursor-pointer shadow-lg shadow-green-900/10 text-center flex items-center justify-center">
+                  Buy Available & Reserve Remainder
+                </button>
+                <button id="btn-shortage-avail-only-deliv" type="button" class="w-full h-12 px-4 border-2 border-emerald-600 dark:border-emerald-500 text-emerald-800 dark:text-emerald-300 bg-emerald-50/60 dark:bg-emerald-950/40 font-extrabold text-xs sm:text-sm rounded-2xl hover:bg-emerald-100 dark:hover:bg-emerald-900/50 transition-all cursor-pointer text-center flex items-center justify-center">
+                  Buy Available Quantity Only
+                </button>
+                <button id="btn-shortage-cancel" type="button" class="w-full h-12 px-4 border border-gray-300 dark:border-slate-700 text-gray-900 dark:text-gray-100 bg-white dark:bg-slate-800 font-bold text-xs sm:text-sm rounded-2xl hover:bg-gray-50 dark:hover:bg-slate-700 transition-all cursor-pointer text-center flex items-center justify-center">
+                  Cancel
+                </button>
+              `;
+
+              document.getElementById('btn-shortage-split').onclick = () => {
+                shortageModal.classList.add('hidden');
+                window.location.href = `checkout.html?productId=${product.id}&quantity=${reqQty}`;
+              };
+
+              document.getElementById('btn-shortage-avail-only-deliv').onclick = () => {
+                shortageModal.classList.add('hidden');
+                window.location.href = `checkout.html?productId=${product.id}&quantity=${availStock}`;
+              };
+
+              document.getElementById('btn-shortage-cancel').onclick = () => {
+                shortageModal.classList.add('hidden');
+              };
+            }
+
+            shortageModal.classList.remove('hidden');
+            return;
+          }
+
+          // Case 3: Sufficient stock (reqQty <= availStock)
+          const buyNowDialog = document.getElementById('buy-now-confirm-dialog');
+          const nameEl = document.getElementById('buy-now-modal-product-name');
+          const qtyEl = document.getElementById('buy-now-modal-quantity');
+          const confirmBtn = document.getElementById('buy-now-modal-confirm');
+
+          if (nameEl) nameEl.textContent = product.name;
+          if (qtyEl) qtyEl.textContent = `${reqQty} ${reqQty === 1 ? 'sack' : 'sacks'}`;
+          if (confirmBtn) {
+            confirmBtn.disabled = false;
+            confirmBtn.classList.remove('opacity-75', 'cursor-wait');
+            confirmBtn.innerHTML = 'Continue to Checkout';
+          }
+          isNavigatingToCheckout = false;
+
+          if (buyNowDialog) {
+            buyNowDialog.classList.remove('hidden');
+          }
+        });
+      }
+
+      // Render details initial invocation
+      renderMetaPanel();
+
+      function refreshProductData() {
+        const fresh = getProductById(prodId);
+        if (fresh && !fresh.isArchived && !fresh.archived) {
+          product = fresh;
+          renderImageBox();
+          renderMetaPanel();
+        }
+      }
+
+      // Listen for data sync events (e.g. Firebase cloud sync, settings or order status changes)
+      window.addEventListener('aurora-sync-event', (e) => {
+        if (!e.detail || !e.detail.key || e.detail.key === 'aurora-products' || e.detail.key === 'aurora-orders' || e.detail.key === 'aurora-store-settings' || e.detail.key === 'settings-delivery-minimum') {
+          refreshProductData();
+        }
+      });
+      window.addEventListener('aurora-orders-updated', () => {
+        refreshProductData();
+      });
+      window.addEventListener('storage', (e) => {
+        if (!e.key || e.key.includes('settings') || e.key.includes('address') || e.key.includes('products')) {
+          refreshProductData();
+        }
+      });
+      window.addEventListener('aurora-orders-updated', () => {
+        refreshProductData();
+      });
+
+      // Modal Button binders
+      // 1. Add to Cart confirmations
+      document.getElementById('cancel-addto-btn').addEventListener('click', () => {
+        document.getElementById('addto-reservation-dialog').classList.add('hidden');
+      });
+
+      document.getElementById('confirm-addto-btn').addEventListener('click', () => {
+        addToCart(product, currentQuantityValue, true); // true for reservation
+        document.getElementById('addto-reservation-dialog').classList.add('hidden');
+        showToast(`Added ${currentQuantityValue} pre-ordered bags as reservation!`);
+        updateNavbarCartCount();
+      });
+
+      // 2. Direct reservation check confirmation modal
+      const agreeCheck = document.getElementById('agreement-check');
+      const directConfirm = document.getElementById('direct-confirm-btn');
+
+      agreeCheck.addEventListener('change', () => {
+        if (agreeCheck.checked) {
+          directConfirm.disabled = false;
+          directConfirm.className = "flex-1 py-3.5 px-4 bg-[#1E6C02] hover:bg-[#145001] text-white rounded-2xl font-extrabold text-sm sm:text-base transition-all cursor-pointer shadow-lg shadow-green-900/10";
+          directConfirm.style.cursor = "pointer";
+        } else {
+          directConfirm.disabled = true;
+          directConfirm.className = "flex-1 py-3.5 px-4 bg-gray-200 dark:bg-slate-800 text-[#111827] dark:text-white rounded-2xl font-extrabold text-sm sm:text-base cursor-not-allowed transition-all";
+          directConfirm.style.cursor = "not-allowed";
+        }
+      });
+
+      document.getElementById('direct-close-btn').addEventListener('click', () => {
+        document.getElementById('direct-reservation-dialog').classList.add('hidden');
+      });
+
+      const directResModalBackdrop = document.getElementById('direct-reservation-dialog');
+      if (directResModalBackdrop) {
+        directResModalBackdrop.addEventListener('click', (e) => {
+          if (e.target === directResModalBackdrop) {
+            directResModalBackdrop.classList.add('hidden');
+          }
+        });
+      }
+
+      directConfirm.addEventListener('click', () => {
+        if (isDirectReservationNavigating) return;
+        if (!agreeCheck.checked) return;
+
+        // Fresh revalidation of current quantity and destination
+        const storeSettings = getStoreSettings();
+        const activeAddr = resolveCustomerDeliveryAddress();
+        const freshEval = evaluateDeliveryMinimum(activeAddr, currentQuantityValue, storeSettings);
+        if (!freshEval.isSatisfied) {
+          document.getElementById('direct-reservation-dialog').classList.add('hidden');
+          showToast(`Delivery requires at least ${freshEval.applicableMinimum} sacks. Add ${freshEval.deficit} more ${freshEval.deficit === 1 ? 'sack' : 'sacks'}, or use Add to Cart for Store Pickup.`, 'warning');
+          renderMetaPanel();
+          return;
+        }
+
+        isDirectReservationNavigating = true;
+        directConfirm.disabled = true;
+        directConfirm.classList.add('opacity-75', 'cursor-wait');
+        directConfirm.innerHTML = `
+          <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          Proceeding...
+        `;
+        document.getElementById('direct-reservation-dialog').classList.add('hidden');
+        showToast('Proceeding to reservation checkout...');
+        setTimeout(() => {
+          // Redirect to reservation checkout bypassing the cart
+          window.location.href = `reservation.html?productId=${product.id}&quantity=${currentQuantityValue}&fullReservation=true`;
+        }, 500);
+      });
+
+      // 3. Buy Now Proceed to Checkout confirmation modal binders
+      const buyNowModal = document.getElementById('buy-now-confirm-dialog');
+      const buyNowCancelBtn = document.getElementById('buy-now-modal-cancel');
+      const buyNowConfirmBtn = document.getElementById('buy-now-modal-confirm');
+
+      if (buyNowCancelBtn) {
+        buyNowCancelBtn.addEventListener('click', () => {
+          if (buyNowModal) {
+            buyNowModal.classList.add('hidden');
+          }
+        });
+      }
+
+      if (buyNowConfirmBtn) {
+        buyNowConfirmBtn.addEventListener('click', () => {
+          if (isNavigatingToCheckout) return;
+          isNavigatingToCheckout = true;
+
+          buyNowConfirmBtn.disabled = true;
+          buyNowConfirmBtn.classList.add('opacity-75', 'cursor-wait');
+          buyNowConfirmBtn.innerHTML = `
+            <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            Proceeding...
+          `;
+
+          window.location.href = `checkout.html?productId=${product.id}&quantity=${currentQuantityValue}`;
+        });
+      }
+
+      if (buyNowModal) {
+        buyNowModal.addEventListener('click', (e) => {
+          if (e.target === buyNowModal) {
+            buyNowModal.classList.add('hidden');
+          }
+        });
+      }
+
+      // 4. Buy Available Sacks Only (Store Pickup Confirmation) Modal handler
+      function openBuyAvailOnlyModal(prod, availQty, requestedQty, minSacks, locationStr) {
+        const modal = document.getElementById('buy-avail-only-dialog');
+        const body = document.getElementById('buy-avail-only-body');
+        if (!modal || !body) return;
+
+        const noun = availQty === 1 ? 'sack' : 'sacks';
+        const cost = availQty * (prod.price || 0);
+
+        body.innerHTML = `
+          <!-- Notice Card -->
+          <div class="bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-800 rounded-2xl p-4 space-y-2">
+            <div class="flex items-center gap-2 text-amber-900 dark:text-amber-200 font-extrabold text-xs uppercase tracking-wide">
+              <span>⚠️</span>
+              <span>Delivery Minimum Requirement</span>
+            </div>
+            <p class="text-xs sm:text-sm text-gray-900 dark:text-gray-100 font-medium leading-relaxed">
+              Delivery ${locationStr} requires a minimum of <strong>${minSacks} sacks</strong>. The available quantity of <strong>${availQty} ${noun}</strong> cannot be dispatched for delivery.
+            </p>
+            <p class="text-xs sm:text-sm text-[#1E6C02] dark:text-emerald-300 font-bold leading-relaxed">
+              To buy only the available ${availQty} ${noun}, please proceed with <strong>Store Pickup</strong> at our warehouse. Store Pickup has <strong>no minimum order requirement</strong> and <strong>no delivery fee</strong>.
+            </p>
+          </div>
+
+          <!-- Order Summary Card -->
+          <div class="bg-gray-50 dark:bg-slate-800/70 p-4 rounded-2xl border border-gray-200/80 dark:border-slate-700 space-y-2.5 text-xs sm:text-sm">
+            <div class="flex justify-between items-center">
+              <span class="text-gray-600 dark:text-gray-400 font-medium">Selected Variety:</span>
+              <span class="font-extrabold text-gray-900 dark:text-white truncate max-w-[200px]">${prod.name}</span>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-gray-600 dark:text-gray-400 font-medium">Available Quantity:</span>
+              <span class="font-black text-[#1E6C02] dark:text-emerald-400">${availQty} ${noun}</span>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-gray-600 dark:text-gray-400 font-medium">Fulfillment Method:</span>
+              <span class="font-bold text-gray-900 dark:text-white flex items-center gap-1">
+                <span>🏪</span>
+                <span>Store Pickup (Free)</span>
+              </span>
+            </div>
+            <div class="border-t border-gray-200 dark:border-slate-700 pt-2 flex justify-between items-center text-sm sm:text-base">
+              <span class="font-extrabold text-gray-900 dark:text-white">Total Amount:</span>
+              <span class="font-black text-[#1E6C02] dark:text-emerald-400">₱${cost.toLocaleString()}</span>
+            </div>
+          </div>
+        `;
+
+        const btnConfirm = document.getElementById('buy-avail-only-confirm');
+        if (btnConfirm) {
+          btnConfirm.disabled = false;
+          btnConfirm.innerHTML = `Proceed with Store Pickup (${availQty} ${noun})`;
+          btnConfirm.onclick = () => {
+            btnConfirm.disabled = true;
+            btnConfirm.innerHTML = `
+              <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              Proceeding...
+            `;
+            window.location.href = `checkout.html?productId=${prod.id}&quantity=${availQty}&deliveryOption=pickup`;
+          };
+        }
+
+        const btnBack = document.getElementById('buy-avail-only-back');
+        if (btnBack) {
+          btnBack.onclick = () => {
+            modal.classList.add('hidden');
+            const shortageModal = document.getElementById('stock-shortage-modal');
+            if (shortageModal) shortageModal.classList.remove('hidden');
+          };
+        }
+
+        const btnCancel = document.getElementById('buy-avail-only-cancel');
+        if (btnCancel) {
+          btnCancel.onclick = () => {
+            modal.classList.add('hidden');
+          };
+        }
+
+        modal.classList.remove('hidden');
+      }
+
+      // Modal backdrop click dismissers
+      const shortageModalBackdrop = document.getElementById('stock-shortage-modal');
+      if (shortageModalBackdrop) {
+        shortageModalBackdrop.addEventListener('click', (e) => {
+          if (e.target === shortageModalBackdrop) {
+            shortageModalBackdrop.classList.add('hidden');
+          }
+        });
+      }
+
+      const buyAvailModalBackdrop = document.getElementById('buy-avail-only-dialog');
+      if (buyAvailModalBackdrop) {
+        buyAvailModalBackdrop.addEventListener('click', (e) => {
+          if (e.target === buyAvailModalBackdrop) {
+            buyAvailModalBackdrop.classList.add('hidden');
+          }
+        });
+      }
+
+      // Login confirmation popups closure keys
+      document.getElementById('close-login-dialog-btn').addEventListener('click', () => {
+        document.getElementById('login-dialog').classList.add('hidden');
+      });
+
+      function updateNavbarCartCount() {
+        const list = getCart();
+        const tot = list.reduce((t, i) => t + i.quantity, 0);
+        const badge = document.querySelector('a[href*="cart.html"] span');
+        if (badge) {
+          badge.textContent = tot;
+        } else if (tot > 0) {
+          const cartBtn = document.querySelector('a[href*="cart.html"]');
+          if (cartBtn) {
+            const b = document.createElement('span');
+            b.className = "absolute -top-1.5 -right-1.5 bg-[#1E6C02] text-white font-bold text-[11px] w-5.5 h-5.5 rounded-full flex items-center justify-center animate-pulse border-2 border-white";
+            b.textContent = tot;
+            cartBtn.appendChild(b);
+          }
+        }
+      }
+    });
+  </script>
+</body>
+</html>

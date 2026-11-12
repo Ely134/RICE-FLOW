@@ -1,0 +1,2226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Business Reports & Analytics | RiceFlow</title>
+  <script>
+    (function() {
+      try {
+        var d = document.documentElement;
+        var isDark = localStorage.getItem('aurora-dark-mode') === 'true';
+        d.classList.toggle('dark', isDark);
+        d.style.colorScheme = isDark ? 'dark' : 'light';
+      } catch (e) {}
+    })();
+  </script>
+  <style id="riceflow-theme-init">
+    html { background-color: #F5F5F5; color-scheme: light; }
+    html.dark { background-color: #1F2937 !important; color-scheme: dark; }
+    html.dark body,
+    html.dark #admin-layout-container,
+    html.dark #admin-main-content {
+      background-color: #1F2937;
+      color: #F9FAFB;
+    }
+    html.dark #auth-guard-loader {
+      background-color: #1F2937 !important;
+      color: #F9FAFB !important;
+    }
+    html.dark #admin-sidebar,
+    html.dark aside,
+    html.dark header,
+    html.dark .bg-white,
+    html.dark .bg-gray-50,
+    html.dark .bg-slate-50 {
+      background-color: #111827;
+      color: #F9FAFB;
+    }
+  </style>
+  <link rel="stylesheet" href="../src/styles/index.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Source+Sans+3:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400;1,600&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" crossorigin="anonymous"></script>
+  <style id="admin-reports-typography-and-colors">
+    /* ==========================================================================
+       ADMIN REPORTS PAGE READABILITY & APPROVED TYPOGRAPHY SYSTEM
+       - Inter: Page Headings, Section Headings, Table Column Headers, Buttons,
+                Tabs, Filter Controls, Important Numerical Totals
+       - Source Sans 3: Report Descriptions, Table Body Text, Dates, Labels,
+                        Numerical Details, Form Labels, Inputs, Supporting Information
+       - Solid Black (#000000): In Day/Light mode for ordinary readable text
+       - Sidebar Isolation: Preserves standard sidebar typography from shared.js
+       ========================================================================== */
+
+    /* 1. Base typography: Default workspace, tables, modals to Source Sans 3 */
+    body,
+    #admin-main-content,
+    #custom-range-modal,
+    #export-confirm-modal {
+      font-family: 'Source Sans 3', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* 2. PRIMARY FONT: INTER
+          - Page headings & section titles
+          - Table column headers (th)
+          - Tabs and filter controls
+          - All buttons across workspace and modals
+          - Key numerical summary values */
+    #admin-right-workspace header h2,
+    #admin-layout-container h1,
+    #admin-layout-container h2,
+    #admin-layout-container h3,
+    #admin-layout-container h4,
+    #admin-main-content h1,
+    #admin-main-content h2,
+    #admin-main-content h3,
+    #admin-main-content h4,
+    #custom-range-modal h4,
+    #export-confirm-modal h4,
+    /* Table column headers */
+    #admin-main-content table thead th,
+    #admin-main-content table thead th *,
+    /* All buttons and tabs */
+    #tab-btn-tx,
+    #tab-btn-product,
+    .btn-date-filter,
+    #btn-custom-range,
+    .btn-export-trigger,
+    .page-num-btn,
+    #prev-page-btn,
+    #next-page-btn,
+    #btn-prev-month,
+    #btn-next-month,
+    #btn-calendar-cancel,
+    #btn-calendar-apply,
+    #btn-export-cancel,
+    #btn-export-download,
+    .calendar-day-btn {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+    }
+
+    /* Summary card metric values and totals */
+    .summary-card-metric,
+    #admin-main-content .grid-cols-1.sm\:grid-cols-2 h3,
+    #admin-main-content table tbody td:first-child.font-mono {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+    }
+
+    /* 3. SECONDARY FONT: SOURCE SANS 3
+          - Report descriptions & subtitles
+          - Table body cells (customer, product names, quantities, amounts, dates)
+          - Search input, date pickers, form labels
+          - Modal body descriptions & supporting text */
+    #admin-main-content table tbody td,
+    #admin-main-content table tbody td *:not(button):not(.font-mono),
+    #admin-main-content p,
+    #admin-main-content label,
+    #admin-main-content input,
+    #admin-main-content select,
+    #custom-range-modal p,
+    #custom-range-modal label,
+    #custom-range-modal input,
+    #export-confirm-modal p,
+    #export-confirm-modal span {
+      font-family: 'Source Sans 3', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+    }
+
+    /* 4. BALANCED FONT SIZING & HIERARCHY */
+    /* Page Title (24-28px guideline) */
+    #admin-right-workspace header h2 {
+      font-size: 1.625rem !important; /* 26px */
+      line-height: 2rem !important;
+      font-weight: 600 !important;
+      letter-spacing: -0.025em !important;
+    }
+
+    /* Section Headings & Card Titles (16-18px guideline) */
+    #admin-main-content h3 {
+      font-size: 1.125rem !important; /* 18px */
+      line-height: 1.5rem !important;
+      font-weight: 600 !important;
+      letter-spacing: -0.015em !important;
+    }
+    #custom-range-modal h4,
+    #export-confirm-modal h4 {
+      font-size: 1.1875rem !important; /* 19px */
+      font-weight: 600 !important;
+      letter-spacing: -0.015em !important;
+    }
+
+    /* Table Column Headers (13-14px guideline) */
+    #admin-main-content table thead th {
+      font-size: 0.84375rem !important; /* 13.5px */
+      font-weight: 600 !important;
+      letter-spacing: 0.03em !important;
+      padding-top: 0.875rem !important;
+      padding-bottom: 0.875rem !important;
+    }
+
+    /* Table Body Text (15-16px guideline) */
+    #admin-main-content table tbody td {
+      font-size: 0.96875rem !important; /* 15.5px */
+      line-height: 1.45 !important;
+      padding-top: 0.875rem !important;
+      padding-bottom: 0.875rem !important;
+      font-weight: 400 !important;
+    }
+    #admin-main-content table tbody td .font-bold,
+    #admin-main-content table tbody td .font-semibold {
+      font-weight: 500 !important;
+    }
+
+    /* Filter labels & Buttons (14-15px guideline) */
+    #tab-btn-tx,
+    #tab-btn-product,
+    .btn-date-filter,
+    #btn-custom-range,
+    .btn-export-trigger,
+    .page-num-btn,
+    #prev-page-btn,
+    #next-page-btn,
+    #btn-calendar-cancel,
+    #btn-calendar-apply,
+    #btn-export-cancel,
+    #btn-export-download {
+      font-size: 0.90625rem !important; /* 14.5px */
+      font-weight: 500 !important;
+    }
+
+    /* Form Labels, Inputs & Supporting Text (14-15px guideline) */
+    #admin-main-content label,
+    #custom-range-modal label {
+      font-size: 0.875rem !important; /* 14px */
+      font-weight: 500 !important;
+    }
+    #admin-main-content input,
+    #custom-range-modal input {
+      font-size: 0.9375rem !important; /* 15px */
+      font-weight: 400 !important;
+    }
+
+    /* Helper & Detail Text (at least 12-13px) */
+    .helper-text-comfort {
+      font-size: 0.8125rem !important; /* 13px */
+    }
+
+    /* Summary Card Totals (comfortably prominent, 24px) */
+    #admin-main-content .grid-cols-1.sm\:grid-cols-2 h3,
+    #admin-main-content .summary-card-val {
+      font-size: 1.5rem !important; /* 24px */
+      font-weight: 600 !important;
+      line-height: 1.2 !important;
+    }
+
+    /* 5. SOLID BLACK (#000000) TEXT ENFORCEMENT IN DAY/LIGHT MODE */
+    html:not(.dark) #admin-right-workspace header h2,
+    html:not(.dark) #admin-layout-container h1,
+    html:not(.dark) #admin-layout-container h2,
+    html:not(.dark) #admin-layout-container h3,
+    html:not(.dark) #admin-main-content h3,
+    html:not(.dark) #custom-range-modal h4,
+    html:not(.dark) #export-confirm-modal h4 {
+      color: #000000 !important;
+    }
+
+    html:not(.dark) #admin-main-content table thead th,
+    html:not(.dark) #admin-main-content table thead th * {
+      color: #000000 !important;
+    }
+
+    html:not(.dark) #admin-main-content table tbody td {
+      color: #000000 !important;
+    }
+    html:not(.dark) #admin-main-content table tbody td * {
+      color: #000000 !important;
+    }
+
+    /* Inactive tabs and filter buttons */
+    html:not(.dark) #tab-btn-tx:not(.bg-\[\#1E6C02\]),
+    html:not(.dark) #tab-btn-product:not(.bg-\[\#1E6C02\]),
+    html:not(.dark) .btn-date-filter:not(.bg-\[\#1E6C02\]),
+    html:not(.dark) #btn-custom-range:not(.bg-\[\#1E6C02\]),
+    html:not(.dark) .page-num-btn:not(.bg-\[\#1E6C02\]),
+    html:not(.dark) #prev-page-btn,
+    html:not(.dark) #next-page-btn {
+      color: #000000 !important;
+    }
+
+    /* Search input & date inputs */
+    html:not(.dark) #reports-search-input,
+    html:not(.dark) #picker-manual-from,
+    html:not(.dark) #picker-manual-to {
+      color: #000000 !important;
+    }
+
+    /* Summary card titles and numerical values */
+    html:not(.dark) #admin-main-content .grid-cols-1.sm\:grid-cols-2 p.uppercase,
+    html:not(.dark) #admin-main-content .grid-cols-1.sm\:grid-cols-2 h3 {
+      color: #000000 !important;
+    }
+
+    /* ==========================================================================
+       SIX SUMMARY BOXES TYPOGRAPHY & READABILITY (Admin -> Reports Page Only)
+       1. Metric numbers: Inter, 26-30px (28px), semibold (600), solid black
+       2. Box titles: Inter, 16-17px (16.5px), semibold (600), solid black
+       3. Descriptions: Source Sans 3, 14-15px (15px), medium (500), solid black
+       4. All ordinary text in all 6 boxes: Solid Black (#000000) with opacity: 1
+       5. Preserve meaningful status badge colors, icon fills/strokes, and card layout
+       ========================================================================== */
+    #report-summary-cards-grid .report-box-metric,
+    .report-summary-box .report-box-metric,
+    #report-summary-cards-grid h3 {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+      font-size: 1.75rem !important; /* 28px: within 26-30px */
+      line-height: 1.15 !important;
+      font-weight: 600 !important; /* semibold */
+      letter-spacing: -0.02em !important;
+    }
+
+    #report-summary-cards-grid .report-box-title,
+    .report-summary-box .report-box-title,
+    #report-summary-cards-grid p.uppercase {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+      font-size: 1.03125rem !important; /* 16.5px: within 16-17px */
+      line-height: 1.35 !important;
+      font-weight: 600 !important; /* semibold */
+      letter-spacing: 0.025em !important;
+    }
+
+    #report-summary-cards-grid .report-box-desc,
+    .report-summary-box .report-box-desc,
+    #report-summary-cards-grid .space-y-1 > p:not(.uppercase):not(.report-box-title) {
+      font-family: 'Source Sans 3', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+      font-size: 0.9375rem !important; /* 15px: within 14-15px */
+      line-height: 1.4 !important;
+      font-weight: 500 !important; /* medium (thicker and clearer than 400, non-bold) */
+    }
+
+    /* Solid Black (#000000) in Day/Light mode for all text across all 6 summary boxes */
+    html:not(.dark) #report-summary-cards-grid,
+    html:not(.dark) #report-summary-cards-grid .report-summary-box,
+    html:not(.dark) #report-summary-cards-grid .report-box-title,
+    html:not(.dark) #report-summary-cards-grid .report-box-metric,
+    html:not(.dark) #report-summary-cards-grid .report-box-desc,
+    html:not(.dark) #report-summary-cards-grid p,
+    html:not(.dark) #report-summary-cards-grid h3,
+    html:not(.dark) #report-summary-cards-grid span,
+    html:not(.dark) .report-summary-box .report-box-title,
+    html:not(.dark) .report-summary-box .report-box-metric,
+    html:not(.dark) .report-summary-box .report-box-desc {
+      color: #000000 !important;
+      opacity: 1 !important;
+    }
+
+    /* Preserve colorful SVG icons and backgrounds in the six summary boxes */
+    #report-summary-cards-grid .bg-emerald-50 svg { color: #059669 !important; }
+    #report-summary-cards-grid .bg-blue-50 svg { color: #2563EB !important; }
+    #report-summary-cards-grid .bg-purple-50 svg { color: #9333EA !important; }
+    #report-summary-cards-grid .bg-red-50 svg { color: #DC2626 !important; }
+    #report-summary-cards-grid .bg-amber-50 svg { color: #D97706 !important; }
+
+    /* Dark mode for all six summary boxes */
+    html.dark #report-summary-cards-grid .report-box-title { color: #F3F4F6 !important; }
+    html.dark #report-summary-cards-grid .report-box-metric { color: #FFFFFF !important; }
+    html.dark #report-summary-cards-grid .report-box-desc,
+    html.dark #report-summary-cards-grid .space-y-1 > p:not(.uppercase):not(.report-box-title) { color: #E5E7EB !important; opacity: 1 !important; }
+
+    /* Subtitles and descriptions outside the summary cards */
+    html:not(.dark) #admin-main-content p:not(.report-box-desc):not(.report-box-title):not(#report-summary-cards-grid *):not(.report-summary-box *),
+    html:not(.dark) #custom-range-modal p,
+    html:not(.dark) #export-confirm-modal p {
+      color: #1F2937 !important;
+    }
+
+    /* Active Green Buttons - Solid White in Day Mode */
+    #tab-btn-tx.bg-\[\#1E6C02\],
+    #tab-btn-product.bg-\[\#1E6C02\],
+    .btn-date-filter.bg-\[\#1E6C02\],
+    #btn-custom-range.bg-\[\#1E6C02\],
+    .page-num-btn.bg-\[\#1E6C02\],
+    #btn-calendar-apply,
+    #btn-export-download {
+      color: #FFFFFF !important;
+      font-weight: 500 !important;
+    }
+
+    /* Meaningful status colors preserved */
+    .text-emerald-700, .text-emerald-800 { color: #065F46 !important; }
+    .text-rose-600, .text-rose-700, .text-rose-800 { color: #BE123C !important; }
+    .text-blue-700, .text-blue-800 { color: #1D4ED8 !important; }
+    .text-purple-700, .text-purple-800 { color: #7E22CE !important; }
+    .text-amber-800, .text-amber-900 { color: #92400E !important; }
+
+    /* Dark Mode Readability */
+    html.dark #admin-right-workspace header h2,
+    html.dark #admin-layout-container h1,
+    html.dark #admin-layout-container h2,
+    html.dark #admin-layout-container h3,
+    html.dark #admin-main-content h3,
+    html.dark #admin-main-content table thead th,
+    html.dark #admin-main-content table tbody td,
+    html.dark #custom-range-modal h4,
+    html.dark #export-confirm-modal h4 {
+      color: #F9FAFB !important;
+    }
+  </style>
+  <style>
+    /* Elegant Custom Scrollbar for older users to easily scroll tables */
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 10px;
+      height: 10px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: #F1F1F1;
+      border-radius: 8px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #C1C1C1;
+      border-radius: 8px;
+      border: 2px solid #F1F1F1;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: #A8A8A8;
+    }
+    .top-scrollbar-container {
+      overflow-x: auto !important;
+      overflow-y: visible !important;
+      transform: rotateX(180deg);
+    }
+    .top-scrollbar-container > table {
+      transform: rotateX(180deg);
+    }
+
+    /* Date Range Timeline / Selected Active Green Buttons - Solid White in Day Mode */
+    .btn-date-filter.bg-\[\#1E6C02\],
+    .btn-date-filter.bg-\[\#1E6C02\] *,
+    .btn-date-filter[class*="bg-[#1E6C02]"],
+    .btn-date-filter[class*="bg-[#1E6C02]"] *,
+    #btn-custom-range.bg-\[\#1E6C02\],
+    #btn-custom-range.bg-\[\#1E6C02\] *,
+    #btn-custom-range[class*="bg-[#1E6C02]"],
+    #btn-custom-range[class*="bg-[#1E6C02]"] *,
+    .calendar-day-btn.bg-\[\#1E6C02\],
+    .calendar-day-btn.bg-\[\#1E6C02\] *,
+    .calendar-day-btn[class*="bg-[#1E6C02]"],
+    .calendar-day-btn[class*="bg-[#1E6C02]"] *,
+    button[class*="bg-[#1E6C02]"]:not(.btn-mark-read),
+    button[class*="bg-[#1E6C02]"]:not(.btn-mark-read) *,
+    html:not(.dark) .btn-date-filter[class*="bg-[#1E6C02]"],
+    html:not(.dark) .btn-date-filter[class*="bg-[#1E6C02]"] *,
+    html:not(.dark) #btn-custom-range[class*="bg-[#1E6C02]"],
+    html:not(.dark) #btn-custom-range[class*="bg-[#1E6C02]"] *,
+    html:not(.dark) .calendar-day-btn[class*="bg-[#1E6C02]"],
+    html:not(.dark) .calendar-day-btn[class*="bg-[#1E6C02]"] * {
+      color: #FFFFFF !important;
+    }
+    #btn-custom-range[class*="bg-[#1E6C02]"] svg,
+    #btn-custom-range.bg-\[\#1E6C02\] svg,
+    .btn-date-filter[class*="bg-[#1E6C02]"] svg,
+    .btn-date-filter.bg-\[\#1E6C02\] svg,
+    button[class*="bg-[#1E6C02]"]:not(.btn-mark-read) svg,
+    html:not(.dark) #btn-custom-range[class*="bg-[#1E6C02]"] svg,
+    html:not(.dark) button[class*="bg-[#1E6C02]"]:not(.btn-mark-read) svg {
+      color: #FFFFFF !important;
+      stroke: #FFFFFF !important;
+      fill: none;
+    }
+  </style>
+  <style id="auth-guard-style">body { visibility: hidden !important; }</style>
+</head>
+<body class="bg-[#F8FAF9] min-h-screen text-slate-800 antialiased">
+  <div id="auth-guard-loader" class="fixed inset-0 bg-[#F5F5F5] z-[99999] flex flex-col items-center justify-center font-sans">
+    <div class="w-9 h-9 border-3 border-[#1E6C02]/20 border-t-[#1E6C02] rounded-full animate-spin mb-3"></div>
+    <p class="text-xs font-semibold text-gray-700">Verifying administrative access...</p>
+  </div>
+
+  <div id="admin-layout-container"></div>
+
+  <script type="module" src="../src/app/shared.js"></script>
+
+  <!-- Complete Redesigned Interactive Analytical Reporting System -->
+  <script type="module">
+    import { protectAdminPage, renderAdminLayout, getAllOrders, showToast, addActivityLog, getVerifiedCustomerPaymentInfo, isReservationOrder, isCancelledOrRejectedOrder } from '../src/app/shared.js';
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      // 1. Authoritative access control check
+      const authResult = await protectAdminPage({ requiredRole: 'any' });
+      if (!authResult || !authResult.ok) return;
+
+      // 2. Initialise the standard admin layout
+      renderAdminLayout('reports');
+
+      const targetSpace = document.getElementById('admin-main-content');
+      if (!targetSpace) return;
+
+      // local state
+      let activeTab = 'transaction'; // 'transaction' or 'product'
+      let dateFilter = 'all'; // 'all', 'today', 'week', 'month', 'custom'
+      let searchQuery = ''; // dynamic instant search query
+      let currentPage = 1; // paginated offset
+      const itemsPerPage = 10; // 10 entries per page
+
+      // Selected custom range limits
+      let customStartDate = null; // Date object
+      let customEndDate = null; // Date object
+
+      // State for Calendar Modal navigation
+      let calendarYear = new Date().getFullYear();
+      let calendarMonth = new Date().getMonth(); // 0-indexed
+
+      // Export format tracking
+      let selectedExportFormat = 'PDF';
+
+      // helper: Format currency
+      function formatPeso(val) {
+        return '₱' + (val || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      }
+
+      // helper: format long date June 23, 2026
+      function formatLongDate(dateInput) {
+        const months = [
+          "January", "February", "March", "April", "May", "June",
+          "July", "August", "September", "October", "November", "December"
+        ];
+        const d = new Date(dateInput);
+        if (isNaN(d.getTime())) return 'June 23, 2026';
+        return `${months[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
+      }
+
+      // Parse order creation date accurately
+      function parseOrderDate(order) {
+        if (!order) return new Date(0);
+        if (order.createdAt) {
+          const d = new Date(order.createdAt);
+          if (!isNaN(d.getTime())) return d;
+        }
+        if (order.dateCreated) {
+          const d = new Date(order.dateCreated);
+          if (!isNaN(d.getTime())) return d;
+        }
+        if (order.createdDate) {
+          const d = new Date(order.createdDate);
+          if (!isNaN(d.getTime())) return d;
+        }
+        if (order.date) {
+          const d = new Date(order.date);
+          if (!isNaN(d.getTime())) return d;
+        }
+        if (order.timestamp) {
+          const d = new Date(order.timestamp);
+          if (!isNaN(d.getTime())) return d;
+        }
+        if (order.statusHistory && Array.isArray(order.statusHistory) && order.statusHistory.length > 0) {
+          for (let i = 0; i < order.statusHistory.length; i++) {
+            if (order.statusHistory[i].changedAt) {
+              const d = new Date(order.statusHistory[i].changedAt);
+              if (!isNaN(d.getTime())) return d;
+            }
+          }
+        }
+        return new Date(0);
+      }
+
+      // helper: Format quantity label
+      function formatQuantity(qty, weight) {
+        const wt = (weight || '').toLowerCase();
+        if (wt.includes('1kg') || wt === '1kg' || wt === '1 kg' || wt.includes('1 kg')) {
+          return `${qty} kg`;
+        }
+        return `${qty} Sack${qty !== 1 ? 's' : ''}`;
+      }
+
+      // Date boundaries calculator
+      function getFilteredOrders() {
+        const allOrders = getAllOrders();
+        const now = new Date();
+        
+        // Reset hours for relative day checks
+        const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
+        const todayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+
+        return allOrders.filter(order => {
+          const orderDate = parseOrderDate(order);
+
+          if (dateFilter === 'today') {
+            return orderDate >= todayStart && orderDate <= todayEnd;
+          } 
+          else if (dateFilter === 'week') {
+            // Current week (Monday 00:00:00 through Sunday 23:59:59 or rolling 7 days)
+            const dayOfWeek = (now.getDay() + 6) % 7; // Monday = 0, Sunday = 6
+            const weekStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - dayOfWeek, 0, 0, 0, 0);
+            const rolling7DaysStart = new Date(todayStart.getTime() - 6 * 24 * 60 * 60 * 1000);
+            const effectiveWeekStart = weekStart < rolling7DaysStart ? weekStart : rolling7DaysStart;
+
+            return orderDate >= effectiveWeekStart && orderDate <= todayEnd;
+          } 
+          else if (dateFilter === 'month') {
+            const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0);
+            const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+            return orderDate >= startOfMonth && orderDate <= endOfMonth;
+          } 
+          else if (dateFilter === 'custom') {
+            if (!customStartDate) return true; // fallback
+            const startLimit = new Date(customStartDate);
+            startLimit.setHours(0, 0, 0, 0);
+            
+            const endLimit = customEndDate ? new Date(customEndDate) : new Date(customStartDate);
+            endLimit.setHours(23, 59, 59, 999);
+
+            return orderDate >= startLimit && orderDate <= endLimit;
+          }
+
+          return true; // 'all'
+        });
+      }
+
+      // Get orders filtered by date AND searched dynamically
+      function getFilteredAndSearchedOrders() {
+        const filteredByDate = getFilteredOrders();
+        // Verified sales orders count toward transaction list
+        const verifiedSalesByDate = filteredByDate.filter(o => getVerifiedCustomerPaymentInfo(o).isVerified);
+
+        if (!searchQuery) return verifiedSalesByDate;
+
+        return verifiedSalesByDate.filter(o => {
+          const idStr = String(o.id || '').toLowerCase();
+          const customerStr = String(o.fullName || '').toLowerCase();
+          const productStr = o.items ? o.items.map(i => i.product ? i.product.name : '').join(' ').toLowerCase() : '';
+
+          return idStr.includes(searchQuery) || customerStr.includes(searchQuery) || productStr.includes(searchQuery);
+        });
+      }
+
+      // Check if an order is finalized completed sale
+      function isCompletedOrder(o) {
+        if (!o) return false;
+        const s = (o.status || '').toLowerCase().replace(/_/g, '-');
+        return (s === 'completed' || s === 'delivered') && !o.isReplacement;
+      }
+
+      // Business Logic Helper: Audited & Verified Turnover for Revenue (Paid & Verified)
+      function getAuditedTurnoverInfo(o) {
+        if (!o) return { isAudited: false, amount: 0 };
+        const statusClean = (o.status || '').toLowerCase().replace(/_/g, '-');
+        if (statusClean === 'cancelled' || statusClean === 'rejected' || statusClean === 'expired' || o.isReplacement) {
+          return { isAudited: false, amount: 0 };
+        }
+
+        // Turnover must be submitted by deliverer AND audited/verified by Admin
+        const isAudited = o.financialStatus === 'Verified' || o.financialVerification === true || o.cashAuditStatus === 'Audited';
+        if (!isAudited) {
+          return { isAudited: false, amount: 0 };
+        }
+
+        const amount = o.amountCollected !== undefined ? Number(o.amountCollected) : (o.cashToAudit !== undefined ? Number(o.cashToAudit) : Number(o.total || 0));
+        return { isAudited: true, amount: amount };
+      }
+
+      // Get label describing active timeline duration
+      function getCoverageLabel() {
+        if (dateFilter === 'all') return 'All Time';
+        if (dateFilter === 'today') return 'Today';
+        if (dateFilter === 'week') return 'This Week';
+        if (dateFilter === 'month') return 'This Month';
+        if (dateFilter === 'custom') {
+          if (!customStartDate) return 'Custom Range';
+          const startStr = customStartDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+          if (!customEndDate) return startStr;
+          const endStr = customEndDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+          return `${startStr} - ${endStr}`;
+        }
+        return 'Custom';
+      }
+
+      // Master Render Function
+      function renderReportsWorkspace() {
+        // Reset scroll position to top of container and window
+        window.scrollTo(0, 0);
+        document.documentElement.scrollTop = 0;
+        document.body.scrollTop = 0;
+        const mainContentEl = document.getElementById('admin-main-content');
+        if (mainContentEl) {
+          mainContentEl.scrollTop = 0;
+        }
+
+        const filteredForCards = getFilteredOrders();
+        const searchedOrders = getFilteredAndSearchedOrders();
+
+        // 1. TOTAL SALES: Sum of verified customer payments (Full payment for regular orders + Down payment for reservations)
+        const verifiedSalesList = filteredForCards.filter(o => getVerifiedCustomerPaymentInfo(o).isVerified);
+        const totalSalesTotal = verifiedSalesList.reduce((sum, o) => sum + getVerifiedCustomerPaymentInfo(o).amount, 0);
+
+        // 2. REVENUE (PAID & VERIFIED): Sum ONLY payments whose turnover was submitted by deliverer AND audited/verified by Admin
+        const auditedTurnoverList = filteredForCards.filter(o => getAuditedTurnoverInfo(o).isAudited);
+        const verifiedRevenueTotal = auditedTurnoverList.reduce((sum, o) => sum + getAuditedTurnoverInfo(o).amount, 0);
+
+        // Primary Stats Cards
+        const totalOrdersCount = filteredForCards.filter(o => !isReservationOrder(o) && !isCancelledOrRejectedOrder(o) && !o.isReplacement).length;
+
+        const completedOrdersCount = filteredForCards.filter(o => {
+          const s = (o.status || '').toLowerCase().replace(/_/g, '-');
+          return (s === 'completed' || s === 'delivered') && !o.isReplacement;
+        }).length;
+
+        const cancelledOrdersCount = filteredForCards.filter(o => isCancelledOrRejectedOrder(o)).length;
+
+        const reservationOrdersCount = filteredForCards.filter(o => isReservationOrder(o) && !isCancelledOrRejectedOrder(o)).length;
+
+        // Compute Product Sales Summary for verified customer payments (sorted highest first)
+        const productSalesVolume = {};
+        verifiedSalesList.forEach(order => {
+          (order.items || []).forEach(item => {
+            if (!item || !item.product || item.isReservation) return;
+            const name = item.product.name;
+            const image = item.product.image || '';
+            if (!productSalesVolume[name]) {
+              productSalesVolume[name] = { 
+                quantity: 0, 
+                revenue: 0, 
+                weight: item.product.weight || '25kg',
+                image: image 
+              };
+            }
+            productSalesVolume[name].quantity += Number(item.quantity || 1);
+            productSalesVolume[name].revenue += Number(item.quantity || 1) * Number(item.product.price || 0);
+          });
+        });
+
+        const productSalesList = Object.entries(productSalesVolume).map(([name, pack]) => ({
+          name,
+          quantity: pack.quantity,
+          revenue: pack.revenue,
+          weight: pack.weight,
+          image: pack.image
+        })).sort((a,b) => b.revenue - a.revenue); // Automatically sorted highest selling first
+
+        // HTML Setup
+        targetSpace.innerHTML = `
+          <div class="space-y-8 w-full px-1 pb-16">
+            
+            <!-- Header section & Tab switcher -->
+            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 border-b border-slate-200/80 pb-6">
+              <div>
+                <p class="text-[15px] font-normal text-gray-700 dark:text-gray-300 mt-1">Review shop performance, dynamic transaction records, and download summaries.</p>
+              </div>
+
+              <!-- Tab selector button-group -->
+              <div class="bg-slate-100 dark:bg-gray-800 p-1.5 rounded-2xl inline-flex border border-slate-200/60 dark:border-gray-700 shadow-inner w-full sm:w-auto self-start lg:self-center">
+                <button 
+                  id="tab-btn-tx"
+                  class="flex-1 sm:flex-initial px-6 py-2.5 rounded-xl text-[14.5px] font-medium tracking-normal transition-all duration-200 ${activeTab === 'transaction' ? 'bg-[#1E6C02] text-white shadow-md shadow-green-900/10' : 'text-black dark:text-gray-200 hover:text-black hover:bg-white/50 dark:hover:bg-gray-700'}"
+                >
+                  Transaction Report
+                </button>
+                <button 
+                  id="tab-btn-product"
+                  class="flex-1 sm:flex-initial px-6 py-2.5 rounded-xl text-[14.5px] font-medium tracking-normal transition-all duration-200 ${activeTab === 'product' ? 'bg-[#1E6C02] text-white shadow-md shadow-green-900/10' : 'text-black dark:text-gray-200 hover:text-black hover:bg-white/50 dark:hover:bg-gray-700'}"
+                >
+                  Product Sales Report
+                </button>
+              </div>
+            </div>
+
+            <!-- Date Range Selectors and Exporters toolbox -->
+            <div class="bg-white rounded-3xl border border-slate-200/80 p-6 shadow-xs flex flex-col xl:flex-row items-center justify-between gap-6">
+              <!-- Timeline Filter Buttons -->
+              <div class="w-full xl:w-auto">
+                <p class="text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-3 text-center xl:text-left">Date Range Timeline</p>
+                <div class="flex flex-wrap items-center justify-center xl:justify-start gap-2">
+                  <button 
+                    data-range="all" 
+                    class="btn-date-filter px-4 py-2.5 rounded-xl text-[14.5px] font-medium border transition-all duration-200 cursor-pointer ${dateFilter === 'all' ? 'bg-[#1E6C02] border-[#1E6C02] text-white !text-white shadow-md shadow-green-900/10' : 'bg-slate-50/50 hover:bg-slate-100 border-slate-200 text-black'}"
+                  >
+                    All Time
+                  </button>
+                  <button 
+                    data-range="today" 
+                    class="btn-date-filter px-4 py-2.5 rounded-xl text-[14.5px] font-medium border transition-all duration-200 cursor-pointer ${dateFilter === 'today' ? 'bg-[#1E6C02] border-[#1E6C02] text-white !text-white shadow-md shadow-green-900/10' : 'bg-slate-50/50 hover:bg-slate-100 border-slate-200 text-black'}"
+                  >
+                    Today
+                  </button>
+                  <button 
+                    data-range="week" 
+                    class="btn-date-filter px-4 py-2.5 rounded-xl text-[14.5px] font-medium border transition-all duration-200 cursor-pointer ${dateFilter === 'week' ? 'bg-[#1E6C02] border-[#1E6C02] text-white !text-white shadow-md shadow-green-900/10' : 'bg-slate-50/50 hover:bg-slate-100 border-slate-200 text-black'}"
+                  >
+                    This Week
+                  </button>
+                  <button 
+                    data-range="month" 
+                    class="btn-date-filter px-4 py-2.5 rounded-xl text-[14.5px] font-medium border transition-all duration-200 cursor-pointer ${dateFilter === 'month' ? 'bg-[#1E6C02] border-[#1E6C02] text-white !text-white shadow-md shadow-green-900/10' : 'bg-slate-50/50 hover:bg-slate-100 border-slate-200 text-black'}"
+                  >
+                    This Month
+                  </button>
+                  <button 
+                    id="btn-custom-range"
+                    class="px-4 py-2.5 rounded-xl text-[14.5px] font-medium border transition-all duration-200 cursor-pointer flex items-center gap-2 ${dateFilter === 'custom' ? 'bg-[#1E6C02] border-[#1E6C02] text-white !text-white shadow-md shadow-green-900/10' : 'bg-slate-50/50 hover:bg-slate-100 border-slate-200 text-black'}"
+                  >
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-4 h-4 ${dateFilter === 'custom' ? 'text-white !text-white stroke-white !stroke-white' : ''}"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                    <span>Custom Range</span>
+                  </button>
+                </div>
+                ${dateFilter === 'custom' && customStartDate ? `
+                  <div class="mt-2 text-center xl:text-left">
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-100/60 text-purple-800 font-medium text-xs">
+                      Active: ${getCoverageLabel()}
+                    </span>
+                  </div>
+                ` : ''}
+              </div>
+
+              <!-- Export buttons column -->
+              <div class="w-full xl:w-auto text-center xl:text-right">
+                <p class="text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-3">Download Analytical Output</p>
+                <div class="flex flex-wrap items-center justify-center xl:justify-end gap-2.5 font-medium text-[14.5px]">
+                  <button data-export="Excel" class="btn-export-trigger px-5 py-2.5 bg-white hover:bg-emerald-50 border-2 border-emerald-500 text-emerald-700 rounded-xl cursor-pointer flex items-center gap-2 transition-all duration-150 hover:shadow-xs">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-4 h-4 text-emerald-600"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                    Export Excel
+                  </button>
+                  <button data-export="CSV" class="btn-export-trigger px-5 py-2.5 bg-white hover:bg-blue-50 border-2 border-blue-500 text-blue-700 rounded-xl cursor-pointer flex items-center gap-2 transition-all duration-150 hover:shadow-xs">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-4 h-4 text-blue-600"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                    Export CSV
+                  </button>
+                  <button data-export="PDF" class="btn-export-trigger px-5 py-2.5 bg-white hover:bg-red-50 border-2 border-red-500 text-red-700 rounded-xl cursor-pointer flex items-center gap-2 transition-all duration-150 hover:shadow-xs">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-4 h-4 text-red-600"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                    Export PDF
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Report Summary Cards Grid -->
+            <div id="report-summary-cards-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              
+              <!-- Total Sales -->
+              <div class="report-summary-box bg-white border border-slate-200/80 rounded-3xl p-6 shadow-xs flex items-center gap-5 transition-transform hover:scale-[1.01]">
+                <div class="w-14 h-14 rounded-2xl bg-emerald-50 flex items-center justify-center shrink-0">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-7 h-7 text-emerald-600">
+                    <path d="M7 20V4h5.5a4.5 4.5 0 0 1 0 9H7"></path>
+                    <path d="M5 8h10"></path>
+                    <path d="M5 11h10"></path>
+                  </svg>
+                </div>
+                <div class="space-y-1">
+                  <p class="report-box-title text-[16.5px] font-semibold text-black dark:text-gray-100 uppercase tracking-wider">Total Sales</p>
+                  <h3 class="report-box-metric text-[28px] font-semibold text-black dark:text-white leading-none">${formatPeso(totalSalesTotal)}</h3>
+                  <p class="report-box-desc text-[15px] font-medium text-black dark:text-gray-200">
+                    Paid & completed purchases
+                  </p>
+                </div>
+              </div>
+
+              <!-- Total Orders -->
+              <div class="report-summary-box bg-white border border-slate-200/80 rounded-3xl p-6 shadow-xs flex items-center gap-5 transition-transform hover:scale-[1.01]">
+                <div class="w-14 h-14 rounded-2xl bg-blue-50 flex items-center justify-center shrink-0">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-7 h-7 text-blue-600"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
+                </div>
+                <div class="space-y-1">
+                  <p class="report-box-title text-[16.5px] font-semibold text-black dark:text-gray-100 uppercase tracking-wider">Total Orders</p>
+                  <h3 class="report-box-metric text-[28px] font-semibold text-black dark:text-white leading-none">${totalOrdersCount}</h3>
+                  <p class="report-box-desc text-[15px] font-medium text-black dark:text-gray-200">
+                    ${totalOrdersCount} valid customer orders
+                  </p>
+                </div>
+              </div>
+
+              <!-- Reservation Orders -->
+              <div class="report-summary-box bg-white border border-slate-200/80 rounded-3xl p-6 shadow-xs flex items-center gap-5 transition-transform hover:scale-[1.01]">
+                <div class="w-14 h-14 rounded-2xl bg-purple-50 flex items-center justify-center shrink-0">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-7 h-7 text-purple-600"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                </div>
+                <div class="space-y-1">
+                  <p class="report-box-title text-[16.5px] font-semibold text-black dark:text-gray-100 uppercase tracking-wider">Reservation Orders</p>
+                  <h3 class="report-box-metric text-[28px] font-semibold text-black dark:text-white leading-none">${reservationOrdersCount}</h3>
+                  <p class="report-box-desc text-[15px] font-medium text-black dark:text-gray-200">
+                    ${reservationOrdersCount} total pre-orders
+                  </p>
+                </div>
+              </div>
+
+              <!-- Completed Orders -->
+              <div class="report-summary-box bg-white border border-slate-200/80 rounded-3xl p-6 shadow-xs flex items-center gap-5 transition-transform hover:scale-[1.01]">
+                <div class="w-14 h-14 rounded-2xl bg-emerald-50 flex items-center justify-center shrink-0">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-7 h-7 text-emerald-600"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                </div>
+                <div class="space-y-1">
+                  <p class="report-box-title text-[16.5px] font-semibold text-black dark:text-gray-100 uppercase tracking-wider">Completed Orders</p>
+                  <h3 class="report-box-metric text-[28px] font-semibold text-black dark:text-white leading-none">${completedOrdersCount}</h3>
+                  <p class="report-box-desc text-[15px] font-medium text-black dark:text-gray-200">${completedOrdersCount} fulfilled orders</p>
+                </div>
+              </div>
+
+              <!-- Cancelled Orders -->
+              <div class="report-summary-box bg-white border border-slate-200/80 rounded-3xl p-6 shadow-xs flex items-center gap-5 transition-transform hover:scale-[1.01]">
+                <div class="w-14 h-14 rounded-2xl bg-red-50 flex items-center justify-center shrink-0">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-7 h-7 text-red-600"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </div>
+                <div class="space-y-1">
+                  <p class="report-box-title text-[16.5px] font-semibold text-black dark:text-gray-100 uppercase tracking-wider">Cancelled Orders</p>
+                  <h3 class="report-box-metric text-[28px] font-semibold text-black dark:text-white leading-none">${cancelledOrdersCount}</h3>
+                  <p class="report-box-desc text-[15px] font-medium text-black dark:text-gray-200">${cancelledOrdersCount} cancelled or rejected</p>
+                </div>
+              </div>
+
+              <!-- Revenue -->
+              <div class="report-summary-box bg-white border border-slate-200/80 rounded-3xl p-6 shadow-xs flex items-center gap-5 transition-transform hover:scale-[1.01]">
+                <div class="w-14 h-14 rounded-2xl bg-amber-50 flex items-center justify-center shrink-0">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-7 h-7 text-amber-600"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>
+                </div>
+                <div class="space-y-1">
+                  <p class="report-box-title text-[16.5px] font-semibold text-black dark:text-gray-100 uppercase tracking-wider">Revenue (Paid & Verified)</p>
+                  <h3 class="report-box-metric text-[28px] font-semibold text-black dark:text-white leading-none">${formatPeso(verifiedRevenueTotal)}</h3>
+                  <p class="report-box-desc text-[15px] font-medium text-black dark:text-gray-200">Audited & verified turnover</p>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- Dynamic View Space (Transaction Table vs Product Sales Table) -->
+            <div id="active-tab-container">
+              ${activeTab === 'transaction' ? renderTransactionTable(searchedOrders) : renderProductSalesTable(productSalesList)}
+            </div>
+
+          </div>
+        `;
+
+        // Register action button triggers and bindings
+        bindWorkspaceEvents(filteredForCards, productSalesList);
+      }
+
+      // Redesigned Transaction List rendering
+      function renderTransactionTable(ordersList) {
+        // Pagination slicing calculations
+        const totalRecords = ordersList.length;
+        const totalPages = Math.max(Math.ceil(totalRecords / itemsPerPage), 1);
+        
+        // Boundaries checks
+        if (currentPage > totalPages) {
+          currentPage = totalPages;
+        }
+        
+        const startIdx = (currentPage - 1) * itemsPerPage;
+        const endIdx = Math.min(startIdx + itemsPerPage, totalRecords);
+        const paginatedOrders = ordersList.slice(startIdx, endIdx);
+
+        // Render Page controls numbers with ellipsis
+        let pageNumbersHtml = '';
+        const pages = [];
+        if (totalPages <= 7) {
+          for (let i = 1; i <= totalPages; i++) {
+            pages.push(i);
+          }
+        } else {
+          // Always include first page
+          pages.push(1);
+          
+          let start = Math.max(2, currentPage - 1);
+          let end = Math.min(totalPages - 1, currentPage + 1);
+          
+          if (currentPage <= 3) {
+            end = 4;
+          } else if (currentPage >= totalPages - 2) {
+            start = totalPages - 3;
+          }
+          
+          if (start > 2) {
+            pages.push('...');
+          }
+          
+          for (let i = start; i <= end; i++) {
+            pages.push(i);
+          }
+          
+          if (end < totalPages - 1) {
+            pages.push('...');
+          }
+          
+          // Always include last page
+          pages.push(totalPages);
+        }
+
+        pages.forEach(p => {
+          if (p === '...') {
+            pageNumbersHtml += `
+              <span class="w-10 h-10 flex items-center justify-center text-sm font-medium text-gray-500 dark:text-gray-400 select-none">
+                ...
+              </span>
+            `;
+          } else {
+            const isActive = p === currentPage;
+            pageNumbersHtml += `
+              <button 
+                data-page="${p}" 
+                class="page-num-btn min-w-[38px] h-9 px-2.5 flex items-center justify-center rounded-xl text-sm font-medium transition-all border cursor-pointer ${isActive ? 'bg-[#1E6C02] text-white border-[#1E6C02] shadow-sm shadow-green-900/10' : 'bg-white text-black dark:text-gray-200 hover:bg-slate-100 dark:hover:bg-gray-800 border-slate-300 dark:border-gray-700'}"
+              >
+                ${p}
+              </button>
+            `;
+          }
+        });
+
+        return `
+          <div class="bg-white rounded-3xl border border-slate-200/80 p-8 shadow-xs space-y-6">
+            
+            <!-- Heading & Instant Search Container -->
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-slate-100">
+              <div class="space-y-1">
+                <h3 class="text-xl font-semibold text-black dark:text-white tracking-tight">Transaction List</h3>
+              </div>
+              
+              <!-- Instant Search Bar -->
+              <div class="relative w-full md:max-w-md">
+                <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                  <svg class="h-5 w-5 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                  </svg>
+                </span>
+                <input 
+                  type="text" 
+                  id="reports-search-input" 
+                  value="${searchQuery}"
+                  placeholder="Search Order ID, Customer, or Product..." 
+                  class="w-full pl-11 pr-4 py-2.5 bg-slate-50 dark:bg-gray-800 border border-slate-200 dark:border-gray-700 hover:border-slate-300 focus:border-[#1E6C02] focus:bg-white dark:focus:bg-gray-900 rounded-2xl text-[15px] font-normal text-black dark:text-white outline-none transition-all placeholder:text-gray-400 placeholder:font-normal shadow-xs"
+                />
+              </div>
+            </div>
+
+            <!-- Big Readable Table -->
+            <div class="top-scrollbar-container rounded-2xl border border-slate-200/70 shadow-sm">
+              <table class="w-full text-left border-collapse min-w-[900px]">
+                <thead>
+                  <tr class="bg-slate-100 dark:bg-gray-800 border-b-2 border-slate-200 dark:border-gray-700 text-black dark:text-white font-semibold text-[13.5px] uppercase tracking-wider">
+                    <th class="py-3.5 px-6">Order ID</th>
+                    <th class="py-3.5 px-6">Customer</th>
+                    <th class="py-3.5 px-6">Product Ordered</th>
+                    <th class="py-3.5 px-6 text-center">Quantity</th>
+                    <th class="py-3.5 px-6 text-right">Amount</th>
+                    <th class="py-3.5 px-6 rounded-r-2xl">Date Ordered</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-200 dark:divide-gray-800 text-black dark:text-white">
+                  ${paginatedOrders.map((o) => {
+                    // Formatted Date
+                    const formattedDateStr = formatLongDate(parseOrderDate(o));
+
+                    // Items display stack inside the row
+                    const itemsStackHtml = o.items ? o.items.map(item => {
+                      const name = item.product ? item.product.name : 'Rice Product';
+                      const imageUrl = item.product ? item.product.image || '' : '';
+                      const imgElement = imageUrl ? 
+                        `<img src="${imageUrl}" alt="${name}" class="w-9 h-9 rounded-lg object-cover border border-slate-200 shadow-xs shrink-0" onerror="this.onerror=null; this.outerHTML='<span class=&quot;text-base&quot;>🌾</span>'">` : 
+                        `<span class="text-base">🌾</span>`;
+                      
+                      return `
+                        <div class="flex items-center gap-3 py-1.5 text-black dark:text-white font-normal text-[15.5px]">
+                          <div class="w-9 h-9 rounded-lg bg-amber-50 border border-slate-200 flex items-center justify-center shrink-0 overflow-hidden shadow-xs">
+                            ${imgElement}
+                          </div>
+                          <span class="font-medium">${name}</span>
+                        </div>
+                      `;
+                    }).join('') : `
+                      <div class="flex items-center gap-3 py-1.5 text-black dark:text-white font-normal text-[15.5px]">
+                        <div class="w-9 h-9 rounded-lg bg-amber-50 border border-slate-200 flex items-center justify-center shrink-0 shadow-xs">
+                          <span class="text-base">🌾</span>
+                        </div>
+                        <span class="font-medium">Rice Order</span>
+                      </div>
+                    `;
+
+                    // Quantities column
+                    const quantitiesStackHtml = o.items ? o.items.map(item => {
+                      return `
+                        <div class="py-1.5 text-center text-black dark:text-white font-normal text-[15.5px]">
+                          ${item.quantity}
+                        </div>
+                      `;
+                    }).join('') : `
+                      <div class="py-1.5 text-center text-black dark:text-white font-normal text-[15.5px]">
+                        1
+                      </div>
+                    `;
+
+                    return `
+                      <tr class="hover:bg-slate-50 dark:hover:bg-gray-800/50 transition-colors duration-150 odd:bg-white even:bg-slate-50/50 dark:odd:bg-gray-900 dark:even:bg-gray-800/30 border-b border-slate-200 dark:border-gray-800 last:border-0">
+                        <!-- Order ID: mono, medium -->
+                        <td class="py-3.5 px-6 font-medium text-black dark:text-white text-[15px] font-mono whitespace-nowrap">
+                          #${o.id || ''}
+                        </td>
+                        
+                        <!-- Customer: regular, comfortable readability -->
+                        <td class="py-3.5 px-6 font-normal text-black dark:text-white text-[15.5px]">
+                          ${o.fullName || 'Customer'}
+                        </td>
+                        
+                        <!-- Product Ordered -->
+                        <td class="py-3.5 px-6 text-black dark:text-white text-[15.5px]">
+                          <div class="flex flex-col">
+                            ${itemsStackHtml}
+                          </div>
+                        </td>
+                        
+                        <!-- Quantity -->
+                        <td class="py-3.5 px-6 text-center text-black dark:text-white text-[15.5px]">
+                          <div class="flex flex-col">
+                            ${quantitiesStackHtml}
+                          </div>
+                        </td>
+                        
+                        <!-- Amount -->
+                        <td class="py-3.5 px-6 text-right font-medium text-black dark:text-white text-[15.5px] whitespace-nowrap">
+                          ${formatPeso(Number(o.total || o.totalPrice || o.amount || 0))}
+                        </td>
+                        
+                        <!-- Date Ordered -->
+                        <td class="py-3.5 px-6 font-normal text-black dark:text-white text-[15px] whitespace-nowrap">
+                          ${formattedDateStr}
+                        </td>
+                      </tr>
+                    `;
+                  }).join('')}
+
+                  ${totalRecords === 0 ? `
+                    <tr>
+                      <td colspan="6" class="py-16 text-center text-black dark:text-white">
+                        <div class="flex flex-col items-center justify-center space-y-2">
+                          <span class="text-3xl">🌾</span>
+                          <p class="text-black dark:text-white text-base font-medium">No transaction records match your search or filter.</p>
+                          <p class="text-sm font-normal text-gray-500 dark:text-gray-400">Try adjusting your timeline range or filter query.</p>
+                        </div>
+                      </td>
+                    </tr>
+                  ` : ''}
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Beautiful Pagination Bar -->
+            ${totalRecords > 0 ? `
+              <div class="flex flex-col sm:flex-row items-center justify-between border-t border-slate-200 dark:border-gray-800 pt-6 gap-4">
+                <div class="text-[14.5px] font-normal text-gray-700 dark:text-gray-300">
+                  Showing <span class="font-medium text-black dark:text-white">${startIdx + 1}</span> to <span class="font-medium text-black dark:text-white">${endIdx}</span> of <span class="font-medium text-black dark:text-white">${totalRecords}</span> entries
+                </div>
+                <div class="flex items-center gap-1.5">
+                  <button 
+                    id="prev-page-btn"
+                    class="px-4 py-2 text-sm font-medium text-black dark:text-gray-200 bg-white hover:bg-slate-100 dark:hover:bg-gray-800 border border-slate-300 dark:border-gray-700 rounded-xl transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                    ${currentPage === 1 ? 'disabled' : ''}
+                  >
+                    &lt; Previous
+                  </button>
+                  ${pageNumbersHtml}
+                  <button 
+                    id="next-page-btn"
+                    class="px-4 py-2 text-sm font-medium text-black dark:text-gray-200 bg-white hover:bg-slate-100 dark:hover:bg-gray-800 border border-slate-300 dark:border-gray-700 rounded-xl transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                    ${currentPage === totalPages ? 'disabled' : ''}
+                  >
+                    Next &gt;
+                  </button>
+                </div>
+              </div>
+            ` : ''}
+
+          </div>
+        `;
+      }
+
+      // Redesigned Product Sales Report
+      function renderProductSalesTable(salesList) {
+        return `
+          <div class="bg-white rounded-3xl border border-slate-200/80 p-8 shadow-xs space-y-6">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-6">
+              <div class="space-y-1">
+                <h3 class="text-xl font-semibold text-black dark:text-white tracking-tight">Product Sales Report</h3>
+              </div>
+              <span class="px-3.5 py-1 rounded-full bg-[#1E6C02]/10 text-[#1E6C02] dark:text-emerald-400 font-semibold text-xs self-start sm:self-center">
+                Premium Grains: ${salesList.length} Varieties
+              </span>
+            </div>
+
+            <!-- Big Readable Table -->
+            <div class="top-scrollbar-container custom-scrollbar rounded-2xl border border-slate-150 shadow-sm">
+              <table class="w-full text-left border-collapse min-w-[800px]">
+                <thead>
+                  <tr class="bg-slate-100 dark:bg-gray-800 border-b-2 border-slate-200 dark:border-gray-700 text-black dark:text-white font-semibold text-[13.5px] uppercase tracking-wider">
+                    <th class="py-3.5 px-6 rounded-l-2xl">No.</th>
+                    <th class="py-3.5 px-6">Product</th>
+                    <th class="py-3.5 px-6">Quantity Ordered</th>
+                    <th class="py-3.5 px-6 text-right rounded-r-2xl">Total Sales</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-200 dark:divide-gray-800 text-black dark:text-white">
+                  ${salesList.map((item, idx) => {
+                    const imgElement = item.image ? 
+                      `<img src="${item.image}" alt="${item.name}" class="w-9 h-9 rounded-lg object-cover border border-slate-200 shadow-xs shrink-0" onerror="this.onerror=null; this.outerHTML='<span class=&quot;text-base&quot;>🌾</span>'">` : 
+                      `<span class="text-base">🌾</span>`;
+
+                    const qtyLabel = formatQuantity(item.quantity, item.weight);
+
+                    return `
+                      <tr class="hover:bg-slate-50 dark:hover:bg-gray-800/50 transition-all odd:bg-white even:bg-slate-50/50 dark:odd:bg-gray-900 dark:even:bg-gray-800/30 border-b border-slate-200 dark:border-gray-800 last:border-0">
+                        <!-- No.: medium, clean number -->
+                        <td class="py-3.5 px-6 font-medium text-black dark:text-white text-[15px] whitespace-nowrap">
+                          ${idx + 1}
+                        </td>
+                        
+                        <!-- Product: medium for scanning -->
+                        <td class="py-3.5 px-6">
+                          <div class="flex items-center gap-3">
+                            <div class="w-9 h-9 rounded-lg bg-amber-50 border border-slate-200 flex items-center justify-center shrink-0 overflow-hidden shadow-xs">
+                              ${imgElement}
+                            </div>
+                            <span class="font-medium text-black dark:text-white text-[15.5px]">${item.name}</span>
+                          </div>
+                        </td>
+                        
+                        <!-- Quantity Ordered: regular -->
+                        <td class="py-3.5 px-6 font-normal text-black dark:text-white text-[15.5px] whitespace-nowrap">
+                          ${qtyLabel}
+                        </td>
+                        
+                        <!-- Total Sales: medium/semibold -->
+                        <td class="py-3.5 px-6 text-right font-medium text-black dark:text-white text-[15.5px] whitespace-nowrap">
+                          ${formatPeso(item.revenue)}
+                        </td>
+                      </tr>
+                    `;
+                  }).join('')}
+
+                  ${salesList.length === 0 ? `
+                    <tr>
+                      <td colspan="4" class="py-20 text-center text-black dark:text-white">
+                        <div class="flex flex-col items-center justify-center space-y-2">
+                          <span class="text-3xl">🌾</span>
+                          <p class="text-black dark:text-white text-base font-medium">No product sales logged yet in this timeline.</p>
+                          <p class="text-xs font-normal text-gray-500 dark:text-gray-400">Order transactions are required to compute metrics.</p>
+                        </div>
+                      </td>
+                    </tr>
+                  ` : ''}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        `;
+      }
+
+      // Event binders for report area interactions
+      function bindWorkspaceEvents(filteredOrders, productSalesList) {
+        
+        // Tab buttons toggle
+        const tabBtnTx = document.getElementById('tab-btn-tx');
+        const tabBtnProd = document.getElementById('tab-btn-product');
+
+        if (tabBtnTx) {
+          tabBtnTx.addEventListener('click', () => {
+            activeTab = 'transaction';
+            renderReportsWorkspace();
+          });
+        }
+        if (tabBtnProd) {
+          tabBtnProd.addEventListener('click', () => {
+            activeTab = 'product';
+            renderReportsWorkspace();
+          });
+        }
+
+        // Timeline Filter clicks
+        document.querySelectorAll('.btn-date-filter').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const range = btn.getAttribute('data-range');
+            dateFilter = range;
+            customStartDate = null;
+            customEndDate = null;
+            currentPage = 1; // reset page
+            renderReportsWorkspace();
+            showToast(`Timeline filter applied: ${getCoverageLabel()}`, 'info');
+          });
+        });
+
+        // Trigger Custom Range Popup Modal
+        const btnCustomRange = document.getElementById('btn-custom-range');
+        if (btnCustomRange) {
+          btnCustomRange.addEventListener('click', () => {
+            openCalendarModal();
+          });
+        }
+
+        // Trigger Export Confirmation Dialog popup
+        document.querySelectorAll('.btn-export-trigger').forEach(btn => {
+          btn.addEventListener('click', () => {
+            selectedExportFormat = btn.getAttribute('data-export') || 'PDF';
+            const currentFiltered = getFilteredOrders();
+            openExportConfirmationModal(currentFiltered);
+          });
+        });
+
+        // Instant Search input handler (only exists if transaction tab is open)
+        const searchInput = document.getElementById('reports-search-input');
+        if (searchInput) {
+          searchInput.addEventListener('input', (e) => {
+            searchQuery = e.target.value.toLowerCase().trim();
+            currentPage = 1; // Reset to page 1 on typing
+            
+            // Re-render only the table container to maintain search focus
+            const container = document.getElementById('active-tab-container');
+            if (container) {
+              const searchedOrders = getFilteredAndSearchedOrders();
+              container.innerHTML = renderTransactionTable(searchedOrders);
+              
+              // Re-bind pagination and inner handlers for the updated table content
+              bindTablePaginationAndSearch();
+            }
+          });
+          
+          // Re-focus input and set cursor position at end
+          searchInput.focus();
+          searchInput.setSelectionRange(searchInput.value.length, searchInput.value.length);
+        }
+
+        // Bind table-specific handlers initially
+        bindTablePaginationAndSearch();
+      }
+
+      // Helper to bind page click handlers & search without wiping full page
+      function bindTablePaginationAndSearch() {
+        // Handle page number clicks
+        document.querySelectorAll('.page-num-btn').forEach(btn => {
+          btn.addEventListener('click', () => {
+            currentPage = parseInt(btn.getAttribute('data-page'));
+            refreshTableContentOnly();
+          });
+        });
+
+        // Handle Prev page click
+        const prevBtn = document.getElementById('prev-page-btn');
+        if (prevBtn) {
+          prevBtn.addEventListener('click', () => {
+            if (currentPage > 1) {
+              currentPage--;
+              refreshTableContentOnly();
+            }
+          });
+        }
+
+        // Handle Next page click
+        const nextBtn = document.getElementById('next-page-btn');
+        if (nextBtn) {
+          nextBtn.addEventListener('click', () => {
+            currentPage++;
+            refreshTableContentOnly();
+          });
+        }
+
+        // Bind search input focus retention
+        const searchInput = document.getElementById('reports-search-input');
+        if (searchInput) {
+          searchInput.addEventListener('input', (e) => {
+            searchQuery = e.target.value.toLowerCase().trim();
+            currentPage = 1;
+            refreshTableContentOnly();
+          });
+        }
+      }
+
+      // Live update table list on query or page changes
+      function refreshTableContentOnly() {
+        const container = document.getElementById('active-tab-container');
+        if (container) {
+          if (activeTab === 'transaction') {
+            const searchedOrders = getFilteredAndSearchedOrders();
+            container.innerHTML = renderTransactionTable(searchedOrders);
+            bindTablePaginationAndSearch();
+            
+            // Maintain search cursor focus if active
+            const input = document.getElementById('reports-search-input');
+            if (input) {
+              input.focus();
+              input.setSelectionRange(input.value.length, input.value.length);
+            }
+          }
+        }
+      }
+
+
+      // ==========================================
+      // CUSTOM CALENDAR POPUP MODAL FUNCTIONALITY
+      // ==========================================
+
+      function openCalendarModal() {
+        let calendarModal = document.getElementById('custom-range-modal');
+        if (!calendarModal) {
+          calendarModal = document.createElement('div');
+          calendarModal.id = 'custom-range-modal';
+          calendarModal.className = 'fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 transition-opacity duration-200';
+          document.body.appendChild(calendarModal);
+        }
+
+        calendarModal.classList.remove('hidden');
+        renderCalendarInModal(calendarModal);
+      }
+
+      function renderCalendarInModal(modalContainer) {
+        const monthNames = [
+          "January", "February", "March", "April", "May", "June",
+          "July", "August", "September", "October", "November", "December"
+        ];
+
+        const firstDayOfMonth = new Date(calendarYear, calendarMonth, 1).getDay();
+        const daysInMonth = new Date(calendarYear, calendarMonth + 1, 0).getDate();
+        
+        let daysHtml = '';
+        for (let i = 0; i < firstDayOfMonth; i++) {
+          daysHtml += `<div class="p-3 text-center text-slate-300 select-none"></div>`;
+        }
+
+        const todayDateStr = new Date().toDateString();
+
+        for (let day = 1; day <= daysInMonth; day++) {
+          const checkDate = new Date(calendarYear, calendarMonth, day);
+          const dateStr = checkDate.toDateString();
+          
+          let isSelected = false;
+          let isBetween = false;
+
+          if (customStartDate && customEndDate) {
+            const startReset = new Date(customStartDate);
+            startReset.setHours(0,0,0,0);
+            const endReset = new Date(customEndDate);
+            endReset.setHours(23,59,59,999);
+
+            if (checkDate >= startReset && checkDate <= endReset) {
+              if (checkDate.toDateString() === startReset.toDateString() || checkDate.toDateString() === endReset.toDateString()) {
+                isSelected = true;
+              } else {
+                isBetween = true;
+              }
+            }
+          } else if (customStartDate && checkDate.toDateString() === customStartDate.toDateString()) {
+            isSelected = true;
+          }
+
+          let dayClasses = 'cursor-pointer font-medium text-sm transition-all duration-150 rounded-lg focus:outline-none';
+          if (isSelected) {
+            dayClasses += ' bg-[#1E6C02] text-white !text-white rounded-full shadow-xs';
+          } else if (isBetween) {
+            dayClasses += ' bg-emerald-100/80 text-[#1E6C02] rounded-lg';
+          } else {
+            dayClasses += ' text-black hover:bg-[#1E6C02]/10 hover:text-[#1E6C02]';
+          }
+
+          if (dateStr === todayDateStr && !isSelected) {
+            dayClasses += ' ring-2 ring-[#1E6C02] ring-offset-1 rounded-full';
+          }
+
+          daysHtml += `
+            <button 
+              data-day="${day}" 
+              class="calendar-day-btn p-2.5 text-center text-sm transition-all duration-150 rounded-lg focus:outline-none ${dayClasses}"
+            >
+              ${day}
+            </button>
+          `;
+        }
+
+        modalContainer.innerHTML = `
+          <div class="bg-white rounded-3xl max-w-md w-full border border-slate-100 shadow-2xl p-6 md:p-8 space-y-6 transform transition-all duration-300">
+            <div class="text-center md:text-left">
+              <h4 class="text-lg font-semibold text-black dark:text-white">Custom Date Range</h4>
+              <p class="text-xs font-normal text-gray-600 dark:text-gray-400 mt-1">Select a visual start and end date on the calendar, or specify manually.</p>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-1.5">From Date</label>
+                <input 
+                  type="date" 
+                  id="picker-manual-from" 
+                  class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-gray-800 border border-slate-200 dark:border-gray-700 rounded-xl text-sm font-normal text-black dark:text-white focus:bg-white focus:ring-2 focus:ring-[#1E6C02]/20 outline-none transition-all"
+                  value="${customStartDate ? customStartDate.toISOString().split('T')[0] : ''}"
+                />
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-1.5">To Date</label>
+                <input 
+                  type="date" 
+                  id="picker-manual-to" 
+                  class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-gray-800 border border-slate-200 dark:border-gray-700 rounded-xl text-sm font-normal text-black dark:text-white focus:bg-white focus:ring-2 focus:ring-[#1E6C02]/20 outline-none transition-all"
+                  value="${customEndDate ? customEndDate.toISOString().split('T')[0] : ''}"
+                />
+              </div>
+            </div>
+
+            <div class="bg-slate-50 dark:bg-gray-800 rounded-2xl border border-slate-200/50 dark:border-gray-700 p-4 space-y-4">
+              <div class="flex items-center justify-between">
+                <button id="btn-prev-month" class="p-2 bg-white dark:bg-gray-700 hover:bg-slate-100 dark:hover:bg-gray-600 border border-slate-200 dark:border-gray-600 rounded-xl text-black dark:text-white transition-colors">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-4 h-4"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                </button>
+                <span class="font-semibold text-black dark:text-white text-sm md:text-base">${monthNames[calendarMonth]} ${calendarYear}</span>
+                <button id="btn-next-month" class="p-2 bg-white dark:bg-gray-700 hover:bg-slate-100 dark:hover:bg-gray-600 border border-slate-200 dark:border-gray-600 rounded-xl text-black dark:text-white transition-colors">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-4 h-4"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                </button>
+              </div>
+
+              <div class="grid grid-cols-7 text-center font-semibold text-xs text-gray-600 dark:text-gray-400 tracking-wider uppercase pb-1 border-b border-slate-200/40 dark:border-gray-700">
+                <div>Su</div>
+                <div>Mo</div>
+                <div>Tu</div>
+                <div>We</div>
+                <div>Th</div>
+                <div>Fr</div>
+                <div>Sa</div>
+              </div>
+
+              <div class="grid grid-cols-7 gap-1">
+                ${daysHtml}
+              </div>
+            </div>
+
+            <div class="flex flex-col sm:flex-row gap-3">
+              <button 
+                id="btn-calendar-cancel" 
+                class="w-full sm:flex-1 py-2.5 bg-slate-100 dark:bg-gray-800 hover:bg-slate-200 dark:hover:bg-gray-700 text-black dark:text-gray-200 font-medium text-sm rounded-xl transition-colors cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button 
+                id="btn-calendar-apply" 
+                class="w-full sm:flex-1 py-2.5 bg-[#1E6C02] hover:bg-[#145001] text-white font-medium text-sm rounded-xl transition-colors cursor-pointer shadow-md shadow-green-900/10"
+              >
+                Apply Filter
+              </button>
+            </div>
+          </div>
+        `;
+
+        bindCalendarModalEvents(modalContainer);
+      }
+
+      function bindCalendarModalEvents(modalContainer) {
+        document.getElementById('btn-prev-month').addEventListener('click', () => {
+          calendarMonth--;
+          if (calendarMonth < 0) {
+            calendarMonth = 11;
+            calendarYear--;
+          }
+          renderCalendarInModal(modalContainer);
+        });
+
+        document.getElementById('btn-next-month').addEventListener('click', () => {
+          calendarMonth++;
+          if (calendarMonth > 11) {
+            calendarMonth = 0;
+            calendarYear++;
+          }
+          renderCalendarInModal(modalContainer);
+        });
+
+        document.querySelectorAll('.calendar-day-btn').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const clickedDay = parseInt(btn.getAttribute('data-day'));
+            const clickedDate = new Date(calendarYear, calendarMonth, clickedDay);
+
+            if (!customStartDate || (customStartDate && customEndDate)) {
+              customStartDate = clickedDate;
+              customEndDate = null;
+            } else if (customStartDate && !customEndDate) {
+              if (clickedDate < customStartDate) {
+                customStartDate = clickedDate;
+              } else {
+                customEndDate = clickedDate;
+              }
+            }
+            renderCalendarInModal(modalContainer);
+          });
+        });
+
+        const manualFrom = document.getElementById('picker-manual-from');
+        const manualTo = document.getElementById('picker-manual-to');
+
+        if (manualFrom) {
+          manualFrom.addEventListener('change', (e) => {
+            if (e.target.value) {
+              customStartDate = new Date(e.target.value);
+              calendarYear = customStartDate.getFullYear();
+              calendarMonth = customStartDate.getMonth();
+              renderCalendarInModal(modalContainer);
+            }
+          });
+        }
+
+        if (manualTo) {
+          manualTo.addEventListener('change', (e) => {
+            if (e.target.value) {
+              customEndDate = new Date(e.target.value);
+              renderCalendarInModal(modalContainer);
+            }
+          });
+        }
+
+        document.getElementById('btn-calendar-cancel').addEventListener('click', () => {
+          modalContainer.classList.add('hidden');
+        });
+
+        document.getElementById('btn-calendar-apply').addEventListener('click', () => {
+          const manualFromVal = document.getElementById('picker-manual-from').value;
+          const manualToVal = document.getElementById('picker-manual-to').value;
+
+          if (manualFromVal) customStartDate = new Date(manualFromVal);
+          if (manualToVal) customEndDate = new Date(manualToVal);
+
+          if (!customStartDate) {
+            showToast('Please select at least a start date.', 'error');
+            return;
+          }
+
+          dateFilter = 'custom';
+          currentPage = 1; // reset offset
+          modalContainer.classList.add('hidden');
+          renderReportsWorkspace();
+          showToast(`Custom range filter applied: ${getCoverageLabel()}`, 'success');
+        });
+      }
+
+
+      // ==========================================
+      // EXPORT CONFIRMATION MODAL FUNCTIONALITY
+      // ==========================================
+
+      function openExportConfirmationModal(filteredOrders) {
+        let exportModal = document.getElementById('export-confirm-modal');
+        if (!exportModal) {
+          exportModal = document.createElement('div');
+          exportModal.id = 'export-confirm-modal';
+          exportModal.className = 'fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 transition-opacity duration-200';
+          document.body.appendChild(exportModal);
+        }
+
+        exportModal.classList.remove('hidden');
+
+        const coverageText = getCoverageLabel();
+        const totalOrdersCount = filteredOrders.length;
+
+        let displayDateRange = 'Full history records';
+        if (dateFilter === 'today') {
+          displayDateRange = formatLongDate(new Date());
+        } else if (dateFilter === 'week') {
+          const startWeek = new Date(new Date().getTime() - 7 * 24 * 60 * 60 * 1000);
+          displayDateRange = `${formatLongDate(startWeek)} - ${formatLongDate(new Date())}`;
+        } else if (dateFilter === 'month') {
+          const now = new Date();
+          const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+          const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+          displayDateRange = `${formatLongDate(firstDay)} - ${formatLongDate(lastDay)}`;
+        } else if (dateFilter === 'custom' && customStartDate) {
+          displayDateRange = `${formatLongDate(customStartDate)} - ${customEndDate ? formatLongDate(customEndDate) : formatLongDate(customStartDate)}`;
+        }
+
+        exportModal.innerHTML = `
+          <div class="bg-white rounded-3xl max-w-md w-full border border-slate-100 shadow-2xl p-6 md:p-8 space-y-6 transform transition-all duration-300">
+            <div class="text-center border-b border-slate-100 pb-4">
+              <h4 class="text-xl font-semibold text-slate-900 dark:text-white">Export Report</h4>
+              <p class="text-sm font-normal text-slate-600 dark:text-slate-400 mt-1">You are about to download a report.</p>
+            </div>
+
+            <div class="space-y-4">
+              <div class="grid grid-cols-2 gap-y-4 gap-x-2 pb-4 border-b border-slate-100/70 text-sm">
+                <div>
+                  <span class="text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider block">File Format:</span>
+                  <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg ${selectedExportFormat === 'PDF' ? 'bg-red-50 text-red-700' : selectedExportFormat === 'Excel' ? 'bg-emerald-50 text-emerald-700' : 'bg-blue-50 text-blue-700'} text-xs font-semibold mt-1">
+                    <span class="w-1.5 h-1.5 rounded-full ${selectedExportFormat === 'PDF' ? 'bg-red-500' : selectedExportFormat === 'Excel' ? 'bg-emerald-500' : 'bg-blue-500'}"></span>
+                    ${selectedExportFormat} Format
+                  </span>
+                </div>
+                <div>
+                  <span class="text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider block">Report Coverage:</span>
+                  <span class="text-slate-900 dark:text-white font-medium block mt-1">${coverageText}</span>
+                </div>
+                <div class="col-span-2">
+                  <span class="text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider block">Date Range:</span>
+                  <span class="text-slate-800 dark:text-slate-200 font-medium block mt-1">${displayDateRange}</span>
+                </div>
+              </div>
+
+              <div class="space-y-3">
+                <span class="text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider block">The exported report will include:</span>
+                <div class="grid grid-cols-1 gap-2 text-xs font-normal text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-gray-800 p-4 rounded-2xl border border-slate-100 dark:border-gray-700">
+                  <div class="flex items-center gap-2">
+                    <span class="text-emerald-600 font-bold">✔</span> Sales Summary
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span class="text-emerald-600 font-bold">✔</span> Transaction List
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span class="text-emerald-600 font-bold">✔</span> Product Sales Report
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span class="text-emerald-600 font-bold">✔</span> Order Status Summary
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span class="text-emerald-600 font-bold">✔</span> Reservation Summary
+                  </div>
+                </div>
+              </div>
+
+              <div class="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-gray-800 text-sm">
+                <span class="text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider block text-left">Total Transactions:</span>
+                <span class="font-semibold text-slate-900 dark:text-white text-[15px]">${totalOrdersCount} records</span>
+              </div>
+            </div>
+
+            <div class="flex flex-col sm:flex-row gap-3 pt-2">
+              <button 
+                id="btn-export-cancel" 
+                class="w-full sm:flex-1 py-2.5 bg-slate-100 dark:bg-gray-800 hover:bg-slate-200 dark:hover:bg-gray-700 text-slate-700 dark:text-gray-200 font-medium text-sm rounded-xl transition-colors cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button 
+                id="btn-export-download" 
+                class="w-full sm:flex-1 py-2.5 bg-[#1E6C02] hover:bg-[#145001] text-white font-medium text-sm rounded-xl transition-colors cursor-pointer shadow-md shadow-green-900/10"
+              >
+                Download Report
+              </button>
+            </div>
+          </div>
+        `;
+
+        document.getElementById('btn-export-cancel').addEventListener('click', () => {
+          exportModal.classList.add('hidden');
+        });
+
+        document.getElementById('btn-export-download').addEventListener('click', () => {
+          exportModal.classList.add('hidden');
+          triggerActualFileDownload(filteredOrders);
+        });
+      }
+
+
+      // ==========================================
+      // REAL FILE DOWNLOAD TRIGGERS (PDF/Excel/CSV)
+      // ==========================================
+
+      function triggerActualFileDownload(ordersList) {
+        const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+        const now = new Date();
+        const currentMonthName = monthNames[now.getMonth()];
+        const currentYear = now.getFullYear();
+        const filename = `Sales_Report_${currentMonthName}_${currentYear}`;
+
+        // Helpers for safe date formatting
+        const safeISODate = (o) => {
+          const d = parseOrderDate(o);
+          if (!d || isNaN(d.getTime()) || d.getTime() === 0) return 'N/A';
+          try {
+            return d.toISOString().split('T')[0];
+          } catch(e) {
+            return d.toLocaleDateString();
+          }
+        };
+
+        const safeLocaleDate = (o) => {
+          const d = parseOrderDate(o);
+          if (!d || isNaN(d.getTime()) || d.getTime() === 0) return 'N/A';
+          return d.toLocaleDateString();
+        };
+
+        // Completed sales dataset
+        const verifiedSalesList = ordersList.filter(o => getVerifiedCustomerPaymentInfo(o).isVerified);
+        const totalSalesValue = verifiedSalesList.reduce((sum, o) => sum + getVerifiedCustomerPaymentInfo(o).amount, 0);
+
+        // Product sales aggregation from verified sales
+        const productSalesMap = {};
+        verifiedSalesList.forEach(o => {
+          if (o.items) {
+            o.items.forEach(item => {
+              if (!item || !item.product || item.isReservation) return;
+              const name = item.product.name;
+              const qty = Number(item.quantity || 1);
+              const price = Number(item.product.price || 0);
+              const rev = qty * price;
+              
+              if (!productSalesMap[name]) {
+                productSalesMap[name] = { name, quantity: 0, revenue: 0, weight: item.product.weight || '25kg' };
+              }
+              productSalesMap[name].quantity += qty;
+              productSalesMap[name].revenue += rev;
+            });
+          }
+        });
+        const productSalesList = Object.values(productSalesMap).sort((a, b) => b.revenue - a.revenue);
+
+        // Reservations and Cancelled orders from filtered date range
+        const reservations = ordersList.filter(o => isReservationOrder(o) && !isCancelledOrRejectedOrder(o));
+        const cancelledOrders = ordersList.filter(o => isCancelledOrRejectedOrder(o));
+
+        // Status counts breakdown
+        const statusCounts = {};
+        ordersList.forEach(o => {
+          const s = (o.status || 'unknown').toUpperCase();
+          statusCounts[s] = (statusCounts[s] || 0) + 1;
+        });
+
+        if (selectedExportFormat === 'CSV') {
+          const escapeCsv = (val) => {
+            if (val === null || val === undefined) return '""';
+            if (typeof val === 'number') return Number.isFinite(val) ? String(val) : '0';
+            const str = String(val);
+            return `"${str.replace(/"/g, '""')}"`;
+          };
+
+          let csvRows = [];
+          csvRows.push([escapeCsv("RiceFlow")].join(","));
+          csvRows.push([escapeCsv("Queue-Enabled Rice Ordering and Inventory Management System")].join(","));
+          csvRows.push([escapeCsv("Business Reports")].join(","));
+          csvRows.push([escapeCsv("Generated Date/Time"), escapeCsv(now.toLocaleString())].join(","));
+          csvRows.push([escapeCsv("Generated By"), escapeCsv("Admin")].join(","));
+          csvRows.push([escapeCsv("Timeline Coverage"), escapeCsv(getCoverageLabel())].join(","));
+          csvRows.push("");
+
+          csvRows.push([escapeCsv("SALES SUMMARY")].join(","));
+          csvRows.push([escapeCsv("Indicator"), escapeCsv("Value")].join(","));
+          csvRows.push([escapeCsv("Total Sales (Gross PHP)"), Number(totalSalesValue.toFixed(2))].join(","));
+          csvRows.push([escapeCsv("Verified Sales Orders"), verifiedSalesList.length].join(","));
+          csvRows.push([escapeCsv("Active Reservations"), reservations.length].join(","));
+          csvRows.push([escapeCsv("Cancelled Orders"), cancelledOrders.length].join(","));
+          csvRows.push("");
+
+          csvRows.push([escapeCsv("TRANSACTION LIST (VERIFIED SALES)")].join(","));
+          csvRows.push([
+            escapeCsv("Order ID"),
+            escapeCsv("Customer"),
+            escapeCsv("Product Ordered"),
+            escapeCsv("Quantity"),
+            escapeCsv("Amount (PHP)"),
+            escapeCsv("Date Ordered"),
+            escapeCsv("Status")
+          ].join(","));
+          verifiedSalesList.forEach(o => {
+            const prodStr = o.items ? o.items.map(i => i.product ? i.product.name : 'Rice Product').join('; ') : 'Rice Order';
+            const qtyStr = o.items ? o.items.map(i => `${i.quantity || 1}`).join('; ') : '1';
+            const dateStr = safeISODate(o);
+            const verifiedAmt = Number(Number(getVerifiedCustomerPaymentInfo(o).amount || o.total || 0).toFixed(2));
+            csvRows.push([
+              escapeCsv(`#${o.id}`),
+              escapeCsv(o.fullName || 'Customer'),
+              escapeCsv(prodStr),
+              escapeCsv(qtyStr),
+              verifiedAmt,
+              escapeCsv(dateStr),
+              escapeCsv(o.status || 'Verified')
+            ].join(","));
+          });
+          csvRows.push("");
+
+          csvRows.push([escapeCsv("PRODUCT SALES REPORT")].join(","));
+          csvRows.push([
+            escapeCsv("No."),
+            escapeCsv("Product"),
+            escapeCsv("Packaging / Weight"),
+            escapeCsv("Quantity Ordered"),
+            escapeCsv("Total Sales (PHP)")
+          ].join(","));
+          productSalesList.forEach((p, idx) => {
+            csvRows.push([
+              idx + 1,
+              escapeCsv(p.name),
+              escapeCsv(p.weight || '25kg'),
+              escapeCsv(formatQuantity(p.quantity, p.weight)),
+              Number(Number(p.revenue || 0).toFixed(2))
+            ].join(","));
+          });
+          csvRows.push("");
+
+          csvRows.push([escapeCsv("RESERVATION SUMMARY")].join(","));
+          csvRows.push([
+            escapeCsv("Order ID"),
+            escapeCsv("Customer"),
+            escapeCsv("Reserved Products"),
+            escapeCsv("Quantity"),
+            escapeCsv("Total Value (PHP)"),
+            escapeCsv("Date")
+          ].join(","));
+          reservations.forEach(o => {
+            const prodStr = o.items ? o.items.map(i => i.product ? i.product.name : 'Rice Product').join('; ') : 'Reserved Grain';
+            const qtyStr = o.items ? o.items.map(i => `${i.quantity || 1}`).join('; ') : '1';
+            const dateStr = safeISODate(o);
+            const resAmt = Number(Number(o.total || o.totalPrice || o.amount || 0).toFixed(2));
+            csvRows.push([
+              escapeCsv(`#${o.id}`),
+              escapeCsv(o.fullName || 'Customer'),
+              escapeCsv(prodStr),
+              escapeCsv(qtyStr),
+              resAmt,
+              escapeCsv(dateStr)
+            ].join(","));
+          });
+          csvRows.push("");
+
+          csvRows.push([escapeCsv("ORDER STATUS SUMMARY")].join(","));
+          csvRows.push([escapeCsv("Status"), escapeCsv("Count")].join(","));
+          Object.entries(statusCounts).forEach(([st, cnt]) => {
+            csvRows.push([escapeCsv(st), cnt].join(","));
+          });
+
+          const csvString = "\uFEFF" + csvRows.join("\r\n");
+          const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+          const url = URL.createObjectURL(blob);
+
+          const link = document.createElement("a");
+          link.setAttribute("href", url);
+          link.setAttribute("download", `${filename}.csv`);
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          URL.revokeObjectURL(url);
+
+          showToast('✔ CSV Report downloaded successfully.', 'success');
+          addActivityLog('Reports', 'Exported business report as CSV', 'Business Reports');
+        } 
+        else if (selectedExportFormat === 'Excel') {
+          if (!window.XLSX) {
+            showToast('❌ Excel export library is still loading. Please check your internet connection.', 'error');
+            return;
+          }
+
+          const wb = window.XLSX.utils.book_new();
+
+          // 1. Sheet: Sales & Transactions
+          const salesSummaryAOA = [
+            ["RiceFlow Business Reports - Sales & Transactions"],
+            ["Generated Date/Time", now.toLocaleString()],
+            ["Generated By", "Admin"],
+            ["Timeline Coverage", getCoverageLabel()],
+            [],
+            ["SALES SUMMARY"],
+            ["Indicator", "Value"],
+            ["Total Sales (Gross PHP)", Number(totalSalesValue.toFixed(2))],
+            ["Verified Sales Orders Count", verifiedSalesList.length],
+            ["Active Reservations Count", reservations.length],
+            ["Cancelled Orders Count", cancelledOrders.length],
+            [],
+            ["TRANSACTION LIST (VERIFIED SALES)"],
+            ["Order ID", "Customer Name", "Product Ordered", "Quantity", "Amount (PHP)", "Date Ordered", "Status"]
+          ];
+
+          verifiedSalesList.forEach(o => {
+            const prodStr = o.items ? o.items.map(i => i.product ? i.product.name : 'Rice Product').join('; ') : 'Rice Order';
+            const qtyStr = o.items ? o.items.map(i => `${i.quantity || 1}`).join('; ') : '1';
+            const dateStr = safeISODate(o);
+            const verifiedAmt = Number(Number(getVerifiedCustomerPaymentInfo(o).amount || o.total || 0).toFixed(2));
+            salesSummaryAOA.push([
+              `#${o.id}`,
+              o.fullName || 'Customer',
+              prodStr,
+              qtyStr,
+              verifiedAmt,
+              dateStr,
+              o.status || 'Verified'
+            ]);
+          });
+
+          const wsSales = window.XLSX.utils.aoa_to_sheet(salesSummaryAOA);
+          wsSales['!cols'] = [
+            { wch: 18 },
+            { wch: 26 },
+            { wch: 36 },
+            { wch: 12 },
+            { wch: 16 },
+            { wch: 14 },
+            { wch: 16 }
+          ];
+          window.XLSX.utils.book_append_sheet(wb, wsSales, "Sales & Transactions");
+
+          // 2. Sheet: Product Sales
+          const productSalesAOA = [
+            ["RiceFlow - Product Sales Report"],
+            ["Timeline Coverage", getCoverageLabel()],
+            ["Generated Date/Time", now.toLocaleString()],
+            [],
+            ["Rank", "Product Name", "Packaging / Weight", "Quantity Ordered", "Total Sales (PHP)"]
+          ];
+
+          productSalesList.forEach((p, idx) => {
+            productSalesAOA.push([
+              idx + 1,
+              p.name,
+              p.weight || '25kg',
+              formatQuantity(p.quantity, p.weight),
+              Number(Number(p.revenue || 0).toFixed(2))
+            ]);
+          });
+
+          const wsProducts = window.XLSX.utils.aoa_to_sheet(productSalesAOA);
+          wsProducts['!cols'] = [
+            { wch: 8 },
+            { wch: 32 },
+            { wch: 20 },
+            { wch: 18 },
+            { wch: 18 }
+          ];
+          window.XLSX.utils.book_append_sheet(wb, wsProducts, "Product Sales");
+
+          // 3. Sheet: Reservations & Status
+          const reservationsAOA = [
+            ["RiceFlow - Reservations & Status Summary"],
+            ["Timeline Coverage", getCoverageLabel()],
+            ["Generated Date/Time", now.toLocaleString()],
+            [],
+            ["ACTIVE RESERVATIONS"],
+            ["Order ID", "Customer Name", "Reserved Products", "Quantity", "Total Value (PHP)", "Date"]
+          ];
+
+          reservations.forEach(o => {
+            const prodStr = o.items ? o.items.map(i => i.product ? i.product.name : 'Rice Product').join('; ') : 'Reserved Grain';
+            const qtyStr = o.items ? o.items.map(i => `${i.quantity || 1}`).join('; ') : '1';
+            const dateStr = safeISODate(o);
+            const resAmt = Number(Number(o.total || o.totalPrice || o.amount || 0).toFixed(2));
+            reservationsAOA.push([
+              `#${o.id}`,
+              o.fullName || 'Customer',
+              prodStr,
+              qtyStr,
+              resAmt,
+              dateStr
+            ]);
+          });
+
+          reservationsAOA.push([]);
+          reservationsAOA.push(["ORDER STATUS SUMMARY"]);
+          reservationsAOA.push(["Status", "Order Count"]);
+          Object.entries(statusCounts).forEach(([st, cnt]) => {
+            reservationsAOA.push([st, cnt]);
+          });
+
+          const wsReservations = window.XLSX.utils.aoa_to_sheet(reservationsAOA);
+          wsReservations['!cols'] = [
+            { wch: 18 },
+            { wch: 26 },
+            { wch: 36 },
+            { wch: 12 },
+            { wch: 18 },
+            { wch: 14 }
+          ];
+          window.XLSX.utils.book_append_sheet(wb, wsReservations, "Reservations & Status");
+
+          // Write native .xlsx file and trigger download
+          try {
+            window.XLSX.writeFile(wb, `${filename}.xlsx`);
+          } catch (writeErr) {
+            const wbout = window.XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+            const blob = new Blob([wbout], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = `${filename}.xlsx`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+          }
+
+          showToast('✔ Excel Report downloaded successfully (.xlsx).', 'success');
+          addActivityLog('Reports', 'Exported business report as Excel (.xlsx)', 'Business Reports');
+        } 
+        else {
+          // PDF Generation using jsPDF and jsPDF-AutoTable
+          try {
+            if (!window.jspdf || !window.jspdf.jsPDF) {
+              showToast('❌ PDF export library is still loading. Please try again.', 'error');
+              return;
+            }
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF({
+              orientation: 'p',
+              unit: 'mm',
+              format: 'a4'
+            });
+
+            // Print brand header on page 1
+            doc.setFontSize(20);
+            doc.setTextColor(30, 108, 2); // Brand green #1E6C02
+            doc.setFont('helvetica', 'bold');
+            doc.text('RiceFlow', 14, 18);
+            
+            doc.setFontSize(10);
+            doc.setTextColor(80, 80, 80);
+            doc.setFont('helvetica', 'normal');
+            doc.text('Queue-Enabled Rice Ordering and Inventory Management System', 14, 24);
+            doc.text('Business Reports', 14, 29);
+            
+            doc.setFontSize(9);
+            doc.setTextColor(120, 120, 120);
+            doc.text(`Timeline: ${getCoverageLabel()}`, 196, 18, { align: 'right' });
+            doc.text(`Generated: ${now.toLocaleString()}`, 196, 24, { align: 'right' });
+            doc.text(`Generated By: Admin`, 196, 29, { align: 'right' });
+            
+            doc.setDrawColor(200, 200, 200);
+            doc.setLineWidth(0.2);
+            doc.line(14, 32, 196, 32);
+
+            // Safe Y positioning helper to prevent orphaned headings across pages
+            const getSafeNextY = (neededSpace = 35) => {
+              const prevY = doc.lastAutoTable ? doc.lastAutoTable.finalY : 32;
+              if (prevY + neededSpace > 275) {
+                doc.addPage();
+                return 20;
+              }
+              return prevY + 10;
+            };
+
+            // 1. SALES SUMMARY
+            doc.setFontSize(12);
+            doc.setTextColor(30, 108, 2);
+            doc.setFont('helvetica', 'bold');
+            doc.text('1. SALES SUMMARY', 14, 40);
+            
+            doc.autoTable({
+              startY: 43,
+              head: [['Performance Indicator', 'Summary Value']],
+              body: [
+                ['Total Sales (Gross)', formatPeso(totalSalesValue)],
+                ['Verified Sales Orders', `${verifiedSalesList.length} orders`],
+                ['Active Reservations', `${reservations.length} orders`],
+                ['Cancelled Orders', `${cancelledOrders.length} orders`]
+              ],
+              theme: 'striped',
+              headStyles: { fillColor: [30, 108, 2], textStyle: 'bold' },
+              styles: { font: 'helvetica', fontSize: 9, cellPadding: 3.5 }
+            });
+
+            // 2. TRANSACTION LIST
+            const nextY1 = getSafeNextY(35);
+            doc.setFontSize(12);
+            doc.setTextColor(30, 108, 2);
+            doc.setFont('helvetica', 'bold');
+            doc.text('2. TRANSACTION LIST (VERIFIED SALES)', 14, nextY1);
+            
+            const transactionRows = verifiedSalesList.map(o => {
+              const dateStr = safeLocaleDate(o);
+              const itemsListStr = o.items ? o.items.map(i => `${i.product ? i.product.name : 'Rice'} (x${i.quantity || 1})`).join(', ') : 'Rice Order';
+              const qtySum = o.items ? o.items.reduce((acc, i) => acc + (i.quantity || 1), 0) : 1;
+              const verifiedAmt = getVerifiedCustomerPaymentInfo(o).amount || o.total || 0;
+              return [
+                `#${o.id}`,
+                o.fullName || 'Customer',
+                itemsListStr,
+                qtySum.toString(),
+                formatPeso(verifiedAmt),
+                dateStr
+              ];
+            });
+            
+            doc.autoTable({
+              startY: nextY1 + 3,
+              head: [['Order ID', 'Customer', 'Product Ordered', 'Quantity', 'Amount', 'Date Ordered']],
+              body: transactionRows.length > 0 ? transactionRows : [['-', 'No completed transaction records found', '-', '-', '-', '-']],
+              theme: 'striped',
+              headStyles: { fillColor: [30, 108, 2] },
+              styles: { font: 'helvetica', fontSize: 8, cellPadding: 3 },
+              columnStyles: {
+                0: { fontStyle: 'bold', cellWidth: 22 },
+                1: { cellWidth: 35 },
+                2: { cellWidth: 'auto' },
+                3: { halign: 'center', cellWidth: 18 },
+                4: { halign: 'right', fontStyle: 'bold', cellWidth: 26 },
+                5: { halign: 'center', cellWidth: 24 }
+              }
+            });
+
+            // 3. PRODUCT SALES REPORT
+            const nextY2 = getSafeNextY(35);
+            doc.setFontSize(12);
+            doc.setTextColor(30, 108, 2);
+            doc.setFont('helvetica', 'bold');
+            doc.text('3. PRODUCT SALES REPORT', 14, nextY2);
+            
+            const productRows = productSalesList.map((p, idx) => [
+              (idx + 1).toString(),
+              p.name,
+              formatQuantity(p.quantity, p.weight),
+              formatPeso(p.revenue)
+            ]);
+            
+            doc.autoTable({
+              startY: nextY2 + 3,
+              head: [['No.', 'Product', 'Quantity Ordered', 'Total Sales']],
+              body: productRows.length > 0 ? productRows : [['-', 'No product sales recorded', '-', '-']],
+              theme: 'striped',
+              headStyles: { fillColor: [30, 108, 2] },
+              styles: { font: 'helvetica', fontSize: 8, cellPadding: 3 },
+              columnStyles: {
+                0: { halign: 'center', cellWidth: 15 },
+                1: { cellWidth: 'auto' },
+                2: { halign: 'center', cellWidth: 40 },
+                3: { halign: 'right', cellWidth: 45 }
+              }
+            });
+
+            // 4. RESERVATION SUMMARY
+            const nextY3 = getSafeNextY(35);
+            doc.setFontSize(12);
+            doc.setTextColor(30, 108, 2);
+            doc.setFont('helvetica', 'bold');
+            doc.text('4. RESERVATION SUMMARY', 14, nextY3);
+            
+            const reservationRows = reservations.map(o => {
+              const dateStr = safeLocaleDate(o);
+              const itemsListStr = o.items ? o.items.map(i => `${i.product ? i.product.name : 'Rice'} (x${i.quantity || 1})`).join(', ') : 'Reserved Item';
+              return [
+                `#${o.id}`,
+                o.fullName || 'Customer',
+                itemsListStr,
+                formatPeso(o.total || 0),
+                dateStr
+              ];
+            });
+            
+            doc.autoTable({
+              startY: nextY3 + 3,
+              head: [['Order ID', 'Customer', 'Reserved Products', 'Total Value', 'Date']],
+              body: reservationRows.length > 0 ? reservationRows : [['-', 'No active reservation orders found', '-', '-', '-']],
+              theme: 'striped',
+              headStyles: { fillColor: [30, 108, 2] },
+              styles: { font: 'helvetica', fontSize: 8, cellPadding: 3 },
+              columnStyles: {
+                0: { fontStyle: 'bold', cellWidth: 22 },
+                1: { cellWidth: 40 },
+                2: { cellWidth: 'auto' },
+                3: { halign: 'right', fontStyle: 'bold', cellWidth: 28 },
+                4: { halign: 'center', cellWidth: 26 }
+              }
+            });
+
+            // Page numbers and footer across all pages
+            const totalPages = doc.internal.getNumberOfPages();
+            for (let i = 1; i <= totalPages; i++) {
+              doc.setPage(i);
+              doc.setFont('helvetica', 'normal');
+              doc.setFontSize(8);
+              doc.setTextColor(150, 150, 150);
+              doc.text(`Page ${i} of ${totalPages}`, 196, 287, { align: 'right' });
+              doc.text(`Generated by RiceFlow System on ${now.toLocaleString()}`, 14, 287);
+            }
+
+            doc.save(`${filename}.pdf`);
+            showToast('✔ PDF Report downloaded successfully.', 'success');
+            addActivityLog('Reports', 'Exported business report as PDF', 'Business Reports');
+          } catch (pdfError) {
+            console.error('PDF Generation Error:', pdfError);
+            showToast('❌ Error generating PDF: ' + pdfError.message, 'error');
+          }
+        }
+      }
+
+      // Initial load trigger
+      renderReportsWorkspace();
+    });
+  </script>
+</body>
+</html>

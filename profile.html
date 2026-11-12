@@ -8,7 +8,7 @@
     (function() {
       try {
         var d = document.documentElement;
-        var isDark = localStorage.getItem('aurora-dark-mode') === 'true';
+        var isDark = false; // RiceFlow uses Light Mode only.
         d.classList.toggle('dark', isDark);
         d.style.colorScheme = isDark ? 'dark' : 'light';
       } catch (e) {}
@@ -980,7 +980,10 @@
       checkAndSendCustomer48HourReminders,
       updateAllLiveDeadlineCountdowns,
       confirmContinueUnallocatedReservation,
-      getOrderDeliveryFee
+      getOrderDeliveryFee,
+      assertCanPerformFirebaseWrite,
+      autoBindDraftPreservation,
+      clearFormDraft
     } from './src/app/shared.js';
     import { renderQueueEtaCard } from './src/app/queue-eta.js';
     import { auth, saveFirestoreDoc, initFirestoreSync, syncOrdersFromFirestore } from './src/lib/firebase.js';
@@ -5950,6 +5953,10 @@
 
       // Save updated data details
       document.getElementById('btn-save-profile-data').addEventListener('click', async () => {
+        if (!assertCanPerformFirebaseWrite('save your profile changes')) {
+          return;
+        }
+
         const btnSave = document.getElementById('btn-save-profile-data');
         const origText = btnSave ? btnSave.innerHTML : '';
         const fullName = document.getElementById('modal-inp-fullName').value.trim();

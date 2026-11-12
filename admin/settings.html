@@ -8,34 +8,14 @@
     (function() {
       try {
         var d = document.documentElement;
-        var isDark = localStorage.getItem('aurora-dark-mode') === 'true';
-        d.classList.toggle('dark', isDark);
-        d.style.colorScheme = isDark ? 'dark' : 'light';
+        d.classList.remove('dark');
+        d.style.colorScheme = 'light';
+        if (typeof localStorage !== 'undefined') { try { localStorage.removeItem('aurora-dark-mode'); } catch(_) {} }
       } catch (e) {}
     })();
   </script>
   <style id="riceflow-theme-init">
     html { background-color: #F5F5F5; color-scheme: light; }
-    html.dark { background-color: #1F2937 !important; color-scheme: dark; }
-    html.dark body,
-    html.dark #admin-layout-container,
-    html.dark #admin-main-content {
-      background-color: #1F2937;
-      color: #F9FAFB;
-    }
-    html.dark #auth-guard-loader {
-      background-color: #1F2937 !important;
-      color: #F9FAFB !important;
-    }
-    html.dark #admin-sidebar,
-    html.dark aside,
-    html.dark header,
-    html.dark .bg-white,
-    html.dark .bg-gray-50,
-    html.dark .bg-slate-50 {
-      background-color: #111827;
-      color: #F9FAFB;
-    }
   </style>
   <link rel="stylesheet" href="../src/styles/index.css">
   <style id="settings-day-mode-button-readability">
@@ -117,11 +97,7 @@
     html:not(.dark) #admin-layout-container #mobile-sidebar-close,
     html:not(.dark) #admin-layout-container #mobile-sidebar-close svg,
     html:not(.dark) #admin-layout-container #admin-notif-btn,
-    html:not(.dark) #admin-layout-container #admin-notif-btn svg,
-    html:not(.dark) #admin-layout-container #admin-dark-mode-toggle,
-    html:not(.dark) #admin-layout-container #admin-dark-mode-toggle *,
-    html:not(.dark) #admin-layout-container #admin-dark-mode-toggle:hover,
-    html:not(.dark) #admin-layout-container #admin-dark-mode-toggle:hover * {
+    html:not(.dark) #admin-layout-container #admin-notif-btn svg {
       color: #000000 !important;
       stroke: #000000 !important;
     }
@@ -442,26 +418,49 @@
       if (!targetSpace) return;
 
       // Load initial settings
-      const settings = getStoreSettings();
+      const initialSettings = getStoreSettings();
 
-      let storeName = settings.storeName;
-      let description = settings.description;
-      let contactNumber = settings.contactNumber;
-      let storeAddress = settings.storeAddress;
-      let facebookLink = settings.facebookLink;
-      let businessHours = settings.businessHours;
-      let logoBase64 = settings.logo;
-      let bannerBase64 = settings.banner;
-      let gcashName = settings.gcashName;
-      let gcashNumber = settings.gcashNumber;
-      let gcashQrBase64 = settings.gcashQr;
-      let deliveryMinimumSettings = JSON.parse(JSON.stringify(settings.deliveryMinimumSettings || DEFAULT_DELIVERY_MINIMUM_SETTINGS));
-      let deliveryFeeSettings = JSON.parse(JSON.stringify(settings.deliveryFeeSettings || DEFAULT_DELIVERY_FEE_SETTINGS));
+      let storeName = initialSettings.storeName;
+      let description = initialSettings.description;
+      let contactNumber = initialSettings.contactNumber;
+      let contactEmail = initialSettings.contactEmail;
+      let storeAddress = initialSettings.storeAddress;
+      let facebookLink = initialSettings.facebookLink;
+      let businessHours = initialSettings.businessHours;
+      let operatingDays = initialSettings.operatingDays;
+      let logoBase64 = initialSettings.logo;
+      let bannerBase64 = initialSettings.banner;
+      let gcashName = initialSettings.gcashName;
+      let gcashNumber = initialSettings.gcashNumber;
+      let gcashQrBase64 = initialSettings.gcashQr;
+      let deliveryMinimumSettings = JSON.parse(JSON.stringify(initialSettings.deliveryMinimumSettings || DEFAULT_DELIVERY_MINIMUM_SETTINGS));
+      let deliveryFeeSettings = JSON.parse(JSON.stringify(initialSettings.deliveryFeeSettings || DEFAULT_DELIVERY_FEE_SETTINGS));
       let editingFeeRuleId = null;
+      let editingLocationRuleId = null;
       let selectedLogoFile = null;
       let selectedBannerFile = null;
       let selectedGcashQrFile = null;
+      let hasUnsavedEdits = false;
+      let isSavingStorefront = false;
+      let isSavingContact = false;
+      let isSavingGcash = false;
       const fallbackQrSvg = `data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='150' height='150' viewBox='0 0 150 150'><rect width='100%' height='100%' fill='%23f9fafb' rx='12'/><rect x='8' y='8' width='134' height='134' fill='none' stroke='%23e5e7eb' stroke-width='2' stroke-dasharray='6,4' rx='8'/><text x='50%' y='45%' dominant-baseline='middle' text-anchor='middle' font-family='system-ui, -apple-system, sans-serif' font-size='10' font-weight='bold' fill='%239ca3af'>No GCash QR</text><text x='50%' y='60%' dominant-baseline='middle' text-anchor='middle' font-family='system-ui, -apple-system, sans-serif' font-size='10' font-weight='bold' fill='%239ca3af'>Code Available</text></svg>`;
+
+      function escapeAttr(val) {
+        return String(val ?? '')
+          .replace(/&/g, '&amp;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#39;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;');
+      }
+
+      function escapeHtml(val) {
+        return String(val ?? '')
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;');
+      }
 
       // Reusable confirmation modal functions
       const confModal = document.getElementById('confirmation-modal');
@@ -522,8 +521,14 @@
         const inpContactPhone = document.getElementById('inp-contact-phone');
         if (inpContactPhone) contactNumber = inpContactPhone.value.trim();
 
+        const inpContactEmail = document.getElementById('inp-contact-email');
+        if (inpContactEmail) contactEmail = inpContactEmail.value.trim();
+
         const inpBusinessHours = document.getElementById('inp-business-hours');
         if (inpBusinessHours) businessHours = inpBusinessHours.value.trim();
+
+        const inpOperatingDays = document.getElementById('inp-operating-days');
+        if (inpOperatingDays) operatingDays = inpOperatingDays.value.trim();
 
         const inpFacebookLink = document.getElementById('inp-facebook-link');
         if (inpFacebookLink) facebookLink = inpFacebookLink.value.trim();
@@ -550,6 +555,136 @@
         }
       }
 
+      function populateLocationRuleFormForEditing(rule, ruleId) {
+        const lblTitle = document.getElementById('txt-location-rule-form-title');
+        const icon = document.getElementById('icon-location-rule-form');
+        const badge = document.getElementById('badge-location-rule-editing');
+        const btnAdd = document.getElementById('btn-add-location-rule');
+        const btnCancel = document.getElementById('btn-cancel-edit-location-form');
+        const inpName = document.getElementById('inp-new-rule-name');
+        const selType = document.getElementById('sel-new-rule-type');
+        const inpMin = document.getElementById('inp-new-rule-min');
+        const chkFar = document.getElementById('chk-new-rule-far');
+
+        if (lblTitle) lblTitle.textContent = `Edit Location Minimum Rule: "${rule.locationName}"`;
+        if (icon) icon.textContent = '✏️';
+        if (badge) badge.classList.remove('hidden');
+        if (btnAdd) {
+          btnAdd.textContent = 'Save Changes';
+          btnAdd.classList.remove('bg-emerald-700', 'hover:bg-emerald-800');
+          btnAdd.classList.add('bg-blue-700', 'hover:bg-blue-800');
+        }
+        if (btnCancel) btnCancel.classList.remove('hidden');
+
+        if (inpName) {
+          inpName.value = rule.locationName || '';
+          inpName.focus();
+        }
+        if (selType) selType.value = rule.locationType || 'city';
+        if (inpMin) {
+          const isFar = Boolean(rule.isFarLocation);
+          const minVal = Number.isInteger(Number(rule.minimumSacks)) 
+            ? Number(rule.minimumSacks) 
+            : (isFar ? (deliveryMinimumSettings.farLocationMinimumSacks || 350) : (deliveryMinimumSettings.defaultMinimumSacks || 20));
+          inpMin.value = minVal;
+        }
+        if (chkFar) chkFar.checked = Boolean(rule.isFarLocation);
+
+        const formCard = document.getElementById('card-location-rule-form');
+        if (formCard) {
+          formCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+      }
+
+      function resetLocationRuleForm() {
+        editingLocationRuleId = null;
+        const lblTitle = document.getElementById('txt-location-rule-form-title');
+        const icon = document.getElementById('icon-location-rule-form');
+        const badge = document.getElementById('badge-location-rule-editing');
+        const btnAdd = document.getElementById('btn-add-location-rule');
+        const btnCancel = document.getElementById('btn-cancel-edit-location-form');
+        const inpName = document.getElementById('inp-new-rule-name');
+        const selType = document.getElementById('sel-new-rule-type');
+        const inpMin = document.getElementById('inp-new-rule-min');
+        const chkFar = document.getElementById('chk-new-rule-far');
+
+        if (lblTitle) lblTitle.textContent = 'Add Location Minimum Rule';
+        if (icon) icon.textContent = '➕';
+        if (badge) badge.classList.add('hidden');
+        if (btnAdd) {
+          btnAdd.textContent = 'Add Rule';
+          btnAdd.classList.remove('bg-blue-700', 'hover:bg-blue-800');
+          btnAdd.classList.add('bg-emerald-700', 'hover:bg-emerald-800');
+        }
+        if (btnCancel) btnCancel.classList.add('hidden');
+
+        if (inpName) inpName.value = '';
+        if (selType) selType.value = 'city';
+        if (inpMin) inpMin.value = deliveryMinimumSettings.defaultMinimumSacks || 20;
+        if (chkFar) chkFar.checked = false;
+      }
+
+      async function saveLocationRuleChanges(ruleId, newName, newType, newMinSacks, newIsFar) {
+        if (!newName) {
+          showToast('Please enter a location name (e.g. city, municipality, or province).', 'error');
+          return false;
+        }
+        if (isNaN(newMinSacks) || newMinSacks < 0) {
+          showToast('Minimum sacks must be a valid non-negative number.', 'error');
+          return false;
+        }
+
+        const rules = deliveryMinimumSettings.locationRules || [];
+        let ruleIdx = rules.findIndex(r => r.id && r.id === ruleId);
+        if (ruleIdx === -1 && ruleId && ruleId.startsWith('loc-rule-')) {
+          const parsedIdx = parseInt(ruleId.replace('loc-rule-', ''), 10);
+          if (!isNaN(parsedIdx) && parsedIdx >= 0 && parsedIdx < rules.length) {
+            ruleIdx = parsedIdx;
+          }
+        }
+
+        if (ruleIdx === -1) {
+          showToast('Location rule not found.', 'error');
+          return false;
+        }
+
+        // Update the existing record without creating a duplicate, preserving its ID and other fields
+        const existingRule = rules[ruleIdx];
+        rules[ruleIdx] = {
+          ...existingRule,
+          id: existingRule.id || ruleId,
+          locationName: newName,
+          locationType: newType || 'city',
+          isFarLocation: Boolean(newIsFar),
+          minimumSacks: Math.round(newMinSacks)
+        };
+
+        try {
+          const currentSettings = getStoreSettings();
+          currentSettings.deliveryMinimumSettings = JSON.parse(JSON.stringify(deliveryMinimumSettings));
+
+          await saveFirestoreDoc('storeSettings', 'main', currentSettings);
+          localStorage.setItem('aurora-store-settings', JSON.stringify([currentSettings]));
+          localStorage.setItem('delivery-minimum-settings', JSON.stringify(deliveryMinimumSettings));
+
+          if (typeof window !== 'undefined') {
+            window.dispatchEvent(new CustomEvent('aurora-sync-event', { detail: { key: 'delivery-minimum-settings' } }));
+            window.dispatchEvent(new CustomEvent('aurora-sync-event', { detail: { key: 'aurora-store-settings' } }));
+          }
+
+          addActivityLog('System', `Updated Location Rule: "${newName}" (${newType}, ${Math.round(newMinSacks)} sacks${newIsFar ? ', Far Area' : ''})`);
+          showToast(`Location rule for "${newName}" updated and saved successfully.`, 'success');
+
+          resetLocationRuleForm();
+          renderLocationRulesRows();
+          return true;
+        } catch (err) {
+          console.error('[SETTINGS] Error saving location rule:', err);
+          showToast('Failed to save location rule: ' + (err.message || err), 'error');
+          return false;
+        }
+      }
+
       function renderLocationRulesRows() {
         const tbody = document.getElementById('tbody-location-rules');
         if (!tbody) return;
@@ -566,9 +701,82 @@
         }
 
         tbody.innerHTML = rules.map((r, idx) => {
+          const ruleId = r.id || `loc-rule-${idx}`;
+          if (!r.id) r.id = ruleId;
+          const isEditing = editingLocationRuleId === ruleId;
           const typeLabel = r.locationType === 'province' ? 'Province' : (r.locationType === 'city' ? 'City / Mun' : 'Custom');
           const isFar = Boolean(r.isFarLocation);
           const minVal = Number.isInteger(Number(r.minimumSacks)) ? Number(r.minimumSacks) : (isFar ? deliveryMinimumSettings.farLocationMinimumSacks : deliveryMinimumSettings.defaultMinimumSacks);
+
+          if (isEditing) {
+            return `
+              <tr class="bg-emerald-50/40 border-b border-emerald-100">
+                <td class="py-2.5 px-3">
+                  <input
+                    type="text"
+                    id="inp-edit-loc-name-${ruleId}"
+                    value="${r.locationName ? r.locationName.replace(/"/g, '&quot;') : ''}"
+                    placeholder="Location name"
+                    class="w-full bg-white border border-[#1E6C02] rounded-lg px-2.5 py-1 text-xs font-bold text-black outline-none"
+                  />
+                </td>
+                <td class="py-2.5 px-3">
+                  <select
+                    id="sel-edit-loc-type-${ruleId}"
+                    class="w-full bg-white border border-[#1E6C02] rounded-lg px-2 py-1 text-xs font-semibold text-black outline-none"
+                  >
+                    <option value="city" ${r.locationType === 'city' ? 'selected' : ''}>City / Mun</option>
+                    <option value="province" ${r.locationType === 'province' ? 'selected' : ''}>Province</option>
+                    <option value="custom" ${r.locationType === 'custom' ? 'selected' : ''}>Custom</option>
+                  </select>
+                </td>
+                <td class="py-2.5 px-3 text-center">
+                  <label class="inline-flex items-center gap-1.5 cursor-pointer text-xs font-semibold text-gray-800">
+                    <input
+                      type="checkbox"
+                      id="chk-edit-loc-far-${ruleId}"
+                      ${isFar ? 'checked' : ''}
+                      class="w-4 h-4 accent-[#1E6C02] rounded"
+                    />
+                    <span>Far Area</span>
+                  </label>
+                </td>
+                <td class="py-2.5 px-3 text-center">
+                  <div class="inline-flex items-center gap-1 justify-center">
+                    <input
+                      type="number"
+                      id="inp-edit-loc-min-${ruleId}"
+                      min="0"
+                      step="1"
+                      value="${minVal}"
+                      class="w-16 bg-white border border-[#1E6C02] rounded-lg px-2 py-1 text-xs font-bold text-black text-center outline-none"
+                    />
+                    <span class="text-xs text-gray-600 font-semibold">sacks</span>
+                  </div>
+                </td>
+                <td class="py-2.5 px-3 text-right">
+                  <div class="inline-flex items-center gap-1.5 justify-end">
+                    <button
+                      type="button"
+                      data-rule-id="${ruleId}"
+                      class="btn-save-edit-location-rule px-2.5 py-1 text-xs font-bold text-emerald-800 bg-emerald-100 hover:bg-emerald-200 rounded-lg border border-emerald-300 transition-colors cursor-pointer"
+                      title="Save changes to Firebase"
+                    >
+                      ✓ Save
+                    </button>
+                    <button
+                      type="button"
+                      class="btn-cancel-edit-location-rule px-2 py-1 text-xs font-semibold text-gray-600 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer"
+                      title="Cancel editing"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            `;
+          }
+
           return `
             <tr class="hover:bg-gray-50 transition-colors">
               <td class="py-3 px-4 font-bold text-black text-sm">${r.locationName}</td>
@@ -587,26 +795,84 @@
                 ${minVal} sacks
               </td>
               <td class="py-3 px-3 text-right">
-                <button 
-                  type="button" 
-                  data-rule-idx="${idx}" 
-                  class="btn-delete-location-rule px-2.5 py-1 text-xs font-bold text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-colors cursor-pointer border border-transparent hover:border-red-200"
-                  title="Remove this rule"
-                >
-                  ✕ Remove
-                </button>
+                <div class="inline-flex items-center gap-1 justify-end">
+                  <button
+                    type="button"
+                    data-rule-id="${ruleId}"
+                    data-rule-idx="${idx}"
+                    class="btn-edit-location-rule px-2.5 py-1 text-xs font-bold text-blue-700 hover:text-blue-900 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer border border-transparent hover:border-blue-200"
+                    title="Edit this location rule"
+                  >
+                    ✏️ Edit
+                  </button>
+                  <button 
+                    type="button" 
+                    data-rule-idx="${idx}"
+                    data-rule-id="${ruleId}"
+                    class="btn-delete-location-rule px-2.5 py-1 text-xs font-bold text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-colors cursor-pointer border border-transparent hover:border-red-200"
+                    title="Remove this rule"
+                  >
+                    ✕ Remove
+                  </button>
+                </div>
               </td>
             </tr>
           `;
         }).join('');
 
+        // Bind Edit buttons
+        tbody.querySelectorAll('.btn-edit-location-rule').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            const ruleId = e.currentTarget.getAttribute('data-rule-id');
+            const ruleIdx = parseInt(e.currentTarget.getAttribute('data-rule-idx'), 10);
+            const targetRule = (deliveryMinimumSettings.locationRules || []).find(r => r.id === ruleId) 
+              || (deliveryMinimumSettings.locationRules || [])[ruleIdx];
+
+            editingLocationRuleId = ruleId;
+            renderLocationRulesRows();
+            if (targetRule) {
+              populateLocationRuleFormForEditing(targetRule, ruleId);
+            }
+          });
+        });
+
+        // Bind Save Edit buttons (inline row)
+        tbody.querySelectorAll('.btn-save-edit-location-rule').forEach(btn => {
+          btn.addEventListener('click', async (e) => {
+            const ruleId = e.currentTarget.getAttribute('data-rule-id');
+            const inpName = document.getElementById(`inp-edit-loc-name-${ruleId}`);
+            const selType = document.getElementById(`sel-edit-loc-type-${ruleId}`);
+            const chkFar = document.getElementById(`chk-edit-loc-far-${ruleId}`);
+            const inpMin = document.getElementById(`inp-edit-loc-min-${ruleId}`);
+
+            const newName = inpName ? inpName.value.trim() : '';
+            const newType = selType ? selType.value : 'city';
+            const newIsFar = chkFar ? chkFar.checked : false;
+            const newMinSacks = inpMin ? parseInt(inpMin.value, 10) : NaN;
+
+            await saveLocationRuleChanges(ruleId, newName, newType, newMinSacks, newIsFar);
+          });
+        });
+
+        // Bind Cancel Edit buttons (inline row)
+        tbody.querySelectorAll('.btn-cancel-edit-location-rule').forEach(btn => {
+          btn.addEventListener('click', () => {
+            resetLocationRuleForm();
+            renderLocationRulesRows();
+          });
+        });
+
         // Bind delete buttons
         tbody.querySelectorAll('.btn-delete-location-rule').forEach(btn => {
           btn.addEventListener('click', (e) => {
             const ruleIdx = parseInt(e.currentTarget.getAttribute('data-rule-idx'), 10);
+            const ruleId = e.currentTarget.getAttribute('data-rule-id');
             if (!isNaN(ruleIdx) && ruleIdx >= 0 && ruleIdx < (deliveryMinimumSettings.locationRules || []).length) {
               const removedName = deliveryMinimumSettings.locationRules[ruleIdx].locationName;
               deliveryMinimumSettings.locationRules.splice(ruleIdx, 1);
+              if (editingLocationRuleId === ruleId) {
+                resetLocationRuleForm();
+              }
               renderLocationRulesRows();
               showToast(`Removed rule for "${removedName}". Click "Save Delivery Minimum Settings" to apply.`, 'info');
             }
@@ -775,7 +1041,10 @@
       }
 
       function renderSettingsPanel() {
-        targetSpace.innerHTML = `
+        const currentTargetSpace = document.getElementById('admin-main-content');
+        if (!currentTargetSpace) return;
+
+        currentTargetSpace.innerHTML = `
           <div class="w-full space-y-10 pb-20">
             
             <!-- Storefront Customization Section -->
@@ -798,7 +1067,7 @@
                     <label class="setting-form-label text-[15.5px] font-medium text-black tracking-normal block mb-1">Store Logo Image</label>
                     <div class="flex items-center gap-5 mt-2">
                       <div class="w-24 h-24 rounded-full overflow-hidden flex items-center justify-center border-2 border-gray-200 shadow-sm shrink-0 bg-gray-50">
-                        <img id="img-logo-current" src="${logoBase64}" alt="Logo" class="w-full h-full object-cover" />
+                        <img id="img-logo-current" src="${escapeAttr(logoBase64)}" alt="Logo" class="w-full h-full object-cover" />
                       </div>
                       <div class="space-y-2.5">
                         <input type="file" id="inp-store-logo-file" class="hidden" accept="image/png, image/jpeg, image/webp" />
@@ -815,7 +1084,7 @@
                     <label class="setting-form-label text-[15.5px] font-medium text-black tracking-normal block mb-1">Homepage Hero Banner</label>
                     <div class="flex items-center gap-5 mt-2">
                       <div class="w-32 h-20 rounded-xl overflow-hidden flex items-center justify-center border-2 border-gray-200 shadow-sm shrink-0 bg-gray-50">
-                        <img id="img-banner-current" src="${bannerBase64}" alt="Banner" class="w-full h-full object-cover" />
+                        <img id="img-banner-current" src="${escapeAttr(bannerBase64)}" alt="Banner" class="w-full h-full object-cover" />
                       </div>
                       <div class="space-y-2.5">
                         <input type="file" id="inp-store-banner-file" class="hidden" accept="image/png, image/jpeg, image/webp" />
@@ -831,13 +1100,13 @@
                 <!-- Store Name -->
                 <div class="space-y-3">
                   <label class="setting-form-label text-[15.5px] font-medium text-black tracking-normal block">Store Brand Name</label>
-                  <input type="text" id="inp-store-name" value="${storeName}" placeholder="e.g. Aurora Rice Store" class="setting-input w-full bg-gray-50 border-2 border-gray-200 text-[15.5px] font-normal text-black px-5 py-3.5 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-[#1E6C02]/20 focus:border-[#1E6C02] placeholder-gray-500 transition-all duration-200" />
+                  <input type="text" id="inp-store-name" value="${escapeAttr(storeName)}" placeholder="e.g. Aurora Rice Store" class="setting-input w-full bg-gray-50 border-2 border-gray-200 text-[15.5px] font-normal text-black px-5 py-3.5 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-[#1E6C02]/20 focus:border-[#1E6C02] placeholder-gray-500 transition-all duration-200" />
                 </div>
 
                 <!-- Store Description -->
                 <div class="space-y-3">
                   <label class="setting-form-label text-[15.5px] font-medium text-black tracking-normal block">Store Introduction / About Description</label>
-                  <textarea id="inp-store-desc" rows="4" placeholder="Describe your store and value propositions..." class="setting-input w-full bg-gray-50 border-2 border-gray-200 text-[15.5px] font-normal text-black p-4 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-[#1E6C02]/20 focus:border-[#1E6C02] placeholder-gray-500 transition-all duration-200">${description}</textarea>
+                  <textarea id="inp-store-desc" rows="4" placeholder="Describe your store and value propositions..." class="setting-input w-full bg-gray-50 border-2 border-gray-200 text-[15.5px] font-normal text-black p-4 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-[#1E6C02]/20 focus:border-[#1E6C02] placeholder-gray-500 transition-all duration-200">${escapeHtml(description)}</textarea>
                 </div>
               </div>
 
@@ -859,24 +1128,36 @@
               <div class="space-y-6 text-black">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div class="space-y-3">
-                    <label class="setting-form-label text-[15.5px] font-medium text-black tracking-normal block">Official Mobile Contact Point</label>
-                    <input type="text" id="inp-contact-phone" value="${contactNumber}" class="setting-input w-full bg-gray-50 border-2 border-gray-200 text-[15.5px] font-normal text-black px-5 py-3.5 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-[#1E6C02]/20 focus:border-[#1E6C02] placeholder-gray-500 transition-all duration-200" />
+                    <label for="inp-contact-phone" class="setting-form-label text-[15.5px] font-medium text-black tracking-normal block">Phone Number</label>
+                    <input type="text" id="inp-contact-phone" value="${escapeAttr(contactNumber)}" placeholder="e.g. +63 912 345 6789" class="setting-input w-full bg-gray-50 border-2 border-gray-200 text-[15.5px] font-normal text-black px-5 py-3.5 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-[#1E6C02]/20 focus:border-[#1E6C02] placeholder-gray-500 transition-all duration-200" />
                   </div>
 
                   <div class="space-y-3">
-                    <label class="setting-form-label text-[15.5px] font-medium text-black tracking-normal block">Business Hours <span class="setting-helper-badge text-black font-normal">(Optional)</span></label>
-                    <input type="text" id="inp-business-hours" value="${businessHours}" placeholder="e.g. 8:00 AM - 5:00 PM (Mon - Sat)" class="setting-input w-full bg-gray-50 border-2 border-gray-200 text-[15.5px] font-normal text-black px-5 py-3.5 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-[#1E6C02]/20 focus:border-[#1E6C02] placeholder-gray-500 transition-all duration-200" />
+                    <label for="inp-contact-email" class="setting-form-label text-[15.5px] font-medium text-black tracking-normal block">Email Address</label>
+                    <input type="email" id="inp-contact-email" value="${escapeAttr(contactEmail)}" placeholder="e.g. info@auroralocalrice.com" class="setting-input w-full bg-gray-50 border-2 border-gray-200 text-[15.5px] font-normal text-black px-5 py-3.5 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-[#1E6C02]/20 focus:border-[#1E6C02] placeholder-gray-500 transition-all duration-200" />
+                  </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div class="space-y-3">
+                    <label for="inp-business-hours" class="setting-form-label text-[15.5px] font-medium text-black tracking-normal block">Business Hours <span class="setting-helper-badge text-black font-normal">(Optional)</span></label>
+                    <input type="text" id="inp-business-hours" value="${escapeAttr(businessHours)}" placeholder="e.g. 8:00 AM - 5:00 PM" class="setting-input w-full bg-gray-50 border-2 border-gray-200 text-[15.5px] font-normal text-black px-5 py-3.5 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-[#1E6C02]/20 focus:border-[#1E6C02] placeholder-gray-500 transition-all duration-200" />
+                  </div>
+
+                  <div class="space-y-3">
+                    <label for="inp-operating-days" class="setting-form-label text-[15.5px] font-medium text-black tracking-normal block">Operating Days <span class="setting-helper-badge text-black font-normal">(Optional)</span></label>
+                    <input type="text" id="inp-operating-days" value="${escapeAttr(operatingDays)}" placeholder="e.g. Monday - Saturday" class="setting-input w-full bg-gray-50 border-2 border-gray-200 text-[15.5px] font-normal text-black px-5 py-3.5 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-[#1E6C02]/20 focus:border-[#1E6C02] placeholder-gray-500 transition-all duration-200" />
                   </div>
                 </div>
 
                 <div class="space-y-3">
-                  <label class="setting-form-label text-[15.5px] font-medium text-black tracking-normal block">Facebook Page Link <span class="setting-helper-badge text-black font-normal">(Optional)</span></label>
-                  <input type="url" id="inp-facebook-link" value="${facebookLink}" placeholder="e.g. https://facebook.com/auroralocalrice" class="setting-input w-full bg-gray-50 border-2 border-gray-200 text-[15.5px] font-normal text-black px-5 py-3.5 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-[#1E6C02]/20 focus:border-[#1E6C02] placeholder-gray-500 transition-all duration-200" />
+                  <label for="inp-facebook-link" class="setting-form-label text-[15.5px] font-medium text-black tracking-normal block">Facebook Page Link <span class="setting-helper-badge text-black font-normal">(Optional)</span></label>
+                  <input type="url" id="inp-facebook-link" value="${escapeAttr(facebookLink)}" placeholder="e.g. https://facebook.com/auroralocalrice" class="setting-input w-full bg-gray-50 border-2 border-gray-200 text-[15.5px] font-normal text-black px-5 py-3.5 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-[#1E6C02]/20 focus:border-[#1E6C02] placeholder-gray-500 transition-all duration-200" />
                 </div>
 
                 <div class="space-y-3">
-                  <label class="setting-form-label text-[15.5px] font-medium text-black tracking-normal block">Physical Store / Supplier Address</label>
-                  <textarea id="inp-store-address" rows="3" class="setting-input w-full bg-gray-50 border-2 border-gray-200 text-[15.5px] font-normal text-black p-4 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-[#1E6C02]/20 focus:border-[#1E6C02] placeholder-gray-500 transition-all duration-200">${storeAddress}</textarea>
+                  <label for="inp-store-address" class="setting-form-label text-[15.5px] font-medium text-black tracking-normal block">Business Address</label>
+                  <textarea id="inp-store-address" rows="3" placeholder="Enter business store or supplier address..." class="setting-input w-full bg-gray-50 border-2 border-gray-200 text-[15.5px] font-normal text-black p-4 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-[#1E6C02]/20 focus:border-[#1E6C02] placeholder-gray-500 transition-all duration-200">${escapeHtml(storeAddress)}</textarea>
                 </div>
               </div>
 
@@ -899,11 +1180,11 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div class="space-y-3">
                     <label class="setting-form-label text-[15.5px] font-medium text-black tracking-normal block">GCash Beneficiary Match Name</label>
-                    <input type="text" id="inp-gcash-name" value="${gcashName}" class="setting-input w-full bg-gray-50 border-2 border-gray-200 text-[15.5px] font-normal text-black px-5 py-3.5 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-[#1E6C02]/20 focus:border-[#1E6C02] placeholder-gray-500 transition-all duration-200" />
+                    <input type="text" id="inp-gcash-name" value="${escapeAttr(gcashName)}" class="setting-input w-full bg-gray-50 border-2 border-gray-200 text-[15.5px] font-normal text-black px-5 py-3.5 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-[#1E6C02]/20 focus:border-[#1E6C02] placeholder-gray-500 transition-all duration-200" />
                   </div>
                   <div class="space-y-3">
                     <label class="setting-form-label text-[15.5px] font-medium text-black tracking-normal block">Registered GCash Number</label>
-                    <input type="text" id="inp-gcash-phone" value="${gcashNumber}" class="setting-input w-full bg-gray-50 border-2 border-gray-200 text-[15.5px] font-normal text-black px-5 py-3.5 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-[#1E6C02]/20 focus:border-[#1E6C02] placeholder-gray-500 transition-all duration-200" />
+                    <input type="text" id="inp-gcash-phone" value="${escapeAttr(gcashNumber)}" class="setting-input w-full bg-gray-50 border-2 border-gray-200 text-[15.5px] font-normal text-black px-5 py-3.5 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-[#1E6C02]/20 focus:border-[#1E6C02] placeholder-gray-500 transition-all duration-200" />
                   </div>
                 </div>
 
@@ -1025,11 +1306,16 @@
                   </table>
                 </div>
 
-                <!-- Add New Location Rule Sub-Card -->
-                <div class="p-5 rounded-2xl bg-gray-50/80 border border-gray-200 space-y-4">
-                  <h5 class="text-sm font-bold text-black flex items-center gap-1.5">
-                    <span>➕</span> Add Location Minimum Rule
-                  </h5>
+                <!-- Add / Edit Location Rule Sub-Card -->
+                <div id="card-location-rule-form" class="p-5 rounded-2xl bg-gray-50/80 border border-gray-200 space-y-4">
+                  <div class="flex items-center justify-between">
+                    <h5 id="lbl-location-rule-form-title" class="text-sm font-bold text-black flex items-center gap-1.5">
+                      <span id="icon-location-rule-form">➕</span> <span id="txt-location-rule-form-title">Add Location Minimum Rule</span>
+                    </h5>
+                    <span id="badge-location-rule-editing" class="hidden text-xs font-semibold px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-800 border border-blue-200">
+                      Editing Mode
+                    </span>
+                  </div>
                   <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 text-black text-sm">
                     <div class="space-y-1">
                       <label class="text-xs font-bold text-gray-700">Location Name</label>
@@ -1067,13 +1353,22 @@
                         <input type="checkbox" id="chk-new-rule-far" class="w-4 h-4 accent-[#1E6C02] rounded" />
                         <span>Far Delivery Area</span>
                       </label>
-                      <button
-                        type="button"
-                        id="btn-add-location-rule"
-                        class="px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-xs font-bold cursor-pointer transition-all shadow-xs"
-                      >
-                        Add Rule
-                      </button>
+                      <div class="flex items-center gap-2">
+                        <button
+                          type="button"
+                          id="btn-add-location-rule"
+                          class="flex-1 px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-xs font-bold cursor-pointer transition-all shadow-xs"
+                        >
+                          Add Rule
+                        </button>
+                        <button
+                          type="button"
+                          id="btn-cancel-edit-location-form"
+                          class="hidden px-3 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-xl text-xs font-bold cursor-pointer transition-all"
+                        >
+                          Cancel
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -1249,106 +1544,144 @@
           });
         }
 
+        // Track edits to avoid overwriting active user typing on background Firestore sync
+        const activePanel = document.getElementById('admin-main-content');
+        if (activePanel) {
+          activePanel.querySelectorAll('input, textarea, select').forEach(el => {
+            el.addEventListener('input', () => { hasUnsavedEdits = true; });
+          });
+        }
+
         // Logo upload handlers
-        document.getElementById('btn-upload-logo').addEventListener('click', () => {
-          document.getElementById('inp-store-logo-file').click();
-        });
+        const btnUploadLogo = document.getElementById('btn-upload-logo');
+        const inpLogoFile = document.getElementById('inp-store-logo-file');
+        if (btnUploadLogo && inpLogoFile) {
+          btnUploadLogo.addEventListener('click', () => {
+            inpLogoFile.click();
+          });
 
-        document.getElementById('inp-store-logo-file').addEventListener('change', (e) => {
-          const file = e.target.files[0];
-          if (!file) return;
+          inpLogoFile.addEventListener('change', (e) => {
+            const file = e.target.files && e.target.files[0];
+            e.target.value = '';
+            if (!file) return;
 
-          const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
-          if (!allowedTypes.includes(file.type)) {
-            showToast('Invalid file format! Please upload JPG, PNG, or WEBP.', 'error');
-            return;
-          }
+            const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+            if (!allowedTypes.includes(file.type)) {
+              showToast('Invalid file format! Please upload JPG, PNG, or WEBP.', 'error');
+              return;
+            }
 
-          if (file.size > 5 * 1024 * 1024) {
-            showToast('Logo file size exceeds the 5MB limit!', 'error');
-            return;
-          }
+            if (file.size > 5 * 1024 * 1024) {
+              showToast('Logo file size exceeds the 5MB limit!', 'error');
+              return;
+            }
 
-          selectedLogoFile = file;
-          try {
-            logoBase64 = URL.createObjectURL(file);
-          } catch (err) {
-            const reader = new FileReader();
-            reader.onload = (evt) => { logoBase64 = evt.target.result; };
-            reader.readAsDataURL(file);
-          }
-          const logoImg = document.getElementById('img-logo-current');
-          if (logoImg) logoImg.src = logoBase64;
-          showToast('Store logo selected. Click "Save Changes" to apply.', 'success');
-        });
+            selectedLogoFile = file;
+            hasUnsavedEdits = true;
+            const logoImg = document.getElementById('img-logo-current');
+            try {
+              logoBase64 = URL.createObjectURL(file);
+              if (logoImg) logoImg.src = logoBase64;
+            } catch (err) {
+              const reader = new FileReader();
+              reader.onload = (evt) => {
+                logoBase64 = evt.target.result;
+                if (logoImg) logoImg.src = logoBase64;
+              };
+              reader.readAsDataURL(file);
+            }
+            showToast('Store logo selected. Click "Save Changes" to apply.', 'success');
+          });
+        }
 
         // Banner upload handlers
-        document.getElementById('btn-upload-banner').addEventListener('click', () => {
-          document.getElementById('inp-store-banner-file').click();
-        });
+        const btnUploadBanner = document.getElementById('btn-upload-banner');
+        const inpBannerFile = document.getElementById('inp-store-banner-file');
+        if (btnUploadBanner && inpBannerFile) {
+          btnUploadBanner.addEventListener('click', () => {
+            inpBannerFile.click();
+          });
 
-        document.getElementById('inp-store-banner-file').addEventListener('change', (e) => {
-          const file = e.target.files[0];
-          if (!file) return;
+          inpBannerFile.addEventListener('change', (e) => {
+            const file = e.target.files && e.target.files[0];
+            e.target.value = '';
+            if (!file) return;
 
-          const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
-          if (!allowedTypes.includes(file.type)) {
-            showToast('Invalid file format! Please upload JPG, PNG, or WEBP.', 'error');
-            return;
-          }
+            const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+            if (!allowedTypes.includes(file.type)) {
+              showToast('Invalid file format! Please upload JPG, PNG, or WEBP.', 'error');
+              return;
+            }
 
-          if (file.size > 10 * 1024 * 1024) {
-            showToast('Banner file size exceeds the 10MB limit!', 'error');
-            return;
-          }
+            if (file.size > 10 * 1024 * 1024) {
+              showToast('Banner file size exceeds the 10MB limit!', 'error');
+              return;
+            }
 
-          selectedBannerFile = file;
-          try {
-            bannerBase64 = URL.createObjectURL(file);
-          } catch (err) {
-            const reader = new FileReader();
-            reader.onload = (evt) => { bannerBase64 = evt.target.result; };
-            reader.readAsDataURL(file);
-          }
-          const bannerImg = document.getElementById('img-banner-current');
-          if (bannerImg) bannerImg.src = bannerBase64;
-          showToast('Hero banner selected. Click "Save Changes" to apply.', 'success');
-        });
+            selectedBannerFile = file;
+            hasUnsavedEdits = true;
+            const bannerImg = document.getElementById('img-banner-current');
+            try {
+              bannerBase64 = URL.createObjectURL(file);
+              if (bannerImg) bannerImg.src = bannerBase64;
+            } catch (err) {
+              const reader = new FileReader();
+              reader.onload = (evt) => {
+                bannerBase64 = evt.target.result;
+                if (bannerImg) bannerImg.src = bannerBase64;
+              };
+              reader.readAsDataURL(file);
+            }
+            showToast('Hero banner selected. Click "Save Changes" to apply.', 'success');
+          });
+        }
 
         // GCash QR upload handlers
-        document.getElementById('btn-upload-gcash').addEventListener('click', () => {
-          document.getElementById('inp-gcash-qr-file').click();
-        });
+        const btnUploadGcash = document.getElementById('btn-upload-gcash');
+        const inpGcashFile = document.getElementById('inp-gcash-qr-file');
+        if (btnUploadGcash && inpGcashFile) {
+          btnUploadGcash.addEventListener('click', () => {
+            inpGcashFile.click();
+          });
 
-        document.getElementById('inp-gcash-qr-file').addEventListener('change', (e) => {
-          const file = e.target.files[0];
-          if (!file) return;
+          inpGcashFile.addEventListener('change', (e) => {
+            const file = e.target.files && e.target.files[0];
+            e.target.value = '';
+            if (!file) return;
 
-          const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
-          if (!allowedTypes.includes(file.type)) {
-            showToast('Invalid file format! Please upload JPG, PNG, or WEBP.', 'error');
-            return;
-          }
+            const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+            if (!allowedTypes.includes(file.type)) {
+              showToast('Invalid file format! Please upload JPG, PNG, or WEBP.', 'error');
+              return;
+            }
 
-          if (file.size > 5 * 1024 * 1024) {
-            showToast('QR Code file size exceeds the 5MB limit!', 'error');
-            return;
-          }
+            if (file.size > 5 * 1024 * 1024) {
+              showToast('QR Code file size exceeds the 5MB limit!', 'error');
+              return;
+            }
 
-          selectedGcashQrFile = file;
-          try {
-            gcashQrBase64 = URL.createObjectURL(file);
-          } catch (err) {
-            const reader = new FileReader();
-            reader.onload = (evt) => { gcashQrBase64 = evt.target.result; };
-            reader.readAsDataURL(file);
-          }
-          const qrImg = document.getElementById('img-gcash-qr');
-          if (qrImg) qrImg.src = gcashQrBase64;
-          showToast('GCash QR selected. Click "Save Changes" to apply.', 'success');
-          saveCurrentInputStates();
-          renderSettingsPanel();
-        });
+            selectedGcashQrFile = file;
+            hasUnsavedEdits = true;
+            const qrImg = document.getElementById('img-gcash-qr');
+            try {
+              gcashQrBase64 = URL.createObjectURL(file);
+              if (qrImg) qrImg.src = gcashQrBase64;
+              showToast('GCash QR selected. Click "Save Changes" to apply.', 'success');
+              saveCurrentInputStates();
+              renderSettingsPanel();
+            } catch (err) {
+              const reader = new FileReader();
+              reader.onload = (evt) => {
+                gcashQrBase64 = evt.target.result;
+                if (qrImg) qrImg.src = gcashQrBase64;
+                showToast('GCash QR selected. Click "Save Changes" to apply.', 'success');
+                saveCurrentInputStates();
+                renderSettingsPanel();
+              };
+              reader.readAsDataURL(file);
+            }
+          });
+        }
 
         // Reset GCash QR Code (falls back to placeholder)
         const btnResetGcash = document.getElementById('btn-reset-gcash');
@@ -1356,7 +1689,9 @@
           btnResetGcash.addEventListener('click', () => {
             selectedGcashQrFile = null;
             gcashQrBase64 = '';
-            document.getElementById('img-gcash-qr').src = fallbackQrSvg;
+            const qrImg = document.getElementById('img-gcash-qr');
+            if (qrImg) qrImg.src = fallbackQrSvg;
+            hasUnsavedEdits = true;
             showToast('GCash QR cleared successfully!');
             saveCurrentInputStates();
             renderSettingsPanel();
@@ -1367,6 +1702,7 @@
         const btnSaveStorefront = document.getElementById('btn-save-storefront');
         if (btnSaveStorefront) {
           btnSaveStorefront.addEventListener('click', () => {
+            if (isSavingStorefront) return;
             const sName = document.getElementById('inp-store-name').value.trim();
             const sDesc = document.getElementById('inp-store-desc').value.trim();
 
@@ -1375,19 +1711,29 @@
               return;
             }
 
+            const hasNewImageSelected = Boolean(selectedLogoFile || selectedBannerFile);
             showConfirmationModal({
               title: 'Save Changes',
-              message: 'Are you sure you want to save these changes?<br><br>These updates will immediately be uploaded to Firebase Storage and applied to the storefront.',
+              message: hasNewImageSelected
+                ? 'Are you sure you want to save these changes?<br><br>These updates will immediately be uploaded to Firebase Storage and applied to the storefront.'
+                : 'Are you sure you want to save these changes?<br><br>These updates will immediately be saved and applied to the storefront.',
               cancelText: 'No, Cancel',
               confirmText: 'Yes, Save Changes',
               onConfirm: async () => {
+                if (isSavingStorefront) return;
+                isSavingStorefront = true;
                 const btnConfirm = document.getElementById('btn-confirm-modal');
                 if (btnConfirm) {
                   btnConfirm.disabled = true;
-                  btnConfirm.textContent = 'Uploading...';
+                  btnConfirm.textContent = hasNewImageSelected ? 'Uploading...' : 'Saving...';
                 }
+                btnSaveStorefront.disabled = true;
 
                 try {
+                  if ((selectedLogoFile || selectedBannerFile) && !storage) {
+                    throw new Error('Firebase Storage is not initialized.');
+                  }
+
                   // Upload Logo to Firebase Storage if newly selected
                   if (selectedLogoFile) {
                     const timestamp = Date.now();
@@ -1428,6 +1774,9 @@
                     selectedBannerFile = null;
                   }
 
+                  // Preserve other unsaved form inputs before saving/re-rendering panel
+                  saveCurrentInputStates();
+
                   // Save to localStorage
                   localStorage.setItem('settings-store-name', sName);
                   localStorage.setItem('settings-store-description', sDesc);
@@ -1437,15 +1786,21 @@
                   storeName = sName;
                   description = sDesc;
 
-                  // Update Firestore document storeSettings/main
+                  // Update Firestore document storeSettings/main while preserving existing fields
                   const currentSettings = getStoreSettings();
-                  currentSettings.storeName = sName;
-                  currentSettings.description = sDesc;
-                  currentSettings.logo = logoBase64;
-                  currentSettings.banner = bannerBase64;
+                  const updatedSettings = {
+                    ...currentSettings,
+                    id: 'main',
+                    storeName: sName,
+                    description: sDesc,
+                    logo: logoBase64,
+                    banner: bannerBase64,
+                    updatedAt: new Date().toISOString()
+                  };
 
-                  await saveFirestoreDoc('storeSettings', 'main', currentSettings);
-                  localStorage.setItem('aurora-store-settings', JSON.stringify([currentSettings]));
+                  await saveFirestoreDoc('storeSettings', 'main', updatedSettings);
+                  localStorage.setItem('aurora-store-settings', JSON.stringify([updatedSettings]));
+                  hasUnsavedEdits = false;
                   if (typeof window !== 'undefined') {
                     window.dispatchEvent(new CustomEvent('aurora-sync-event', { detail: { key: 'aurora-store-settings' } }));
                   }
@@ -1453,13 +1808,14 @@
                   addActivityLog('System', 'Updated Storefront branding and images');
                   showToast('Storefront updated and synced successfully.', 'success');
 
-                  // Re-render admin sidebar layout and panel
-                  renderAdminLayout('settings');
+                  // Re-render panel cleanly inside the live #admin-main-content container
                   renderSettingsPanel();
                 } catch (uploadErr) {
                   console.error('[SETTINGS] Error uploading store assets:', uploadErr);
                   showToast('Failed to upload store image to Firebase Storage: ' + (uploadErr.message || uploadErr), 'error');
                 } finally {
+                  isSavingStorefront = false;
+                  btnSaveStorefront.disabled = false;
                   if (btnConfirm) {
                     btnConfirm.disabled = false;
                     btnConfirm.textContent = 'Yes, Save Changes';
@@ -1474,14 +1830,26 @@
         const btnSaveContact = document.getElementById('btn-save-contact');
         if (btnSaveContact) {
           btnSaveContact.addEventListener('click', () => {
+            if (isSavingContact) return;
             const sPhone = document.getElementById('inp-contact-phone').value.trim();
+            const sEmail = document.getElementById('inp-contact-email').value.trim();
             const sHours = document.getElementById('inp-business-hours').value.trim();
+            const sDays = document.getElementById('inp-operating-days').value.trim();
             const sFb = document.getElementById('inp-facebook-link').value.trim();
             const sAddr = document.getElementById('inp-store-address').value.trim();
 
             if (!sPhone || !sAddr) {
-              showToast('Official Contact Point and Physical Store Address are required!', 'error');
+              showToast('Phone Number and Business Address are required!', 'error');
               return;
+            }
+
+            if (sEmail) {
+              const emailTokens = sEmail.split(',').map(item => item.trim()).filter(Boolean);
+              const allValidEmails = emailTokens.length > 0 && emailTokens.every(item => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(item));
+              if (!allValidEmails) {
+                showToast('Please enter a valid Email Address!', 'error');
+                return;
+              }
             }
 
             showConfirmationModal({
@@ -1489,21 +1857,69 @@
               message: 'Are you sure you want to save these changes?<br><br>These updates will immediately be applied to the storefront.',
               cancelText: 'No, Cancel',
               confirmText: 'Yes, Save Changes',
-              onConfirm: () => {
-                localStorage.setItem('settings-contact-number', sPhone);
-                localStorage.setItem('settings-business-hours', sHours);
-                localStorage.setItem('settings-facebook-link', sFb);
-                localStorage.setItem('settings-store-address', sAddr);
+              onConfirm: async () => {
+                if (isSavingContact) return;
+                isSavingContact = true;
+                const btnConfirm = document.getElementById('btn-confirm-modal');
+                if (btnConfirm) {
+                  btnConfirm.disabled = true;
+                  btnConfirm.textContent = 'Saving...';
+                }
+                btnSaveContact.disabled = true;
 
-                contactNumber = sPhone;
-                businessHours = sHours;
-                facebookLink = sFb;
-                storeAddress = sAddr;
+                try {
+                  saveCurrentInputStates();
 
-                addActivityLog('System', 'Updated storefront contact details and address');
-                showToast('Contact information updated successfully.', 'success');
+                  const currentSettings = getStoreSettings();
+                  const updatedSettings = {
+                    ...currentSettings,
+                    id: 'main',
+                    contactNumber: sPhone,
+                    contactEmail: sEmail,
+                    storeAddress: sAddr,
+                    businessHours: sHours,
+                    operatingDays: sDays,
+                    facebookLink: sFb,
+                    updatedAt: new Date().toISOString()
+                  };
 
-                renderSettingsPanel();
+                  await saveFirestoreDoc('storeSettings', 'main', updatedSettings);
+
+                  localStorage.setItem('settings-contact-number', sPhone);
+                  localStorage.setItem('settings-contact-email', sEmail);
+                  localStorage.setItem('settings-business-hours', sHours);
+                  localStorage.setItem('settings-operating-days', sDays);
+                  localStorage.setItem('settings-facebook-link', sFb);
+                  localStorage.setItem('settings-store-address', sAddr);
+                  localStorage.setItem('aurora-store-settings', JSON.stringify([updatedSettings]));
+
+                  contactNumber = sPhone;
+                  contactEmail = sEmail;
+                  businessHours = sHours;
+                  operatingDays = sDays;
+                  facebookLink = sFb;
+                  storeAddress = sAddr;
+                  hasUnsavedEdits = false;
+
+                  if (typeof window !== 'undefined') {
+                    window.dispatchEvent(new CustomEvent('aurora-sync-event', { detail: { key: 'aurora-store-settings' } }));
+                  }
+
+                  addActivityLog('System', 'Updated storefront contact details and address');
+                  showToast('Contact information saved and synced successfully.', 'success');
+
+                  renderSettingsPanel();
+                } catch (err) {
+                  console.error('[SETTINGS] Error saving contact information:', err);
+                  showToast('Failed to save contact information: ' + (err.message || err), 'error');
+                } finally {
+                  isSavingContact = false;
+                  btnSaveContact.disabled = false;
+                  if (btnConfirm) {
+                    btnConfirm.disabled = false;
+                    btnConfirm.textContent = 'Yes, Save Changes';
+                  }
+                }
               }
             });
           });
@@ -1513,6 +1929,7 @@
         const btnSaveGcash = document.getElementById('btn-save-gcash');
         if (btnSaveGcash) {
           btnSaveGcash.addEventListener('click', () => {
+            if (isSavingGcash) return;
             const gName = document.getElementById('inp-gcash-name').value.trim();
             const gPhone = document.getElementById('inp-gcash-phone').value.trim();
 
@@ -1527,13 +1944,20 @@
               cancelText: 'No, Cancel',
               confirmText: 'Yes, Save Changes',
               onConfirm: async () => {
+                if (isSavingGcash) return;
+                isSavingGcash = true;
                 const btnConfirm = document.getElementById('btn-confirm-modal');
                 if (btnConfirm) {
                   btnConfirm.disabled = true;
-                  btnConfirm.textContent = 'Uploading...';
+                  btnConfirm.textContent = selectedGcashQrFile ? 'Uploading...' : 'Saving...';
                 }
+                btnSaveGcash.disabled = true;
 
                 try {
+                  if (selectedGcashQrFile && !storage) {
+                    throw new Error('Firebase Storage is not initialized.');
+                  }
+
                   // Upload GCash QR Code to Firebase Storage if newly selected
                   if (selectedGcashQrFile) {
                     const timestamp = Date.now();
@@ -1554,6 +1978,8 @@
                     selectedGcashQrFile = null;
                   }
 
+                  saveCurrentInputStates();
+
                   localStorage.setItem('settings-gcash-name', gName);
                   localStorage.setItem('settings-gcash-number', gPhone);
                   localStorage.setItem('settings-gcash-qr', gcashQrBase64);
@@ -1562,12 +1988,18 @@
                   gcashNumber = gPhone;
 
                   const currentSettings = getStoreSettings();
-                  currentSettings.gcashName = gName;
-                  currentSettings.gcashNumber = gPhone;
-                  currentSettings.gcashQr = gcashQrBase64;
+                  const updatedSettings = {
+                    ...currentSettings,
+                    id: 'main',
+                    gcashName: gName,
+                    gcashNumber: gPhone,
+                    gcashQr: gcashQrBase64,
+                    updatedAt: new Date().toISOString()
+                  };
 
-                  await saveFirestoreDoc('storeSettings', 'main', currentSettings);
-                  localStorage.setItem('aurora-store-settings', JSON.stringify([currentSettings]));
+                  await saveFirestoreDoc('storeSettings', 'main', updatedSettings);
+                  localStorage.setItem('aurora-store-settings', JSON.stringify([updatedSettings]));
+                  hasUnsavedEdits = false;
                   if (typeof window !== 'undefined') {
                     window.dispatchEvent(new CustomEvent('aurora-sync-event', { detail: { key: 'settings-gcash' } }));
                     window.dispatchEvent(new CustomEvent('aurora-sync-event', { detail: { key: 'aurora-store-settings' } }));
@@ -1581,6 +2013,8 @@
                   console.error('[SETTINGS] Error uploading GCash QR code:', uploadErr);
                   showToast('Failed to upload GCash QR to Firebase Storage: ' + (uploadErr.message || uploadErr), 'error');
                 } finally {
+                  isSavingGcash = false;
+                  btnSaveGcash.disabled = false;
                   if (btnConfirm) {
                     btnConfirm.disabled = false;
                     btnConfirm.textContent = 'Yes, Save Changes';
@@ -1591,10 +2025,10 @@
           });
         }
 
-        // Action: Add Location Minimum Rule
+        // Action: Add / Update Location Minimum Rule
         const btnAddRule = document.getElementById('btn-add-location-rule');
         if (btnAddRule) {
-          btnAddRule.addEventListener('click', () => {
+          btnAddRule.addEventListener('click', async () => {
             const inpName = document.getElementById('inp-new-rule-name');
             const selType = document.getElementById('sel-new-rule-type');
             const inpMin = document.getElementById('inp-new-rule-min');
@@ -1616,6 +2050,12 @@
 
             if (!deliveryMinimumSettings.locationRules) {
               deliveryMinimumSettings.locationRules = [];
+            }
+
+            // If in edit mode, save changes to existing rule
+            if (editingLocationRuleId) {
+              await saveLocationRuleChanges(editingLocationRuleId, name, type, minSacks, isFar);
+              return;
             }
 
             const existingIdx = deliveryMinimumSettings.locationRules.findIndex(r => r.locationName && r.locationName.toLowerCase() === name.toLowerCase());
@@ -1643,6 +2083,14 @@
             if (inpMin) inpMin.value = deliveryMinimumSettings.defaultMinimumSacks || 20;
             if (chkFar) chkFar.checked = false;
 
+            renderLocationRulesRows();
+          });
+        }
+
+        const btnCancelEditLocationForm = document.getElementById('btn-cancel-edit-location-form');
+        if (btnCancelEditLocationForm) {
+          btnCancelEditLocationForm.addEventListener('click', () => {
+            resetLocationRuleForm();
             renderLocationRulesRows();
           });
         }
@@ -1855,6 +2303,29 @@
 
       // Initial loading render Settings Panel
       renderSettingsPanel();
+
+      // Re-hydrate from authoritative remote storeSettings sync when user hasn't started editing
+      window.addEventListener('aurora-sync-event', (e) => {
+        if (e && e.detail && e.detail.remote && e.detail.key === 'aurora-store-settings' && !hasUnsavedEdits) {
+          const fresh = getStoreSettings();
+          storeName = fresh.storeName;
+          description = fresh.description;
+          contactNumber = fresh.contactNumber;
+          contactEmail = fresh.contactEmail;
+          storeAddress = fresh.storeAddress;
+          facebookLink = fresh.facebookLink;
+          businessHours = fresh.businessHours;
+          operatingDays = fresh.operatingDays;
+          logoBase64 = fresh.logo;
+          bannerBase64 = fresh.banner;
+          gcashName = fresh.gcashName;
+          gcashNumber = fresh.gcashNumber;
+          gcashQrBase64 = fresh.gcashQr;
+          deliveryMinimumSettings = JSON.parse(JSON.stringify(fresh.deliveryMinimumSettings || DEFAULT_DELIVERY_MINIMUM_SETTINGS));
+          deliveryFeeSettings = JSON.parse(JSON.stringify(fresh.deliveryFeeSettings || DEFAULT_DELIVERY_FEE_SETTINGS));
+          renderSettingsPanel();
+        }
+      });
     });
   </script>
 </body>

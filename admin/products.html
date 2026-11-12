@@ -8,34 +8,14 @@
     (function() {
       try {
         var d = document.documentElement;
-        var isDark = localStorage.getItem('aurora-dark-mode') === 'true';
-        d.classList.toggle('dark', isDark);
-        d.style.colorScheme = isDark ? 'dark' : 'light';
+        d.classList.remove('dark');
+        d.style.colorScheme = 'light';
+        if (typeof localStorage !== 'undefined') { try { localStorage.removeItem('aurora-dark-mode'); } catch(_) {} }
       } catch (e) {}
     })();
   </script>
   <style id="riceflow-theme-init">
     html { background-color: #F5F5F5; color-scheme: light; }
-    html.dark { background-color: #1F2937 !important; color-scheme: dark; }
-    html.dark body,
-    html.dark #admin-layout-container,
-    html.dark #admin-main-content {
-      background-color: #1F2937;
-      color: #F9FAFB;
-    }
-    html.dark #auth-guard-loader {
-      background-color: #1F2937 !important;
-      color: #F9FAFB !important;
-    }
-    html.dark #admin-sidebar,
-    html.dark aside,
-    html.dark header,
-    html.dark .bg-white,
-    html.dark .bg-gray-50,
-    html.dark .bg-slate-50 {
-      background-color: #111827;
-      color: #F9FAFB;
-    }
   </style>
   <link rel="stylesheet" href="../src/styles/index.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -422,6 +402,47 @@
     }
   </style>
   <style id="auth-guard-style">body { visibility: hidden !important; }</style>
+
+  <style id="riceflow-admin-responsive-repair">
+
+/* Targeted responsive repair: Admin Products + Add New Product */
+#admin-main-content, #admin-main-content * { min-width: 0; }
+#admin-main-content h1, #admin-main-content h2, #admin-main-content h3,
+#admin-main-content h4, #admin-main-content p, #admin-main-content label,
+#admin-main-content button, #admin-main-content th, #admin-main-content td {
+  overflow-wrap: normal !important; word-break: normal !important; hyphens: manual !important;
+}
+#admin-layout-container > #admin-right-workspace > header { gap: 12px; }
+#btn-open-add-dialog { white-space: nowrap; max-width: 100%; }
+#add-product-dialog { padding: 12px !important; align-items: center !important; }
+#add-product-dialog > div { width: min(100%, 672px) !important; max-width: calc(100vw - 24px) !important; max-height: calc(100dvh - 24px) !important; min-height: 0 !important; }
+#add-product-dialog > div > div:first-child { padding: 18px 22px !important; gap: 12px; }
+#add-product-form { min-height: 0 !important; overflow-y: auto !important; overscroll-behavior: contain; padding: 20px 22px !important; }
+#add-product-form > .bg-white { padding: 18px !important; }
+#add-product-form input, #add-product-form textarea { width: 100%; min-width: 0; }
+#add-product-form #add-image-upload-zone { padding: 22px 14px !important; text-align: center; }
+#add-product-form > div:last-child { display: flex; flex-wrap: wrap; gap: 10px; }
+#add-product-form > div:last-child button { flex: 1 1 140px; min-height: 44px; }
+@media (max-width: 1024px) {
+  #admin-layout-container > #admin-right-workspace > header { min-height: 68px; height: auto; padding: 12px 16px; }
+  #admin-layout-container > #admin-right-workspace > header h2 { font-size: 21px !important; line-height: 1.25 !important; }
+  #admin-main-content { padding: 18px 16px !important; }
+}
+@media (max-width: 640px) {
+  #admin-main-content { padding: 14px 12px !important; }
+  #admin-main-content .bg-white.rounded-3xl.border { padding: 14px !important; }
+  #btn-open-add-dialog { width: 100%; justify-content: center; }
+  #add-product-dialog { padding: 8px !important; align-items: stretch !important; }
+  #add-product-dialog > div { width: 100% !important; max-width: 100% !important; max-height: calc(100dvh - 16px) !important; border-radius: 18px !important; }
+  #add-product-dialog > div > div:first-child { padding: 14px 16px !important; }
+  #add-product-form { padding: 14px 16px !important; gap: 16px !important; }
+  #add-product-form > .bg-white { padding: 14px !important; gap: 14px !important; }
+  #add-product-form .grid { grid-template-columns: minmax(0, 1fr) !important; }
+  #add-product-form > div:last-child { padding-top: 14px !important; }
+  #add-product-form > div:last-child button { flex: 1 1 100%; width: 100%; }
+}
+
+  </style>
 </head>
 <body class="bg-[#F5F5F5] min-h-screen">
   <div id="auth-guard-loader" class="fixed inset-0 bg-[#F5F5F5] z-[99999] flex flex-col items-center justify-center font-sans">
@@ -432,205 +453,211 @@
   <div id="admin-layout-container"></div>
 
   <!-- ADD PRODUCT DIALOG MODAL -->
-  <div id="add-product-dialog" class="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden">
-    <div class="bg-white rounded-3xl max-w-2xl w-full shadow-2xl border flex flex-col max-h-[90vh] animate-in fade-in zoom-in duration-200">
-      <!-- Popup Header -->
-      <div class="px-8 py-6 border-b border-gray-150 flex justify-between items-start shrink-0">
-        <div class="text-left">
-          <h3 class="text-xl font-semibold text-gray-900 dark:text-white tracking-tight">Add New Product</h3>
-          <p class="text-sm text-gray-600 dark:text-gray-300 font-normal mt-1">Please complete the following form to add data.</p>
+  <div id="add-product-dialog" class="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center p-3 sm:p-4 md:p-6 hidden">
+    <div class="bg-white dark:bg-slate-900 rounded-2xl sm:rounded-3xl max-w-2xl w-full shadow-2xl border border-gray-200 dark:border-slate-800 flex flex-col max-h-[94vh] sm:max-h-[90vh] overflow-hidden animate-in fade-in zoom-in duration-200">
+      <!-- Popup Header (Sticky/Pinned) -->
+      <div class="px-4 sm:px-6 md:px-8 py-4 sm:py-5 border-b border-gray-150 dark:border-slate-800 flex justify-between items-start shrink-0 bg-white dark:bg-slate-900">
+        <div class="text-left pr-2">
+          <h3 class="text-lg sm:text-xl font-bold text-gray-900 dark:text-white tracking-tight">Add New Product</h3>
+          <p class="text-xs sm:text-sm text-gray-600 dark:text-gray-300 font-normal mt-0.5 sm:mt-1">Please complete the following form to add data.</p>
         </div>
-        <button type="button" id="close-add-modal" class="text-gray-400 hover:text-black cursor-pointer p-1">
+        <button type="button" id="close-add-modal" class="text-gray-400 hover:text-black dark:hover:text-white cursor-pointer p-1.5 rounded-lg shrink-0" aria-label="Close dialog">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-5 h-5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
         </button>
       </div>
 
-      <form id="add-product-form" class="flex-1 overflow-y-auto p-8 space-y-6">
-        <!-- Section 1 – Basic Information -->
-        <div class="bg-white rounded-2xl p-6 border border-gray-200 shadow-xs space-y-5 text-left">
-          <h4 class="text-[13px] font-semibold text-gray-900 dark:text-white uppercase tracking-wider">Basic Information</h4>
-          
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
-            <div class="space-y-1.5">
-              <label class="text-sm font-medium text-gray-900 dark:text-gray-100 flex items-center gap-1">Product Name <span class="text-rose-500 font-bold">*</span></label>
-              <input type="text" id="add-inp-name" placeholder="e.g., Dinorado Rice" class="w-full bg-gray-50/50 border border-gray-250 text-[15px] font-normal text-gray-900 dark:text-white px-4 py-2.5 rounded-xl outline-none focus:border-[#1E6C02] focus:bg-white transition-all shadow-2xs" />
-              <span id="err-add-name" class="err-msg text-xs font-medium text-rose-500 hidden mt-1 block">Please enter the product name.</span>
+      <!-- Form with dedicated scrollable body & pinned action footer -->
+      <form id="add-product-form" class="flex-1 flex flex-col min-h-0 overflow-hidden">
+        <div class="flex-1 overflow-y-auto p-4 sm:p-6 md:p-8 space-y-4 sm:space-y-6">
+          <!-- Section 1 – Basic Information -->
+          <div class="bg-white dark:bg-slate-850 rounded-2xl p-4 sm:p-5 md:p-6 border border-gray-200 dark:border-slate-800 shadow-2xs space-y-4 sm:space-y-5 text-left">
+            <h4 class="text-xs sm:text-[13px] font-bold text-gray-900 dark:text-white uppercase tracking-wider">Basic Information</h4>
+            
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-5">
+              <div class="space-y-1.5">
+                <label class="text-xs sm:text-sm font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-1">Product Name <span class="text-rose-500 font-bold">*</span></label>
+                <input type="text" id="add-inp-name" placeholder="e.g., Dinorado Rice" class="w-full bg-gray-50/50 dark:bg-slate-800 border border-gray-250 dark:border-slate-700 text-sm sm:text-[15px] font-normal text-gray-900 dark:text-white px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl outline-none focus:border-[#1E6C02] dark:focus:border-emerald-500 focus:bg-white dark:focus:bg-slate-900 transition-all shadow-2xs" />
+                <span id="err-add-name" class="err-msg text-xs font-medium text-rose-500 hidden mt-1 block">Please enter the product name.</span>
+              </div>
+              
+              <div class="space-y-1.5">
+                <label class="text-xs sm:text-sm font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-1">Product Code <span class="text-rose-500 font-bold">*</span></label>
+                <input type="text" id="add-inp-sku" placeholder="e.g., RICE-001" class="w-full bg-gray-50/50 dark:bg-slate-800 border border-gray-250 dark:border-slate-700 text-sm sm:text-[15px] font-normal text-gray-900 dark:text-white px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl outline-none focus:border-[#1E6C02] dark:focus:border-emerald-500 focus:bg-white dark:focus:bg-slate-900 transition-all shadow-2xs" />
+                <span id="err-add-sku" class="err-msg text-xs font-medium text-rose-500 hidden mt-1 block">Please enter the product code.</span>
+              </div>
             </div>
             
             <div class="space-y-1.5">
-              <label class="text-sm font-medium text-gray-900 dark:text-gray-100 flex items-center gap-1">Product Code <span class="text-rose-500 font-bold">*</span></label>
-              <input type="text" id="add-inp-sku" placeholder="e.g., RICE-001" class="w-full bg-gray-50/50 border border-gray-250 text-[15px] font-normal text-gray-900 dark:text-white px-4 py-2.5 rounded-xl outline-none focus:border-[#1E6C02] focus:bg-white transition-all shadow-2xs" />
-              <span id="err-add-sku" class="err-msg text-xs font-medium text-rose-500 hidden mt-1 block">Please enter the product code.</span>
+              <label class="text-xs sm:text-sm font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-1">Rice Variety <span class="text-rose-500 font-bold">*</span></label>
+              <input type="text" id="add-inp-variety" placeholder="e.g., Premium, Local, Specialty" class="w-full bg-gray-50/50 dark:bg-slate-800 border border-gray-250 dark:border-slate-700 text-sm sm:text-[15px] font-normal text-gray-900 dark:text-white px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl outline-none focus:border-[#1E6C02] dark:focus:border-emerald-500 focus:bg-white dark:focus:bg-slate-900 transition-all shadow-2xs" />
+              <span id="err-add-variety" class="err-msg text-xs font-medium text-rose-500 hidden mt-1 block">Please specify the rice variety.</span>
             </div>
           </div>
-          
-          <div class="space-y-1.5">
-            <label class="text-sm font-medium text-gray-900 dark:text-gray-100 flex items-center gap-1">Rice Variety <span class="text-rose-500 font-bold">*</span></label>
-            <input type="text" id="add-inp-variety" placeholder="e.g., Premium, Local, Specialty" class="w-full bg-gray-50/50 border border-gray-250 text-[15px] font-normal text-gray-900 dark:text-white px-4 py-2.5 rounded-xl outline-none focus:border-[#1E6C02] focus:bg-white transition-all shadow-2xs" />
-            <span id="err-add-variety" class="err-msg text-xs font-medium text-rose-500 hidden mt-1 block">Please specify the rice variety.</span>
-          </div>
-        </div>
 
-        <!-- Section 2 – Product Stock -->
-        <div class="bg-white rounded-2xl p-6 border border-gray-200 shadow-xs space-y-5 text-left">
-          <h4 class="text-[13px] font-semibold text-gray-900 dark:text-white uppercase tracking-wider">Product Stock</h4>
-          
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
-            <div class="space-y-1.5">
-              <label class="text-sm font-medium text-gray-900 dark:text-gray-100 flex items-center gap-1">Stock Quantity <span class="text-rose-500 font-bold">*</span></label>
-              <input type="number" id="add-inp-stock" placeholder="e.g., 500" class="w-full bg-gray-50/50 border border-gray-250 text-[15px] font-normal text-gray-900 dark:text-white px-4 py-2.5 rounded-xl outline-none focus:border-[#1E6C02] focus:bg-white transition-all shadow-2xs" />
-              <span id="err-add-stock" class="err-msg text-xs font-medium text-rose-500 hidden mt-1 block">Please enter a valid stock quantity (0 or greater).</span>
-            </div>
+          <!-- Section 2 – Product Stock -->
+          <div class="bg-white dark:bg-slate-850 rounded-2xl p-4 sm:p-5 md:p-6 border border-gray-200 dark:border-slate-800 shadow-2xs space-y-4 sm:space-y-5 text-left">
+            <h4 class="text-xs sm:text-[13px] font-bold text-gray-900 dark:text-white uppercase tracking-wider">Product Stock</h4>
             
-            <div class="space-y-1.5">
-              <label class="text-sm font-medium text-gray-900 dark:text-gray-100 flex items-center gap-1">Product Weight <span class="text-rose-500 font-bold">*</span></label>
-              <input type="text" id="add-inp-unit" placeholder="e.g., 1kg" class="w-full bg-gray-50/50 border border-gray-250 text-[15px] font-normal text-gray-900 dark:text-white px-4 py-2.5 rounded-xl outline-none focus:border-[#1E6C02] focus:bg-white transition-all shadow-2xs" />
-              <span id="err-add-unit" class="err-msg text-xs font-medium text-rose-500 hidden mt-1 block">Please specify the unit.</span>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-5">
+              <div class="space-y-1.5">
+                <label class="text-xs sm:text-sm font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-1">Stock Quantity <span class="text-rose-500 font-bold">*</span></label>
+                <input type="number" id="add-inp-stock" placeholder="e.g., 500" class="w-full bg-gray-50/50 dark:bg-slate-800 border border-gray-250 dark:border-slate-700 text-sm sm:text-[15px] font-normal text-gray-900 dark:text-white px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl outline-none focus:border-[#1E6C02] dark:focus:border-emerald-500 focus:bg-white dark:focus:bg-slate-900 transition-all shadow-2xs" />
+                <span id="err-add-stock" class="err-msg text-xs font-medium text-rose-500 hidden mt-1 block">Please enter a valid stock quantity (0 or greater).</span>
+              </div>
+              
+              <div class="space-y-1.5">
+                <label class="text-xs sm:text-sm font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-1">Product Weight <span class="text-rose-500 font-bold">*</span></label>
+                <input type="text" id="add-inp-unit" placeholder="e.g., 1kg" class="w-full bg-gray-50/50 dark:bg-slate-800 border border-gray-250 dark:border-slate-700 text-sm sm:text-[15px] font-normal text-gray-900 dark:text-white px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl outline-none focus:border-[#1E6C02] dark:focus:border-emerald-500 focus:bg-white dark:focus:bg-slate-900 transition-all shadow-2xs" />
+                <span id="err-add-unit" class="err-msg text-xs font-medium text-rose-500 hidden mt-1 block">Please specify the unit.</span>
+              </div>
+              
+              <div class="space-y-1.5">
+                <label class="text-xs sm:text-sm font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-1">Price <span class="text-rose-500 font-bold">*</span></label>
+                <input type="number" id="add-inp-price" placeholder="e.g., 75.00" class="w-full bg-gray-50/50 dark:bg-slate-800 border border-gray-250 dark:border-slate-700 text-sm sm:text-[15px] font-normal text-gray-900 dark:text-white px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl outline-none focus:border-[#1E6C02] dark:focus:border-emerald-500 focus:bg-white dark:focus:bg-slate-900 transition-all shadow-2xs" />
+                <span id="err-add-price" class="err-msg text-xs font-medium text-rose-500 hidden mt-1 block">Please enter a valid selling price.</span>
+              </div>
+              
+              <div class="space-y-1.5">
+                <label class="text-xs sm:text-sm font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-1">Down Payment Price <span class="text-rose-500 font-bold">*</span></label>
+                <input type="number" step="any" id="add-inp-reorder" placeholder="0.03" class="w-full bg-gray-50/50 dark:bg-slate-800 border border-gray-250 dark:border-slate-700 text-sm sm:text-[15px] font-normal text-gray-900 dark:text-white px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl outline-none focus:border-[#1E6C02] dark:focus:border-emerald-500 focus:bg-white dark:focus:bg-slate-900 transition-all shadow-2xs" />
+                <span id="err-add-reorder" class="err-msg text-xs font-medium text-rose-500 hidden mt-1 block">Please specify the reorder level (0 or greater).</span>
+              </div>
             </div>
+          </div>
+
+          <!-- Section 3 – Product Description -->
+          <div class="space-y-1.5 sm:space-y-2 text-left">
+            <label class="text-xs sm:text-sm font-semibold text-gray-900 dark:text-gray-100 uppercase tracking-wider block">Product Description <span class="text-rose-500 font-bold">*</span></label>
+            <textarea id="add-inp-desc" rows="3" placeholder="Enter product description..." class="w-full bg-gray-50 dark:bg-slate-800 border border-gray-250 dark:border-slate-700 text-sm sm:text-[15px] font-normal text-gray-900 dark:text-white p-3 sm:p-3.5 rounded-xl outline-none focus:border-[#1E6C02] dark:focus:border-emerald-500 focus:bg-white dark:focus:bg-slate-900 transition-all shadow-2xs"></textarea>
+            <span id="err-add-desc" class="err-msg text-xs font-medium text-rose-500 hidden mt-1 block">Please enter a product description.</span>
+          </div>
+
+          <!-- Section 4 – Product Image -->
+          <div class="space-y-1.5 sm:space-y-2 text-left">
+            <label class="text-xs sm:text-sm font-semibold text-gray-900 dark:text-gray-100 uppercase tracking-wider block">Product Image <span class="text-rose-500 font-bold">*</span></label>
             
-            <div class="space-y-1.5">
-              <label class="text-sm font-medium text-gray-900 dark:text-gray-100 flex items-center gap-1">Price <span class="text-rose-500 font-bold">*</span></label>
-              <input type="number" id="add-inp-price" placeholder="e.g., 75.00" class="w-full bg-gray-50/50 border border-gray-250 text-[15px] font-normal text-gray-900 dark:text-white px-4 py-2.5 rounded-xl outline-none focus:border-[#1E6C02] focus:bg-white transition-all shadow-2xs" />
-              <span id="err-add-price" class="err-msg text-xs font-medium text-rose-500 hidden mt-1 block">Please enter a valid selling price.</span>
+            <div id="add-image-upload-zone" class="border-2 border-dashed border-gray-300 dark:border-slate-700 hover:border-[#1E6C02] dark:hover:border-emerald-500 rounded-2xl p-5 sm:p-7 flex flex-col items-center justify-center cursor-pointer transition-all bg-gray-50/50 dark:bg-slate-800/40 hover:bg-green-50/5">
+              <svg class="w-10 h-10 sm:w-12 sm:h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                <path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" stroke-linecap="round" stroke-linejoin="round"></path>
+              </svg>
+              <p class="text-xs sm:text-[14.5px] font-semibold text-gray-800 dark:text-gray-200 mt-2 text-center">Click to upload product image</p>
+              <p class="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5 text-center">Supported formats: PNG, JPG, WEBP</p>
             </div>
+            <input type="file" id="add-file-image" accept=".png,.jpg,.jpeg,.webp" class="hidden">
             
-            <div class="space-y-1.5">
-              <label class="text-sm font-medium text-gray-900 dark:text-gray-100 flex items-center gap-1">Down Payment Price <span class="text-rose-500 font-bold">*</span></label>
-              <input type="number" step="any" id="add-inp-reorder" placeholder="0.03" class="w-full bg-gray-50/50 border border-gray-250 text-[15px] font-normal text-gray-900 dark:text-white px-4 py-2.5 rounded-xl outline-none focus:border-[#1E6C02] focus:bg-white transition-all shadow-2xs" />
-              <span id="err-add-reorder" class="err-msg text-xs font-medium text-rose-500 hidden mt-1 block">Please specify the reorder level (0 or greater).</span>
+            <div id="add-image-preview-container" class="hidden flex flex-col items-center gap-3 border border-gray-200 dark:border-slate-800 rounded-2xl p-4 bg-white dark:bg-slate-800">
+              <img id="add-image-preview-img" class="max-h-40 sm:max-h-48 object-contain rounded-lg shadow-xs" />
+              <button type="button" id="btn-add-replace-image" class="px-3.5 py-2 bg-gray-100 dark:bg-slate-700 hover:bg-gray-200 dark:hover:bg-slate-600 text-gray-700 dark:text-gray-200 rounded-xl text-xs font-semibold transition-all cursor-pointer">Replace Image</button>
             </div>
+            <span id="err-add-image" class="err-msg text-xs font-medium text-rose-500 hidden mt-1 block">Please upload a product image.</span>
           </div>
         </div>
 
-        <!-- Section 3 – Product Description -->
-        <div class="space-y-2 text-left">
-          <label class="text-sm font-medium text-gray-900 dark:text-gray-100 uppercase tracking-wider block">Product Description <span class="text-rose-500 font-bold">*</span></label>
-          <textarea id="add-inp-desc" rows="3" placeholder="Enter product description..." class="w-full bg-gray-50 border border-gray-250 text-[15px] font-normal text-gray-900 dark:text-white p-3.5 rounded-xl outline-none focus:border-[#1E6C02] focus:bg-white transition-all shadow-2xs"></textarea>
-          <span id="err-add-desc" class="err-msg text-xs font-medium text-rose-500 hidden mt-1 block">Please enter a product description.</span>
-        </div>
-
-        <!-- Section 5 – Product Image -->
-        <div class="space-y-2 text-left">
-          <label class="text-sm font-medium text-gray-900 dark:text-gray-100 uppercase tracking-wider block">Product Image <span class="text-rose-500 font-bold">*</span></label>
-          
-          <div id="add-image-upload-zone" class="border-2 border-dashed border-gray-300 hover:border-[#1E6C02] rounded-2xl p-8 flex flex-col items-center justify-center cursor-pointer transition-all bg-gray-50/50 hover:bg-green-50/5">
-            <svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-              <path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" stroke-linecap="round" stroke-linejoin="round"></path>
-            </svg>
-            <p class="text-[14.5px] font-medium text-gray-800 dark:text-gray-200 mt-2.5">Click to upload product image</p>
-            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Supported formats: PNG, JPG, WEBP</p>
-          </div>
-          <input type="file" id="add-file-image" accept=".png,.jpg,.jpeg,.webp" class="hidden">
-          
-          <div id="add-image-preview-container" class="hidden flex flex-col items-center gap-3 border border-gray-200 rounded-2xl p-4 bg-white">
-            <img id="add-image-preview-img" class="max-h-48 object-contain rounded-lg shadow-xs" />
-            <button type="button" id="btn-add-replace-image" class="px-3.5 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-xs font-semibold transition-all cursor-pointer">Replace Image</button>
-          </div>
-          <span id="err-add-image" class="err-msg text-xs font-medium text-rose-500 hidden mt-1 block">Please upload a product image.</span>
-        </div>
-
-        <!-- Bottom Buttons -->
-        <div class="flex gap-3 pt-6 border-t border-gray-150 justify-end shrink-0">
-          <button type="button" id="btn-add-cancel" class="px-5 py-2.5 text-[14.5px] font-medium text-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-600 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 transition-all cursor-pointer">Cancel</button>
-          <button type="submit" id="btn-add-submit" disabled class="px-5 py-2.5 text-[14.5px] font-semibold bg-[#1E6C02] text-white hover:bg-[#145001] disabled:bg-[#A3DDA1] disabled:text-white disabled:cursor-not-allowed rounded-xl transition-all shadow-xs cursor-pointer">Add New Product</button>
+        <!-- Sticky / Pinned Action Buttons Footer -->
+        <div class="px-4 sm:px-6 md:px-8 py-3.5 sm:py-4 border-t border-gray-150 dark:border-slate-800 flex flex-col-reverse sm:flex-row gap-2.5 sm:gap-3 justify-end shrink-0 bg-gray-50/90 dark:bg-slate-900/90">
+          <button type="button" id="btn-add-cancel" class="w-full sm:w-auto px-5 py-2.5 text-sm sm:text-[14.5px] font-medium text-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-600 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-all cursor-pointer text-center">Cancel</button>
+          <button type="submit" id="btn-add-submit" disabled class="w-full sm:w-auto px-5 py-2.5 text-sm sm:text-[14.5px] font-semibold bg-[#1E6C02] text-white hover:bg-[#145001] disabled:bg-[#A3DDA1] disabled:text-white disabled:cursor-not-allowed rounded-xl transition-all shadow-xs cursor-pointer text-center">Add New Product</button>
         </div>
       </form>
     </div>
   </div>
 
   <!-- UPDATE SERVICE INFO MODAL -->
-  <div id="info-product-dialog" class="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden">
-    <div class="bg-white rounded-3xl max-w-2xl w-full shadow-2xl border flex flex-col max-h-[90vh] animate-in fade-in zoom-in duration-200">
-      <!-- Popup Header -->
-      <div class="px-8 py-6 border-b border-gray-150 flex justify-between items-start shrink-0">
-        <div class="text-left">
-          <h3 class="text-xl font-semibold text-gray-900 dark:text-white tracking-tight">Update Product Details</h3>
-          <p class="text-sm text-gray-600 dark:text-gray-300 font-normal mt-1" id="info-modal-subtitle">Modify descriptions and other information.</p>
+  <div id="info-product-dialog" class="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center p-3 sm:p-4 md:p-6 hidden">
+    <div class="bg-white dark:bg-slate-900 rounded-2xl sm:rounded-3xl max-w-2xl w-full shadow-2xl border border-gray-200 dark:border-slate-800 flex flex-col max-h-[94vh] sm:max-h-[90vh] overflow-hidden animate-in fade-in zoom-in duration-200">
+      <!-- Popup Header (Sticky/Pinned) -->
+      <div class="px-4 sm:px-6 md:px-8 py-4 sm:py-5 border-b border-gray-150 dark:border-slate-800 flex justify-between items-start shrink-0 bg-white dark:bg-slate-900">
+        <div class="text-left pr-2">
+          <h3 class="text-lg sm:text-xl font-bold text-gray-900 dark:text-white tracking-tight">Update Product Details</h3>
+          <p class="text-xs sm:text-sm text-gray-600 dark:text-gray-300 font-normal mt-0.5 sm:mt-1" id="info-modal-subtitle">Modify descriptions and other information.</p>
         </div>
-        <button type="button" id="close-info-modal" class="text-gray-400 hover:text-black cursor-pointer p-1">
+        <button type="button" id="close-info-modal" class="text-gray-400 hover:text-black dark:hover:text-white cursor-pointer p-1.5 rounded-lg shrink-0" aria-label="Close dialog">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-5 h-5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
         </button>
       </div>
 
-      <form id="info-product-form" class="flex-1 overflow-y-auto p-8 space-y-6">
-        <!-- Section 1 – Basic Information -->
-        <div class="bg-white rounded-2xl p-6 border border-gray-200 shadow-xs space-y-5 text-left">
-          <h4 class="text-[13px] font-semibold text-gray-900 dark:text-white uppercase tracking-wider">Basic Information</h4>
-          
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
-            <div class="space-y-1.5">
-              <label class="text-sm font-medium text-gray-900 dark:text-gray-100 flex items-center gap-1">Product Name <span class="text-rose-500 font-bold">*</span></label>
-              <input type="text" id="info-inp-name" required placeholder="e.g., Dinorado Rice" class="w-full bg-gray-50/50 border border-gray-250 text-[15px] font-normal text-gray-900 dark:text-white px-4 py-2.5 rounded-xl outline-none focus:border-[#1E6C02] focus:bg-white transition-all shadow-2xs" />
+      <!-- Form with dedicated scrollable body & pinned action footer -->
+      <form id="info-product-form" class="flex-1 flex flex-col min-h-0 overflow-hidden">
+        <div class="flex-1 overflow-y-auto p-4 sm:p-6 md:p-8 space-y-4 sm:space-y-6">
+          <!-- Section 1 – Basic Information -->
+          <div class="bg-white dark:bg-slate-850 rounded-2xl p-4 sm:p-5 md:p-6 border border-gray-200 dark:border-slate-800 shadow-2xs space-y-4 sm:space-y-5 text-left">
+            <h4 class="text-xs sm:text-[13px] font-bold text-gray-900 dark:text-white uppercase tracking-wider">Basic Information</h4>
+            
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-5">
+              <div class="space-y-1.5">
+                <label class="text-xs sm:text-sm font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-1">Product Name <span class="text-rose-500 font-bold">*</span></label>
+                <input type="text" id="info-inp-name" required placeholder="e.g., Dinorado Rice" class="w-full bg-gray-50/50 dark:bg-slate-800 border border-gray-250 dark:border-slate-700 text-sm sm:text-[15px] font-normal text-gray-900 dark:text-white px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl outline-none focus:border-[#1E6C02] dark:focus:border-emerald-500 focus:bg-white dark:focus:bg-slate-900 transition-all shadow-2xs" />
+              </div>
+              
+              <div class="space-y-1.5">
+                <label class="text-xs sm:text-sm font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-1">Product Code <span class="text-rose-500 font-bold">*</span></label>
+                <input type="text" id="info-inp-sku" required placeholder="e.g., RICE-001" class="w-full bg-gray-50/50 dark:bg-slate-800 border border-gray-250 dark:border-slate-700 text-sm sm:text-[15px] font-normal text-gray-900 dark:text-white px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl outline-none focus:border-[#1E6C02] dark:focus:border-emerald-500 focus:bg-white dark:focus:bg-slate-900 transition-all shadow-2xs" />
+              </div>
             </div>
             
             <div class="space-y-1.5">
-              <label class="text-sm font-medium text-gray-900 dark:text-gray-100 flex items-center gap-1">Product Code <span class="text-rose-500 font-bold">*</span></label>
-              <input type="text" id="info-inp-sku" required placeholder="e.g., RICE-001" class="w-full bg-gray-50/50 border border-gray-250 text-[15px] font-normal text-gray-900 dark:text-white px-4 py-2.5 rounded-xl outline-none focus:border-[#1E6C02] focus:bg-white transition-all shadow-2xs" />
+              <label class="text-xs sm:text-sm font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-1">Rice Variety <span class="text-rose-500 font-bold">*</span></label>
+              <input type="text" id="info-inp-category" required placeholder="e.g., Premium, Local, Specialty" class="w-full bg-gray-50/50 dark:bg-slate-800 border border-gray-250 dark:border-slate-700 text-sm sm:text-[15px] font-normal text-gray-900 dark:text-white px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl outline-none focus:border-[#1E6C02] dark:focus:border-emerald-500 focus:bg-white dark:focus:bg-slate-900 transition-all shadow-2xs" />
             </div>
           </div>
-          
-          <div class="space-y-1.5">
-            <label class="text-sm font-medium text-gray-900 dark:text-gray-100 flex items-center gap-1">Rice Variety <span class="text-rose-500 font-bold">*</span></label>
-            <input type="text" id="info-inp-category" required placeholder="e.g., Premium, Local, Specialty" class="w-full bg-gray-50/50 border border-gray-250 text-[15px] font-normal text-gray-900 dark:text-white px-4 py-2.5 rounded-xl outline-none focus:border-[#1E6C02] focus:bg-white transition-all shadow-2xs" />
-          </div>
-        </div>
 
-        <!-- Section 2 – Product Stock -->
-        <div class="bg-white rounded-2xl p-6 border border-gray-200 shadow-xs space-y-5 text-left">
-          <h4 class="text-[13px] font-semibold text-gray-900 dark:text-white uppercase tracking-wider">Product Stock</h4>
-          
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
-            <div class="space-y-1.5">
-              <label class="text-sm font-medium text-gray-900 dark:text-gray-100 flex items-center gap-1">Stock Quantity <span class="text-rose-500 font-bold">*</span></label>
-              <input type="number" id="info-inp-stock" required placeholder="e.g., 500" class="w-full bg-gray-50/50 border border-gray-250 text-[15px] font-normal text-gray-900 dark:text-white px-4 py-2.5 rounded-xl outline-none focus:border-[#1E6C02] focus:bg-white transition-all shadow-2xs" />
-            </div>
+          <!-- Section 2 – Product Stock -->
+          <div class="bg-white dark:bg-slate-850 rounded-2xl p-4 sm:p-5 md:p-6 border border-gray-200 dark:border-slate-800 shadow-2xs space-y-4 sm:space-y-5 text-left">
+            <h4 class="text-xs sm:text-[13px] font-bold text-gray-900 dark:text-white uppercase tracking-wider">Product Stock</h4>
             
-            <div class="space-y-1.5">
-              <label class="text-sm font-medium text-gray-900 dark:text-gray-100 flex items-center gap-1">Product Weight <span class="text-rose-500 font-bold">*</span></label>
-              <input type="text" id="info-inp-weight" required placeholder="e.g., 1kg" class="w-full bg-gray-50/50 border border-gray-250 text-[15px] font-normal text-gray-900 dark:text-white px-4 py-2.5 rounded-xl outline-none focus:border-[#1E6C02] focus:bg-white transition-all shadow-2xs" />
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-5">
+              <div class="space-y-1.5">
+                <label class="text-xs sm:text-sm font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-1">Stock Quantity <span class="text-rose-500 font-bold">*</span></label>
+                <input type="number" id="info-inp-stock" required placeholder="e.g., 500" class="w-full bg-gray-50/50 dark:bg-slate-800 border border-gray-250 dark:border-slate-700 text-sm sm:text-[15px] font-normal text-gray-900 dark:text-white px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl outline-none focus:border-[#1E6C02] dark:focus:border-emerald-500 focus:bg-white dark:focus:bg-slate-900 transition-all shadow-2xs" />
+              </div>
+              
+              <div class="space-y-1.5">
+                <label class="text-xs sm:text-sm font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-1">Product Weight <span class="text-rose-500 font-bold">*</span></label>
+                <input type="text" id="info-inp-weight" required placeholder="e.g., 1kg" class="w-full bg-gray-50/50 dark:bg-slate-800 border border-gray-250 dark:border-slate-700 text-sm sm:text-[15px] font-normal text-gray-900 dark:text-white px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl outline-none focus:border-[#1E6C02] dark:focus:border-emerald-500 focus:bg-white dark:focus:bg-slate-900 transition-all shadow-2xs" />
+              </div>
+              
+              <div class="space-y-1.5">
+                <label class="text-xs sm:text-sm font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-1">Price <span class="text-rose-500 font-bold">*</span></label>
+                <input type="number" id="info-inp-price" required placeholder="e.g., 75.00" class="w-full bg-gray-50/50 dark:bg-slate-800 border border-gray-250 dark:border-slate-700 text-sm sm:text-[15px] font-normal text-gray-900 dark:text-white px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl outline-none focus:border-[#1E6C02] dark:focus:border-emerald-500 focus:bg-white dark:focus:bg-slate-900 transition-all shadow-2xs" />
+              </div>
+              
+              <div class="space-y-1.5">
+                <label class="text-xs sm:text-sm font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-1">Down Payment Price <span class="text-rose-500 font-bold">*</span></label>
+                <input type="number" step="any" id="info-inp-reorder" required placeholder="0.03" class="w-full bg-gray-50/50 dark:bg-slate-800 border border-gray-250 dark:border-slate-700 text-sm sm:text-[15px] font-normal text-gray-900 dark:text-white px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl outline-none focus:border-[#1E6C02] dark:focus:border-emerald-500 focus:bg-white dark:focus:bg-slate-900 transition-all shadow-2xs" />
+              </div>
             </div>
+          </div>
+
+          <!-- Section 3 – Product Description -->
+          <div class="space-y-1.5 sm:space-y-2 text-left">
+            <label class="text-xs sm:text-sm font-semibold text-gray-900 dark:text-gray-100 uppercase tracking-wider block">Product Description <span class="text-rose-500 font-bold">*</span></label>
+            <textarea id="info-inp-desc" required rows="3" placeholder="Enter product description..." class="w-full bg-gray-50 dark:bg-slate-800 border border-gray-250 dark:border-slate-700 text-sm sm:text-[15px] font-normal text-gray-900 dark:text-white p-3 sm:p-3.5 rounded-xl outline-none focus:border-[#1E6C02] dark:focus:border-emerald-500 focus:bg-white dark:focus:bg-slate-900 transition-all shadow-2xs"></textarea>
+          </div>
+
+          <!-- Section 4 – Product Image -->
+          <div class="space-y-1.5 sm:space-y-2 text-left">
+            <label class="text-xs sm:text-sm font-semibold text-gray-900 dark:text-gray-100 uppercase tracking-wider block">Product Image <span class="text-rose-500 font-bold">*</span></label>
             
-            <div class="space-y-1.5">
-              <label class="text-sm font-medium text-gray-900 dark:text-gray-100 flex items-center gap-1">Price <span class="text-rose-500 font-bold">*</span></label>
-              <input type="number" id="info-inp-price" required placeholder="e.g., 75.00" class="w-full bg-gray-50/50 border border-gray-250 text-[15px] font-normal text-gray-900 dark:text-white px-4 py-2.5 rounded-xl outline-none focus:border-[#1E6C02] focus:bg-white transition-all shadow-2xs" />
+            <div id="info-image-upload-zone" class="border-2 border-dashed border-gray-300 dark:border-slate-700 hover:border-[#1E6C02] dark:hover:border-emerald-500 rounded-2xl p-5 sm:p-7 flex flex-col items-center justify-center cursor-pointer transition-all bg-gray-50/50 dark:bg-slate-800/40 hover:bg-green-50/5">
+              <svg class="w-10 h-10 sm:w-12 sm:h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                <path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" stroke-linecap="round" stroke-linejoin="round"></path>
+              </svg>
+              <p class="text-xs sm:text-[14.5px] font-semibold text-gray-800 dark:text-gray-200 mt-2 text-center">Click to upload product image</p>
+              <p class="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5 text-center">Supported formats: PNG, JPG, WEBP</p>
             </div>
+            <input type="file" id="info-file-image" accept=".png,.jpg,.jpeg,.webp" class="hidden">
             
-            <div class="space-y-1.5">
-              <label class="text-sm font-medium text-gray-900 dark:text-gray-100 flex items-center gap-1">Down Payment Price <span class="text-rose-500 font-bold">*</span></label>
-              <input type="number" step="any" id="info-inp-reorder" required placeholder="0.03" class="w-full bg-gray-50/50 border border-gray-250 text-[15px] font-normal text-gray-900 dark:text-white px-4 py-2.5 rounded-xl outline-none focus:border-[#1E6C02] focus:bg-white transition-all shadow-2xs" />
+            <div id="info-image-preview-container" class="hidden flex flex-col items-center gap-3 border border-gray-200 dark:border-slate-800 rounded-2xl p-4 bg-white dark:bg-slate-800">
+              <img id="info-image-preview-img" class="max-h-40 sm:max-h-48 object-contain rounded-lg shadow-xs" />
+              <button type="button" id="btn-info-replace-image" class="px-3.5 py-2 bg-gray-100 dark:bg-slate-700 hover:bg-gray-200 dark:hover:bg-slate-600 text-gray-700 dark:text-gray-200 rounded-xl text-xs font-semibold transition-all cursor-pointer">Replace Image</button>
             </div>
           </div>
         </div>
 
-        <!-- Section 3 – Product Description -->
-        <div class="space-y-2 text-left">
-          <label class="text-sm font-medium text-gray-900 dark:text-gray-100 uppercase tracking-wider block">Product Description <span class="text-rose-500 font-bold">*</span></label>
-          <textarea id="info-inp-desc" required rows="3" placeholder="Enter product description..." class="w-full bg-gray-50 border border-gray-250 text-[15px] font-normal text-gray-900 dark:text-white p-3.5 rounded-xl outline-none focus:border-[#1E6C02] focus:bg-white transition-all shadow-2xs"></textarea>
-        </div>
-
-        <!-- Section 5 – Product Image -->
-        <div class="space-y-2 text-left">
-          <label class="text-sm font-medium text-gray-900 dark:text-gray-100 uppercase tracking-wider block">Product Image <span class="text-rose-500 font-bold">*</span></label>
-          
-          <div id="info-image-upload-zone" class="border-2 border-dashed border-gray-300 hover:border-[#1E6C02] rounded-2xl p-8 flex flex-col items-center justify-center cursor-pointer transition-all bg-gray-50/50 hover:bg-green-50/5">
-            <svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-              <path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" stroke-linecap="round" stroke-linejoin="round"></path>
-            </svg>
-            <p class="text-[14.5px] font-medium text-gray-800 dark:text-gray-200 mt-2.5">Click to upload product image</p>
-            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Supported formats: PNG, JPG, WEBP</p>
-          </div>
-          <input type="file" id="info-file-image" accept=".png,.jpg,.jpeg,.webp" class="hidden">
-          
-          <div id="info-image-preview-container" class="hidden flex flex-col items-center gap-3 border border-gray-200 rounded-2xl p-4 bg-white">
-            <img id="info-image-preview-img" class="max-h-48 object-contain rounded-lg shadow-xs" />
-            <button type="button" id="btn-info-replace-image" class="px-3.5 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-xs font-semibold transition-all cursor-pointer">Replace Image</button>
-          </div>
-        </div>
-
-        <!-- Bottom Buttons -->
-        <div class="flex gap-3 pt-6 border-t border-gray-150 justify-end shrink-0">
-          <button type="button" id="btn-info-cancel" class="px-5 py-2.5 text-[14.5px] font-medium text-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-600 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 transition-all cursor-pointer">Cancel</button>
-          <button type="submit" id="btn-info-submit" class="px-5 py-2.5 text-[14.5px] font-semibold bg-[#1E6C02] text-white hover:bg-[#145001] rounded-xl transition-all shadow-xs cursor-pointer">Update Information</button>
+        <!-- Sticky / Pinned Action Buttons Footer -->
+        <div class="px-4 sm:px-6 md:px-8 py-3.5 sm:py-4 border-t border-gray-150 dark:border-slate-800 flex flex-col-reverse sm:flex-row gap-2.5 sm:gap-3 justify-end shrink-0 bg-gray-50/90 dark:bg-slate-900/90">
+          <button type="button" id="btn-info-cancel" class="w-full sm:w-auto px-5 py-2.5 text-sm sm:text-[14.5px] font-medium text-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-600 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-all cursor-pointer text-center">Cancel</button>
+          <button type="submit" id="btn-info-submit" class="w-full sm:w-auto px-5 py-2.5 text-sm sm:text-[14.5px] font-semibold bg-[#1E6C02] text-white hover:bg-[#145001] rounded-xl transition-all shadow-xs cursor-pointer text-center">Update Information</button>
         </div>
       </form>
     </div>
@@ -791,8 +818,21 @@
 
   <!-- Products Controller logic -->
   <script type="module">
-    import { protectAdminPage, renderAdminLayout, getProducts, saveProducts, addActivityLog, showToast, allocateStockToReservations, addInventoryHistory, getCurrentAdmin } from '../src/app/shared.js';
-    import { storage, storageRef, uploadBytes, getDownloadURL } from '../src/lib/firebase.js';
+    import { 
+      protectAdminPage, 
+      renderAdminLayout, 
+      getProducts, 
+      saveProducts, 
+      addActivityLog, 
+      showToast, 
+      allocateStockToReservations, 
+      addInventoryHistory, 
+      getCurrentAdmin,
+      assertCanPerformFirebaseWrite,
+      autoBindDraftPreservation,
+      clearFormDraft
+    } from '../src/app/shared.js';
+    import { storage, storageRef, uploadBytes, getDownloadURL, saveFirestoreDoc } from '../src/lib/firebase.js';
 
     document.addEventListener('DOMContentLoaded', async () => {
       // 1. Authoritative access control check

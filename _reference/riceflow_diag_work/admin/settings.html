@@ -1,0 +1,1498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Settings | RiceFlow</title>
+  <script>
+    (function() {
+      try {
+        var d = document.documentElement;
+        var isDark = localStorage.getItem('aurora-dark-mode') === 'true';
+        d.classList.toggle('dark', isDark);
+        d.style.colorScheme = isDark ? 'dark' : 'light';
+      } catch (e) {}
+    })();
+  </script>
+  <style id="riceflow-theme-init">
+    html { background-color: #F5F5F5; color-scheme: light; }
+    html.dark { background-color: #1F2937 !important; color-scheme: dark; }
+    html.dark body,
+    html.dark #admin-layout-container,
+    html.dark #admin-main-content {
+      background-color: #1F2937;
+      color: #F9FAFB;
+    }
+    html.dark #auth-guard-loader {
+      background-color: #1F2937 !important;
+      color: #F9FAFB !important;
+    }
+    html.dark #admin-sidebar,
+    html.dark aside,
+    html.dark header,
+    html.dark .bg-white,
+    html.dark .bg-gray-50,
+    html.dark .bg-slate-50 {
+      background-color: #111827;
+      color: #F9FAFB;
+    }
+  </style>
+  <link rel="stylesheet" href="../src/styles/index.css">
+  <style id="settings-day-mode-button-readability">
+    /* Day Mode: Primary green buttons in Settings & Confirmation Modal (keep green background, force crisp white text/icons) */
+    html:not(.dark) #admin-layout-container #btn-save-storefront,
+    html:not(.dark) #admin-layout-container #btn-save-storefront *,
+    html:not(.dark) #admin-layout-container #btn-save-contact,
+    html:not(.dark) #admin-layout-container #btn-save-contact *,
+    html:not(.dark) #admin-layout-container #btn-save-gcash,
+    html:not(.dark) #admin-layout-container #btn-save-gcash *,
+    html:not(.dark) #admin-layout-container #btn-change-password,
+    html:not(.dark) #admin-layout-container #btn-change-password *,
+    html:not(.dark) #confirmation-modal #btn-confirm-modal,
+    html:not(.dark) #confirmation-modal #btn-confirm-modal * {
+      color: #FFFFFF !important;
+    }
+    html:not(.dark) #admin-layout-container #btn-save-storefront:hover,
+    html:not(.dark) #admin-layout-container #btn-save-storefront:hover *,
+    html:not(.dark) #admin-layout-container #btn-save-contact:hover,
+    html:not(.dark) #admin-layout-container #btn-save-contact:hover *,
+    html:not(.dark) #admin-layout-container #btn-save-gcash:hover,
+    html:not(.dark) #admin-layout-container #btn-save-gcash:hover *,
+    html:not(.dark) #admin-layout-container #btn-change-password:hover,
+    html:not(.dark) #admin-layout-container #btn-change-password:hover *,
+    html:not(.dark) #confirmation-modal #btn-confirm-modal:hover,
+    html:not(.dark) #confirmation-modal #btn-confirm-modal:hover * {
+      color: #FFFFFF !important;
+    }
+
+    /* Day Mode: Outlined storefront & upload buttons (white/light-green bg, high-contrast forest green text/icons) */
+    html:not(.dark) #admin-layout-container #btn-view-storefront,
+    html:not(.dark) #admin-layout-container #btn-view-storefront *,
+    html:not(.dark) #admin-layout-container #btn-upload-logo,
+    html:not(.dark) #admin-layout-container #btn-upload-logo *,
+    html:not(.dark) #admin-layout-container #btn-upload-banner,
+    html:not(.dark) #admin-layout-container #btn-upload-banner *,
+    html:not(.dark) #admin-layout-container #btn-upload-gcash,
+    html:not(.dark) #admin-layout-container #btn-upload-gcash * {
+      color: #1E6C02 !important;
+    }
+    html:not(.dark) #admin-layout-container #btn-view-storefront:hover,
+    html:not(.dark) #admin-layout-container #btn-view-storefront:hover *,
+    html:not(.dark) #admin-layout-container #btn-upload-logo:hover,
+    html:not(.dark) #admin-layout-container #btn-upload-logo:hover *,
+    html:not(.dark) #admin-layout-container #btn-upload-banner:hover,
+    html:not(.dark) #admin-layout-container #btn-upload-banner:hover *,
+    html:not(.dark) #admin-layout-container #btn-upload-gcash:hover,
+    html:not(.dark) #admin-layout-container #btn-upload-gcash:hover * {
+      color: #145001 !important;
+    }
+
+    /* Day Mode: Remove QR Code button (light red bg, high-contrast deep red text/icon) */
+    html:not(.dark) #admin-layout-container #btn-reset-gcash,
+    html:not(.dark) #admin-layout-container #btn-reset-gcash * {
+      color: #B91C1C !important;
+    }
+    html:not(.dark) #admin-layout-container #btn-reset-gcash:hover,
+    html:not(.dark) #admin-layout-container #btn-reset-gcash:hover * {
+      color: #991B1B !important;
+    }
+
+    /* Day Mode: Confirmation Modal Cancel & Close buttons (crisp black text/icon) */
+    html:not(.dark) #confirmation-modal #btn-cancel-modal,
+    html:not(.dark) #confirmation-modal #btn-cancel-modal *,
+    html:not(.dark) #confirmation-modal #btn-cancel-modal:hover,
+    html:not(.dark) #confirmation-modal #btn-cancel-modal:hover *,
+    html:not(.dark) #confirmation-modal #btn-close-modal-x,
+    html:not(.dark) #confirmation-modal #btn-close-modal-x:hover {
+      color: #000000 !important;
+    }
+
+    /* Day Mode: Topbar & Sidebar buttons on Settings page (crisp readable icons/text, no gray) */
+    html:not(.dark) #admin-layout-container #admin-sidebar-toggle,
+    html:not(.dark) #admin-layout-container #admin-sidebar-toggle svg,
+    html:not(.dark) #admin-layout-container #admin-sidebar-toggle:hover,
+    html:not(.dark) #admin-layout-container #admin-sidebar-toggle:hover svg,
+    html:not(.dark) #admin-layout-container #mobile-sidebar-toggle,
+    html:not(.dark) #admin-layout-container #mobile-sidebar-toggle svg,
+    html:not(.dark) #admin-layout-container #mobile-sidebar-close,
+    html:not(.dark) #admin-layout-container #mobile-sidebar-close svg,
+    html:not(.dark) #admin-layout-container #admin-notif-btn,
+    html:not(.dark) #admin-layout-container #admin-notif-btn svg,
+    html:not(.dark) #admin-layout-container #admin-dark-mode-toggle,
+    html:not(.dark) #admin-layout-container #admin-dark-mode-toggle *,
+    html:not(.dark) #admin-layout-container #admin-dark-mode-toggle:hover,
+    html:not(.dark) #admin-layout-container #admin-dark-mode-toggle:hover * {
+      color: #000000 !important;
+      stroke: #000000 !important;
+    }
+    html:not(.dark) #admin-layout-container #admin-sidebar-logout,
+    html:not(.dark) #admin-layout-container #admin-sidebar-logout svg {
+      color: #B91C1C !important;
+      stroke: #B91C1C !important;
+    }
+    html:not(.dark) #admin-layout-container #admin-sidebar-logout:hover,
+    html:not(.dark) #admin-layout-container #admin-sidebar-logout:hover svg {
+      color: #991B1B !important;
+      stroke: #991B1B !important;
+    }
+  </style>
+  <style id="admin-settings-typography-and-colors">
+    /* ==========================================================================
+       ADMIN SETTINGS PAGE READABILITY & APPROVED TYPOGRAPHY SYSTEM
+       - Inter: Page & Section Headings, Setting/Card Titles, Action Buttons,
+                Tabs & Interactive Controls
+       - Source Sans 3: Setting Descriptions, Form Labels, Input Text, Helper Text,
+                        Values, Modals & Supporting Information
+       - Solid Black (#000000): In Day/Light mode for all ordinary readable text
+       - Clear Font Weight Hierarchy: No hairline-thin or overly heavy/bold text
+       - Dark Mode Readability & Status Color Preservation
+       ========================================================================== */
+
+    /* 1. BASE TYPOGRAPHY: Default workspace and modal to Source Sans 3 */
+    body,
+    #admin-main-content,
+    #confirmation-modal {
+      font-family: 'Source Sans 3', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* 2. PRIMARY FONT: INTER
+          - Page headings & section / card titles
+          - Action buttons & controls */
+    #admin-right-workspace header h2,
+    #admin-layout-container h1,
+    #admin-layout-container h2,
+    #admin-layout-container h3,
+    #admin-layout-container h4,
+    #admin-main-content h1,
+    #admin-main-content h2,
+    #admin-main-content h3,
+    #admin-main-content h4,
+    .setting-section-title,
+    #modal-title,
+    /* Buttons & controls */
+    #admin-main-content button,
+    #admin-main-content a.btn-action,
+    #btn-view-storefront,
+    #btn-upload-logo,
+    #btn-upload-banner,
+    #btn-save-storefront,
+    #btn-save-contact,
+    #btn-upload-gcash,
+    #btn-reset-gcash,
+    #btn-save-gcash,
+    #btn-change-password,
+    #btn-cancel-modal,
+    #btn-confirm-modal {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+    }
+
+    /* 3. SECONDARY FONT: SOURCE SANS 3
+          - Setting descriptions & supporting text
+          - Form labels & input text
+          - Helper text & notes
+          - Modal message */
+    #admin-main-content p,
+    #admin-main-content label,
+    #admin-main-content input,
+    #admin-main-content textarea,
+    #admin-main-content select,
+    #admin-main-content span:not(#btn-view-storefront *):not(#btn-upload-logo *):not(#btn-upload-banner *):not(#btn-save-storefront *):not(#btn-save-contact *):not(#btn-upload-gcash *):not(#btn-reset-gcash *):not(#btn-save-gcash *):not(#btn-change-password *),
+    .setting-desc,
+    .setting-form-label,
+    .setting-input,
+    .setting-helper-text,
+    #modal-message {
+      font-family: 'Source Sans 3', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+    }
+
+    /* 4. BALANCED FONT SIZING & HIERARCHY */
+    /* Page Title: 24–28px (semibold 600) */
+    #admin-right-workspace header h2 {
+      font-size: 1.625rem !important; /* 26px */
+      line-height: 2rem !important;
+      font-weight: 600 !important;
+      letter-spacing: -0.025em !important;
+    }
+
+    /* Section & Card Headings: 16–18px (medium/semibold 600) */
+    #admin-main-content h3,
+    .setting-section-title {
+      font-size: 1.125rem !important; /* 18px */
+      line-height: 1.5rem !important;
+      font-weight: 600 !important;
+      letter-spacing: -0.015em !important;
+    }
+
+    /* Setting Titles & Form Labels: 15–16px */
+    #admin-main-content label,
+    .setting-form-label {
+      font-size: 0.96875rem !important; /* 15.5px */
+      line-height: 1.35 !important;
+      font-weight: 500 !important;
+    }
+
+    /* Input & Textarea text: 15–16px */
+    #admin-main-content input,
+    #admin-main-content textarea,
+    .setting-input {
+      font-size: 0.96875rem !important; /* 15.5px */
+      line-height: 1.45 !important;
+      font-weight: 400 !important;
+    }
+
+    /* Setting descriptions & supporting information: 14–15px */
+    #admin-main-content p.setting-desc,
+    .setting-desc {
+      font-size: 0.9375rem !important; /* 15px */
+      font-weight: 400 !important;
+      line-height: 1.45 !important;
+    }
+
+    /* Button labels: 14–15px (medium or semibold 600) */
+    #btn-view-storefront,
+    #btn-save-storefront,
+    #btn-save-contact,
+    #btn-save-gcash,
+    #btn-change-password,
+    #btn-cancel-modal,
+    #btn-confirm-modal {
+      font-size: 0.90625rem !important; /* 14.5px */
+      font-weight: 600 !important;
+      letter-spacing: 0.02em !important;
+    }
+
+    #btn-upload-logo,
+    #btn-upload-banner,
+    #btn-upload-gcash,
+    #btn-reset-gcash {
+      font-size: 0.84375rem !important; /* 13.5px */
+      font-weight: 600 !important;
+      letter-spacing: 0.02em !important;
+    }
+
+    /* Small helper text: preferably at least 13-14px */
+    .setting-helper-text,
+    .setting-helper-badge {
+      font-size: 0.84375rem !important; /* 13.5px */
+      font-weight: 400 !important;
+      line-height: 1.35 !important;
+    }
+
+    /* Modal Dialog Typography */
+    #modal-title {
+      font-size: 1.25rem !important; /* 20px */
+      font-weight: 600 !important;
+    }
+    #modal-message {
+      font-size: 0.9375rem !important; /* 15px */
+      font-weight: 400 !important;
+      line-height: 1.5 !important;
+    }
+
+    /* 5. STANDARDIZE TEXT COLORS IN DAY/LIGHT MODE TO SOLID BLACK (#000000) */
+    html:not(.dark) #admin-right-workspace header h2,
+    html:not(.dark) #admin-layout-container h1,
+    html:not(.dark) #admin-layout-container h2,
+    html:not(.dark) #admin-layout-container h3,
+    html:not(.dark) #admin-main-content h3,
+    html:not(.dark) .setting-section-title,
+    html:not(.dark) #modal-title {
+      color: #000000 !important;
+    }
+
+    /* Setting descriptions & supporting text: Solid Black */
+    html:not(.dark) #admin-main-content p.setting-desc,
+    html:not(.dark) .setting-desc {
+      color: #000000 !important;
+    }
+
+    /* Form labels & input text: Solid Black */
+    html:not(.dark) #admin-main-content label,
+    html:not(.dark) .setting-form-label,
+    html:not(.dark) #admin-main-content input,
+    html:not(.dark) #admin-main-content textarea,
+    html:not(.dark) .setting-input {
+      color: #000000 !important;
+    }
+
+    /* Placeholder text: comfortable accessible gray */
+    html:not(.dark) #admin-main-content input::placeholder,
+    html:not(.dark) #admin-main-content textarea::placeholder {
+      color: #4B5563 !important;
+    }
+
+    /* Helper text in day mode: Solid Black */
+    html:not(.dark) .setting-helper-text,
+    html:not(.dark) .setting-helper-badge {
+      color: #000000 !important;
+    }
+
+    /* Modal message in day mode: Solid Black */
+    html:not(.dark) #modal-message {
+      color: #000000 !important;
+    }
+
+    /* 6. DARK MODE READABILITY PRESERVATION */
+    html.dark #admin-right-workspace header h2,
+    html.dark #admin-main-content h3,
+    html.dark .setting-section-title,
+    html.dark #modal-title {
+      color: #F9FAFB !important;
+    }
+
+    html.dark #admin-main-content p.setting-desc,
+    html.dark .setting-desc {
+      color: #E5E7EB !important;
+    }
+
+    html.dark #admin-main-content label,
+    html.dark .setting-form-label {
+      color: #F3F4F6 !important;
+    }
+
+    html.dark #admin-main-content input,
+    html.dark #admin-main-content textarea,
+    html.dark .setting-input {
+      color: #F9FAFB !important;
+      background-color: #1F2937 !important;
+      border-color: #374151 !important;
+    }
+
+    html.dark #admin-main-content input::placeholder,
+    html.dark #admin-main-content textarea::placeholder {
+      color: #9CA3AF !important;
+    }
+
+    html.dark .setting-helper-text,
+    html.dark .setting-helper-badge {
+      color: #D1D5DB !important;
+    }
+
+    html.dark #modal-message {
+      color: #E5E7EB !important;
+    }
+
+    html.dark #confirmation-modal #btn-cancel-modal,
+    html.dark #confirmation-modal #btn-cancel-modal * {
+      background-color: #374151 !important;
+      color: #F9FAFB !important;
+    }
+
+    html.dark #confirmation-modal #btn-close-modal-x {
+      color: #D1D5DB !important;
+    }
+  </style>
+  <style id="auth-guard-style">body { visibility: hidden !important; }</style>
+</head>
+<body class="bg-[#F5F5F5] min-h-screen">
+  <div id="auth-guard-loader" class="fixed inset-0 bg-[#F5F5F5] z-[99999] flex flex-col items-center justify-center font-sans">
+    <div class="w-9 h-9 border-3 border-[#1E6C02]/20 border-t-[#1E6C02] rounded-full animate-spin mb-3"></div>
+    <p class="text-xs font-semibold text-gray-700">Verifying administrative access...</p>
+  </div>
+
+  <div id="admin-layout-container"></div>
+
+  <!-- Reusable Confirmation Modal -->
+  <div id="confirmation-modal" class="fixed inset-0 z-[100] flex items-center justify-center hidden">
+    <!-- Backdrop -->
+    <div id="modal-backdrop" class="absolute inset-0 bg-black/60 backdrop-blur-xs transition-opacity duration-300"></div>
+    <!-- Modal Panel -->
+    <div id="modal-panel" class="bg-white rounded-3xl border border-gray-200 shadow-2xl max-w-md w-full mx-4 p-8 relative z-10 transform scale-95 opacity-0 transition-all duration-300">
+      <div class="space-y-6">
+        <div class="flex items-center justify-between pb-3 border-b border-gray-200">
+          <h4 id="modal-title" class="text-xl font-semibold text-black tracking-tight">Save Changes</h4>
+          <button id="btn-close-modal-x" class="text-black hover:text-gray-900 font-semibold text-lg select-none cursor-pointer">✕</button>
+        </div>
+        
+        <div id="modal-message" class="text-[15px] text-black font-normal leading-relaxed">
+          Are you sure you want to save these changes? These updates will immediately be applied to the storefront.
+        </div>
+        
+        <div class="flex flex-col sm:flex-row sm:items-center justify-end gap-3 pt-4 border-t border-gray-200">
+          <button id="btn-cancel-modal" class="px-5 py-3 bg-gray-150 hover:bg-gray-200 text-black font-semibold text-[14.5px] tracking-normal rounded-xl cursor-pointer transition-all select-none w-full sm:w-auto text-center border border-transparent">
+            No, Cancel
+          </button>
+          <button id="btn-confirm-modal" class="px-5 py-3 bg-[#1E6C02] hover:bg-[#145001] active:scale-[0.98] text-white font-semibold text-[14.5px] tracking-normal rounded-xl cursor-pointer shadow-md transition-all select-none w-full sm:w-auto text-center border border-transparent">
+            Yes, Save Changes
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="../src/app/shared.js"></script>
+
+  <!-- Interactive administrative settings script -->
+  <script type="module">
+    import { protectAdminPage, renderAdminLayout, addActivityLog, showToast, getStoreSettings, DEFAULT_DELIVERY_MINIMUM_SETTINGS } from '../src/app/shared.js';
+    import { auth, saveFirestoreDoc, storage, storageRef, uploadBytes, getDownloadURL } from '../src/lib/firebase.js';
+    import { updatePassword } from 'firebase/auth';
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      // 1. Authoritative access control check (Admin only)
+      const authResult = await protectAdminPage({ requiredRole: 'admin' });
+      if (!authResult || !authResult.ok) return;
+
+      // 2. Render sidebar and layout
+      renderAdminLayout('settings');
+
+      const targetSpace = document.getElementById('admin-main-content');
+      if (!targetSpace) return;
+
+      // Load initial settings
+      const settings = getStoreSettings();
+
+      let storeName = settings.storeName;
+      let description = settings.description;
+      let contactNumber = settings.contactNumber;
+      let storeAddress = settings.storeAddress;
+      let facebookLink = settings.facebookLink;
+      let businessHours = settings.businessHours;
+      let logoBase64 = settings.logo;
+      let bannerBase64 = settings.banner;
+      let gcashName = settings.gcashName;
+      let gcashNumber = settings.gcashNumber;
+      let gcashQrBase64 = settings.gcashQr;
+      let deliveryMinimumSettings = JSON.parse(JSON.stringify(settings.deliveryMinimumSettings || DEFAULT_DELIVERY_MINIMUM_SETTINGS));
+      let selectedLogoFile = null;
+      let selectedBannerFile = null;
+      let selectedGcashQrFile = null;
+      const fallbackQrSvg = `data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='150' height='150' viewBox='0 0 150 150'><rect width='100%' height='100%' fill='%23f9fafb' rx='12'/><rect x='8' y='8' width='134' height='134' fill='none' stroke='%23e5e7eb' stroke-width='2' stroke-dasharray='6,4' rx='8'/><text x='50%' y='45%' dominant-baseline='middle' text-anchor='middle' font-family='system-ui, -apple-system, sans-serif' font-size='10' font-weight='bold' fill='%239ca3af'>No GCash QR</text><text x='50%' y='60%' dominant-baseline='middle' text-anchor='middle' font-family='system-ui, -apple-system, sans-serif' font-size='10' font-weight='bold' fill='%239ca3af'>Code Available</text></svg>`;
+
+      // Reusable confirmation modal functions
+      const confModal = document.getElementById('confirmation-modal');
+      const modalBackdrop = document.getElementById('modal-backdrop');
+      const modalPanel = document.getElementById('modal-panel');
+      const modalTitle = document.getElementById('modal-title');
+      const modalMessage = document.getElementById('modal-message');
+      const btnCancelModal = document.getElementById('btn-cancel-modal');
+      const btnConfirmModal = document.getElementById('btn-confirm-modal');
+      const btnCloseModalX = document.getElementById('btn-close-modal-x');
+
+      let confirmCallback = null;
+
+      function showConfirmationModal({ title, message, cancelText, confirmText, onConfirm }) {
+        modalTitle.textContent = title;
+        modalMessage.innerHTML = message;
+        btnCancelModal.textContent = cancelText || 'No, Cancel';
+        btnConfirmModal.textContent = confirmText || 'Yes, Save Changes';
+        confirmCallback = onConfirm;
+
+        confModal.classList.remove('hidden');
+        
+        // Trigger reflow to start transition
+        void confModal.offsetHeight;
+
+        modalPanel.classList.remove('opacity-0', 'scale-95');
+        modalPanel.classList.add('opacity-100', 'scale-100');
+      }
+
+      function hideConfirmationModal() {
+        modalPanel.classList.remove('opacity-100', 'scale-100');
+        modalPanel.classList.add('opacity-0', 'scale-95');
+        setTimeout(() => {
+          confModal.classList.add('hidden');
+        }, 300);
+      }
+
+      if (btnCancelModal) btnCancelModal.addEventListener('click', hideConfirmationModal);
+      if (btnCloseModalX) btnCloseModalX.addEventListener('click', hideConfirmationModal);
+      if (modalBackdrop) modalBackdrop.addEventListener('click', hideConfirmationModal);
+
+      if (btnConfirmModal) {
+        btnConfirmModal.addEventListener('click', () => {
+          if (confirmCallback) {
+            confirmCallback();
+          }
+          hideConfirmationModal();
+        });
+      }
+
+      function saveCurrentInputStates() {
+        const inpStoreName = document.getElementById('inp-store-name');
+        if (inpStoreName) storeName = inpStoreName.value.trim();
+
+        const inpStoreDesc = document.getElementById('inp-store-desc');
+        if (inpStoreDesc) description = inpStoreDesc.value.trim();
+
+        const inpContactPhone = document.getElementById('inp-contact-phone');
+        if (inpContactPhone) contactNumber = inpContactPhone.value.trim();
+
+        const inpBusinessHours = document.getElementById('inp-business-hours');
+        if (inpBusinessHours) businessHours = inpBusinessHours.value.trim();
+
+        const inpFacebookLink = document.getElementById('inp-facebook-link');
+        if (inpFacebookLink) facebookLink = inpFacebookLink.value.trim();
+
+        const inpStoreAddress = document.getElementById('inp-store-address');
+        if (inpStoreAddress) storeAddress = inpStoreAddress.value.trim();
+
+        const inpGcashName = document.getElementById('inp-gcash-name');
+        if (inpGcashName) gcashName = inpGcashName.value.trim();
+
+        const inpGcashPhone = document.getElementById('inp-gcash-phone');
+        if (inpGcashPhone) gcashNumber = inpGcashPhone.value.trim();
+
+        const inpDefMin = document.getElementById('inp-default-min-sacks');
+        if (inpDefMin) {
+          const val = parseInt(inpDefMin.value, 10);
+          if (!isNaN(val) && val >= 0) deliveryMinimumSettings.defaultMinimumSacks = val;
+        }
+
+        const inpFarMin = document.getElementById('inp-far-min-sacks');
+        if (inpFarMin) {
+          const val = parseInt(inpFarMin.value, 10);
+          if (!isNaN(val) && val >= 0) deliveryMinimumSettings.farLocationMinimumSacks = val;
+        }
+      }
+
+      function renderLocationRulesRows() {
+        const tbody = document.getElementById('tbody-location-rules');
+        if (!tbody) return;
+        const rules = deliveryMinimumSettings.locationRules || [];
+        if (rules.length === 0) {
+          tbody.innerHTML = `
+            <tr>
+              <td colspan="5" class="py-6 text-center text-gray-500 text-xs">
+                No custom location rules configured. All delivery locations will use the default minimum (${deliveryMinimumSettings.defaultMinimumSacks || 20} sacks).
+              </td>
+            </tr>
+          `;
+          return;
+        }
+
+        tbody.innerHTML = rules.map((r, idx) => {
+          const typeLabel = r.locationType === 'province' ? 'Province' : (r.locationType === 'city' ? 'City / Mun' : 'Custom');
+          const isFar = Boolean(r.isFarLocation);
+          const minVal = Number.isInteger(Number(r.minimumSacks)) ? Number(r.minimumSacks) : (isFar ? deliveryMinimumSettings.farLocationMinimumSacks : deliveryMinimumSettings.defaultMinimumSacks);
+          return `
+            <tr class="hover:bg-gray-50 transition-colors">
+              <td class="py-3 px-4 font-bold text-black text-sm">${r.locationName}</td>
+              <td class="py-3 px-3">
+                <span class="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-gray-100 text-gray-700 border border-gray-200">
+                  ${typeLabel}
+                </span>
+              </td>
+              <td class="py-3 px-3 text-center">
+                ${isFar 
+                  ? '<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-900 border border-amber-300">🚩 Far Area</span>'
+                  : '<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">Local Area</span>'
+                }
+              </td>
+              <td class="py-3 px-4 text-center font-extrabold text-black">
+                ${minVal} sacks
+              </td>
+              <td class="py-3 px-3 text-right">
+                <button 
+                  type="button" 
+                  data-rule-idx="${idx}" 
+                  class="btn-delete-location-rule px-2.5 py-1 text-xs font-bold text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-colors cursor-pointer border border-transparent hover:border-red-200"
+                  title="Remove this rule"
+                >
+                  ✕ Remove
+                </button>
+              </td>
+            </tr>
+          `;
+        }).join('');
+
+        // Bind delete buttons
+        tbody.querySelectorAll('.btn-delete-location-rule').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            const ruleIdx = parseInt(e.currentTarget.getAttribute('data-rule-idx'), 10);
+            if (!isNaN(ruleIdx) && ruleIdx >= 0 && ruleIdx < (deliveryMinimumSettings.locationRules || []).length) {
+              const removedName = deliveryMinimumSettings.locationRules[ruleIdx].locationName;
+              deliveryMinimumSettings.locationRules.splice(ruleIdx, 1);
+              renderLocationRulesRows();
+              showToast(`Removed rule for "${removedName}". Click "Save Delivery Minimum Settings" to apply.`, 'info');
+            }
+          });
+        });
+      }
+
+      function renderSettingsPanel() {
+        targetSpace.innerHTML = `
+          <div class="w-full space-y-10 pb-20">
+            
+            <!-- Storefront Customization Section -->
+            <div class="bg-white rounded-3xl border border-gray-200 shadow-sm p-8 sm:p-10 space-y-8">
+              <div class="pb-6 border-b border-gray-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <h3 class="setting-section-title text-lg font-semibold text-black tracking-tight">Storefront Customization</h3>
+                  <p class="setting-desc text-[15px] text-black font-normal mt-1 leading-relaxed">Customize the branding and assets of your customer-facing storefront homepage.</p>
+                </div>
+                <a href="../index.html" target="_blank" id="btn-view-storefront" class="btn-action px-5 py-3 bg-white hover:bg-green-50/50 border border-[#1E6C02] text-[#1E6C02] active:scale-[0.98] font-semibold text-[14.5px] rounded-xl cursor-pointer shadow-xs inline-flex items-center justify-center gap-2 transition-all hover:scale-[1.01] select-none shrink-0">
+                  👁️ View Storefront
+                </a>
+              </div>
+
+              <div class="space-y-8 text-black">
+                
+                <!-- Logo & Banner Upload Row -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <div class="space-y-3">
+                    <label class="setting-form-label text-[15.5px] font-medium text-black tracking-normal block mb-1">Store Logo Image</label>
+                    <div class="flex items-center gap-5 mt-2">
+                      <div class="w-24 h-24 rounded-full overflow-hidden flex items-center justify-center border-2 border-gray-200 shadow-sm shrink-0 bg-gray-50">
+                        <img id="img-logo-current" src="${logoBase64}" alt="Logo" class="w-full h-full object-cover" />
+                      </div>
+                      <div class="space-y-2.5">
+                        <input type="file" id="inp-store-logo-file" class="hidden" accept="image/png, image/jpeg, image/webp" />
+                        <button type="button" id="btn-upload-logo" class="px-4 py-2.5 bg-white hover:bg-green-50/50 border border-[#1E6C02] text-[#1E6C02] active:scale-[0.98] font-semibold text-[13.5px] rounded-xl cursor-pointer shadow-xs inline-flex items-center justify-center gap-2 transition-all hover:scale-[1.01] select-none">
+                          📤 Upload Logo
+                        </button>
+                        <span class="setting-helper-text block text-[13.5px] text-black font-normal leading-tight">PNG, JPG, WEBP. Max 5 MB.</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Banner Upload -->
+                  <div class="space-y-3">
+                    <label class="setting-form-label text-[15.5px] font-medium text-black tracking-normal block mb-1">Homepage Hero Banner</label>
+                    <div class="flex items-center gap-5 mt-2">
+                      <div class="w-32 h-20 rounded-xl overflow-hidden flex items-center justify-center border-2 border-gray-200 shadow-sm shrink-0 bg-gray-50">
+                        <img id="img-banner-current" src="${bannerBase64}" alt="Banner" class="w-full h-full object-cover" />
+                      </div>
+                      <div class="space-y-2.5">
+                        <input type="file" id="inp-store-banner-file" class="hidden" accept="image/png, image/jpeg, image/webp" />
+                        <button type="button" id="btn-upload-banner" class="px-4 py-2.5 bg-white hover:bg-green-50/50 border border-[#1E6C02] text-[#1E6C02] active:scale-[0.98] font-semibold text-[13.5px] rounded-xl cursor-pointer shadow-xs inline-flex items-center justify-center gap-2 transition-all hover:scale-[1.01] select-none">
+                          📤 Upload Banner
+                        </button>
+                        <span class="setting-helper-text block text-[13.5px] text-black font-normal leading-tight">PNG, JPG, WEBP. Max 10 MB.</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Store Name -->
+                <div class="space-y-3">
+                  <label class="setting-form-label text-[15.5px] font-medium text-black tracking-normal block">Store Brand Name</label>
+                  <input type="text" id="inp-store-name" value="${storeName}" placeholder="e.g. Aurora Rice Store" class="setting-input w-full bg-gray-50 border-2 border-gray-200 text-[15.5px] font-normal text-black px-5 py-3.5 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-[#1E6C02]/20 focus:border-[#1E6C02] placeholder-gray-500 transition-all duration-200" />
+                </div>
+
+                <!-- Store Description -->
+                <div class="space-y-3">
+                  <label class="setting-form-label text-[15.5px] font-medium text-black tracking-normal block">Store Introduction / About Description</label>
+                  <textarea id="inp-store-desc" rows="4" placeholder="Describe your store and value propositions..." class="setting-input w-full bg-gray-50 border-2 border-gray-200 text-[15.5px] font-normal text-black p-4 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-[#1E6C02]/20 focus:border-[#1E6C02] placeholder-gray-500 transition-all duration-200">${description}</textarea>
+                </div>
+              </div>
+
+              <!-- Storefront Save Row -->
+              <div class="pt-6 border-t border-gray-200 flex items-center justify-between">
+                <button id="btn-save-storefront" class="px-6 py-3.5 bg-[#1E6C02] hover:bg-[#145001] active:scale-[0.98] text-white font-semibold text-[14.5px] rounded-xl cursor-pointer shadow-md inline-flex items-center justify-center gap-2.5 transition-all hover:scale-[1.01] border border-transparent select-none w-full sm:w-auto">
+                  💾 Save Changes
+                </button>
+              </div>
+            </div>
+
+            <!-- Contact Information Section -->
+            <div class="bg-white rounded-3xl border border-gray-200 shadow-sm p-8 sm:p-10 space-y-8">
+              <div class="pb-6 border-b border-gray-200">
+                <h3 class="setting-section-title text-lg font-semibold text-black tracking-tight">Contact Information</h3>
+                <p class="setting-desc text-[15px] text-black font-normal mt-1 leading-relaxed">Customize default address, contact lines, and active communication links.</p>
+              </div>
+
+              <div class="space-y-6 text-black">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div class="space-y-3">
+                    <label class="setting-form-label text-[15.5px] font-medium text-black tracking-normal block">Official Mobile Contact Point</label>
+                    <input type="text" id="inp-contact-phone" value="${contactNumber}" class="setting-input w-full bg-gray-50 border-2 border-gray-200 text-[15.5px] font-normal text-black px-5 py-3.5 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-[#1E6C02]/20 focus:border-[#1E6C02] placeholder-gray-500 transition-all duration-200" />
+                  </div>
+
+                  <div class="space-y-3">
+                    <label class="setting-form-label text-[15.5px] font-medium text-black tracking-normal block">Business Hours <span class="setting-helper-badge text-black font-normal">(Optional)</span></label>
+                    <input type="text" id="inp-business-hours" value="${businessHours}" placeholder="e.g. 8:00 AM - 5:00 PM (Mon - Sat)" class="setting-input w-full bg-gray-50 border-2 border-gray-200 text-[15.5px] font-normal text-black px-5 py-3.5 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-[#1E6C02]/20 focus:border-[#1E6C02] placeholder-gray-500 transition-all duration-200" />
+                  </div>
+                </div>
+
+                <div class="space-y-3">
+                  <label class="setting-form-label text-[15.5px] font-medium text-black tracking-normal block">Facebook Page Link <span class="setting-helper-badge text-black font-normal">(Optional)</span></label>
+                  <input type="url" id="inp-facebook-link" value="${facebookLink}" placeholder="e.g. https://facebook.com/auroralocalrice" class="setting-input w-full bg-gray-50 border-2 border-gray-200 text-[15.5px] font-normal text-black px-5 py-3.5 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-[#1E6C02]/20 focus:border-[#1E6C02] placeholder-gray-500 transition-all duration-200" />
+                </div>
+
+                <div class="space-y-3">
+                  <label class="setting-form-label text-[15.5px] font-medium text-black tracking-normal block">Physical Store / Supplier Address</label>
+                  <textarea id="inp-store-address" rows="3" class="setting-input w-full bg-gray-50 border-2 border-gray-200 text-[15.5px] font-normal text-black p-4 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-[#1E6C02]/20 focus:border-[#1E6C02] placeholder-gray-500 transition-all duration-200">${storeAddress}</textarea>
+                </div>
+              </div>
+
+              <!-- Contact Save Row -->
+              <div class="pt-6 border-t border-gray-200 flex items-center justify-between">
+                <button id="btn-save-contact" class="px-6 py-3.5 bg-[#1E6C02] hover:bg-[#145001] active:scale-[0.98] text-white font-semibold text-[14.5px] rounded-xl cursor-pointer shadow-md inline-flex items-center justify-center gap-2.5 transition-all hover:scale-[1.01] border border-transparent select-none w-full sm:w-auto">
+                  💾 Save Changes
+                </button>
+              </div>
+            </div>
+
+            <!-- GCash Payment Information Section -->
+            <div class="bg-white rounded-3xl border border-gray-200 shadow-sm p-8 sm:p-10 space-y-8">
+              <div class="pb-6 border-b border-gray-200">
+                <h3 class="setting-section-title text-lg font-semibold text-black tracking-tight">GCash Payment Information</h3>
+                <p class="setting-desc text-[15px] text-black font-normal mt-1 leading-relaxed">Configure beneficiary account match name, mobile wallet number, and QR checkout badge.</p>
+              </div>
+
+              <div class="space-y-6 text-black">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div class="space-y-3">
+                    <label class="setting-form-label text-[15.5px] font-medium text-black tracking-normal block">GCash Beneficiary Match Name</label>
+                    <input type="text" id="inp-gcash-name" value="${gcashName}" class="setting-input w-full bg-gray-50 border-2 border-gray-200 text-[15.5px] font-normal text-black px-5 py-3.5 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-[#1E6C02]/20 focus:border-[#1E6C02] placeholder-gray-500 transition-all duration-200" />
+                  </div>
+                  <div class="space-y-3">
+                    <label class="setting-form-label text-[15.5px] font-medium text-black tracking-normal block">Registered GCash Number</label>
+                    <input type="text" id="inp-gcash-phone" value="${gcashNumber}" class="setting-input w-full bg-gray-50 border-2 border-gray-200 text-[15.5px] font-normal text-black px-5 py-3.5 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-[#1E6C02]/20 focus:border-[#1E6C02] placeholder-gray-500 transition-all duration-200" />
+                  </div>
+                </div>
+
+                <!-- QR Upload -->
+                <div class="space-y-3">
+                  <label class="setting-form-label text-[15.5px] font-medium text-black tracking-normal block">GCash Merchant QR Code Badge</label>
+                  <div class="flex flex-col sm:flex-row items-center gap-6 p-6 border-2 border-gray-200 rounded-2xl bg-gray-50/50">
+                    <div class="w-28 h-28 bg-white border border-gray-200 rounded-2xl overflow-hidden flex items-center justify-center p-2 shrink-0 shadow-sm">
+                      <img id="img-gcash-qr" src="${gcashQrBase64 || fallbackQrSvg}" alt="GCash QR Code" class="w-full h-full object-contain" />
+                    </div>
+                    <div class="text-center sm:text-left space-y-3">
+                      <input type="file" id="inp-gcash-qr-file" class="hidden" accept="image/png, image/jpeg, image/webp" />
+                      <div class="flex flex-wrap gap-3.5 justify-center sm:justify-start">
+                        <button type="button" id="btn-upload-gcash" class="px-4 py-2.5 bg-white hover:bg-green-50/50 border border-[#1E6C02] text-[#1E6C02] active:scale-[0.98] font-semibold text-[13.5px] rounded-xl cursor-pointer shadow-xs inline-flex items-center justify-center gap-2 transition-all hover:scale-[1.01] select-none">
+                          📤 Upload GCash QR
+                        </button>
+                        ${gcashQrBase64 ? `
+                          <button type="button" id="btn-reset-gcash" class="px-4 py-2.5 bg-red-50 hover:bg-red-100 text-[#B91C1C] font-semibold text-[13.5px] rounded-xl transition-all cursor-pointer border border-red-200">
+                            ❌ Remove QR Code
+                          </button>
+                        ` : ''}
+                      </div>
+                      <p class="setting-helper-text text-[13.5px] text-black font-normal leading-normal">Loads a dedicated merchant QR code. Acceptable: JPG, PNG, WEBP. Max size 5 MB.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- GCash Save Row -->
+              <div class="pt-6 border-t border-gray-200 flex items-center justify-between">
+                <button id="btn-save-gcash" class="px-6 py-3.5 bg-[#1E6C02] hover:bg-[#145001] active:scale-[0.98] text-white font-semibold text-[14.5px] rounded-xl cursor-pointer shadow-md inline-flex items-center justify-center gap-2.5 transition-all hover:scale-[1.01] border border-transparent select-none w-full sm:w-auto">
+                  💾 Save Changes
+                </button>
+              </div>
+            </div>
+
+            <!-- Minimum Delivery Quantity Section -->
+            <div class="bg-white rounded-3xl border border-gray-200 shadow-sm p-8 sm:p-10 space-y-8">
+              <div class="pb-6 border-b border-gray-200 flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+                <div>
+                  <div class="flex items-center gap-3 flex-wrap">
+                    <h3 class="setting-section-title text-lg font-semibold text-black tracking-tight">Minimum Delivery Quantity</h3>
+                    <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-900 border border-amber-300">Provisional Policy</span>
+                  </div>
+                  <p class="setting-desc text-[15px] text-black font-normal mt-1 leading-relaxed">
+                    Configure default and location-specific minimum order quantities (in sacks) for delivery orders. Pickup orders have no delivery minimum and bypass this check.
+                  </p>
+                </div>
+              </div>
+
+              <!-- Provisional Policy Disclaimer Banner -->
+              <div class="p-4 rounded-2xl bg-amber-50/80 border border-amber-200 text-xs text-amber-950 space-y-1">
+                <div class="flex items-center gap-2 font-bold text-sm text-amber-900">
+                  <span>ℹ️</span>
+                  <span>Provisional Capstone Implementation Notice</span>
+                </div>
+                <p class="leading-relaxed font-normal">
+                  These minimum delivery thresholds and location classifications are provisional implementation assumptions pending final business confirmation. Values and location rules can be reconfigured or customized anytime by authorized admins without modifying code.
+                </p>
+              </div>
+
+              <!-- Base Minimums Configuration -->
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-black">
+                <div class="space-y-2">
+                  <label class="setting-form-label text-[15px] font-semibold text-black block">
+                    Default Delivery Minimum (Sacks)
+                  </label>
+                  <input
+                    type="number"
+                    id="inp-default-min-sacks"
+                    min="0"
+                    step="1"
+                    value="${deliveryMinimumSettings.defaultMinimumSacks}"
+                    class="setting-input w-full bg-gray-50 border-2 border-gray-200 text-[15.5px] font-normal text-black px-5 py-3.5 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-[#1E6C02]/20 focus:border-[#1E6C02] transition-all"
+                  />
+                  <p class="text-xs text-gray-700">Applied to nearby or unconfigured delivery locations (initially 20 sacks, including Pagadian and local municipalities).</p>
+                </div>
+
+                <div class="space-y-2">
+                  <label class="setting-form-label text-[15px] font-semibold text-black block">
+                    Far-Location Delivery Minimum (Sacks)
+                  </label>
+                  <input
+                    type="number"
+                    id="inp-far-min-sacks"
+                    min="0"
+                    step="1"
+                    value="${deliveryMinimumSettings.farLocationMinimumSacks}"
+                    class="setting-input w-full bg-gray-50 border-2 border-gray-200 text-[15.5px] font-normal text-black px-5 py-3.5 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-[#1E6C02]/20 focus:border-[#1E6C02] transition-all"
+                  />
+                  <p class="text-xs text-gray-700">Applied only to locations explicitly designated below as Far Delivery Areas (initially 350 sacks).</p>
+                </div>
+              </div>
+
+              <!-- Location Rules Table & Add Form -->
+              <div class="space-y-4 pt-4 border-t border-gray-200">
+                <div class="flex items-center justify-between flex-wrap gap-2">
+                  <div>
+                    <h4 class="text-base font-bold text-black">Configured Location Rules</h4>
+                    <p class="text-xs text-gray-700">Manage custom delivery minimums and far-delivery area designations by city, municipality, province, or custom locality name.</p>
+                  </div>
+                </div>
+
+                <!-- Rules List Table -->
+                <div class="overflow-x-auto border border-gray-200 rounded-2xl">
+                  <table class="w-full text-left text-sm border-collapse min-w-[560px]">
+                    <thead>
+                      <tr class="bg-gray-50/90 border-b border-gray-200 text-xs font-bold uppercase text-gray-700">
+                        <th class="py-3 px-4">Location Name</th>
+                        <th class="py-3 px-3">Type</th>
+                        <th class="py-3 px-3 text-center">Far-Delivery Area?</th>
+                        <th class="py-3 px-4 text-center">Minimum (Sacks)</th>
+                        <th class="py-3 px-3 text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody id="tbody-location-rules" class="divide-y divide-gray-100">
+                      <!-- Dynamically rendered -->
+                    </tbody>
+                  </table>
+                </div>
+
+                <!-- Add New Location Rule Sub-Card -->
+                <div class="p-5 rounded-2xl bg-gray-50/80 border border-gray-200 space-y-4">
+                  <h5 class="text-sm font-bold text-black flex items-center gap-1.5">
+                    <span>➕</span> Add Location Minimum Rule
+                  </h5>
+                  <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 text-black text-sm">
+                    <div class="space-y-1">
+                      <label class="text-xs font-bold text-gray-700">Location Name</label>
+                      <input
+                        type="text"
+                        id="inp-new-rule-name"
+                        placeholder="e.g. Molave or Dipolog"
+                        class="w-full bg-white border border-gray-300 rounded-xl px-3 py-2 text-sm text-black outline-none focus:border-[#1E6C02]"
+                      />
+                    </div>
+                    <div class="space-y-1">
+                      <label class="text-xs font-bold text-gray-700">Location Type</label>
+                      <select
+                        id="sel-new-rule-type"
+                        class="w-full bg-white border border-gray-300 rounded-xl px-3 py-2 text-sm text-black outline-none focus:border-[#1E6C02]"
+                      >
+                        <option value="city">City / Municipality</option>
+                        <option value="province">Province</option>
+                        <option value="custom">Custom Area / Label</option>
+                      </select>
+                    </div>
+                    <div class="space-y-1">
+                      <label class="text-xs font-bold text-gray-700">Minimum Sacks</label>
+                      <input
+                        type="number"
+                        id="inp-new-rule-min"
+                        min="0"
+                        step="1"
+                        value="${deliveryMinimumSettings.defaultMinimumSacks || 20}"
+                        class="w-full bg-white border border-gray-300 rounded-xl px-3 py-2 text-sm text-black outline-none focus:border-[#1E6C02]"
+                      />
+                    </div>
+                    <div class="flex flex-col justify-end">
+                      <label class="inline-flex items-center gap-2 cursor-pointer text-xs font-bold text-gray-800 pb-2">
+                        <input type="checkbox" id="chk-new-rule-far" class="w-4 h-4 accent-[#1E6C02] rounded" />
+                        <span>Far Delivery Area</span>
+                      </label>
+                      <button
+                        type="button"
+                        id="btn-add-location-rule"
+                        class="px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-xs font-bold cursor-pointer transition-all shadow-xs"
+                      >
+                        Add Rule
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Save Row -->
+              <div class="pt-6 border-t border-gray-200 flex items-center justify-between">
+                <button
+                  id="btn-save-delivery-minimum"
+                  class="px-6 py-3.5 bg-[#1E6C02] hover:bg-[#145001] active:scale-[0.98] text-white font-semibold text-[14.5px] rounded-xl cursor-pointer shadow-md inline-flex items-center justify-center gap-2.5 transition-all hover:scale-[1.01] border border-transparent select-none w-full sm:w-auto"
+                >
+                  💾 Save Delivery Minimum Settings
+                </button>
+              </div>
+            </div>
+
+            <!-- Change Password Card -->
+            <div class="bg-white rounded-3xl border border-gray-200 shadow-sm p-8 sm:p-10 space-y-8">
+              <div class="pb-6 border-b border-gray-200">
+                <h3 class="setting-section-title text-lg font-semibold text-black tracking-tight">Change Password</h3>
+                <p class="setting-desc text-[15px] text-black font-normal mt-1 leading-relaxed">Update administrative credentials and key passphrases for this management portal.</p>
+              </div>
+              
+              <div class="space-y-6 max-w-lg text-black">
+                <div class="space-y-3">
+                  <label class="setting-form-label text-[15.5px] font-medium text-black tracking-normal block">Current Password</label>
+                  <input type="password" id="inp-pass-current" placeholder="Enter current password" class="setting-input w-full bg-gray-50 border-2 border-gray-200 text-[15.5px] font-normal text-black px-5 py-3.5 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-[#1E6C02]/20 focus:border-[#1E6C02] placeholder-gray-500 transition-all duration-200" />
+                </div>
+
+                <div class="space-y-3">
+                  <label class="setting-form-label text-[15.5px] font-medium text-black tracking-normal block">New Password</label>
+                  <input type="password" id="inp-pass-new" placeholder="Enter new password" class="setting-input w-full bg-gray-50 border-2 border-gray-200 text-[15.5px] font-normal text-black px-5 py-3.5 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-[#1E6C02]/20 focus:border-[#1E6C02] placeholder-gray-500 transition-all duration-200" />
+                </div>
+
+                <div class="space-y-3">
+                  <label class="setting-form-label text-[15.5px] font-medium text-black tracking-normal block">Confirm New Password</label>
+                  <input type="password" id="inp-pass-confirm" placeholder="Confirm new password" class="setting-input w-full bg-gray-50 border-2 border-gray-200 text-[15.5px] font-normal text-black px-5 py-3.5 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-[#1E6C02]/20 focus:border-[#1E6C02] placeholder-gray-500 transition-all duration-200" />
+                </div>
+
+                <div class="pt-2">
+                  <button id="btn-change-password" class="px-6 py-3.5 bg-[#1E6C02] hover:bg-[#145001] active:scale-[0.98] text-white font-semibold text-[14.5px] rounded-xl cursor-pointer shadow-md inline-flex items-center justify-center gap-2.5 transition-all hover:scale-[1.01] border border-transparent select-none w-full sm:w-auto">
+                    Change Password
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+
+        // Attach events
+        bindSettingsActions();
+      }
+
+      function bindSettingsActions() {
+        // Render current location rules
+        renderLocationRulesRows();
+
+        // Sync inputs on change
+        const inpDefMinEl = document.getElementById('inp-default-min-sacks');
+        if (inpDefMinEl) {
+          inpDefMinEl.addEventListener('input', (e) => {
+            const v = parseInt(e.target.value, 10);
+            if (!isNaN(v) && v >= 0) deliveryMinimumSettings.defaultMinimumSacks = v;
+          });
+        }
+
+        const inpFarMinEl = document.getElementById('inp-far-min-sacks');
+        if (inpFarMinEl) {
+          inpFarMinEl.addEventListener('input', (e) => {
+            const v = parseInt(e.target.value, 10);
+            if (!isNaN(v) && v >= 0) deliveryMinimumSettings.farLocationMinimumSacks = v;
+          });
+        }
+
+        // Logo upload handlers
+        document.getElementById('btn-upload-logo').addEventListener('click', () => {
+          document.getElementById('inp-store-logo-file').click();
+        });
+
+        document.getElementById('inp-store-logo-file').addEventListener('change', (e) => {
+          const file = e.target.files[0];
+          if (!file) return;
+
+          const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+          if (!allowedTypes.includes(file.type)) {
+            showToast('Invalid file format! Please upload JPG, PNG, or WEBP.', 'error');
+            return;
+          }
+
+          if (file.size > 5 * 1024 * 1024) {
+            showToast('Logo file size exceeds the 5MB limit!', 'error');
+            return;
+          }
+
+          selectedLogoFile = file;
+          try {
+            logoBase64 = URL.createObjectURL(file);
+          } catch (err) {
+            const reader = new FileReader();
+            reader.onload = (evt) => { logoBase64 = evt.target.result; };
+            reader.readAsDataURL(file);
+          }
+          const logoImg = document.getElementById('img-logo-current');
+          if (logoImg) logoImg.src = logoBase64;
+          showToast('Store logo selected. Click "Save Changes" to apply.', 'success');
+        });
+
+        // Banner upload handlers
+        document.getElementById('btn-upload-banner').addEventListener('click', () => {
+          document.getElementById('inp-store-banner-file').click();
+        });
+
+        document.getElementById('inp-store-banner-file').addEventListener('change', (e) => {
+          const file = e.target.files[0];
+          if (!file) return;
+
+          const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+          if (!allowedTypes.includes(file.type)) {
+            showToast('Invalid file format! Please upload JPG, PNG, or WEBP.', 'error');
+            return;
+          }
+
+          if (file.size > 10 * 1024 * 1024) {
+            showToast('Banner file size exceeds the 10MB limit!', 'error');
+            return;
+          }
+
+          selectedBannerFile = file;
+          try {
+            bannerBase64 = URL.createObjectURL(file);
+          } catch (err) {
+            const reader = new FileReader();
+            reader.onload = (evt) => { bannerBase64 = evt.target.result; };
+            reader.readAsDataURL(file);
+          }
+          const bannerImg = document.getElementById('img-banner-current');
+          if (bannerImg) bannerImg.src = bannerBase64;
+          showToast('Hero banner selected. Click "Save Changes" to apply.', 'success');
+        });
+
+        // GCash QR upload handlers
+        document.getElementById('btn-upload-gcash').addEventListener('click', () => {
+          document.getElementById('inp-gcash-qr-file').click();
+        });
+
+        document.getElementById('inp-gcash-qr-file').addEventListener('change', (e) => {
+          const file = e.target.files[0];
+          if (!file) return;
+
+          const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+          if (!allowedTypes.includes(file.type)) {
+            showToast('Invalid file format! Please upload JPG, PNG, or WEBP.', 'error');
+            return;
+          }
+
+          if (file.size > 5 * 1024 * 1024) {
+            showToast('QR Code file size exceeds the 5MB limit!', 'error');
+            return;
+          }
+
+          selectedGcashQrFile = file;
+          try {
+            gcashQrBase64 = URL.createObjectURL(file);
+          } catch (err) {
+            const reader = new FileReader();
+            reader.onload = (evt) => { gcashQrBase64 = evt.target.result; };
+            reader.readAsDataURL(file);
+          }
+          const qrImg = document.getElementById('img-gcash-qr');
+          if (qrImg) qrImg.src = gcashQrBase64;
+          showToast('GCash QR selected. Click "Save Changes" to apply.', 'success');
+          saveCurrentInputStates();
+          renderSettingsPanel();
+        });
+
+        // Reset GCash QR Code (falls back to placeholder)
+        const btnResetGcash = document.getElementById('btn-reset-gcash');
+        if (btnResetGcash) {
+          btnResetGcash.addEventListener('click', () => {
+            selectedGcashQrFile = null;
+            gcashQrBase64 = '';
+            document.getElementById('img-gcash-qr').src = fallbackQrSvg;
+            showToast('GCash QR cleared successfully!');
+            saveCurrentInputStates();
+            renderSettingsPanel();
+          });
+        }
+
+        // Action 1: Save Storefront Customization
+        const btnSaveStorefront = document.getElementById('btn-save-storefront');
+        if (btnSaveStorefront) {
+          btnSaveStorefront.addEventListener('click', () => {
+            const sName = document.getElementById('inp-store-name').value.trim();
+            const sDesc = document.getElementById('inp-store-desc').value.trim();
+
+            if (!sName) {
+              showToast('Store Brand Name is required!', 'error');
+              return;
+            }
+
+            showConfirmationModal({
+              title: 'Save Changes',
+              message: 'Are you sure you want to save these changes?<br><br>These updates will immediately be uploaded to Firebase Storage and applied to the storefront.',
+              cancelText: 'No, Cancel',
+              confirmText: 'Yes, Save Changes',
+              onConfirm: async () => {
+                const btnConfirm = document.getElementById('btn-confirm-modal');
+                if (btnConfirm) {
+                  btnConfirm.disabled = true;
+                  btnConfirm.textContent = 'Uploading...';
+                }
+
+                try {
+                  // Upload Logo to Firebase Storage if newly selected
+                  if (selectedLogoFile) {
+                    const timestamp = Date.now();
+                    const rand = Math.random().toString(36).substring(2, 9);
+                    const ext = (selectedLogoFile.name.split('.').pop() || 'png').toLowerCase();
+                    const safeName = selectedLogoFile.name.replace(/\.[^/.]+$/, '').replace(/[^a-zA-Z0-9_-]/g, '_').substring(0, 30);
+                    const storagePath = `store_branding/logo_${timestamp}_${rand}_${safeName}.${ext}`;
+                    const imgRef = storageRef(storage, storagePath);
+                    const uploadSnap = await uploadBytes(imgRef, selectedLogoFile, {
+                      contentType: selectedLogoFile.type || 'image/png',
+                      customMetadata: {
+                        originalName: selectedLogoFile.name,
+                        uploadedAt: new Date().toISOString(),
+                        type: 'store_logo'
+                      }
+                    });
+                    logoBase64 = await getDownloadURL(uploadSnap.ref);
+                    selectedLogoFile = null;
+                  }
+
+                  // Upload Banner to Firebase Storage if newly selected
+                  if (selectedBannerFile) {
+                    const timestamp = Date.now();
+                    const rand = Math.random().toString(36).substring(2, 9);
+                    const ext = (selectedBannerFile.name.split('.').pop() || 'jpg').toLowerCase();
+                    const safeName = selectedBannerFile.name.replace(/\.[^/.]+$/, '').replace(/[^a-zA-Z0-9_-]/g, '_').substring(0, 30);
+                    const storagePath = `store_branding/banner_${timestamp}_${rand}_${safeName}.${ext}`;
+                    const imgRef = storageRef(storage, storagePath);
+                    const uploadSnap = await uploadBytes(imgRef, selectedBannerFile, {
+                      contentType: selectedBannerFile.type || 'image/jpeg',
+                      customMetadata: {
+                        originalName: selectedBannerFile.name,
+                        uploadedAt: new Date().toISOString(),
+                        type: 'store_banner'
+                      }
+                    });
+                    bannerBase64 = await getDownloadURL(uploadSnap.ref);
+                    selectedBannerFile = null;
+                  }
+
+                  // Save to localStorage
+                  localStorage.setItem('settings-store-name', sName);
+                  localStorage.setItem('settings-store-description', sDesc);
+                  localStorage.setItem('settings-store-logo', logoBase64);
+                  localStorage.setItem('settings-store-banner', bannerBase64);
+
+                  storeName = sName;
+                  description = sDesc;
+
+                  // Update Firestore document storeSettings/main
+                  const currentSettings = getStoreSettings();
+                  currentSettings.storeName = sName;
+                  currentSettings.description = sDesc;
+                  currentSettings.logo = logoBase64;
+                  currentSettings.banner = bannerBase64;
+
+                  await saveFirestoreDoc('storeSettings', 'main', currentSettings);
+                  localStorage.setItem('aurora-store-settings', JSON.stringify([currentSettings]));
+                  if (typeof window !== 'undefined') {
+                    window.dispatchEvent(new CustomEvent('aurora-sync-event', { detail: { key: 'aurora-store-settings' } }));
+                  }
+
+                  addActivityLog('System', 'Updated Storefront branding and images');
+                  showToast('Storefront updated and synced successfully.', 'success');
+
+                  // Re-render admin sidebar layout and panel
+                  renderAdminLayout('settings');
+                  renderSettingsPanel();
+                } catch (uploadErr) {
+                  console.error('[SETTINGS] Error uploading store assets:', uploadErr);
+                  showToast('Failed to upload store image to Firebase Storage: ' + (uploadErr.message || uploadErr), 'error');
+                } finally {
+                  if (btnConfirm) {
+                    btnConfirm.disabled = false;
+                    btnConfirm.textContent = 'Yes, Save Changes';
+                  }
+                }
+              }
+            });
+          });
+        }
+
+        // Action 2: Save Contact Information
+        const btnSaveContact = document.getElementById('btn-save-contact');
+        if (btnSaveContact) {
+          btnSaveContact.addEventListener('click', () => {
+            const sPhone = document.getElementById('inp-contact-phone').value.trim();
+            const sHours = document.getElementById('inp-business-hours').value.trim();
+            const sFb = document.getElementById('inp-facebook-link').value.trim();
+            const sAddr = document.getElementById('inp-store-address').value.trim();
+
+            if (!sPhone || !sAddr) {
+              showToast('Official Contact Point and Physical Store Address are required!', 'error');
+              return;
+            }
+
+            showConfirmationModal({
+              title: 'Save Changes',
+              message: 'Are you sure you want to save these changes?<br><br>These updates will immediately be applied to the storefront.',
+              cancelText: 'No, Cancel',
+              confirmText: 'Yes, Save Changes',
+              onConfirm: () => {
+                localStorage.setItem('settings-contact-number', sPhone);
+                localStorage.setItem('settings-business-hours', sHours);
+                localStorage.setItem('settings-facebook-link', sFb);
+                localStorage.setItem('settings-store-address', sAddr);
+
+                contactNumber = sPhone;
+                businessHours = sHours;
+                facebookLink = sFb;
+                storeAddress = sAddr;
+
+                addActivityLog('System', 'Updated storefront contact details and address');
+                showToast('Contact information updated successfully.', 'success');
+
+                renderSettingsPanel();
+              }
+            });
+          });
+        }
+
+        // Action 3: Save GCash Payment Information
+        const btnSaveGcash = document.getElementById('btn-save-gcash');
+        if (btnSaveGcash) {
+          btnSaveGcash.addEventListener('click', () => {
+            const gName = document.getElementById('inp-gcash-name').value.trim();
+            const gPhone = document.getElementById('inp-gcash-phone').value.trim();
+
+            if (!gName || !gPhone) {
+              showToast('GCash Beneficiary Match Name and Registered GCash Number are required!', 'error');
+              return;
+            }
+
+            showConfirmationModal({
+              title: 'Save Changes',
+              message: 'Are you sure you want to save these changes?<br><br>These updates will immediately be uploaded to Firebase Storage and applied to the storefront.',
+              cancelText: 'No, Cancel',
+              confirmText: 'Yes, Save Changes',
+              onConfirm: async () => {
+                const btnConfirm = document.getElementById('btn-confirm-modal');
+                if (btnConfirm) {
+                  btnConfirm.disabled = true;
+                  btnConfirm.textContent = 'Uploading...';
+                }
+
+                try {
+                  // Upload GCash QR Code to Firebase Storage if newly selected
+                  if (selectedGcashQrFile) {
+                    const timestamp = Date.now();
+                    const rand = Math.random().toString(36).substring(2, 9);
+                    const ext = (selectedGcashQrFile.name.split('.').pop() || 'png').toLowerCase();
+                    const safeName = selectedGcashQrFile.name.replace(/\.[^/.]+$/, '').replace(/[^a-zA-Z0-9_-]/g, '_').substring(0, 30);
+                    const storagePath = `store_branding/gcash_qr_${timestamp}_${rand}_${safeName}.${ext}`;
+                    const imgRef = storageRef(storage, storagePath);
+                    const uploadSnap = await uploadBytes(imgRef, selectedGcashQrFile, {
+                      contentType: selectedGcashQrFile.type || 'image/png',
+                      customMetadata: {
+                        originalName: selectedGcashQrFile.name,
+                        uploadedAt: new Date().toISOString(),
+                        type: 'gcash_qr'
+                      }
+                    });
+                    gcashQrBase64 = await getDownloadURL(uploadSnap.ref);
+                    selectedGcashQrFile = null;
+                  }
+
+                  localStorage.setItem('settings-gcash-name', gName);
+                  localStorage.setItem('settings-gcash-number', gPhone);
+                  localStorage.setItem('settings-gcash-qr', gcashQrBase64);
+
+                  gcashName = gName;
+                  gcashNumber = gPhone;
+
+                  const currentSettings = getStoreSettings();
+                  currentSettings.gcashName = gName;
+                  currentSettings.gcashNumber = gPhone;
+                  currentSettings.gcashQr = gcashQrBase64;
+
+                  await saveFirestoreDoc('storeSettings', 'main', currentSettings);
+                  localStorage.setItem('aurora-store-settings', JSON.stringify([currentSettings]));
+                  if (typeof window !== 'undefined') {
+                    window.dispatchEvent(new CustomEvent('aurora-sync-event', { detail: { key: 'settings-gcash' } }));
+                    window.dispatchEvent(new CustomEvent('aurora-sync-event', { detail: { key: 'aurora-store-settings' } }));
+                  }
+
+                  addActivityLog('System', 'Updated GCash payment configurations and QR');
+                  showToast('GCash payment information updated successfully.', 'success');
+
+                  renderSettingsPanel();
+                } catch (uploadErr) {
+                  console.error('[SETTINGS] Error uploading GCash QR code:', uploadErr);
+                  showToast('Failed to upload GCash QR to Firebase Storage: ' + (uploadErr.message || uploadErr), 'error');
+                } finally {
+                  if (btnConfirm) {
+                    btnConfirm.disabled = false;
+                    btnConfirm.textContent = 'Yes, Save Changes';
+                  }
+                }
+              }
+            });
+          });
+        }
+
+        // Action: Add Location Minimum Rule
+        const btnAddRule = document.getElementById('btn-add-location-rule');
+        if (btnAddRule) {
+          btnAddRule.addEventListener('click', () => {
+            const inpName = document.getElementById('inp-new-rule-name');
+            const selType = document.getElementById('sel-new-rule-type');
+            const inpMin = document.getElementById('inp-new-rule-min');
+            const chkFar = document.getElementById('chk-new-rule-far');
+
+            const name = inpName ? inpName.value.trim() : '';
+            if (!name) {
+              showToast('Please enter a location name (e.g. city, municipality, or province).', 'error');
+              if (inpName) inpName.focus();
+              return;
+            }
+
+            const type = selType ? selType.value : 'city';
+            const isFar = chkFar ? chkFar.checked : false;
+            let minSacks = inpMin ? parseInt(inpMin.value, 10) : 20;
+            if (isNaN(minSacks) || minSacks < 0) {
+              minSacks = isFar ? (deliveryMinimumSettings.farLocationMinimumSacks || 350) : (deliveryMinimumSettings.defaultMinimumSacks || 20);
+            }
+
+            if (!deliveryMinimumSettings.locationRules) {
+              deliveryMinimumSettings.locationRules = [];
+            }
+
+            const existingIdx = deliveryMinimumSettings.locationRules.findIndex(r => r.locationName && r.locationName.toLowerCase() === name.toLowerCase());
+            if (existingIdx >= 0) {
+              deliveryMinimumSettings.locationRules[existingIdx] = {
+                id: deliveryMinimumSettings.locationRules[existingIdx].id || `rule-${Date.now()}`,
+                locationName: name,
+                locationType: type,
+                isFarLocation: isFar,
+                minimumSacks: minSacks
+              };
+              showToast(`Updated existing rule for "${name}". Click "Save Delivery Minimum Settings" to apply.`, 'info');
+            } else {
+              deliveryMinimumSettings.locationRules.push({
+                id: `rule-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+                locationName: name,
+                locationType: type,
+                isFarLocation: isFar,
+                minimumSacks: minSacks
+              });
+              showToast(`Added rule for "${name}". Click "Save Delivery Minimum Settings" to apply.`, 'success');
+            }
+
+            if (inpName) inpName.value = '';
+            if (inpMin) inpMin.value = deliveryMinimumSettings.defaultMinimumSacks || 20;
+            if (chkFar) chkFar.checked = false;
+
+            renderLocationRulesRows();
+          });
+        }
+
+        // Action: Save Delivery Minimum Settings
+        const btnSaveDeliveryMin = document.getElementById('btn-save-delivery-minimum');
+        if (btnSaveDeliveryMin) {
+          btnSaveDeliveryMin.addEventListener('click', () => {
+            saveCurrentInputStates();
+
+            const defMin = deliveryMinimumSettings.defaultMinimumSacks;
+            const farMin = deliveryMinimumSettings.farLocationMinimumSacks;
+
+            if (isNaN(defMin) || defMin < 0) {
+              showToast('Default delivery minimum must be a non-negative number of sacks.', 'error');
+              return;
+            }
+            if (isNaN(farMin) || farMin < 0) {
+              showToast('Far-location delivery minimum must be a non-negative number of sacks.', 'error');
+              return;
+            }
+
+            showConfirmationModal({
+              title: 'Save Delivery Minimum Settings',
+              message: `Are you sure you want to update the delivery minimum settings?<br><br>
+                <div class="text-left bg-gray-50 p-3 rounded-xl border border-gray-200 text-xs text-gray-700 space-y-1 mt-2">
+                  <div><strong>Default Minimum:</strong> ${defMin} sacks</div>
+                  <div><strong>Far-Location Minimum:</strong> ${farMin} sacks</div>
+                  <div><strong>Configured Location Rules:</strong> ${(deliveryMinimumSettings.locationRules || []).length} rule(s)</div>
+                </div>
+                <br>These thresholds will immediately apply to customer delivery orders.`,
+              cancelText: 'No, Cancel',
+              confirmText: 'Yes, Save Changes',
+              onConfirm: async () => {
+                try {
+                  const currentSettings = getStoreSettings();
+                  currentSettings.deliveryMinimumSettings = JSON.parse(JSON.stringify(deliveryMinimumSettings));
+
+                  await saveFirestoreDoc('storeSettings', 'main', currentSettings);
+                  localStorage.setItem('aurora-store-settings', JSON.stringify([currentSettings]));
+                  if (typeof window !== 'undefined') {
+                    window.dispatchEvent(new CustomEvent('aurora-sync-event', { detail: { key: 'delivery-minimum-settings' } }));
+                    window.dispatchEvent(new CustomEvent('aurora-sync-event', { detail: { key: 'aurora-store-settings' } }));
+                  }
+
+                  addActivityLog('System', `Updated Delivery Minimum Settings: Default ${defMin} sacks, Far ${farMin} sacks, ${(deliveryMinimumSettings.locationRules || []).length} rule(s)`);
+                  showToast('Delivery minimum settings saved and synchronized successfully.', 'success');
+                  renderSettingsPanel();
+                } catch (err) {
+                  console.error('[SETTINGS] Error saving delivery minimum settings:', err);
+                  showToast('Failed to save delivery minimum settings: ' + (err.message || err), 'error');
+                }
+              }
+            });
+          });
+        }
+
+        // Action 4: Change Password
+        const btnChangePassword = document.getElementById('btn-change-password');
+        if (btnChangePassword) {
+          btnChangePassword.addEventListener('click', () => {
+            const cur = document.getElementById('inp-pass-current').value;
+            const nPass = document.getElementById('inp-pass-new').value;
+            const conf = document.getElementById('inp-pass-confirm').value;
+
+            if (!cur || !nPass || !conf) {
+              showToast('Kindly fill all parameters!', 'error');
+              return;
+            }
+
+            if (nPass !== conf) {
+              showToast('Passwords do not match!', 'error');
+              return;
+            }
+
+            if (nPass.length < 3) {
+              showToast('Password is too short!', 'error');
+              return;
+            }
+
+            showConfirmationModal({
+              title: 'Change Password',
+              message: 'Are you sure you want to update your administrator password?<br><br>You will need to use your new password the next time you log in.',
+              cancelText: 'No',
+              confirmText: 'Yes, Change Password',
+              onConfirm: async () => {
+                try {
+                  if (auth && auth.currentUser) {
+                    await updatePassword(auth.currentUser, nPass);
+                  }
+                  addActivityLog('Authentication', 'Changed administrative login credentials key');
+                  showToast('Password changed successfully in Firebase Authentication.', 'success');
+
+                  document.getElementById('inp-pass-current').value = '';
+                  document.getElementById('inp-pass-new').value = '';
+                  document.getElementById('inp-pass-confirm').value = '';
+                } catch (err) {
+                  console.error('[SETTINGS] Password change error:', err);
+                  if (err.code === 'auth/requires-recent-login') {
+                    showToast('For security reasons, please log out and log back in before updating your password.', 'error');
+                  } else {
+                    showToast(err.message || 'Failed to update password.', 'error');
+                  }
+                }
+              }
+            });
+          });
+        }
+      }
+
+      // Initial loading render Settings Panel
+      renderSettingsPanel();
+    });
+  </script>
+</body>
+</html>

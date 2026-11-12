@@ -8,7 +8,7 @@
     (function() {
       try {
         var d = document.documentElement;
-        var isDark = localStorage.getItem('aurora-dark-mode') === 'true';
+        var isDark = false; // RiceFlow uses Light Mode only.
         d.classList.toggle('dark', isDark);
         d.style.colorScheme = isDark ? 'dark' : 'light';
       } catch (e) {}

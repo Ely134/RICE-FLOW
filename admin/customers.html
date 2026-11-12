@@ -8,34 +8,14 @@
     (function() {
       try {
         var d = document.documentElement;
-        var isDark = localStorage.getItem('aurora-dark-mode') === 'true';
-        d.classList.toggle('dark', isDark);
-        d.style.colorScheme = isDark ? 'dark' : 'light';
+        d.classList.remove('dark');
+        d.style.colorScheme = 'light';
+        if (typeof localStorage !== 'undefined') { try { localStorage.removeItem('aurora-dark-mode'); } catch(_) {} }
       } catch (e) {}
     })();
   </script>
   <style id="riceflow-theme-init">
     html { background-color: #F5F5F5; color-scheme: light; }
-    html.dark { background-color: #1F2937 !important; color-scheme: dark; }
-    html.dark body,
-    html.dark #admin-layout-container,
-    html.dark #admin-main-content {
-      background-color: #1F2937;
-      color: #F9FAFB;
-    }
-    html.dark #auth-guard-loader {
-      background-color: #1F2937 !important;
-      color: #F9FAFB !important;
-    }
-    html.dark #admin-sidebar,
-    html.dark aside,
-    html.dark header,
-    html.dark .bg-white,
-    html.dark .bg-gray-50,
-    html.dark .bg-slate-50 {
-      background-color: #111827;
-      color: #F9FAFB;
-    }
   </style>
   <link rel="stylesheet" href="../src/styles/index.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -330,6 +310,93 @@
     }
   </style>
   <style id="auth-guard-style">body { visibility: hidden !important; }</style>
+
+<style id="admin-customers-mobile-card-layout">
+/* Keep the existing customer ledger on desktop; render each record as a card on mobile. */
+#customers-table-container { width:100%; min-width:0; max-width:100%; }
+#customers-table-container .customer-email-cell {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+#customers-table-container .customer-name-cell {
+  overflow-wrap: break-word;
+  word-break: normal;
+}
+@media (max-width:479px) {
+  #admin-main-content {
+    padding: 1rem !important;
+  }
+}
+@media (max-width:767px) {
+  #customers-table-container { overflow:visible !important; border:0 !important; background:transparent !important; }
+  #customers-table-container > table {
+    display:block !important; width:100% !important; min-width:0 !important; max-width:100% !important;
+    table-layout:auto !important; border-collapse:separate !important; border-spacing:0 !important;
+  }
+  #customers-table-container > table > thead { display:none !important; }
+  #customers-table-container > table > tbody { display:grid !important; width:100% !important; gap:12px !important; border:0 !important; }
+  #customers-table-container > table > tbody > tr:not(:has(td[colspan])) {
+    display:block !important; width:100% !important; min-width:0 !important; overflow:hidden !important;
+    background:#fff !important; border:1px solid #e5e7eb !important; border-radius:14px !important;
+    box-shadow:0 1px 3px rgba(15,23,42,.05) !important;
+  }
+  #customers-table-container > table > tbody > tr > td {
+    display:grid !important; grid-template-columns:minmax(84px, 34%) minmax(0, 1fr) !important;
+    align-items:start !important; gap:8px 10px !important; width:100% !important; min-width:0 !important;
+    max-width:100% !important; box-sizing:border-box !important; padding:10px 12px !important;
+    border:0 !important; border-bottom:1px solid #eef0f2 !important; text-align:left !important;
+    white-space:normal !important; overflow-wrap:break-word !important; word-break:normal !important; line-height:1.4 !important;
+  }
+  #customers-table-container > table > tbody > tr > td:last-child { border-bottom:0 !important; }
+  #customers-table-container > table > tbody > tr > td::before {
+    content:attr(data-label); display:block !important; min-width:0 !important; color:#64748b !important;
+    font-size:11px !important; line-height:1.35 !important; font-weight:700 !important;
+    letter-spacing:.04em !important; text-transform:uppercase !important; overflow-wrap:normal !important; word-break:normal !important;
+  }
+  #customers-table-container .customer-index-cell {
+    display:flex !important; justify-content:space-between !important; align-items:center !important;
+    background:#f8fafc !important; color:#166534 !important; font-weight:700 !important;
+  }
+  #customers-table-container .customer-index-cell::before { content:"Customer No." !important; margin-right:10px !important; }
+  #customers-table-container .customer-name-cell,
+  #customers-table-container .customer-phone-cell,
+  #customers-table-container .customer-spent-cell,
+  #customers-table-container > table > tbody > tr > td[data-label="Status"] {
+    white-space:normal !important; overflow-wrap:break-word !important; word-break:normal !important; min-width:0 !important;
+  }
+  #customers-table-container .customer-email-cell {
+    white-space:normal !important; overflow-wrap:anywhere !important; word-break:break-word !important; min-width:0 !important;
+  }
+  #customers-table-container > table > tbody > tr > td[data-label="Actions"] {
+    display:flex !important; flex-wrap:wrap !important; justify-content:space-between !important; align-items:center !important;
+    gap:8px !important; min-height:48px !important; background:#fbfdfb !important;
+  }
+  #customers-table-container > table > tbody > tr > td[data-label="Actions"]::before { margin-right:auto !important; }
+  #customers-table-container > table > tbody > tr:has(td[colspan]) {
+    display:block !important; width:100% !important; border:1px solid #e5e7eb !important;
+    border-radius:12px !important; background:#fff !important;
+  }
+  #customers-table-container > table > tbody > tr:has(td[colspan]) > td {
+    display:block !important; width:100% !important; text-align:center !important; padding:20px 12px !important;
+  }
+  #customers-table-container > table > tbody > tr:has(td[colspan]) > td::before {
+    display:none !important; content:none !important;
+  }
+}
+/* Tablets retain the table with readable columns and contained horizontal scroll only when needed. */
+@media (min-width:768px) and (max-width:1199px) {
+  #customers-table-container { overflow-x:auto !important; overflow-y:hidden !important; -webkit-overflow-scrolling:touch; overscroll-behavior-x:contain; }
+  #customers-table-container > table { width:100% !important; min-width:960px !important; max-width:none !important; table-layout:fixed !important; }
+  #customers-table-container th,
+  #customers-table-container td { overflow-wrap:normal !important; word-break:normal !important; }
+  #customers-table-container .customer-name-cell { overflow-wrap:break-word !important; word-break:normal !important; }
+  #customers-table-container .customer-email-cell { overflow-wrap:anywhere !important; word-break:break-word !important; }
+}
+@media (min-width:1200px) {
+  #customers-table-container > table { max-width:none !important; }
+}
+</style>
+
 </head>
 <body class="bg-[#F5F5F5] min-h-screen">
   <div id="auth-guard-loader" class="fixed inset-0 bg-[#F5F5F5] z-[99999] flex flex-col items-center justify-center font-sans">
@@ -376,7 +443,7 @@
             </div>
             <div>
               <span class="font-medium block text-xs uppercase text-gray-700 dark:text-gray-300 mb-0.5 customer-detail-label">Email Address</span>
-              <span id="modal-info-email" class="font-normal text-black dark:text-white text-[15px]"></span>
+              <span id="modal-info-email" class="font-normal text-black dark:text-white text-[15px] break-all"></span>
             </div>
             <div>
               <span class="font-medium block text-xs uppercase text-gray-700 dark:text-gray-300 mb-0.5 customer-detail-label">Contact Number</span>
@@ -438,11 +505,11 @@
       </div>
 
       <!-- Modal Footer -->
-      <div class="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-800 mt-6 gap-3">
+      <div class="flex flex-wrap items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-800 mt-6 gap-3">
         <button id="btn-modal-archive-customer" class="px-5 py-2.5 rounded-xl text-xs font-semibold uppercase tracking-wider cursor-pointer transition-colors flex items-center gap-2">
           <!-- Populated dynamically -->
         </button>
-        <div class="flex items-center gap-3">
+        <div class="flex items-center gap-3 ml-auto">
           <button id="btn-customer-close-footer" class="px-6 py-2.5 bg-gray-900 hover:bg-black text-white dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-white rounded-xl text-xs font-semibold uppercase tracking-wider cursor-pointer transition-colors">
             Close
           </button>
@@ -577,9 +644,9 @@
           <div class="space-y-6 w-full">
             
             <!-- Top Toolbar -->
-            <div class="bg-white dark:bg-gray-900 rounded-2xl p-4 sm:p-6 border border-gray-200/80 dark:border-gray-800 shadow-xs flex flex-nowrap items-center justify-between gap-3 sm:gap-4 w-full overflow-x-auto">
+            <div class="bg-white dark:bg-gray-900 rounded-2xl p-3.5 sm:p-6 border border-gray-200/80 dark:border-gray-800 shadow-xs flex flex-col xl:flex-row xl:items-center xl:justify-between gap-3 sm:gap-4 w-full">
               <!-- 1. Search Bar -->
-              <div class="relative w-64 sm:w-72 shrink-0">
+              <div class="relative w-full xl:w-72 xl:shrink-0">
                 <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4.5 h-4.5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
                 </span>
@@ -593,9 +660,9 @@
               </div>
 
               <!-- Controls Toolbar Items 2-6 -->
-              <div class="flex items-center gap-2 sm:gap-2.5 lg:gap-3 shrink-0 flex-nowrap">
+              <div class="flex flex-wrap items-center gap-2 sm:gap-2.5 lg:gap-3 w-full xl:w-auto xl:justify-end">
                 <!-- 2. Time Filter -->
-                <select id="select-time-filter" class="px-3.5 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 font-semibold text-xs uppercase tracking-wider rounded-xl cursor-pointer focus:border-[#1E6C02] outline-none transition-colors shrink-0">
+                <select id="select-time-filter" class="px-3 sm:px-3.5 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 font-semibold text-xs uppercase tracking-wider rounded-xl cursor-pointer focus:border-[#1E6C02] outline-none transition-colors shrink-0">
                   <option value="all" ${timeFilter === 'all' ? 'selected' : ''}>All Time</option>
                   <option value="today" ${timeFilter === 'today' ? 'selected' : ''}>Today</option>
                   <option value="this-week" ${timeFilter === 'this-week' ? 'selected' : ''}>This Week</option>
@@ -604,25 +671,25 @@
                 </select>
 
                 <!-- 3. View Archived -->
-                <button id="btn-toggle-archived-clients" class="flex items-center gap-2 px-3.5 py-2.5 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-700 font-semibold text-xs uppercase tracking-wider rounded-xl cursor-pointer transition-colors whitespace-nowrap shrink-0">
+                <button id="btn-toggle-archived-clients" class="flex items-center justify-center gap-2 px-3 sm:px-3.5 py-2.5 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-700 font-semibold text-xs uppercase tracking-wider rounded-xl cursor-pointer transition-colors whitespace-nowrap shrink-0">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 text-gray-900 dark:text-gray-100"><polyline points="21 8 21 21 3 21 3 8"></polyline><rect x="1" y="3" width="22" height="5"></rect><line x1="10" y1="12" x2="14" y2="12"></line></svg>
                   ${showArchived ? 'View Active' : 'View Archived'}
                 </button>
 
                 <!-- 4. Export Excel -->
-                <button id="btn-export-excel" class="flex items-center gap-2 px-3.5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs uppercase tracking-wider rounded-xl cursor-pointer transition-colors whitespace-nowrap shrink-0">
+                <button id="btn-export-excel" class="flex items-center justify-center gap-2 px-3 sm:px-3.5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs uppercase tracking-wider rounded-xl cursor-pointer transition-colors whitespace-nowrap shrink-0">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="8" y1="13" x2="16" y2="13"></line><line x1="8" y1="17" x2="16" y2="17"></line></svg>
                   Export Excel
                 </button>
 
                 <!-- 5. Export CSV -->
-                <button id="btn-export-csv" class="flex items-center gap-2 px-3.5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs uppercase tracking-wider rounded-xl cursor-pointer transition-colors whitespace-nowrap shrink-0">
+                <button id="btn-export-csv" class="flex items-center justify-center gap-2 px-3 sm:px-3.5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs uppercase tracking-wider rounded-xl cursor-pointer transition-colors whitespace-nowrap shrink-0">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
                   Export CSV
                 </button>
 
                 <!-- 6. Export PDF -->
-                <button id="btn-export-pdf" class="flex items-center gap-2 px-3.5 py-2.5 bg-red-600 hover:bg-red-700 text-white font-semibold text-xs uppercase tracking-wider rounded-xl cursor-pointer transition-colors whitespace-nowrap shrink-0">
+                <button id="btn-export-pdf" class="flex items-center justify-center gap-2 px-3 sm:px-3.5 py-2.5 bg-red-600 hover:bg-red-700 text-white font-semibold text-xs uppercase tracking-wider rounded-xl cursor-pointer transition-colors whitespace-nowrap shrink-0">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><path d="M12 18v-6"></path><path d="m9 15 3 3 3-3"></path></svg>
                   Export PDF
                 </button>
@@ -630,7 +697,7 @@
             </div>
 
             <!-- Ledger Table Card -->
-            <div class="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200/80 dark:border-gray-800 p-4 sm:p-6 shadow-xs space-y-4 text-gray-900 dark:text-gray-100 w-full">
+            <div class="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200/80 dark:border-gray-800 p-3.5 sm:p-6 shadow-xs space-y-4 text-gray-900 dark:text-gray-100 w-full">
               <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 tracking-tight">
                 ${showArchived ? 'List of Archived Customers' : 'List of Customers'}
               </h3>
@@ -699,13 +766,13 @@
 
                         return `
                           <tr class="hover:bg-gray-50/80 dark:hover:bg-gray-800/50 transition-colors text-gray-900 dark:text-gray-100">
-                            <td class="py-3.5 px-4 text-center font-medium text-sm customer-index-cell text-gray-900 dark:text-gray-100">${index + 1}</td>
-                            <td class="py-3.5 px-4 font-medium text-[15.5px] text-black dark:text-white customer-name-cell">${client.name}</td>
-                            <td class="py-3.5 px-4 text-[14.5px] text-black dark:text-white font-normal customer-email-cell">${client.email}</td>
-                            <td class="py-3.5 px-4 text-[14.5px] text-black dark:text-white font-normal whitespace-nowrap customer-phone-cell">${client.phone || 'N/A'}</td>
-                            <td class="py-3.5 px-4 font-medium text-[15px] text-black dark:text-white whitespace-nowrap customer-spent-cell">₱${totalSpentAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                            <td class="py-3.5 px-4 whitespace-nowrap">${statusBadgeHtml}</td>
-                            <td class="py-3.5 px-4 text-center whitespace-nowrap">
+                            <td data-label="No." class="py-3.5 px-4 text-center font-medium text-sm customer-index-cell text-gray-900 dark:text-gray-100">${index + 1}</td>
+                            <td data-label="Name" class="py-3.5 px-4 font-medium text-[15.5px] text-black dark:text-white customer-name-cell">${client.name}</td>
+                            <td data-label="Email" class="py-3.5 px-4 text-[14.5px] text-black dark:text-white font-normal customer-email-cell">${client.email}</td>
+                            <td data-label="Phone" class="py-3.5 px-4 text-[14.5px] text-black dark:text-white font-normal customer-phone-cell">${client.phone || 'N/A'}</td>
+                            <td data-label="Total Spent" class="py-3.5 px-4 font-medium text-[15px] text-black dark:text-white customer-spent-cell">₱${totalSpentAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                            <td data-label="Status" class="py-3.5 px-4 whitespace-nowrap">${statusBadgeHtml}</td>
+                            <td data-label="Actions" class="py-3.5 px-4 text-center whitespace-nowrap">
                               <div class="flex items-center justify-center gap-1.5">
                                 <button 
                                   data-id="${client.id || ''}"

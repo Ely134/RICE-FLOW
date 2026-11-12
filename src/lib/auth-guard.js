@@ -624,13 +624,17 @@ export async function protectCustomerPage() {
 export function revealProtectedPage() {
   const doReveal = () => {
     try {
-      const isDark = typeof localStorage !== 'undefined' && localStorage.getItem('aurora-dark-mode') === 'true';
       if (document.documentElement) {
-        document.documentElement.classList.toggle('dark', isDark);
-        document.documentElement.style.colorScheme = isDark ? 'dark' : 'light';
+        document.documentElement.classList.remove('dark');
+        document.documentElement.style.colorScheme = 'light';
       }
       if (document.body) {
-        document.body.classList.toggle('dark', isDark);
+        document.body.classList.remove('dark');
+      }
+      if (typeof localStorage !== 'undefined') {
+        try {
+          localStorage.removeItem('aurora-dark-mode');
+        } catch (_) {}
       }
 
       const loaderEl = document.getElementById('auth-guard-loader');

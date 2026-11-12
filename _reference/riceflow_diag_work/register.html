@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Register | RiceFlow</title>
+  <script>
+    (function() {
+      try {
+        var d = document.documentElement;
+        var isDark = localStorage.getItem('aurora-dark-mode') === 'true';
+        d.classList.toggle('dark', isDark);
+        d.style.colorScheme = isDark ? 'dark' : 'light';
+      } catch (e) {}
+    })();
+  </script>
+  <style id="riceflow-theme-init">
+    html { background-color: #F5F5F5; color-scheme: light; }
+    #navbar-container { min-height: 5rem; background-color: #FFFFFF; border-bottom: 1px solid #F3F4F6; }
+    html.dark { background-color: #0F172A !important; color-scheme: dark; }
+    html.dark body,
+    html.dark main,
+    html.dark section,
+    html.dark #navbar-container,
+    html.dark #footer-container {
+      background-color: #0F172A;
+      background-image: none;
+      color: #FFFFFF;
+    }
+    html.dark #auth-guard-loader {
+      background-color: #0F172A !important;
+      color: #FFFFFF !important;
+    }
+    html.dark #navbar-container {
+      border-bottom-color: rgba(255, 255, 255, 0.15);
+    }
+    html.dark .bg-white,
+    html.dark .bg-gray-50,
+    html.dark .bg-slate-50 {
+      background-color: #111827;
+      color: #FFFFFF;
+    }
+  </style>
+  <link rel="stylesheet" href="src/styles/index.css">
+</head>
+<body class="bg-[#F5F5F5] min-h-screen flex flex-col justify-between">
+
+  <!-- Dynamic Header Bar -->
+  <div id="navbar-container"></div>
+
+  <!-- Centered Register Main Content -->
+  <main class="flex-grow flex items-center justify-center p-4 py-12">
+    <div id="register-card" class="w-full max-w-2xl bg-white p-8 lg:p-12 rounded-[32px] shadow-2xl border border-gray-100 animate-in fade-in zoom-in duration-300">
+      <div class="w-full">
+        <!-- Title & Subtitle Header -->
+        <div class="mb-8 text-center">
+          <div class="flex items-center justify-center mb-2">
+            <h1 class="text-3xl font-black text-[#222222] tracking-tight flex items-center">
+              Register
+              <!-- Custom Rice Stalk Vector Icon -->
+              <svg viewBox="0 0 24 24" fill="none" stroke="#1E6C02" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="w-7 h-7 inline-block shrink-0 align-middle ml-2.5">
+                <line x1="3" y1="21" x2="20" y2="4" />
+                <ellipse cx="18.5" cy="5.5" rx="3.5" ry="1.8" transform="rotate(-45 18.5 5.5)" />
+                <ellipse cx="13" cy="9" rx="3.5" ry="1.8" transform="rotate(-75 13 9)" />
+                <ellipse cx="16" cy="11" rx="3.5" ry="1.8" transform="rotate(-15 16 11)" />
+                <ellipse cx="9" cy="13" rx="3.5" ry="1.8" transform="rotate(-75 9 13)" />
+                <ellipse cx="12" cy="15" rx="3.5" ry="1.8" transform="rotate(-15 12 15)" />
+                <ellipse cx="5" cy="17" rx="3.5" ry="1.8" transform="rotate(-75 5 17)" />
+                <ellipse cx="8" cy="19" rx="3.5" ry="1.8" transform="rotate(-15 8 19)" />
+              </svg>
+            </h1>
+          </div>
+          <p class="text-sm text-gray-500 font-semibold">Enter your Credentials to access your account</p>
+        </div>
+
+        <!-- Form container -->
+        <form id="form-register" class="space-y-6" autocomplete="off">
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+            <!-- First Name -->
+            <div class="space-y-1.5">
+              <label for="firstName" class="text-sm font-bold text-[#222222] block">
+                First Name
+              </label>
+              <input
+                id="firstName"
+                name="firstName"
+                type="text"
+                autocomplete="given-name"
+                required
+                placeholder="Enter First Name"
+                class="w-full h-12 px-4 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-[#1E6C02]/20 focus:border-[#1E6C02] transition-all text-sm font-medium text-[#222222]"
+              />
+            </div>
+
+            <!-- Last Name -->
+            <div class="space-y-1.5">
+              <label for="lastName" class="text-sm font-bold text-[#222222] block">
+                Last Name
+              </label>
+              <input
+                id="lastName"
+                name="lastName"
+                type="text"
+                autocomplete="family-name"
+                required
+                placeholder="Enter Last Name"
+                class="w-full h-12 px-4 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-[#1E6C02]/20 focus:border-[#1E6C02] transition-all text-sm font-medium text-[#222222]"
+              />
+            </div>
+
+            <!-- Email Address -->
+            <div class="space-y-1.5">
+              <label for="email" class="text-sm font-bold text-[#222222] block">
+                Email Address
+              </label>
+              <input
+                id="email"
+                name="email"
+                type="email"
+                autocomplete="email"
+                required
+                placeholder="Enter Email Address"
+                class="w-full h-12 px-4 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-[#1E6C02]/20 focus:border-[#1E6C02] transition-all text-sm font-medium text-[#222222]"
+              />
+            </div>
+
+            <!-- Contact Number -->
+            <div class="space-y-1.5">
+              <label for="phone" class="text-sm font-bold text-[#222222] block">
+                Contact Number
+              </label>
+              <input
+                id="phone"
+                name="phone"
+                type="tel"
+                autocomplete="tel"
+                required
+                placeholder="Enter Contact Number"
+                class="w-full h-12 px-4 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-[#1E6C02]/20 focus:border-[#1E6C02] transition-all text-sm font-medium text-[#222222]"
+              />
+            </div>
+
+            <!-- Gender Selection -->
+            <div class="space-y-1.5">
+              <label class="text-sm font-bold text-[#222222] block">
+                Gender *
+              </label>
+              <div class="flex items-center space-x-6 h-12 px-4 bg-gray-50 border border-gray-200 rounded-xl">
+                <label class="flex items-center space-x-2 text-sm font-medium text-[#222222] cursor-pointer">
+                  <input
+                    type="radio"
+                    name="gender"
+                    value="Male"
+                    required
+                    class="w-4 h-4 text-[#1E6C02] focus:ring-[#1E6C02] cursor-pointer"
+                  />
+                  <span>Male</span>
+                </label>
+                <label class="flex items-center space-x-2 text-sm font-medium text-[#222222] cursor-pointer">
+                  <input
+                    type="radio"
+                    name="gender"
+                    value="Female"
+                    required
+                    class="w-4 h-4 text-[#1E6C02] focus:ring-[#1E6C02] cursor-pointer"
+                  />
+                  <span>Female</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Password -->
+            <div class="space-y-1.5">
+              <label for="password" class="text-sm font-bold text-[#222222] block">
+                Password
+              </label>
+              <div class="relative">
+                <input
+                  id="password"
+                  name="password"
+                  type="password"
+                  autocomplete="new-password"
+                  required
+                  placeholder="Enter Password"
+                  class="w-full h-12 pl-4 pr-12 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-[#1E6C02]/20 focus:border-[#1E6C02] transition-all text-sm font-medium text-[#222222]"
+                />
+                <button
+                  type="button"
+                  id="btn-toggle-password"
+                  class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none cursor-pointer"
+                >
+                  <!-- Eye SVG -->
+                  <svg id="eye-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                </button>
+              </div>
+
+              <!-- Password requirements panel -->
+              <div id="password-reqs" class="hidden grid grid-cols-2 gap-2 pt-2 text-xs font-semibold">
+                <div id="req-length" class="flex items-center space-x-1.5 text-gray-400 transition-colors duration-200">
+                  <span class="bullet text-red-400 font-bold">✖</span>
+                  <span class="text-[11px]">Minimum 8 characters</span>
+                </div>
+                <div id="req-uppercase" class="flex items-center space-x-1.5 text-gray-400 transition-colors duration-200">
+                  <span class="bullet text-red-400 font-bold">✖</span>
+                  <span class="text-[11px]">Uppercase letter</span>
+                </div>
+                <div id="req-lowercase" class="flex items-center space-x-1.5 text-gray-400 transition-colors duration-200">
+                  <span class="bullet text-red-400 font-bold">✖</span>
+                  <span class="text-[11px]">Lowercase letter</span>
+                </div>
+                <div id="req-number" class="flex items-center space-x-1.5 text-gray-400 transition-colors duration-200">
+                  <span class="bullet text-red-400 font-bold">✖</span>
+                  <span class="text-[11px]">Number</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Confirm Password -->
+            <div class="space-y-1.5">
+              <label for="confirmPassword" class="text-sm font-bold text-[#222222] block">
+                Confirm Password
+              </label>
+              <div class="relative">
+                <input
+                  id="confirmPassword"
+                  name="confirmPassword"
+                  type="password"
+                  autocomplete="new-password"
+                  required
+                  placeholder="Enter New Password"
+                  class="w-full h-12 pl-4 pr-12 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-[#1E6C02]/20 focus:border-[#1E6C02] transition-all text-sm font-medium text-[#222222]"
+                />
+                <button
+                  type="button"
+                  id="btn-toggle-confirmPassword"
+                  class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none cursor-pointer"
+                >
+                  <!-- Eye SVG -->
+                  <svg id="eye-icon-confirm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Terms of service check agreement row -->
+          <div class="flex items-start space-x-2.5 pt-2">
+            <input
+              type="checkbox"
+              id="terms"
+              class="mt-1 w-4.5 h-4.5 border border-gray-300 rounded text-[#1E6C02] focus:ring-[#1E6C02] cursor-pointer"
+            />
+            <label for="terms" class="text-sm text-black font-normal select-none leading-relaxed cursor-pointer">
+              By tapping "Register" you agree to our 
+              <a href="terms.html" id="link-terms-of-use" class="text-[#1E6C02] font-bold hover:underline">Terms of Use</a> 
+              and 
+              <a href="privacy.html" id="link-privacy-policy" class="text-[#1E6C02] font-bold hover:underline">Privacy Policy</a>
+            </label>
+          </div>
+
+          <!-- Primary register action button code -->
+          <button
+            type="submit"
+            id="btn-submit"
+            class="w-full h-12 bg-[#1E6C02]/50 cursor-not-allowed text-white font-bold rounded-xl transition-all font-bold text-sm tracking-wide shadow-lg shadow-green-900/5"
+            disabled
+          >
+            Register
+          </button>
+        </form>
+
+        <!-- Login entry redirection links -->
+        <div class="text-center mt-8 pt-4 border-t border-gray-100">
+          <p class="text-sm font-bold text-[#222222]">
+            Already have an account? 
+            <a href="login.html" class="text-[#1E6C02] hover:underline font-extrabold ml-0.5">
+              Login now!
+            </a>
+          </p>
+        </div>
+
+      </div>
+    </div>
+  </main>
+
+  <!-- Dynamic Footer Bar -->
+  <div id="footer-container"></div>
+
+  <!-- Shared vanilla platform core tools -->
+  <script type="module" src="src/app/shared.js"></script>
+
+  <!-- Embedded controller logical scripts -->
+  <script type="module">
+    import { registerUser, checkEmailExists, checkPhoneExists, validatePhilippinePhone, normalizePhilippinePhone, showToast } from './src/app/shared.js';
+
+    const REGISTRATION_DRAFT_KEY = 'riceflow-registration-draft';
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const form = document.getElementById('form-register');
+      const firstNameInp = document.getElementById('firstName');
+      const lastNameInp = document.getElementById('lastName');
+      const emailInp = document.getElementById('email');
+      const phoneInp = document.getElementById('phone');
+      const passwordInp = document.getElementById('password');
+      const confirmInp = document.getElementById('confirmPassword');
+      const termsChkbx = document.getElementById('terms');
+      const submitBtn = document.getElementById('btn-submit');
+
+      // Toggles for password visibility buttons
+      const togglePassBtn = document.getElementById('btn-toggle-password');
+      const toggleConfirmBtn = document.getElementById('btn-toggle-confirmPassword');
+
+      const eyeIcon = document.getElementById('eye-icon');
+      const eyeIconConfirm = document.getElementById('eye-icon-confirm');
+
+      let isPassVisible = false;
+      let isConfirmVisible = false;
+
+      const eyeOpenSvg = `<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle>`;
+      const eyeClosedSvg = `<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line>`;
+
+      togglePassBtn.addEventListener('click', () => {
+        isPassVisible = !isPassVisible;
+        passwordInp.type = isPassVisible ? 'text' : 'password';
+        eyeIcon.innerHTML = isPassVisible ? eyeClosedSvg : eyeOpenSvg;
+      });
+
+      toggleConfirmBtn.addEventListener('click', () => {
+        isConfirmVisible = !isConfirmVisible;
+        confirmInp.type = isConfirmVisible ? 'text' : 'password';
+        eyeIconConfirm.innerHTML = isConfirmVisible ? eyeClosedSvg : eyeOpenSvg;
+      });
+
+      // Real-time password requirements checking
+      const passwordReqsPanel = document.getElementById('password-reqs');
+      
+      const updateReqElement = (id, isValid, text) => {
+        const el = document.getElementById(id);
+        if (isValid) {
+          el.className = "flex items-center space-x-1.5 text-green-600 font-bold transition-all duration-200";
+          el.innerHTML = `<span class="text-green-600 font-bold">✔</span> <span class="text-[11px]">${text}</span>`;
+        } else {
+          el.className = "flex items-center space-x-1.5 text-gray-400 font-medium transition-all duration-200";
+          el.innerHTML = `<span class="text-red-400 font-bold">✖</span> <span class="text-[11px]">${text}</span>`;
+        }
+      };
+
+      const checkPasswordReqs = () => {
+        const val = passwordInp.value;
+        const hasLength = val.length >= 8;
+        const hasUpper = /[A-Z]/.test(val);
+        const hasLower = /[a-z]/.test(val);
+        const hasNumber = /[0-9]/.test(val);
+
+        updateReqElement('req-length', hasLength, 'Minimum 8 characters');
+        updateReqElement('req-uppercase', hasUpper, 'Uppercase letter');
+        updateReqElement('req-lowercase', hasLower, 'Lowercase letter');
+        updateReqElement('req-number', hasNumber, 'Number');
+      };
+
+      // Clear stale registration draft if entering fresh from a non-Terms/Privacy page
+      try {
+        const navEntry = performance.getEntriesByType && performance.getEntriesByType('navigation')[0];
+        const navType = navEntry ? navEntry.type : 'navigate';
+        if (navType === 'navigate' && document.referrer) {
+          const ref = document.referrer.toLowerCase();
+          const isReturningFromLegalOrSelf =
+            ref.includes('terms.html') ||
+            ref.includes('privacy.html') ||
+            ref.includes('register.html');
+          if (!isReturningFromLegalOrSelf) {
+            sessionStorage.removeItem(REGISTRATION_DRAFT_KEY);
+          }
+        }
+      } catch {}
+
+      const getSavedRegistrationDraft = () => {
+        try {
+          const raw = sessionStorage.getItem(REGISTRATION_DRAFT_KEY);
+          if (!raw) return null;
+          const parsed = JSON.parse(raw);
+          if (!parsed || typeof parsed !== 'object') return null;
+          return {
+            firstName: typeof parsed.firstName === 'string' ? parsed.firstName : '',
+            lastName: typeof parsed.lastName === 'string' ? parsed.lastName : '',
+            email: typeof parsed.email === 'string' ? parsed.email : '',
+            phone: typeof parsed.phone === 'string' ? parsed.phone : '',
+            gender: typeof parsed.gender === 'string' ? parsed.gender : ''
+          };
+        } catch {
+          return null;
+        }
+      };
+
+      let emailFocusedByUser = false;
+      let passwordFocusedByUser = false;
+      let confirmFocusedByUser = false;
+      let userModifiedForm = false;
+
+      const isBrowserAutofilled = (el) => {
+        if (!el || typeof el.matches !== 'function') return false;
+        try {
+          if (el.matches(':-webkit-autofill')) return true;
+        } catch {}
+        try {
+          if (el.matches(':autofill')) return true;
+        } catch {}
+        return false;
+      };
+
+      const applyRegistrationFormState = (draft) => {
+        firstNameInp.value = draft ? draft.firstName : '';
+        lastNameInp.value = draft ? draft.lastName : '';
+        emailInp.value = draft ? draft.email : '';
+        phoneInp.value = draft ? draft.phone : '';
+        passwordInp.value = '';
+        confirmInp.value = '';
+
+        const genderRadios = document.querySelectorAll('input[name="gender"]');
+        genderRadios.forEach((radio) => {
+          radio.checked = Boolean(draft && draft.gender && radio.value === draft.gender);
+        });
+
+        isPassVisible = false;
+        isConfirmVisible = false;
+        passwordInp.type = 'password';
+        confirmInp.type = 'password';
+        eyeIcon.innerHTML = eyeOpenSvg;
+        eyeIconConfirm.innerHTML = eyeOpenSvg;
+        passwordReqsPanel.classList.add('hidden');
+        checkPasswordReqs();
+      };
+
+      const saveRegistrationDraft = () => {
+        try {
+          const genderChecked = document.querySelector('input[name="gender"]:checked');
+          const draft = {
+            firstName: firstNameInp.value || '',
+            lastName: lastNameInp.value || '',
+            email: emailInp.value || '',
+            phone: phoneInp.value || '',
+            gender: genderChecked ? genderChecked.value : ''
+          };
+          const hasAnyValue = Object.values(draft).some((v) => String(v || '').trim() !== '');
+          if (hasAnyValue) {
+            sessionStorage.setItem(REGISTRATION_DRAFT_KEY, JSON.stringify(draft));
+          } else {
+            sessionStorage.removeItem(REGISTRATION_DRAFT_KEY);
+          }
+        } catch {}
+      };
+
+      // Initial form state application (restore draft or ensure completely blank)
+      let currentDraft = getSavedRegistrationDraft();
+      applyRegistrationFormState(currentDraft);
+
+      // Guard against browser password manager autofilling saved login credentials on load/return
+      const enforceNoCredentialAutofill = () => {
+        const expectedEmail = currentDraft ? currentDraft.email : '';
+        if (!passwordFocusedByUser && (passwordInp.value !== '' || isBrowserAutofilled(passwordInp))) {
+          passwordInp.value = '';
+          passwordReqsPanel.classList.add('hidden');
+          checkPasswordReqs();
+          if (!emailFocusedByUser) {
+            emailInp.value = expectedEmail;
+          }
+        }
+        if (!confirmFocusedByUser && (confirmInp.value !== '' || isBrowserAutofilled(confirmInp))) {
+          confirmInp.value = '';
+        }
+        if (!emailFocusedByUser && isBrowserAutofilled(emailInp)) {
+          emailInp.value = expectedEmail;
+        }
+      };
+
+      [firstNameInp, lastNameInp, phoneInp].forEach((inp) => {
+        inp.addEventListener('input', () => {
+          userModifiedForm = true;
+        });
+      });
+
+      document.querySelectorAll('input[name="gender"]').forEach((radio) => {
+        radio.addEventListener('change', () => {
+          userModifiedForm = true;
+        });
+      });
+
+      emailInp.addEventListener('focus', () => {
+        emailFocusedByUser = true;
+      });
+      emailInp.addEventListener('input', () => {
+        if (!emailFocusedByUser && (isBrowserAutofilled(emailInp) || (!passwordFocusedByUser && passwordInp.value !== ''))) {
+          enforceNoCredentialAutofill();
+          return;
+        }
+        userModifiedForm = true;
+      });
+
+      passwordInp.addEventListener('focus', () => {
+        passwordFocusedByUser = true;
+        passwordReqsPanel.classList.remove('hidden');
+        checkPasswordReqs();
+      });
+
+      passwordInp.addEventListener('input', () => {
+        if (!passwordFocusedByUser && document.activeElement !== passwordInp) {
+          enforceNoCredentialAutofill();
+          return;
+        }
+        userModifiedForm = true;
+        if (passwordReqsPanel.classList.contains('hidden')) {
+          passwordReqsPanel.classList.remove('hidden');
+        }
+        checkPasswordReqs();
+      });
+
+      confirmInp.addEventListener('focus', () => {
+        confirmFocusedByUser = true;
+      });
+      confirmInp.addEventListener('input', () => {
+        if (!confirmFocusedByUser && document.activeElement !== confirmInp) {
+          enforceNoCredentialAutofill();
+          return;
+        }
+        userModifiedForm = true;
+      });
+
+      window.addEventListener('pageshow', (event) => {
+        if (event.persisted || !userModifiedForm) {
+          emailFocusedByUser = false;
+          passwordFocusedByUser = false;
+          confirmFocusedByUser = false;
+          currentDraft = getSavedRegistrationDraft();
+          applyRegistrationFormState(currentDraft);
+        }
+        enforceNoCredentialAutofill();
+      });
+
+      window.addEventListener('load', () => {
+        enforceNoCredentialAutofill();
+        setTimeout(enforceNoCredentialAutofill, 50);
+        setTimeout(enforceNoCredentialAutofill, 200);
+      });
+
+      // Save non-password draft only when navigating to Terms of Use or Privacy Policy;
+      // clear draft when intentionally navigating away to other pages.
+      document.addEventListener('click', (e) => {
+        const link = e.target && e.target.closest ? e.target.closest('a[href]') : null;
+        if (!link) return;
+        const href = (link.getAttribute('href') || '').toLowerCase();
+        if (href.includes('terms.html') || href.includes('privacy.html')) {
+          saveRegistrationDraft();
+        } else if (!href.startsWith('#') && !href.startsWith('javascript:')) {
+          try {
+            sessionStorage.removeItem(REGISTRATION_DRAFT_KEY);
+          } catch {}
+        }
+      });
+
+      // Handle checkbox Terms changes to configure action button states
+      termsChkbx.addEventListener('change', () => {
+        const isAgreed = termsChkbx.checked;
+        if (isAgreed) {
+          submitBtn.disabled = false;
+          submitBtn.className = "w-full h-12 bg-[#1E6C02] hover:bg-[#145001] text-white font-bold rounded-xl shadow-lg shadow-green-900/10 hover:shadow-green-900/20 transition-all cursor-pointer font-bold text-sm tracking-wide";
+        } else {
+          submitBtn.disabled = true;
+          submitBtn.className = "w-full h-12 bg-[#1E6C02]/50 cursor-not-allowed text-white font-bold rounded-xl transition-all font-bold text-sm tracking-wide shadow-lg shadow-green-900/5";
+        }
+      });
+
+      // Submit registration
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const firstName = firstNameInp.value.trim();
+        const lastName = lastNameInp.value.trim();
+        const email = emailInp.value.trim();
+        const phone = phoneInp.value.trim();
+        const password = passwordInp.value;
+        const confirmPassword = confirmInp.value;
+        const genderChecked = document.querySelector('input[name="gender"]:checked');
+        const gender = genderChecked ? genderChecked.value : '';
+
+        // 1. Check First Name
+        if (!firstName) {
+          showToast('Please enter your First Name.', 'error');
+          return;
+        }
+
+        // 2. Check Last Name
+        if (!lastName) {
+          showToast('Please enter your Last Name.', 'error');
+          return;
+        }
+
+        // 3. Check Email Address
+        if (!email) {
+          showToast('Please enter your Email Address.', 'error');
+          return;
+        }
+
+        // 4. Check Contact Number
+        if (!phone) {
+          showToast('Please enter your Contact Number.', 'error');
+          return;
+        }
+
+        // 5. Check Gender
+        if (!gender) {
+          showToast('Please select your Gender.', 'error');
+          return;
+        }
+
+        // 6. Check Password
+        if (!password) {
+          showToast('Please enter your Password.', 'error');
+          return;
+        }
+
+        // 7. Check Confirm Password
+        if (!confirmPassword) {
+          showToast('Please enter your Confirm Password.', 'error');
+          return;
+        }
+
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+          showToast('Please enter a valid email address format (e.g., username@domain.com).', 'error');
+          return;
+        }
+
+        // 9. Validate Philippine phone number (11 digits starting with 09 or +639)
+        const normPhone = normalizePhilippinePhone(phone);
+        if (!normPhone.isValid) {
+          showToast('Please enter a valid Philippine mobile number.', 'error');
+          return;
+        }
+
+        // 10. Check whether email already exists
+        if (checkEmailExists(email)) {
+          showToast('This email address is already registered. Please use a different email address.', 'error');
+          return;
+        }
+
+        // 11. Check whether contact number already exists
+        if (checkPhoneExists(normPhone.canonical)) {
+          showToast('This phone number is already registered. Please use a different number or log in to your existing account.', 'error');
+          return;
+        }
+
+        // Password matching
+        if (password !== confirmPassword) {
+          showToast('Passwords do not match.', 'error');
+          return;
+        }
+
+        // Strong password complexity requirements
+        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
+        if (!passwordRegex.test(password)) {
+          showToast('Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, and one number.', 'error');
+          return;
+        }
+
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = `
+          <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white inline-block" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg> Registering account...
+        `;
+
+        setTimeout(async () => {
+          try {
+            const success = await registerUser({
+              firstName,
+              lastName,
+              email,
+              phone,
+              address: '',
+              password,
+              gender
+            });
+
+            if (success) {
+              try {
+                sessionStorage.removeItem(REGISTRATION_DRAFT_KEY);
+              } catch {}
+              showToast('Account registered successfully!');
+              const card = document.getElementById('register-card');
+              card.innerHTML = `
+                <div class="w-full text-center py-16 px-8 animate-in fade-in zoom-in-95 duration-300">
+                  <div class="h-20 w-20 bg-[#E2F9E5] text-[#1E6C02] rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner border border-[#C6EFCE]">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" class="w-10 h-10"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                  </div>
+                  <h2 class="text-3xl font-black text-[#222222] mb-3 tracking-tight">Registration Successful!</h2>
+                  <p class="text-gray-500 font-semibold text-sm mb-8 leading-relaxed max-w-md mx-auto">
+                    Your account has been created successfully.<br>Please log in using your registered email address and password.
+                  </p>
+                  <div class="flex justify-center">
+                    <a href="login.html" class="px-8 h-12 flex items-center justify-center bg-[#1E6C02] text-white font-bold rounded-xl hover:bg-[#145001] transition-all shadow-lg hover:shadow-xl">Go to Login</a>
+                  </div>
+                </div>
+              `;
+
+              // Ensure the registration success confirmation and "Go to Login" button are immediately visible in the viewport
+              if (document.activeElement && typeof document.activeElement.blur === 'function') {
+                document.activeElement.blur();
+              }
+              const scrollToSuccess = () => {
+                window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+                document.documentElement.scrollTop = 0;
+                document.body.scrollTop = 0;
+              };
+              scrollToSuccess();
+              requestAnimationFrame(scrollToSuccess);
+              setTimeout(scrollToSuccess, 100);
+            }
+          } catch (err) {
+            showToast(err.message || 'Validation failed.', 'error');
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = 'Register';
+          }
+        }, 300);
+      });
+    });
+  </script>
+</body>
+</html>

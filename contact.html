@@ -8,38 +8,15 @@
     (function() {
       try {
         var d = document.documentElement;
-        var isDark = localStorage.getItem('aurora-dark-mode') === 'true';
-        d.classList.toggle('dark', isDark);
-        d.style.colorScheme = isDark ? 'dark' : 'light';
+        d.classList.remove('dark');
+        d.style.colorScheme = 'light';
+        if (typeof localStorage !== 'undefined') { try { localStorage.removeItem('aurora-dark-mode'); } catch(_) {} }
       } catch (e) {}
     })();
   </script>
   <style id="riceflow-theme-init">
     html { background-color: #F5F5F5; color-scheme: light; }
     #navbar-container { min-height: 5rem; background-color: #FFFFFF; border-bottom: 1px solid #F3F4F6; }
-    html.dark { background-color: #0F172A !important; color-scheme: dark; }
-    html.dark body,
-    html.dark main,
-    html.dark section,
-    html.dark #navbar-container,
-    html.dark #footer-container {
-      background-color: #0F172A;
-      background-image: none;
-      color: #FFFFFF;
-    }
-    html.dark #auth-guard-loader {
-      background-color: #0F172A !important;
-      color: #FFFFFF !important;
-    }
-    html.dark #navbar-container {
-      border-bottom-color: rgba(255, 255, 255, 0.15);
-    }
-    html.dark .bg-white,
-    html.dark .bg-gray-50,
-    html.dark .bg-slate-50 {
-      background-color: #111827;
-      color: #FFFFFF;
-    }
   </style>
   <link rel="stylesheet" href="src/styles/index.css">
 </head>
@@ -79,7 +56,7 @@
               </div>
               <div>
                 <h3 class="text-base font-black text-[#111827] dark:text-white mb-1">Phone</h3>
-                <p id="info-phone" class="text-sm text-[#111827] dark:text-white font-bold select-all leading-relaxed">+63 912 345 6789</p>
+                <p id="info-phone" class="text-sm text-[#111827] dark:text-white font-bold select-all leading-relaxed"></p>
               </div>
             </div>
 
@@ -91,8 +68,7 @@
               </div>
               <div>
                 <h3 class="text-base font-black text-[#111827] dark:text-white mb-1">Email</h3>
-                <a href="mailto:info@auroralocalrice.com" class="text-sm text-[#111827] dark:text-white hover:text-[#1E6C02] font-bold block leading-relaxed transition-colors break-all">info@auroralocalrice.com</a>
-                <a href="mailto:support@auroralocalrice.com" class="text-sm text-[#111827] dark:text-white hover:text-[#1E6C02] font-bold block leading-relaxed transition-colors break-all">support@auroralocalrice.com</a>
+                <div id="info-email-list" class="space-y-0.5"></div>
               </div>
             </div>
 
@@ -104,9 +80,7 @@
               </div>
               <div>
                 <h3 class="text-base font-black text-[#111827] dark:text-white mb-1">Address</h3>
-                <p id="info-address" class="text-sm text-[#111827] dark:text-white font-bold leading-relaxed whitespace-pre-wrap">
-                  Aurora, Zamboanga del Sur, Philippines
-                </p>
+                <p id="info-address" class="text-sm text-[#111827] dark:text-white font-bold leading-relaxed whitespace-pre-wrap"></p>
               </div>
             </div>
 
@@ -118,9 +92,7 @@
               </div>
               <div>
                 <h3 class="text-base font-black text-[#111827] dark:text-white mb-1">Business Hours</h3>
-                <p id="info-hours" class="text-sm text-[#111827] dark:text-white font-bold leading-relaxed whitespace-pre-wrap">
-                  8:00 AM - 5:00 PM (Monday - Saturday)
-                </p>
+                <p id="info-hours" class="text-sm text-[#111827] dark:text-white font-bold leading-relaxed whitespace-pre-wrap"></p>
               </div>
             </div>
 
@@ -285,7 +257,7 @@
 
   <!-- Embedded page logical script action controller -->
   <script type="module">
-    import { showToast, getStoreSettings, getCurrentUser, saveContactMessage } from './src/app/shared.js';
+    import { showToast, getStoreSettings, getCurrentUser, saveContactMessage, autoBindDraftPreservation, clearFormDraft } from './src/app/shared.js';
 
     document.addEventListener('DOMContentLoaded', () => {
       // Auto-fill logged in user's Name and Email if they are logged in
@@ -301,38 +273,90 @@
         }
       }
 
-      // Load dynamic store settings
-      const settings = getStoreSettings();
-      
-      const phoneEl = document.getElementById('info-phone');
-      if (phoneEl) {
-        phoneEl.textContent = settings.contactNumber;
-      }
+      function renderGetInTouchDetails() {
+        const settings = getStoreSettings();
 
-      const addressEl = document.getElementById('info-address');
-      if (addressEl) {
-        addressEl.textContent = settings.storeAddress;
-      }
+        const phoneEl = document.getElementById('info-phone');
+        if (phoneEl) {
+          phoneEl.textContent = String(settings.contactNumber || '').trim() || 'Not specified';
+        }
 
-      const hoursEl = document.getElementById('info-hours');
-      if (hoursEl) {
-        hoursEl.textContent = settings.businessHours || 'None';
-      }
+        const emailListEl = document.getElementById('info-email-list');
+        if (emailListEl) {
+          const rawEmails = String(settings.contactEmail || '')
+            .split(',')
+            .map(s => s.trim())
+            .filter(Boolean);
+          emailListEl.innerHTML = '';
+          if (rawEmails.length > 0) {
+            rawEmails.forEach(email => {
+              const link = document.createElement('a');
+              link.href = `mailto:${email}`;
+              link.className = 'text-sm text-[#111827] dark:text-white hover:text-[#1E6C02] font-bold block leading-relaxed transition-colors break-all';
+              link.textContent = email;
+              emailListEl.appendChild(link);
+            });
+          } else {
+            const fallbackSpan = document.createElement('span');
+            fallbackSpan.className = 'text-sm text-[#111827] dark:text-white font-bold block leading-relaxed';
+            fallbackSpan.textContent = 'Not specified';
+            emailListEl.appendChild(fallbackSpan);
+          }
+        }
 
-      const fbContainer = document.getElementById('info-facebook-container');
-      const fbLink = document.getElementById('info-facebook');
-      if (fbContainer && fbLink) {
-        if (settings.facebookLink) {
-          fbLink.href = settings.facebookLink;
-          fbLink.textContent = settings.facebookLink;
-          fbContainer.classList.remove('hidden');
-        } else {
-          fbContainer.classList.add('hidden');
+        const addressEl = document.getElementById('info-address');
+        if (addressEl) {
+          addressEl.textContent = String(settings.storeAddress || '').trim() || 'Not specified';
+        }
+
+        const hoursEl = document.getElementById('info-hours');
+        if (hoursEl) {
+          const hrs = String(settings.businessHours || '').trim();
+          const days = String(settings.operatingDays || '').trim();
+          if (hrs && days) {
+            hoursEl.textContent = hrs.toLowerCase().includes(days.toLowerCase()) ? hrs : `${hrs} (${days})`;
+          } else if (hrs) {
+            hoursEl.textContent = hrs;
+          } else if (days) {
+            hoursEl.textContent = days;
+          } else {
+            hoursEl.textContent = 'Not specified';
+          }
+        }
+
+        const fbContainer = document.getElementById('info-facebook-container');
+        const fbLink = document.getElementById('info-facebook');
+        if (fbContainer && fbLink) {
+          const rawFb = String(settings.facebookLink || '').trim();
+          if (rawFb) {
+            fbLink.href = /^https?:\/\//i.test(rawFb) ? rawFb : `https://${rawFb}`;
+            fbLink.textContent = rawFb;
+            fbContainer.classList.remove('hidden');
+          } else {
+            fbContainer.classList.add('hidden');
+          }
         }
       }
 
+      renderGetInTouchDetails();
+
+      window.addEventListener('aurora-sync-event', (e) => {
+        if (!e || !e.detail || !e.detail.key || e.detail.key === 'aurora-store-settings' || String(e.detail.key).startsWith('settings-')) {
+          renderGetInTouchDetails();
+        }
+      });
+      window.addEventListener('storage', (e) => {
+        if (!e || !e.key || e.key === 'aurora-store-settings' || e.key.startsWith('settings-')) {
+          renderGetInTouchDetails();
+        }
+      });
+
       const form = document.getElementById('form-contact');
       const submitBtn = document.getElementById('btn-submit');
+
+      // Preserve unfinished contact inquiries across connection drops and page reloads.
+      // Passwords and file inputs are excluded by the shared draft helper.
+      autoBindDraftPreservation('form-contact', 'contact_inquiry');
 
       form.addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -373,6 +397,7 @@
           // Clear Subject and Message; maintain Full Name and Email defaults
           document.getElementById('subject').value = '';
           document.getElementById('message').value = '';
+          clearFormDraft('contact_inquiry');
         } catch (err) {
           console.error('[CONTACT US] Submission failed:', err);
           showToast('Failed to send message. Please check your connection and try again.', 'error');

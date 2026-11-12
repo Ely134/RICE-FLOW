@@ -1,0 +1,1925 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Customer List | RiceFlow</title>
+  <script>
+    (function() {
+      try {
+        var d = document.documentElement;
+        var isDark = localStorage.getItem('aurora-dark-mode') === 'true';
+        d.classList.toggle('dark', isDark);
+        d.style.colorScheme = isDark ? 'dark' : 'light';
+      } catch (e) {}
+    })();
+  </script>
+  <style id="riceflow-theme-init">
+    html { background-color: #F5F5F5; color-scheme: light; }
+    html.dark { background-color: #1F2937 !important; color-scheme: dark; }
+    html.dark body,
+    html.dark #admin-layout-container,
+    html.dark #admin-main-content {
+      background-color: #1F2937;
+      color: #F9FAFB;
+    }
+    html.dark #auth-guard-loader {
+      background-color: #1F2937 !important;
+      color: #F9FAFB !important;
+    }
+    html.dark #admin-sidebar,
+    html.dark aside,
+    html.dark header,
+    html.dark .bg-white,
+    html.dark .bg-gray-50,
+    html.dark .bg-slate-50 {
+      background-color: #111827;
+      color: #F9FAFB;
+    }
+  </style>
+  <link rel="stylesheet" href="../src/styles/index.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Source+Sans+3:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400;1,600&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" crossorigin="anonymous"></script>
+  <style id="admin-customers-typography-and-colors">
+    /* ==========================================================================
+       ADMIN CUSTOMERS PAGE READABILITY & APPROVED TYPOGRAPHY SYSTEM
+       - Inter: Page Headings, Section Headings, Table Headers, Buttons,
+                Important Numbers & Counts
+       - Source Sans 3: Customer Names & Details, Email Addresses, Phone Numbers,
+                        Table Body Text, Form Labels, Inputs, and Supporting Information
+       - Solid Black (#000000): In Day/Light mode for ordinary readable text
+       ========================================================================== */
+
+    /* 1. Base typography: Default body, workspace, and modals to Source Sans 3 */
+    body,
+    #admin-layout-container,
+    #admin-main-content,
+    #edit-customer-dialog,
+    #customer-archive-confirm-modal,
+    #customer-export-confirm-modal {
+      font-family: 'Source Sans 3', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* 2. PRIMARY FONT: INTER
+          - Page headings & section titles
+          - Table column headers (th)
+          - All buttons across workspace and modals
+          - Key numeric values & index counters */
+    #admin-right-workspace header h2,
+    #admin-layout-container h1,
+    #admin-layout-container h2,
+    #admin-layout-container h3,
+    #admin-layout-container h4,
+    #admin-main-content h1,
+    #admin-main-content h2,
+    #admin-main-content h3,
+    #admin-main-content h4,
+    #edit-customer-dialog h3,
+    #edit-customer-dialog h4,
+    #customer-archive-confirm-modal h4,
+    #customer-export-confirm-modal h4,
+    /* Table column headers */
+    table thead th,
+    table thead th *,
+    /* All buttons */
+    button,
+    button:not(.font-mono),
+    #btn-toggle-archived-clients,
+    #btn-export-excel,
+    #btn-export-csv,
+    #btn-export-pdf,
+    #btn-modal-archive-customer,
+    #btn-customer-close-footer,
+    #btn-cancel-customer-archive-modal,
+    #btn-confirm-customer-archive-modal,
+    #btn-customer-export-cancel,
+    #btn-customer-export-download,
+    /* Important numbers, indices, and stats */
+    #modal-stat-total-spent,
+    #modal-stat-total-orders,
+    #modal-stat-completed-orders,
+    #modal-stat-reservations,
+    .customer-index-cell,
+    .customer-spent-cell,
+    table tbody td:first-child {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+    }
+
+    /* 3. SECONDARY FONT: SOURCE SANS 3
+          - Customer names & details
+          - Email addresses, phone numbers, delivery addresses
+          - Table body text
+          - Form labels, search input, filter selects
+          - Modal body descriptions & supporting text */
+    table tbody td,
+    table tbody td *:not(button):not(.font-mono):not(.customer-index-cell):not(.customer-spent-cell):not(table tbody td:first-child),
+    .customer-name-cell,
+    .customer-email-cell,
+    .customer-phone-cell,
+    label,
+    input,
+    textarea,
+    select,
+    p,
+    #edit-customer-dialog p,
+    #customer-archive-confirm-modal p,
+    #customer-export-confirm-modal p {
+      font-family: 'Source Sans 3', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+    }
+
+    /* 4. BALANCED FONT SIZING & HIERARCHY */
+    /* Page Title (24-28px guideline) */
+    #admin-right-workspace header h2 {
+      font-size: 1.625rem !important; /* 26px */
+      line-height: 2rem !important;
+      font-weight: 700 !important;
+      letter-spacing: -0.025em !important;
+    }
+
+    /* Section Headings & Card Titles (16-18px guideline) */
+    #admin-main-content h3 {
+      font-size: 1.125rem !important; /* 18px */
+      line-height: 1.5rem !important;
+      font-weight: 600 !important;
+      letter-spacing: -0.015em !important;
+    }
+    #edit-customer-dialog h3 {
+      font-size: 1.25rem !important; /* 20px */
+      font-weight: 600 !important;
+      letter-spacing: -0.02em !important;
+    }
+    #customer-archive-modal-title,
+    #customer-export-confirm-modal h4 {
+      font-size: 1.125rem !important; /* 18px */
+      font-weight: 600 !important;
+    }
+
+    /* Modal Subsection Headings (Customer Information, Customer Stats, Recent Orders) */
+    #edit-customer-dialog h4 {
+      font-size: 0.8125rem !important; /* 13px */
+      font-weight: 600 !important;
+      letter-spacing: 0.05em !important;
+    }
+
+    /* Table Column Headers (13-14px guideline) */
+    table thead th {
+      font-size: 0.84375rem !important; /* 13.5px */
+      font-weight: 600 !important;
+      letter-spacing: 0.025em !important;
+      padding-top: 0.875rem !important;
+      padding-bottom: 0.875rem !important;
+    }
+
+    /* Customer Names and Table Body Text (15-16px guideline) */
+    table tbody td {
+      font-size: 0.96875rem !important; /* 15.5px */
+      line-height: 1.45 !important;
+      padding-top: 1rem !important;
+      padding-bottom: 1rem !important;
+    }
+    .customer-name-cell {
+      font-size: 0.96875rem !important; /* 15.5px */
+      font-weight: 500 !important;
+      line-height: 1.35 !important;
+    }
+
+    /* Email Addresses and Phone Numbers (14-15px guideline) */
+    .customer-email-cell,
+    .customer-phone-cell {
+      font-size: 0.90625rem !important; /* 14.5px */
+      font-weight: 400 !important;
+      line-height: 1.4 !important;
+    }
+
+    /* Form Labels, Inputs & Supporting Text (14-15px guideline) */
+    label,
+    .form-label-comfort {
+      font-size: 0.90625rem !important; /* 14.5px */
+      font-weight: 500 !important;
+      line-height: 1.35 !important;
+    }
+    input, textarea, select {
+      font-size: 0.9375rem !important; /* 15px */
+      font-weight: 400 !important;
+      line-height: 1.4 !important;
+    }
+
+    /* Buttons (14-15px guideline) */
+    #btn-toggle-archived-clients,
+    #btn-export-excel,
+    #btn-export-csv,
+    #btn-export-pdf,
+    #btn-modal-archive-customer,
+    #btn-customer-close-footer,
+    #btn-cancel-customer-archive-modal,
+    #btn-confirm-customer-archive-modal,
+    #btn-customer-export-cancel,
+    #btn-customer-export-download {
+      font-size: 0.90625rem !important; /* 14.5px */
+      font-weight: 600 !important;
+    }
+
+    /* Small Helper & Detail Text (preferably at least 12-13px) */
+    .helper-text-sm,
+    .customer-detail-label,
+    #edit-customer-dialog .text-xs {
+      font-size: 0.8125rem !important; /* 13px */
+    }
+
+    /* 5. SOLID BLACK (#000000) TEXT ENFORCEMENT IN DAY/LIGHT MODE */
+    html:not(.dark) #admin-right-workspace header h2,
+    html:not(.dark) #admin-layout-container h1,
+    html:not(.dark) #admin-layout-container h2,
+    html:not(.dark) #admin-layout-container h3,
+    html:not(.dark) #admin-main-content h3,
+    html:not(.dark) #edit-customer-dialog h3,
+    html:not(.dark) #customer-export-confirm-modal h4 {
+      color: #000000 !important;
+    }
+
+    html:not(.dark) table thead th,
+    html:not(.dark) table thead th * {
+      color: #000000 !important;
+    }
+
+    html:not(.dark) table tbody td {
+      color: #000000 !important;
+    }
+
+    html:not(.dark) .customer-name-cell,
+    html:not(.dark) .customer-email-cell,
+    html:not(.dark) .customer-phone-cell {
+      color: #000000 !important;
+    }
+
+    html:not(.dark) input:not([type="button"]):not([type="submit"]),
+    html:not(.dark) textarea,
+    html:not(.dark) select {
+      color: #000000 !important;
+    }
+
+    /* Dialog subtitles & descriptions in light mode */
+    html:not(.dark) #edit-customer-dialog p,
+    html:not(.dark) #customer-archive-confirm-message,
+    html:not(.dark) #customer-export-confirm-modal p {
+      color: #1F2937 !important;
+    }
+
+    /* Meaningful Status Colors Preserved */
+    .text-emerald-700,
+    .text-emerald-800 {
+      color: #065F46 !important;
+    }
+    .text-rose-700,
+    .text-rose-800 {
+      color: #BE123C !important;
+    }
+
+    /* Dark Mode Readability */
+    html.dark #admin-right-workspace header h2,
+    html.dark #admin-layout-container h1,
+    html.dark #admin-layout-container h2,
+    html.dark #admin-layout-container h3,
+    html.dark #admin-main-content h3,
+    html.dark #edit-customer-dialog h3,
+    html.dark table thead th,
+    html.dark table tbody td,
+    html.dark .customer-name-cell,
+    html.dark .customer-email-cell,
+    html.dark .customer-phone-cell {
+      color: #F9FAFB !important;
+    }
+  </style>
+  <style>
+    /* Custom scrollbar styling for the order history ledger and main customer table */
+    #modal-orders-scrollbar-wrapper::-webkit-scrollbar,
+    #admin-customers-table-scroll::-webkit-scrollbar {
+      height: 8px; /* Thickness of top scrollbar */
+    }
+    #modal-orders-scrollbar-wrapper::-webkit-scrollbar-track,
+    #admin-customers-table-scroll::-webkit-scrollbar-track {
+      background: #EAECEF;
+      border-radius: 9999px;
+    }
+    #modal-orders-scrollbar-wrapper::-webkit-scrollbar-thumb,
+    #admin-customers-table-scroll::-webkit-scrollbar-thumb {
+      background: #1E6C02; /* Brand green scrollbar color */
+      border-radius: 9999px;
+      border: 1px solid #EAECEF;
+    }
+    #modal-orders-scrollbar-wrapper::-webkit-scrollbar-thumb:hover,
+    #admin-customers-table-scroll::-webkit-scrollbar-thumb:hover {
+      background: #145001;
+    }
+
+    /* Dark mode override for customer status card */
+    .dark #edit-customer-dialog #modal-status-banner {
+      background-color: rgba(31, 41, 55, 0.8) !important; /* Standard dark slate UI card background */
+      border-color: rgba(55, 65, 81, 1) !important;
+    }
+    .dark #edit-customer-dialog #modal-customer-status-badge {
+      background-color: transparent !important;
+      border: none !important;
+      box-shadow: none !important;
+    }
+  </style>
+  <style id="auth-guard-style">body { visibility: hidden !important; }</style>
+</head>
+<body class="bg-[#F5F5F5] min-h-screen">
+  <div id="auth-guard-loader" class="fixed inset-0 bg-[#F5F5F5] z-[99999] flex flex-col items-center justify-center font-sans">
+    <div class="w-9 h-9 border-3 border-[#1E6C02]/20 border-t-[#1E6C02] rounded-full animate-spin mb-3"></div>
+    <p class="text-xs font-semibold text-gray-700">Verifying administrative access...</p>
+  </div>
+
+  <div id="admin-layout-container"></div>
+
+  <!-- VIEW CUSTOMER DETAILS DIALOG -->
+  <div id="edit-customer-dialog" class="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center p-4 sm:p-6 hidden">
+    <div class="bg-white dark:bg-gray-900 rounded-2xl max-w-4xl w-full shadow-2xl p-6 sm:p-8 md:p-10 border border-gray-200 dark:border-gray-800 max-h-[90vh] overflow-y-auto overflow-x-auto animate-in fade-in zoom-in duration-200 text-gray-900 dark:text-gray-100">
+      
+      <!-- Modal Header -->
+      <div class="flex justify-between items-start pb-4 border-b border-gray-200 dark:border-gray-800">
+        <div>
+          <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100" id="modal-customer-name">Customer Details</h3>
+          <p class="text-sm font-semibold text-gray-600 dark:text-gray-400 mt-0.5" id="modal-customer-id">Customer ID: #ID</p>
+        </div>
+        <button id="close-customer-modal" class="text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100 p-1 rounded-lg transition-colors cursor-pointer" title="Close">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-5 h-5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+
+      <div class="space-y-6 pt-4 px-2 sm:px-4 md:px-6">
+        
+        <!-- Status Info Banner -->
+        <div id="modal-status-banner" class="bg-gray-50/80 dark:bg-gray-800/60 p-4 sm:p-5 rounded-xl border border-gray-200 dark:border-gray-700">
+          <div>
+            <span class="text-xs font-bold text-gray-900 dark:text-gray-200 uppercase tracking-wider block mb-1.5">Customer Status</span>
+            <div id="modal-customer-status-badge" class="flex items-center gap-2">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Customer Information Section -->
+        <div class="space-y-3 px-1 sm:px-2">
+          <h4 class="text-sm font-semibold text-gray-900 dark:text-gray-100 uppercase tracking-wider border-b border-gray-200 dark:border-gray-800 pb-2">Customer Information</h4>
+          <div class="grid sm:grid-cols-2 gap-x-8 gap-y-4 text-sm px-1 sm:px-2">
+            <div>
+              <span class="font-medium block text-xs uppercase text-gray-700 dark:text-gray-300 mb-0.5 customer-detail-label">Full Name</span>
+              <span id="modal-info-fullname" class="font-medium text-black dark:text-white text-base"></span>
+            </div>
+            <div>
+              <span class="font-medium block text-xs uppercase text-gray-700 dark:text-gray-300 mb-0.5 customer-detail-label">Email Address</span>
+              <span id="modal-info-email" class="font-normal text-black dark:text-white text-[15px]"></span>
+            </div>
+            <div>
+              <span class="font-medium block text-xs uppercase text-gray-700 dark:text-gray-300 mb-0.5 customer-detail-label">Contact Number</span>
+              <span id="modal-info-phone" class="font-normal text-black dark:text-white text-[15px]"></span>
+            </div>
+            <div>
+              <span class="font-medium block text-xs uppercase text-gray-700 dark:text-gray-300 mb-0.5 customer-detail-label">Gender</span>
+              <span id="modal-info-gender" class="font-normal text-black dark:text-white text-[15px]"></span>
+            </div>
+            <div class="sm:col-span-2">
+              <span class="font-medium block text-xs uppercase text-gray-700 dark:text-gray-300 mb-0.5 customer-detail-label">Shipping Address</span>
+              <span id="modal-info-address" class="font-normal text-black dark:text-white text-[15px]"></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Customer Stats Section -->
+        <div class="space-y-3 px-1 sm:px-2">
+          <h4 class="text-sm font-semibold text-gray-900 dark:text-gray-100 uppercase tracking-wider border-b border-gray-200 dark:border-gray-800 pb-2">Customer Stats</h4>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
+            <div class="bg-emerald-50/80 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 p-3 rounded-xl">
+              <span class="text-xs font-semibold text-emerald-800 dark:text-emerald-300 uppercase block customer-detail-label">Total Spent</span>
+              <span id="modal-stat-total-spent" class="text-lg font-semibold text-emerald-950 dark:text-emerald-100">₱0.00</span>
+            </div>
+            <div class="bg-blue-50/80 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800/60 p-3 rounded-xl">
+              <span class="text-xs font-semibold text-blue-800 dark:text-blue-300 uppercase block customer-detail-label">Total Orders</span>
+              <span id="modal-stat-total-orders" class="text-lg font-semibold text-blue-950 dark:text-blue-100">0</span>
+            </div>
+            <div class="bg-teal-50/80 dark:bg-teal-950/40 border border-teal-200 dark:border-teal-800/60 p-3 rounded-xl">
+              <span class="text-xs font-semibold text-teal-800 dark:text-teal-300 uppercase block customer-detail-label">Completed Orders</span>
+              <span id="modal-stat-completed-orders" class="text-lg font-semibold text-teal-950 dark:text-teal-100">0</span>
+            </div>
+            <div class="bg-purple-50/80 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800/60 p-3 rounded-xl">
+              <span class="text-xs font-semibold text-purple-800 dark:text-purple-300 uppercase block customer-detail-label">Reservations</span>
+              <span id="modal-stat-reservations" class="text-lg font-semibold text-purple-950 dark:text-purple-100">0</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent Orders Section -->
+        <div class="space-y-3 px-1 sm:px-2">
+          <h4 class="text-sm font-semibold text-gray-900 dark:text-gray-100 uppercase tracking-wider border-b border-gray-200 dark:border-gray-800 pb-2">Recent Orders</h4>
+          <div class="overflow-x-auto rounded-xl border border-gray-200 dark:border-gray-800">
+            <table class="w-full text-left text-sm font-normal text-gray-900 dark:text-gray-100">
+              <thead>
+                <tr class="border-b border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold uppercase text-xs tracking-wider bg-gray-50 dark:bg-gray-800/80">
+                  <th class="py-3 px-4 font-semibold text-gray-900 dark:text-gray-100">Date</th>
+                  <th class="py-3 px-4 font-semibold text-gray-900 dark:text-gray-100">Rice Variety</th>
+                  <th class="py-3 px-4 font-semibold text-gray-900 dark:text-gray-100">Amount</th>
+                  <th class="py-3 px-4 text-right font-semibold text-gray-900 dark:text-gray-100">Status</th>
+                </tr>
+              </thead>
+              <tbody id="modal-orders-tbody" class="divide-y divide-gray-100 dark:divide-gray-800 font-normal text-gray-900 dark:text-gray-100">
+                <!-- Dynamically assigned -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-800 mt-6 gap-3">
+        <button id="btn-modal-archive-customer" class="px-5 py-2.5 rounded-xl text-xs font-semibold uppercase tracking-wider cursor-pointer transition-colors flex items-center gap-2">
+          <!-- Populated dynamically -->
+        </button>
+        <div class="flex items-center gap-3">
+          <button id="btn-customer-close-footer" class="px-6 py-2.5 bg-gray-900 hover:bg-black text-white dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-white rounded-xl text-xs font-semibold uppercase tracking-wider cursor-pointer transition-colors">
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CUSTOMER ARCHIVE / RESTORE CONFIRMATION MODAL -->
+  <div id="customer-archive-confirm-modal" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-[95] flex items-center justify-center p-4 hidden transition-opacity duration-300">
+    <div id="customer-archive-modal-panel" class="bg-white dark:bg-gray-900 rounded-3xl max-w-md w-full shadow-2xl overflow-hidden border border-gray-200 dark:border-gray-800 relative transform scale-95 opacity-0 transition-all duration-300">
+      <!-- Modal Header Banner -->
+      <div id="customer-archive-modal-header" class="bg-rose-50 dark:bg-rose-950/40 px-6 py-5 border-b border-rose-100 dark:border-rose-900/50 flex items-center gap-3">
+        <div id="customer-archive-modal-icon-wrap" class="w-10 h-10 rounded-full bg-rose-100 dark:bg-rose-900/60 flex items-center justify-center text-rose-600 dark:text-rose-400 shrink-0">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-5 h-5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+        </div>
+        <div>
+          <h4 id="customer-archive-modal-title" class="text-lg font-semibold text-rose-700 dark:text-rose-300 tracking-tight">Archive Customer Account</h4>
+        </div>
+        <button id="close-customer-archive-modal-x" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 font-semibold text-sm ml-auto p-1 cursor-pointer select-none" title="Cancel">✕</button>
+      </div>
+
+      <div class="p-6 space-y-5">
+        <p id="customer-archive-confirm-message" class="text-sm text-gray-800 dark:text-gray-200 font-normal leading-relaxed">
+          <!-- Dynamically populated -->
+        </p>
+
+        <div class="flex items-center justify-end gap-3 pt-4 border-t border-gray-100 dark:border-gray-800">
+          <button id="btn-cancel-customer-archive-modal" class="px-5 py-2.5 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200 font-semibold text-xs uppercase tracking-wider rounded-xl cursor-pointer transition-colors select-none">
+            Cancel
+          </button>
+          <button id="btn-confirm-customer-archive-modal" class="px-5 py-2.5 bg-rose-600 hover:bg-rose-700 active:scale-[0.98] text-white font-semibold text-xs uppercase tracking-wider rounded-xl cursor-pointer shadow-md transition-all select-none flex items-center gap-2">
+            Yes, Archive
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CUSTOMER EXPORT CONFIRMATION MODAL -->
+  <div id="customer-export-confirm-modal" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-[95] flex items-center justify-center p-4 hidden transition-opacity duration-300">
+    <div id="customer-export-modal-panel" class="bg-white dark:bg-gray-900 rounded-3xl max-w-lg w-full shadow-2xl overflow-hidden border border-gray-200 dark:border-gray-800 relative transform scale-95 opacity-0 transition-all duration-300 text-gray-900 dark:text-gray-100 p-6 sm:p-8 space-y-6">
+      <!-- Content populated dynamically via openCustomerExportModal() -->
+    </div>
+  </div>
+
+  <script type="module" src="../src/app/shared.js"></script>
+
+  <!-- Interactive logical routines -->
+  <script type="module">
+    import { protectAdminPage, renderAdminLayout, addActivityLog, showToast, syncUsersAndCustomers, updateUserFromCustomer, setItemAndSync, getCustomerVerifiedSpentAmount, setCustomerArchiveStatusInFirestore, initFirestoreSync } from '../src/app/shared.js';
+
+    // Load DB helper
+    function getCustomers() {
+      syncUsersAndCustomers();
+      const data = localStorage.getItem('aurora-customers');
+      if (!data) {
+        localStorage.setItem('aurora-customers', JSON.stringify([]));
+        return [];
+      }
+      return JSON.parse(data);
+    }
+
+    function saveCustomers(list) {
+      setItemAndSync('aurora-customers', JSON.stringify(list));
+    }
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      // 1. Authoritative access control check
+      const authResult = await protectAdminPage({ requiredRole: 'any' });
+      if (!authResult || !authResult.ok) return;
+
+      renderAdminLayout('customers');
+
+      const targetSpace = document.getElementById('admin-main-content');
+      if (!targetSpace) return;
+
+      // Local interactive variables
+      let searchQuery = '';
+      let timeFilter = 'all';
+      let showArchived = false;
+      let selectedCustomerInModal = null;
+
+      const editDialog = document.getElementById('edit-customer-dialog');
+
+      function matchesTimeFilter(c, filter) {
+        if (!filter || filter === 'all') return true;
+        const rawDate = c.registrationDate || c.regDate || c.createdAt || c.dateCreated;
+        if (!rawDate) return true;
+        const d = new Date(rawDate);
+        if (isNaN(d.getTime())) return true;
+        
+        const now = new Date();
+        if (filter === 'today') {
+          return d.getFullYear() === now.getFullYear() &&
+                 d.getMonth() === now.getMonth() &&
+                 d.getDate() === now.getDate();
+        }
+        if (filter === 'this-week') {
+          const diffDays = (now.getTime() - d.getTime()) / (1000 * 3600 * 24);
+          return diffDays >= 0 && diffDays <= 7;
+        }
+        if (filter === 'this-month') {
+          return d.getFullYear() === now.getFullYear() &&
+                 d.getMonth() === now.getMonth();
+        }
+        if (filter === 'this-year') {
+          return d.getFullYear() === now.getFullYear();
+        }
+        return true;
+      }
+
+      function getFilteredCustomers() {
+        const customers = getCustomers();
+        const q = String(searchQuery || '').toLowerCase().trim();
+
+        return customers.filter(c => {
+          const nameStr = String(c.name || '').toLowerCase();
+          const emailStr = String(c.email || '').toLowerCase();
+          const phoneStr = String(c.phone || '');
+          const matchesSearch = !q || nameStr.includes(q) || emailStr.includes(q) || phoneStr.includes(searchQuery || '');
+          const matchesArchive = showArchived ? c.isArchived : !c.isArchived;
+          const matchesTime = matchesTimeFilter(c, timeFilter);
+          return matchesSearch && matchesArchive && matchesTime;
+        });
+      }
+
+      function renderCustomersBoard() {
+        const filtered = getFilteredCustomers();
+
+        targetSpace.innerHTML = `
+          <div class="space-y-6 w-full">
+            
+            <!-- Top Toolbar -->
+            <div class="bg-white dark:bg-gray-900 rounded-2xl p-4 sm:p-6 border border-gray-200/80 dark:border-gray-800 shadow-xs flex flex-nowrap items-center justify-between gap-3 sm:gap-4 w-full overflow-x-auto">
+              <!-- 1. Search Bar -->
+              <div class="relative w-64 sm:w-72 shrink-0">
+                <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4.5 h-4.5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                </span>
+                <input 
+                  type="text" 
+                  id="inp-search-customers" 
+                  placeholder="Search by name, phone, email..." 
+                  value="${searchQuery}"
+                  class="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-sm font-normal text-gray-900 dark:text-gray-100 pl-10 pr-4 py-2.5 rounded-xl focus:border-[#1E6C02] focus:bg-white dark:focus:bg-gray-800 outline-none transition-all"
+                />
+              </div>
+
+              <!-- Controls Toolbar Items 2-6 -->
+              <div class="flex items-center gap-2 sm:gap-2.5 lg:gap-3 shrink-0 flex-nowrap">
+                <!-- 2. Time Filter -->
+                <select id="select-time-filter" class="px-3.5 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 font-semibold text-xs uppercase tracking-wider rounded-xl cursor-pointer focus:border-[#1E6C02] outline-none transition-colors shrink-0">
+                  <option value="all" ${timeFilter === 'all' ? 'selected' : ''}>All Time</option>
+                  <option value="today" ${timeFilter === 'today' ? 'selected' : ''}>Today</option>
+                  <option value="this-week" ${timeFilter === 'this-week' ? 'selected' : ''}>This Week</option>
+                  <option value="this-month" ${timeFilter === 'this-month' ? 'selected' : ''}>This Month</option>
+                  <option value="this-year" ${timeFilter === 'this-year' ? 'selected' : ''}>This Year</option>
+                </select>
+
+                <!-- 3. View Archived -->
+                <button id="btn-toggle-archived-clients" class="flex items-center gap-2 px-3.5 py-2.5 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-700 font-semibold text-xs uppercase tracking-wider rounded-xl cursor-pointer transition-colors whitespace-nowrap shrink-0">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 text-gray-900 dark:text-gray-100"><polyline points="21 8 21 21 3 21 3 8"></polyline><rect x="1" y="3" width="22" height="5"></rect><line x1="10" y1="12" x2="14" y2="12"></line></svg>
+                  ${showArchived ? 'View Active' : 'View Archived'}
+                </button>
+
+                <!-- 4. Export Excel -->
+                <button id="btn-export-excel" class="flex items-center gap-2 px-3.5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs uppercase tracking-wider rounded-xl cursor-pointer transition-colors whitespace-nowrap shrink-0">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="8" y1="13" x2="16" y2="13"></line><line x1="8" y1="17" x2="16" y2="17"></line></svg>
+                  Export Excel
+                </button>
+
+                <!-- 5. Export CSV -->
+                <button id="btn-export-csv" class="flex items-center gap-2 px-3.5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs uppercase tracking-wider rounded-xl cursor-pointer transition-colors whitespace-nowrap shrink-0">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                  Export CSV
+                </button>
+
+                <!-- 6. Export PDF -->
+                <button id="btn-export-pdf" class="flex items-center gap-2 px-3.5 py-2.5 bg-red-600 hover:bg-red-700 text-white font-semibold text-xs uppercase tracking-wider rounded-xl cursor-pointer transition-colors whitespace-nowrap shrink-0">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><path d="M12 18v-6"></path><path d="m9 15 3 3 3-3"></path></svg>
+                  Export PDF
+                </button>
+              </div>
+            </div>
+
+            <!-- Ledger Table Card -->
+            <div class="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200/80 dark:border-gray-800 p-4 sm:p-6 shadow-xs space-y-4 text-gray-900 dark:text-gray-100 w-full">
+              <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 tracking-tight">
+                ${showArchived ? 'List of Archived Customers' : 'List of Customers'}
+              </h3>
+
+              <div id="customers-table-container" class="w-full overflow-x-auto rounded-xl border border-gray-200 dark:border-gray-800">
+                <table class="w-full text-left text-sm font-normal text-gray-900 dark:text-gray-100 min-w-[960px]">
+                  <thead>
+                    <tr class="border-b border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 font-semibold uppercase text-xs tracking-wider bg-gray-50 dark:bg-gray-800">
+                      <th class="py-3.5 px-4 w-12 text-center">No.</th>
+                      <th class="py-3.5 px-4 w-[22%]">Name</th>
+                      <th class="py-3.5 px-4 w-[24%]">Email</th>
+                      <th class="py-3.5 px-4 w-[16%]">Phone</th>
+                      <th class="py-3.5 px-4 w-[15%]">Total Spent</th>
+                      <th class="py-3.5 px-4 w-[12%]">Status</th>
+                      <th class="py-3.5 px-4 text-center w-28">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-gray-100 dark:divide-gray-800 text-gray-900 dark:text-gray-100 font-normal">
+                    ${(() => {
+                      const orders = JSON.parse(localStorage.getItem('aurora-orders') || '[]');
+
+                      function getCustomerOrders(client, allOrdersList) {
+                        if (!client || !allOrdersList) return [];
+                        const cId = String(client.id || '').toLowerCase();
+                        const cUid = String(client.uid || client.firebaseUid || '').toLowerCase();
+                        const cCusId = String(client.customerId || '').toLowerCase();
+                        const cEmail = String(client.email || '').toLowerCase().trim();
+                        const cName = String(client.name || '').toLowerCase().trim();
+
+                        return allOrdersList.filter(o => {
+                          const oUserId = String(o.userId || o.uid || '').toLowerCase();
+                          const oCusId = String(o.customerId || '').toLowerCase();
+                          const oEmail = String(o.customerEmail || o.email || '').toLowerCase().trim();
+                          const oName = String(o.fullName || o.customerName || '').toLowerCase().trim();
+
+                          if (cId && oUserId === cId) return true;
+                          if (cUid && (oUserId === cUid || oCusId === cUid)) return true;
+                          if (cCusId && (oCusId === cCusId || oUserId === cCusId)) return true;
+                          if (cEmail && oEmail === cEmail) return true;
+                          if (cName && oName && cName === oName) return true;
+
+                          return false;
+                        });
+                      }
+
+                      return filtered.map((client, index) => {
+                        const clientOrders = getCustomerOrders(client, orders);
+
+                        // Total Spent: actual verified/paid amount only
+                        let totalSpentAmount = 0;
+                        if (clientOrders.length > 0) {
+                          totalSpentAmount = clientOrders.reduce((sum, o) => sum + getCustomerVerifiedSpentAmount(o), 0);
+                        } else if (client.totalSpent && !isNaN(parseFloat(client.totalSpent))) {
+                          totalSpentAmount = parseFloat(client.totalSpent);
+                        }
+
+                        // Account status calculation (strictly independent of order status)
+                        let statusBadgeHtml = '';
+                        if (client.isArchived) {
+                          statusBadgeHtml = `<span class="px-2.5 py-1 rounded-full bg-rose-100 text-rose-900 border border-rose-300 dark:bg-rose-950/60 dark:text-rose-200 dark:border-rose-800 font-bold text-xs inline-block">Archived</span>`;
+                        } else if (client.isActive === false || client.status === 'Suspended' || client.status === 'Inactive' || client.isSuspended === true) {
+                          statusBadgeHtml = `<span class="px-2.5 py-1 rounded-full bg-rose-100 text-rose-900 border border-rose-300 dark:bg-rose-950/60 dark:text-rose-200 dark:border-rose-800 font-bold text-xs inline-block">Suspended</span>`;
+                        } else {
+                          statusBadgeHtml = `<span class="px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-900 border border-emerald-300 dark:bg-emerald-950/60 dark:text-emerald-200 dark:border-emerald-800 font-bold text-xs inline-block">Active</span>`;
+                        }
+
+                        return `
+                          <tr class="hover:bg-gray-50/80 dark:hover:bg-gray-800/50 transition-colors text-gray-900 dark:text-gray-100">
+                            <td class="py-3.5 px-4 text-center font-medium text-sm customer-index-cell text-gray-900 dark:text-gray-100">${index + 1}</td>
+                            <td class="py-3.5 px-4 font-medium text-[15.5px] text-black dark:text-white customer-name-cell">${client.name}</td>
+                            <td class="py-3.5 px-4 text-[14.5px] text-black dark:text-white font-normal customer-email-cell">${client.email}</td>
+                            <td class="py-3.5 px-4 text-[14.5px] text-black dark:text-white font-normal whitespace-nowrap customer-phone-cell">${client.phone || 'N/A'}</td>
+                            <td class="py-3.5 px-4 font-medium text-[15px] text-black dark:text-white whitespace-nowrap customer-spent-cell">₱${totalSpentAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                            <td class="py-3.5 px-4 whitespace-nowrap">${statusBadgeHtml}</td>
+                            <td class="py-3.5 px-4 text-center whitespace-nowrap">
+                              <div class="flex items-center justify-center gap-1.5">
+                                <button 
+                                  data-id="${client.id || ''}"
+                                  data-customer-id="${client.customerId || ''}"
+                                  data-email="${client.email || ''}"
+                                  data-uid="${client.uid || client.firebaseUid || ''}"
+                                  class="btn-edit-client p-1.5 text-black hover:text-emerald-700 dark:text-white dark:hover:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/50 rounded-lg transition-colors cursor-pointer"
+                                  title="View Customer Details"
+                                >
+                                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4.5 h-4.5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                                </button>
+                                <button 
+                                  data-id="${client.id || ''}"
+                                  data-customer-id="${client.customerId || ''}"
+                                  data-email="${client.email || ''}"
+                                  data-uid="${client.uid || client.firebaseUid || ''}"
+                                  class="btn-archive-direct p-1.5 ${client.isArchived ? 'text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/50' : 'text-black hover:text-rose-700 dark:text-white dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/50'} rounded-lg transition-colors cursor-pointer"
+                                  title="${client.isArchived ? 'Restore Customer Account' : 'Archive Customer Account'}"
+                                >
+                                  ${client.isArchived ? `
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4.5 h-4.5"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg>
+                                  ` : `
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4.5 h-4.5"><polyline points="21 8 21 21 3 21 3 8"></polyline><rect x="1" y="3" width="22" height="5"></rect><line x1="10" y1="12" x2="14" y2="12"></line></svg>
+                                  `}
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        `;
+                      }).join('')
+                    })()}
+
+                    ${filtered.length === 0 ? `
+                      <tr>
+                        <td colspan="7" class="py-8 text-center text-gray-500 dark:text-gray-400 font-medium text-sm">
+                          No customer profiles matched the search criteria.
+                        </td>
+                      </tr>
+                    ` : ''}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        `;
+
+        // Bind events
+        bindCustomersEvents();
+      }
+
+      function bindCustomersEvents() {
+        const customers = getCustomers();
+
+        // Search Input controller
+        const searchInput = document.getElementById('inp-search-customers');
+        if (searchInput) {
+          searchInput.addEventListener('input', () => {
+            searchQuery = searchInput.value;
+          });
+          searchInput.addEventListener('change', () => {
+            renderCustomersBoard();
+          });
+          searchInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') renderCustomersBoard();
+          });
+        }
+
+        // Time Filter controller
+        const timeFilterSelect = document.getElementById('select-time-filter');
+        if (timeFilterSelect) {
+          timeFilterSelect.addEventListener('change', () => {
+            timeFilter = timeFilterSelect.value;
+            renderCustomersBoard();
+          });
+        }
+
+        // Toggle archived view
+        const toggleArchivedBtn = document.getElementById('btn-toggle-archived-clients');
+        if (toggleArchivedBtn) {
+          toggleArchivedBtn.addEventListener('click', () => {
+            showArchived = !showArchived;
+            renderCustomersBoard();
+          });
+        }
+
+        // Export Excel Button
+        const exportExcelBtn = document.getElementById('btn-export-excel');
+        if (exportExcelBtn) {
+          exportExcelBtn.addEventListener('click', () => {
+            openCustomerExportModal('Excel');
+          });
+        }
+
+        // Export CSV Button
+        const exportCsvBtn = document.getElementById('btn-export-csv');
+        if (exportCsvBtn) {
+          exportCsvBtn.addEventListener('click', () => {
+            openCustomerExportModal('CSV');
+          });
+        }
+
+        // Export PDF Button
+        const exportPdfBtn = document.getElementById('btn-export-pdf');
+        if (exportPdfBtn) {
+          exportPdfBtn.addEventListener('click', () => {
+            openCustomerExportModal('PDF');
+          });
+        }
+
+        // Direct Archive / Restore Button
+        document.querySelectorAll('.btn-archive-direct').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            e.preventDefault();
+            const match = findMatchingCustomer(btn);
+            if (match) {
+              openCustomerArchiveModal(match);
+            }
+          });
+        });
+
+        // Open view user details dialogue trigger
+        document.querySelectorAll('.btn-edit-client').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            e.preventDefault();
+            const match = findMatchingCustomer(btn);
+            if (match) {
+              openCustomerDetailsModal(match);
+            }
+          });
+        });
+
+        // Table Event Delegation (ensures clicks work reliably across re-renders)
+        const tableContainer = document.getElementById('customers-table-container');
+        if (tableContainer && !tableContainer.dataset.hasDelegation) {
+          tableContainer.dataset.hasDelegation = 'true';
+          tableContainer.addEventListener('click', (e) => {
+            const archiveBtn = e.target.closest('.btn-archive-direct');
+            if (archiveBtn) {
+              e.stopPropagation();
+              e.preventDefault();
+              const match = findMatchingCustomer(archiveBtn);
+              if (match) {
+                openCustomerArchiveModal(match);
+              }
+              return;
+            }
+
+            const editBtn = e.target.closest('.btn-edit-client');
+            if (editBtn) {
+              e.stopPropagation();
+              e.preventDefault();
+              const match = findMatchingCustomer(editBtn);
+              if (match) {
+                openCustomerDetailsModal(match);
+              }
+            }
+          });
+        }
+      }
+
+      // Helper to find customer by any available identifier
+      function findMatchingCustomer(el) {
+        if (!el) return null;
+        const id = el.getAttribute('data-id');
+        const customerId = el.getAttribute('data-customer-id');
+        const email = el.getAttribute('data-email');
+        const uid = el.getAttribute('data-uid');
+        const customers = getCustomers();
+
+        return customers.find(c => {
+          if (id && (String(c.id) === String(id) || String(c.customerId) === String(id) || String(c.uid) === String(id))) return true;
+          if (customerId && (String(c.customerId) === String(customerId) || String(c.id) === String(customerId))) return true;
+          if (uid && (String(c.uid) === String(uid) || String(c.firebaseUid) === String(uid) || String(c.id) === String(uid))) return true;
+          if (email && c.email && String(c.email).toLowerCase() === String(email).toLowerCase()) return true;
+          return false;
+        });
+      }
+
+      // Customer Details Modal Handler
+      function openCustomerDetailsModal(match) {
+        if (!match) return;
+        selectedCustomerInModal = match;
+        const customers = getCustomers();
+        const allOrdersList = JSON.parse(localStorage.getItem('aurora-orders') || '[]');
+
+        function findCustomerOrders(client, list) {
+          if (!client || !list) return [];
+          const cId = String(client.id || '').toLowerCase();
+          const cUid = String(client.uid || client.firebaseUid || '').toLowerCase();
+          const cCusId = String(client.customerId || '').toLowerCase();
+          const cEmail = String(client.email || '').toLowerCase().trim();
+          const cName = String(client.name || '').toLowerCase().trim();
+
+          return list.filter(o => {
+            const oUserId = String(o.userId || o.uid || '').toLowerCase();
+            const oCusId = String(o.customerId || '').toLowerCase();
+            const oEmail = String(o.customerEmail || o.email || '').toLowerCase().trim();
+            const oName = String(o.fullName || o.customerName || '').toLowerCase().trim();
+
+            if (cId && oUserId === cId) return true;
+            if (cUid && (oUserId === cUid || oCusId === cUid)) return true;
+            if (cCusId && (oCusId === cCusId || oUserId === cCusId)) return true;
+            if (cEmail && oEmail === cEmail) return true;
+            if (cName && oName && cName === oName) return true;
+
+            return false;
+          });
+        }
+
+        const clientOrders = findCustomerOrders(match, allOrdersList);
+
+        // Calculate Customer Stats
+        const validOrders = clientOrders.filter(o => {
+          const isRes = !!o.isPreOrder || (o.items && o.items.some(it => it.isReservation));
+          const s = (o.status || '').toLowerCase().replace(/_/g, '-');
+          return !isRes && s !== 'cancelled' && s !== 'rejected';
+        });
+        const totalOrdersCount = clientOrders.length > 0 ? validOrders.length : (match.recentOrders ? match.recentOrders.length : 0);
+
+        const completedOrders = clientOrders.filter(o => {
+          const s = (o.status || '').toLowerCase().replace(/_/g, '-');
+          return s === 'completed' || s === 'delivered';
+        });
+        const completedOrdersCount = completedOrders.length;
+
+        const validReservations = clientOrders.filter(o => {
+          const isRes = !!o.isPreOrder || (o.items && o.items.some(it => it.isReservation));
+          const s = (o.status || '').toLowerCase().replace(/_/g, '-');
+          return isRes && s !== 'cancelled' && s !== 'rejected';
+        });
+        const reservationsCount = validReservations.length;
+
+        let totalSpentAmount = 0;
+        if (clientOrders.length > 0) {
+          totalSpentAmount = clientOrders.reduce((sum, o) => sum + getCustomerVerifiedSpentAmount(o), 0);
+        } else if (match.totalSpent && !isNaN(parseFloat(match.totalSpent))) {
+          totalSpentAmount = parseFloat(match.totalSpent);
+        }
+
+        // Customer ID calculation
+        let displayCustomerId = match.customerId || match.uid || match.firebaseUid;
+        if (!displayCustomerId || displayCustomerId.startsWith('user-') || displayCustomerId.startsWith('demo-user') || /^\d+$/.test(String(displayCustomerId))) {
+          const idx = customers.findIndex(c => c.id === match.id);
+          displayCustomerId = `CUS-${String(idx >= 0 ? idx + 1 : 1).padStart(6, '0')}`;
+        }
+
+        // Populate Modal Header
+        document.getElementById('modal-customer-name').textContent = match.name || 'Customer Profile';
+        document.getElementById('modal-customer-id').textContent = `Customer ID: #${displayCustomerId}`;
+
+        // Populate Status badge
+        const statusBadgeContainer = document.getElementById('modal-customer-status-badge');
+        if (statusBadgeContainer) {
+          if (match.isArchived) {
+            statusBadgeContainer.innerHTML = `<span class="px-3 py-1 rounded-full bg-rose-100 text-rose-900 border border-rose-300 dark:bg-rose-950/60 dark:text-rose-200 dark:border-rose-800 font-bold text-xs inline-block">🔴 Archived Account</span>`;
+          } else if (match.isActive === false || match.status === 'Suspended' || match.status === 'Inactive' || match.isSuspended === true) {
+            statusBadgeContainer.innerHTML = `<span class="px-3 py-1 rounded-full bg-rose-100 text-rose-900 border border-rose-300 dark:bg-rose-950/60 dark:text-rose-200 dark:border-rose-800 font-bold text-xs inline-block">🔴 Suspended</span>`;
+          } else {
+            statusBadgeContainer.innerHTML = `<span class="px-3 py-1 rounded-full bg-emerald-100 text-emerald-900 border border-emerald-300 dark:bg-emerald-950/60 dark:text-emerald-200 dark:border-emerald-800 font-bold text-xs inline-block">🟢 Active Account</span>`;
+          }
+        }
+
+        // Populate Modal Archive Button
+        const modalArchiveBtn = document.getElementById('btn-modal-archive-customer');
+        if (modalArchiveBtn) {
+          modalArchiveBtn.disabled = false;
+          modalArchiveBtn.classList.remove('opacity-50', 'pointer-events-none');
+          if (match.isArchived) {
+            modalArchiveBtn.className = 'px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider cursor-pointer transition-colors flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white';
+            modalArchiveBtn.innerHTML = `
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-4 h-4"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg>
+              Restore Customer Account
+            `;
+          } else {
+            modalArchiveBtn.className = 'px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider cursor-pointer transition-colors flex items-center gap-2 bg-rose-600 hover:bg-rose-700 text-white';
+            modalArchiveBtn.innerHTML = `
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-4 h-4"><polyline points="21 8 21 21 3 21 3 8"></polyline><rect x="1" y="3" width="22" height="5"></rect><line x1="10" y1="12" x2="14" y2="12"></line></svg>
+              Archive Customer Account
+            `;
+          }
+        }
+
+
+        // Populate Customer Info
+        const femaleNames = ['Maria', 'Leni', 'Gloria', 'Corazon', 'Imelda', 'Grace', 'Sarah', 'Katarina', 'Rica', 'Cherry', 'Teresa', 'Leah', 'Danica', 'Patricia', 'Angela', 'Cristina', 'Jovelyn', 'Nora', 'Vilma', 'Sharon', 'Judy', 'Regine', 'Ana', 'Clara', 'Rosa', 'Elena', 'Sofia', 'Isabel', 'Jessica', 'Jane', 'Michelle', 'Mary', 'Anna', 'Joy'];
+        const inferGender = (name, stored) => {
+          const storedStr = String(stored || '').toLowerCase();
+          if (storedStr === 'female' || storedStr === 'male') {
+            return storedStr.charAt(0).toUpperCase() + storedStr.slice(1);
+          }
+          if (!name) return 'Male';
+          const first = String(name || '').trim().split(' ')[0];
+          return femaleNames.includes(first) ? 'Female' : 'Male';
+        };
+
+        document.getElementById('modal-info-fullname').textContent = match.name || 'N/A';
+        document.getElementById('modal-info-email').textContent = match.email || 'N/A';
+        document.getElementById('modal-info-phone').textContent = match.phone || 'N/A';
+        document.getElementById('modal-info-gender').textContent = inferGender(match.name, match.gender);
+
+        const resolveCustomerAddress = (c) => {
+          if (!c) return 'No address on file';
+          const addr = c.shippingAddress || c.address || c.deliveryAddress || (c.addressDetails && (c.addressDetails.fullAddress || c.addressDetails.address)) || '';
+          if (typeof addr === 'string') {
+            const trimmed = addr.trim();
+            if (trimmed && trimmed.toLowerCase() !== 'aurora local region' && trimmed.toLowerCase() !== 'house no., street, barangay, aurora, zamboanga del sur') {
+              return trimmed;
+            }
+          }
+          return 'No address on file';
+        };
+
+        document.getElementById('modal-info-address').textContent = resolveCustomerAddress(match);
+
+        // Populate Customer Stats
+        document.getElementById('modal-stat-total-spent').textContent = `₱${totalSpentAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        document.getElementById('modal-stat-total-orders').textContent = String(totalOrdersCount);
+        document.getElementById('modal-stat-completed-orders').textContent = String(completedOrdersCount);
+        document.getElementById('modal-stat-reservations').textContent = String(reservationsCount);
+
+        // Populate Recent Orders Table
+        const borderOrdersBody = document.getElementById('modal-orders-tbody');
+        const rec = clientOrders.length > 0 ? clientOrders : (match.recentOrders || []);
+
+        if (rec.length === 0) {
+          borderOrdersBody.innerHTML = `
+            <tr>
+              <td colspan="4" class="py-6 text-center text-black dark:text-white font-bold text-sm">No recent orders found for this customer.</td>
+            </tr>
+          `;
+        } else {
+          const sortedOrders = [...rec].sort((a, b) => {
+            const dA = new Date(a.createdAt || a.date || 0).getTime();
+            const dB = new Date(b.createdAt || b.date || 0).getTime();
+            return dB - dA;
+          });
+
+          borderOrdersBody.innerHTML = sortedOrders.map(ord => {
+            let col = 'bg-gray-100 text-black dark:text-white border border-gray-300';
+            const s = (ord.status || '').toLowerCase().replace(/_/g, '-');
+            if (s === 'delivered' || s === 'completed') col = 'bg-emerald-100 text-emerald-900 border border-emerald-300';
+            else if (s === 'processing' || s === 'to-ship' || s === 'shipped') col = 'bg-blue-100 text-blue-900 border border-blue-300';
+            else if (s === 'pending' || s === 'to-pay') col = 'bg-amber-100 text-amber-900 border border-amber-300';
+            else if (s === 'cancelled' || s === 'rejected') col = 'bg-rose-100 text-rose-900 border border-rose-300';
+
+            const dateStr = ord.createdAt ? new Date(ord.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : (ord.date || 'N/A');
+            const prodNames = ord.items && ord.items.length > 0 
+              ? ord.items.map(i => `${i.product?.name || i.name || 'Rice'} (${i.quantity || 1}x)`).join(', ') 
+              : (ord.product || ord.item || '25kg Rice');
+            const amt = parseFloat(ord.total || ord.totalPrice || ord.amount || ord.billTotal || 0);
+
+            return `
+              <tr class="hover:bg-gray-50/80 transition-colors">
+                <td class="py-3 px-4 font-normal text-black dark:text-white text-sm whitespace-nowrap">${dateStr}</td>
+                <td class="py-3 px-4 text-black dark:text-white font-medium text-sm max-w-[220px] truncate">${prodNames}</td>
+                <td class="py-3 px-4 text-black dark:text-white font-bold text-sm">₱${amt.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                <td class="py-3 px-4 text-right whitespace-nowrap">
+                  <span class="px-2.5 py-1 rounded-full text-[11px] uppercase tracking-wider font-bold ${col}">${ord.status || 'Pending'}</span>
+                </td>
+              </tr>
+            `;
+          }).join('');
+        }
+
+        editDialog.classList.remove('hidden');
+      }
+
+      // Archive / Restore Confirmation Modal Logic
+      let pendingCustomerForArchive = null;
+
+      function openCustomerArchiveModal(customer) {
+        if (!customer) return;
+        pendingCustomerForArchive = customer;
+        const isNowArchived = !customer.isArchived;
+        const customerDisplayName = customer.name || customer.fullName || customer.email || 'Customer';
+
+        const modal = document.getElementById('customer-archive-confirm-modal');
+        const panel = document.getElementById('customer-archive-modal-panel');
+        const header = document.getElementById('customer-archive-modal-header');
+        const iconWrap = document.getElementById('customer-archive-modal-icon-wrap');
+        const title = document.getElementById('customer-archive-modal-title');
+        const msg = document.getElementById('customer-archive-confirm-message');
+        const confirmBtn = document.getElementById('btn-confirm-customer-archive-modal');
+
+        if (!modal || !panel || !header || !iconWrap || !title || !msg || !confirmBtn) return;
+
+        if (isNowArchived) {
+          header.className = "bg-rose-50 dark:bg-rose-950/40 px-6 py-5 border-b border-rose-100 dark:border-rose-900/50 flex items-center gap-3";
+          iconWrap.className = "w-10 h-10 rounded-full bg-rose-100 dark:bg-rose-900/60 flex items-center justify-center text-rose-600 dark:text-rose-400 shrink-0";
+          iconWrap.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-5 h-5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>`;
+          title.textContent = "Archive Customer Account";
+          title.className = "text-lg font-semibold text-rose-700 dark:text-rose-300 tracking-tight";
+          msg.innerHTML = `Are you sure you want to archive <strong class="text-rose-700 dark:text-rose-400 font-semibold">${customerDisplayName}</strong>?<br><br>Archived accounts cannot log in to RiceFlow. All order history and profile records will remain securely preserved.`;
+          confirmBtn.className = "px-5 py-2.5 bg-rose-600 hover:bg-rose-700 active:scale-[0.98] text-white font-semibold text-xs uppercase tracking-wider rounded-xl cursor-pointer shadow-md transition-all select-none flex items-center gap-2";
+          confirmBtn.textContent = "Yes, Archive";
+        } else {
+          header.className = "bg-emerald-50 dark:bg-emerald-950/40 px-6 py-5 border-b border-emerald-100 dark:border-emerald-900/50 flex items-center gap-3";
+          iconWrap.className = "w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-900/60 flex items-center justify-center text-emerald-600 dark:text-emerald-400 shrink-0";
+          iconWrap.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-5 h-5"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg>`;
+          title.textContent = "Restore Customer Account";
+          title.className = "text-lg font-semibold text-emerald-700 dark:text-emerald-300 tracking-tight";
+          msg.innerHTML = `Are you sure you want to restore <strong class="text-emerald-700 dark:text-emerald-400 font-semibold">${customerDisplayName}</strong>?<br><br>The customer will immediately regain access to their account and dashboard.`;
+          confirmBtn.className = "px-5 py-2.5 bg-[#1E6C02] hover:bg-[#145001] active:scale-[0.98] text-white font-semibold text-xs uppercase tracking-wider rounded-xl cursor-pointer shadow-md transition-all select-none flex items-center gap-2";
+          confirmBtn.textContent = "Yes, Restore";
+        }
+
+        confirmBtn.disabled = false;
+        modal.classList.remove('hidden');
+        setTimeout(() => {
+          panel.classList.remove('scale-95', 'opacity-0');
+          panel.classList.add('scale-100', 'opacity-100');
+        }, 10);
+      }
+
+      function closeCustomerArchiveModal() {
+        const modal = document.getElementById('customer-archive-confirm-modal');
+        const panel = document.getElementById('customer-archive-modal-panel');
+        if (!modal || !panel) return;
+        panel.classList.remove('scale-100', 'opacity-100');
+        panel.classList.add('scale-95', 'opacity-0');
+        setTimeout(() => {
+          modal.classList.add('hidden');
+          pendingCustomerForArchive = null;
+        }, 200);
+      }
+
+      // Archive Confirmation Modal Buttons
+      const confirmArchiveBtn = document.getElementById('btn-confirm-customer-archive-modal');
+      if (confirmArchiveBtn) {
+        confirmArchiveBtn.addEventListener('click', async () => {
+          if (!pendingCustomerForArchive) return;
+          const targetCustomer = pendingCustomerForArchive;
+          const isNowArchived = !targetCustomer.isArchived;
+          const labelAct = isNowArchived ? 'Archive' : 'Restore';
+          const actionText = isNowArchived ? 'archive' : 'restore';
+          const customerDisplayName = targetCustomer.name || targetCustomer.fullName || 'Customer';
+
+          confirmArchiveBtn.disabled = true;
+          confirmArchiveBtn.classList.add('opacity-75', 'cursor-not-allowed');
+          confirmArchiveBtn.innerHTML = `
+            <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            ${isNowArchived ? 'Archiving...' : 'Restoring...'}
+          `;
+
+          const client = {
+            ...targetCustomer,
+            isArchived: isNowArchived,
+            isActive: !isNowArchived,
+            status: isNowArchived ? 'Archived' : 'Active',
+            updatedAt: new Date().toISOString()
+          };
+
+          try {
+            // 1. Authoritatively persist to Firebase Firestore
+            await setCustomerArchiveStatusInFirestore(client, isNowArchived);
+          } catch (err) {
+            console.error('[FIREBASE] Error saving archive status to Firestore:', err);
+            showToast(`Failed to ${actionText} customer in Firebase: ${err.message || 'Database error'}`, 'error');
+            confirmArchiveBtn.disabled = false;
+            confirmArchiveBtn.classList.remove('opacity-75', 'cursor-not-allowed');
+            confirmArchiveBtn.textContent = isNowArchived ? 'Yes, Archive' : 'Yes, Restore';
+            return;
+          }
+
+          // 2. Update local state
+          updateUserFromCustomer(client);
+
+          const allCustomers = getCustomers();
+          const updated = allCustomers.map(c => {
+            if (
+              (c.id && client.id && String(c.id) === String(client.id)) ||
+              (c.customerId && client.customerId && String(c.customerId) === String(client.customerId)) ||
+              (c.uid && client.uid && String(c.uid) === String(client.uid)) ||
+              (c.email && client.email && String(c.email).toLowerCase() === String(client.email).toLowerCase())
+            ) {
+              return { ...c, ...client };
+            }
+            return c;
+          });
+          saveCustomers(updated);
+
+          // 3. Log administrative activity
+          addActivityLog({
+            action: `${labelAct}d customer profile: ${customerDisplayName}`,
+            category: 'User Management',
+            target: customerDisplayName
+          });
+
+          showToast(`Customer '${customerDisplayName}' successfully ${actionText}d!`);
+          closeCustomerArchiveModal();
+
+          // Close customer details dialog if currently open
+          if (editDialog && !editDialog.classList.contains('hidden')) {
+            editDialog.classList.add('hidden');
+          }
+
+          // Immediately re-render board
+          renderCustomersBoard();
+        });
+      }
+
+      const closeArchiveModalX = document.getElementById('close-customer-archive-modal-x');
+      if (closeArchiveModalX) {
+        closeArchiveModalX.addEventListener('click', closeCustomerArchiveModal);
+      }
+
+      const cancelArchiveModalBtn = document.getElementById('btn-cancel-customer-archive-modal');
+      if (cancelArchiveModalBtn) {
+        cancelArchiveModalBtn.addEventListener('click', closeCustomerArchiveModal);
+      }
+
+      const archiveModalBackdrop = document.getElementById('customer-archive-confirm-modal');
+      if (archiveModalBackdrop) {
+        archiveModalBackdrop.addEventListener('click', (e) => {
+          if (e.target === archiveModalBackdrop) {
+            closeCustomerArchiveModal();
+          }
+        });
+      }
+
+      // Modal Close Handlers
+      const closeTopBtn = document.getElementById('close-customer-modal');
+      if (closeTopBtn) {
+        closeTopBtn.addEventListener('click', () => {
+          editDialog.classList.add('hidden');
+        });
+      }
+
+      const closeFooterBtn = document.getElementById('btn-customer-close-footer');
+      if (closeFooterBtn) {
+        closeFooterBtn.addEventListener('click', () => {
+          editDialog.classList.add('hidden');
+        });
+      }
+
+      // Modal Archive / Restore Button Click Handler (inside customer details modal)
+      const modalArchiveBtn = document.getElementById('btn-modal-archive-customer');
+      if (modalArchiveBtn) {
+        modalArchiveBtn.addEventListener('click', () => {
+          if (!selectedCustomerInModal) return;
+          openCustomerArchiveModal(selectedCustomerInModal);
+        });
+      }
+
+      // ==========================================
+      // CUSTOMER EXPORT LOGIC (EXCEL / CSV / PDF)
+      // ==========================================
+
+      let currentExportFormat = 'Excel';
+
+      function prepareCustomerExportData(filteredList) {
+        const allCustomers = getCustomers();
+        const allOrders = JSON.parse(localStorage.getItem('aurora-orders') || '[]');
+
+        function getCustomerOrders(client, ordersList) {
+          if (!client || !ordersList) return [];
+          const cId = String(client.id || '').toLowerCase();
+          const cUid = String(client.uid || client.firebaseUid || '').toLowerCase();
+          const cCusId = String(client.customerId || '').toLowerCase();
+          const cEmail = String(client.email || '').toLowerCase().trim();
+          const cName = String(client.name || '').toLowerCase().trim();
+
+          return ordersList.filter(o => {
+            const oUserId = String(o.userId || o.uid || '').toLowerCase();
+            const oCusId = String(o.customerId || '').toLowerCase();
+            const oEmail = String(o.customerEmail || o.email || '').toLowerCase().trim();
+            const oName = String(o.fullName || o.customerName || '').toLowerCase().trim();
+
+            if (cId && oUserId === cId) return true;
+            if (cUid && (oUserId === cUid || oCusId === cUid)) return true;
+            if (cCusId && (oCusId === cCusId || oUserId === cCusId)) return true;
+            if (cEmail && oEmail === cEmail) return true;
+            if (cName && oName && cName === oName) return true;
+
+            return false;
+          });
+        }
+
+        const femaleNames = ['Maria', 'Leni', 'Gloria', 'Corazon', 'Imelda', 'Grace', 'Sarah', 'Katarina', 'Rica', 'Cherry', 'Teresa', 'Leah', 'Danica', 'Patricia', 'Angela', 'Cristina', 'Jovelyn', 'Nora', 'Vilma', 'Sharon', 'Judy', 'Regine', 'Ana', 'Clara', 'Rosa', 'Elena', 'Sofia', 'Isabel', 'Jessica', 'Jane', 'Michelle', 'Mary', 'Anna', 'Joy'];
+        const inferGender = (name, stored) => {
+          const storedStr = String(stored || '').toLowerCase();
+          if (storedStr === 'female' || storedStr === 'male') {
+            return storedStr.charAt(0).toUpperCase() + storedStr.slice(1);
+          }
+          if (!name) return 'Male';
+          const first = String(name || '').trim().split(' ')[0];
+          return femaleNames.includes(first) ? 'Female' : 'Male';
+        };
+
+        return filteredList.map(client => {
+          const clientOrders = getCustomerOrders(client, allOrders);
+
+          // Total Spent: actual verified/paid amount only
+          let totalSpentAmount = 0;
+          if (clientOrders.length > 0) {
+            totalSpentAmount = clientOrders.reduce((sum, o) => sum + getCustomerVerifiedSpentAmount(o), 0);
+          } else if (client.totalSpent && !isNaN(parseFloat(client.totalSpent))) {
+            totalSpentAmount = parseFloat(client.totalSpent);
+          }
+
+          // Total Orders: verified completed/non-cancelled order count
+          const validOrders = clientOrders.filter(o => {
+            const isRes = !!o.isPreOrder || (o.items && o.items.some(it => it.isReservation));
+            const s = (o.status || '').toLowerCase().replace(/_/g, '-');
+            return !isRes && s !== 'cancelled' && s !== 'rejected';
+          });
+          const totalOrdersCount = clientOrders.length > 0 
+            ? validOrders.length 
+            : (client.recentOrders ? client.recentOrders.length : (parseInt(client.totalOrders, 10) || 0));
+
+          // Customer ID calculation
+          let displayCustomerId = client.customerId || client.uid || client.firebaseUid;
+          if (!displayCustomerId || displayCustomerId.startsWith('user-') || displayCustomerId.startsWith('demo-user') || /^\d+$/.test(String(displayCustomerId))) {
+            const idx = allCustomers.findIndex(c => c.id === client.id);
+            displayCustomerId = `CUS-${String(idx >= 0 ? idx + 1 : 1).padStart(6, '0')}`;
+          }
+
+          // Account status calculation:
+          // Archived when isArchived === true.
+          // Suspended when isActive === false or status === 'Suspended'.
+          // Active otherwise.
+          let accountStatus = 'Active';
+          if (client.isArchived) {
+            accountStatus = 'Archived';
+          } else if (client.isActive === false || client.status === 'Suspended' || client.status === 'Inactive' || client.isSuspended === true) {
+            accountStatus = 'Suspended';
+          } else {
+            accountStatus = 'Active';
+          }
+
+          // Registration Date formatting
+          const rawRegDate = client.registrationDate || client.regDate || client.createdAt || client.dateCreated;
+          let formattedRegDate = 'N/A';
+          if (rawRegDate) {
+            const d = new Date(rawRegDate);
+            if (!isNaN(d.getTime())) {
+              formattedRegDate = d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+            }
+          }
+
+          return {
+            customerId: displayCustomerId,
+            name: client.name || client.fullName || 'Customer',
+            email: client.email || 'N/A',
+            phone: client.phone || client.phoneNumber || 'N/A',
+            deliveryAddress: (() => {
+              const raw = client.shippingAddress || client.address || client.deliveryAddress || (client.addressDetails && (client.addressDetails.fullAddress || client.addressDetails.address)) || '';
+              if (typeof raw === 'string') {
+                const trimmed = raw.trim();
+                if (trimmed && trimmed.toLowerCase() !== 'aurora local region' && trimmed.toLowerCase() !== 'house no., street, barangay, aurora, zamboanga del sur') {
+                  return trimmed;
+                }
+              }
+              return 'No address on file';
+            })(),
+            gender: inferGender(client.name, client.gender),
+            totalSpent: Number(Number(totalSpentAmount || 0).toFixed(2)),
+            totalOrders: Number(totalOrdersCount || 0),
+            accountStatus: accountStatus,
+            registrationDate: formattedRegDate
+          };
+        });
+      }
+
+      function getFilterContext() {
+        const timeLabels = {
+          'all': 'All Time',
+          'today': 'Today',
+          'this-week': 'This Week',
+          'this-month': 'This Month',
+          'this-year': 'This Year'
+        };
+        return {
+          statusFilter: showArchived ? 'Archived Customers' : 'Active Customers',
+          timeFilterLabel: timeLabels[timeFilter] || 'All Time',
+          searchQueryLabel: searchQuery ? `"${searchQuery}"` : 'None (All matching)',
+          searchQuery: searchQuery || ''
+        };
+      }
+
+      function openCustomerExportModal(format) {
+        currentExportFormat = format;
+        const filteredList = getFilteredCustomers();
+        const recordsToExport = prepareCustomerExportData(filteredList);
+        const filterContext = getFilterContext();
+
+        const modal = document.getElementById('customer-export-confirm-modal');
+        const panel = document.getElementById('customer-export-modal-panel');
+        if (!modal || !panel) return;
+
+        let badgeHtml = '';
+        let downloadBtnBg = '';
+        if (format === 'PDF') {
+          badgeHtml = `
+            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-red-50 text-red-700 dark:bg-red-950/60 dark:text-red-300 border border-red-200 dark:border-red-900/60 text-xs font-black mt-1">
+              <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span>
+              PDF Document
+            </span>
+          `;
+          downloadBtnBg = 'bg-red-600 hover:bg-red-700 text-white shadow-md shadow-red-900/10';
+        } else if (format === 'Excel') {
+          badgeHtml = `
+            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-900/60 text-xs font-black mt-1">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+              Excel (.xlsx)
+            </span>
+          `;
+          downloadBtnBg = 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-md shadow-emerald-900/10';
+        } else {
+          badgeHtml = `
+            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 border border-blue-200 dark:border-blue-900/60 text-xs font-black mt-1">
+              <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+              CSV Spreadsheet
+            </span>
+          `;
+          downloadBtnBg = 'bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-900/10';
+        }
+
+        panel.innerHTML = `
+          <div class="flex items-start justify-between border-b border-gray-100 dark:border-gray-800 pb-4">
+            <div>
+              <h4 class="text-xl font-semibold text-gray-900 dark:text-gray-100 tracking-tight">Export Customers</h4>
+              <p class="text-sm font-normal text-gray-600 dark:text-gray-400 mt-1">Review export settings and active filters before downloading.</p>
+            </div>
+            <button id="close-customer-export-modal-x" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 font-semibold text-sm p-1.5 rounded-lg transition-colors cursor-pointer select-none" title="Cancel">✕</button>
+          </div>
+
+          <div class="space-y-4">
+            <div class="grid grid-cols-2 gap-y-4 gap-x-4 pb-4 border-b border-gray-100 dark:border-gray-800 text-sm font-normal">
+              <div>
+                <span class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider block">File Format:</span>
+                ${badgeHtml}
+              </div>
+              <div>
+                <span class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider block">Status View:</span>
+                <span class="text-gray-900 dark:text-gray-100 font-medium block mt-1">${filterContext.statusFilter}</span>
+              </div>
+              <div>
+                <span class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider block">Time Period:</span>
+                <span class="text-gray-900 dark:text-gray-100 font-medium block mt-1">${filterContext.timeFilterLabel}</span>
+              </div>
+              <div>
+                <span class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider block">Search Filter:</span>
+                <span class="text-gray-900 dark:text-gray-100 font-medium block mt-1 truncate" title="${filterContext.searchQueryLabel}">${filterContext.searchQueryLabel}</span>
+              </div>
+            </div>
+
+            <div class="space-y-2.5">
+              <span class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase block tracking-wider">The exported file will include:</span>
+              <div class="grid grid-cols-2 gap-2 text-xs font-medium text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-800/60 p-3.5 sm:p-4 rounded-2xl border border-gray-200 dark:border-gray-700">
+                <div class="flex items-center gap-2"><span class="text-emerald-600 dark:text-emerald-400">✔</span> Customer ID</div>
+                <div class="flex items-center gap-2"><span class="text-emerald-600 dark:text-emerald-400">✔</span> Customer Name</div>
+                <div class="flex items-center gap-2"><span class="text-emerald-600 dark:text-emerald-400">✔</span> Email Address</div>
+                <div class="flex items-center gap-2"><span class="text-emerald-600 dark:text-emerald-400">✔</span> Phone Number</div>
+                <div class="flex items-center gap-2"><span class="text-emerald-600 dark:text-emerald-400">✔</span> Delivery Address</div>
+                <div class="flex items-center gap-2"><span class="text-emerald-600 dark:text-emerald-400">✔</span> Gender</div>
+                <div class="flex items-center gap-2"><span class="text-emerald-600 dark:text-emerald-400">✔</span> Total Spent (PHP)</div>
+                <div class="flex items-center gap-2"><span class="text-emerald-600 dark:text-emerald-400">✔</span> Total Orders</div>
+                <div class="flex items-center gap-2"><span class="text-emerald-600 dark:text-emerald-400">✔</span> Account Status</div>
+                <div class="flex items-center gap-2"><span class="text-emerald-600 dark:text-emerald-400">✔</span> Registration Date</div>
+              </div>
+            </div>
+
+            <div class="flex items-center justify-between pt-2 border-t border-gray-100 dark:border-gray-800 text-sm">
+              <span class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase block text-left">Records To Export:</span>
+              <span class="font-semibold text-gray-900 dark:text-gray-100 text-base">${recordsToExport.length} customer records</span>
+            </div>
+          </div>
+
+          <div class="flex flex-col sm:flex-row gap-3 pt-2">
+            <button 
+              id="btn-customer-export-cancel" 
+              class="w-full sm:flex-1 py-3 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200 font-semibold text-sm rounded-xl transition-colors cursor-pointer"
+            >
+              Cancel
+            </button>
+            <button 
+              id="btn-customer-export-download" 
+              class="w-full sm:flex-1 py-3 ${downloadBtnBg} font-semibold text-sm rounded-xl transition-all cursor-pointer flex items-center justify-center gap-2"
+            >
+              Download ${format}
+            </button>
+          </div>
+        `;
+
+        // Event bindings for modal controls
+        const cancelBtn = document.getElementById('btn-customer-export-cancel');
+        const closeXBtn = document.getElementById('close-customer-export-modal-x');
+        const downloadBtn = document.getElementById('btn-customer-export-download');
+
+        if (cancelBtn) cancelBtn.addEventListener('click', closeCustomerExportModal);
+        if (closeXBtn) closeXBtn.addEventListener('click', closeCustomerExportModal);
+
+        if (downloadBtn) {
+          downloadBtn.addEventListener('click', () => {
+            // Prevent accidental duplicate downloads from repeated clicks
+            downloadBtn.disabled = true;
+            downloadBtn.classList.add('opacity-75', 'cursor-not-allowed');
+            const originalText = downloadBtn.innerHTML;
+            downloadBtn.innerHTML = `
+              <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white inline-block" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              Generating ${format}...
+            `;
+
+            try {
+              const success = executeCustomerExport(format, recordsToExport, filterContext);
+              if (success) {
+                closeCustomerExportModal();
+                showToast(`✔ Customer directory exported as ${format} successfully!`, 'success');
+                addActivityLog({
+                  action: `Exported customer list as ${format}`,
+                  category: 'User Management',
+                  target: 'Customers'
+                });
+              }
+            } catch (err) {
+              console.error('[EXPORT] Error generating export:', err);
+              showToast(`Failed to generate ${format} export: ${err.message || 'Unknown error'}`, 'error');
+            } finally {
+              downloadBtn.disabled = false;
+              downloadBtn.classList.remove('opacity-75', 'cursor-not-allowed');
+              downloadBtn.innerHTML = originalText;
+            }
+          });
+        }
+
+        modal.classList.remove('hidden');
+        setTimeout(() => {
+          panel.classList.remove('scale-95', 'opacity-0');
+          panel.classList.add('scale-100', 'opacity-100');
+        }, 10);
+      }
+
+      function closeCustomerExportModal() {
+        const modal = document.getElementById('customer-export-confirm-modal');
+        const panel = document.getElementById('customer-export-modal-panel');
+        if (!modal || !panel) return;
+        panel.classList.remove('scale-100', 'opacity-100');
+        panel.classList.add('scale-95', 'opacity-0');
+        setTimeout(() => {
+          modal.classList.add('hidden');
+        }, 200);
+      }
+
+      // Backdrop click handler for export modal
+      const exportModalBackdrop = document.getElementById('customer-export-confirm-modal');
+      if (exportModalBackdrop) {
+        exportModalBackdrop.addEventListener('click', (e) => {
+          if (e.target === exportModalBackdrop) {
+            closeCustomerExportModal();
+          }
+        });
+      }
+
+      function executeCustomerExport(format, records, filterContext) {
+        if (format === 'Excel') {
+          return exportToExcel(records, filterContext);
+        } else if (format === 'CSV') {
+          return exportToCsv(records, filterContext);
+        } else if (format === 'PDF') {
+          return exportToPdf(records, filterContext);
+        }
+        return false;
+      }
+
+      function exportToExcel(records, filterContext) {
+        if (!window.XLSX) {
+          showToast('Excel export library is still loading. Please check your internet connection.', 'error');
+          return false;
+        }
+
+        const now = new Date();
+        const wb = window.XLSX.utils.book_new();
+
+        const titleRows = [
+          ["RiceFlow - Customer Directory Report"],
+          ["Queue-Enabled Rice Ordering and Inventory Management System"],
+          [],
+          ["REPORT SUMMARY & ACTIVE FILTERS"],
+          ["Status Filter", filterContext.statusFilter],
+          ["Time Filter", filterContext.timeFilterLabel],
+          ["Search Query", filterContext.searchQueryLabel],
+          ["Total Records", records.length],
+          ["Generated Date/Time", now.toLocaleString()],
+          ["Generated By", "Admin"],
+          [],
+          ["CUSTOMER DIRECTORY"],
+          [
+            "Customer ID",
+            "Customer Name",
+            "Email",
+            "Phone Number",
+            "Delivery Address",
+            "Gender",
+            "Total Spent (PHP)",
+            "Total Orders",
+            "Account Status",
+            "Registration Date"
+          ]
+        ];
+
+        records.forEach(r => {
+          titleRows.push([
+            r.customerId,
+            r.name,
+            r.email,
+            r.phone,
+            r.deliveryAddress,
+            r.gender,
+            r.totalSpent, // number
+            r.totalOrders, // number
+            r.accountStatus,
+            r.registrationDate
+          ]);
+        });
+
+        const ws = window.XLSX.utils.aoa_to_sheet(titleRows);
+
+        // Set column widths
+        ws['!cols'] = [
+          { wch: 18 }, // Customer ID
+          { wch: 28 }, // Customer Name
+          { wch: 30 }, // Email
+          { wch: 18 }, // Phone Number
+          { wch: 38 }, // Delivery Address
+          { wch: 12 }, // Gender
+          { wch: 20 }, // Total Spent
+          { wch: 14 }, // Total Orders
+          { wch: 16 }, // Account Status
+          { wch: 18 }  // Registration Date
+        ];
+
+        // Format cell numbers for Total Spent and Total Orders
+        if (ws['!ref']) {
+          const range = window.XLSX.utils.decode_range(ws['!ref']);
+          // Header row is index 12 (row 13), data starts at row index 13
+          for (let R = 13; R <= range.e.r; ++R) {
+            // Column index 6: Total Spent
+            const spentRef = window.XLSX.utils.encode_cell({ r: R, c: 6 });
+            if (ws[spentRef]) {
+              ws[spentRef].t = 'n';
+              ws[spentRef].z = '"₱"#,##0.00';
+            }
+            // Column index 7: Total Orders
+            const ordersRef = window.XLSX.utils.encode_cell({ r: R, c: 7 });
+            if (ws[ordersRef]) {
+              ws[ordersRef].t = 'n';
+              ws[ordersRef].z = '#,##0';
+            }
+          }
+        }
+
+        window.XLSX.utils.book_append_sheet(wb, ws, "Customers");
+
+        const yyyy = now.getFullYear();
+        const mm = String(now.getMonth() + 1).padStart(2, '0');
+        const dd = String(now.getDate()).padStart(2, '0');
+        const filename = `RiceFlow_Customers_${yyyy}-${mm}-${dd}`;
+
+        try {
+          window.XLSX.writeFile(wb, `${filename}.xlsx`);
+        } catch (writeErr) {
+          const wbout = window.XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+          const blob = new Blob([wbout], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement("a");
+          link.href = url;
+          link.download = `${filename}.xlsx`;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          URL.revokeObjectURL(url);
+        }
+
+        return true;
+      }
+
+      function exportToCsv(records, filterContext) {
+        const now = new Date();
+
+        const escapeCsv = (val) => {
+          if (val === null || val === undefined) return '""';
+          if (typeof val === 'number') {
+            return Number.isFinite(val) ? String(val) : '0';
+          }
+          let str = String(val);
+          // Spreadsheet formula injection mitigation: prepend single quote for unsafe trigger chars
+          if (/^[=+\-@\t\r]/.test(str)) {
+            str = "'" + str;
+          }
+          return `"${str.replace(/"/g, '""')}"`;
+        };
+
+        const csvRows = [];
+        csvRows.push([escapeCsv("RiceFlow - Customer Directory Report")].join(","));
+        csvRows.push([escapeCsv("Queue-Enabled Rice Ordering and Inventory Management System")].join(","));
+        csvRows.push([escapeCsv("Generated Date/Time"), escapeCsv(now.toLocaleString())].join(","));
+        csvRows.push([escapeCsv("Status Filter"), escapeCsv(filterContext.statusFilter)].join(","));
+        csvRows.push([escapeCsv("Time Filter"), escapeCsv(filterContext.timeFilterLabel)].join(","));
+        csvRows.push([escapeCsv("Search Query"), escapeCsv(filterContext.searchQueryLabel)].join(","));
+        csvRows.push([escapeCsv("Total Records"), escapeCsv(records.length)].join(","));
+        csvRows.push("");
+        csvRows.push([
+          escapeCsv("Customer ID"),
+          escapeCsv("Customer Name"),
+          escapeCsv("Email"),
+          escapeCsv("Phone Number"),
+          escapeCsv("Delivery Address"),
+          escapeCsv("Gender"),
+          escapeCsv("Total Spent (PHP)"),
+          escapeCsv("Total Orders"),
+          escapeCsv("Account Status"),
+          escapeCsv("Registration Date")
+        ].join(","));
+
+        records.forEach(r => {
+          csvRows.push([
+            escapeCsv(r.customerId),
+            escapeCsv(r.name),
+            escapeCsv(r.email),
+            escapeCsv(r.phone),
+            escapeCsv(r.deliveryAddress),
+            escapeCsv(r.gender),
+            r.totalSpent, // numeric, unquoted
+            r.totalOrders, // numeric, unquoted
+            escapeCsv(r.accountStatus),
+            escapeCsv(r.registrationDate)
+          ].join(","));
+        });
+
+        const csvString = "\uFEFF" + csvRows.join("\r\n");
+        const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+
+        const yyyy = now.getFullYear();
+        const mm = String(now.getMonth() + 1).padStart(2, '0');
+        const dd = String(now.getDate()).padStart(2, '0');
+        const filename = `RiceFlow_Customers_${yyyy}-${mm}-${dd}`;
+
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `${filename}.csv`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+
+        return true;
+      }
+
+      function exportToPdf(records, filterContext) {
+        if (!window.jspdf || !window.jspdf.jsPDF) {
+          showToast('PDF export library is still loading. Please try again.', 'error');
+          return false;
+        }
+
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF({
+          orientation: 'landscape',
+          unit: 'mm',
+          format: 'a4'
+        });
+
+        const now = new Date();
+
+        // Brand Header
+        doc.setFontSize(18);
+        doc.setTextColor(30, 108, 2); // #1E6C02
+        doc.setFont('helvetica', 'bold');
+        doc.text('RiceFlow', 14, 16);
+
+        doc.setFontSize(9);
+        doc.setTextColor(90, 90, 90);
+        doc.setFont('helvetica', 'normal');
+        doc.text('Queue-Enabled Rice Ordering and Inventory Management System', 14, 21);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(40, 40, 40);
+        doc.text('Customer Directory Report', 14, 26);
+
+        // Filter & Generation metadata on top right
+        doc.setFontSize(8);
+        doc.setTextColor(100, 100, 100);
+        doc.setFont('helvetica', 'normal');
+        doc.text(`Status: ${filterContext.statusFilter}`, 283, 15, { align: 'right' });
+        doc.text(`Timeline: ${filterContext.timeFilterLabel}`, 283, 19, { align: 'right' });
+        doc.text(`Search: ${filterContext.searchQueryLabel}`, 283, 23, { align: 'right' });
+        doc.text(`Records: ${records.length} customer(s)`, 283, 27, { align: 'right' });
+        doc.text(`Generated: ${now.toLocaleString()}`, 283, 31, { align: 'right' });
+
+        // Divider rule
+        doc.setDrawColor(210, 215, 220);
+        doc.setLineWidth(0.3);
+        doc.line(14, 34, 283, 34);
+
+        // Table columns & rows
+        const tableHeaders = [
+          'Customer ID',
+          'Customer Name',
+          'Email',
+          'Phone',
+          'Delivery Address',
+          'Gender',
+          'Total Spent',
+          'Orders',
+          'Status',
+          'Registered'
+        ];
+
+        let tableRows = [];
+        if (records.length === 0) {
+          tableRows.push([
+            { content: 'No customer records match the active filter criteria.', colSpan: 10, styles: { halign: 'center', textColor: [120, 120, 120], fontStyle: 'italic', cellPadding: 8 } }
+          ]);
+        } else {
+          tableRows = records.map(r => [
+            r.customerId,
+            r.name,
+            r.email,
+            r.phone,
+            r.deliveryAddress,
+            r.gender,
+            `₱${r.totalSpent.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+            r.totalOrders,
+            r.accountStatus,
+            r.registrationDate
+          ]);
+        }
+
+        doc.autoTable({
+          startY: 38,
+          head: [tableHeaders],
+          body: tableRows,
+          theme: 'striped',
+          headStyles: {
+            fillColor: [30, 108, 2], // #1E6C02
+            textColor: [255, 255, 255],
+            fontStyle: 'bold',
+            fontSize: 8,
+            halign: 'left'
+          },
+          bodyStyles: {
+            fontSize: 7.5,
+            textColor: [30, 35, 42],
+            overflow: 'linebreak'
+          },
+          alternateRowStyles: {
+            fillColor: [248, 250, 248]
+          },
+          columnStyles: {
+            0: { cellWidth: 24, fontStyle: 'bold' }, // ID
+            1: { cellWidth: 32, fontStyle: 'bold' }, // Name
+            2: { cellWidth: 38 }, // Email
+            3: { cellWidth: 24 }, // Phone
+            4: { cellWidth: 50 }, // Delivery Address
+            5: { cellWidth: 16, halign: 'center' }, // Gender
+            6: { cellWidth: 26, halign: 'right', fontStyle: 'bold' }, // Total Spent
+            7: { cellWidth: 16, halign: 'center' }, // Total Orders
+            8: { cellWidth: 19, halign: 'center' }, // Status
+            9: { cellWidth: 24, halign: 'center' }  // Reg Date
+          },
+          margin: { top: 38, left: 14, right: 14, bottom: 18 },
+          showHead: 'everyPage',
+          pageBreak: 'auto'
+        });
+
+        // Footer with Page X of Y on every page
+        const totalPages = doc.internal.getNumberOfPages();
+        for (let i = 1; i <= totalPages; i++) {
+          doc.setPage(i);
+          doc.setFontSize(8);
+          doc.setFont('helvetica', 'normal');
+          doc.setTextColor(140, 140, 140);
+          doc.text('RiceFlow Management Portal • Customer Directory', 14, 203);
+          doc.text(`Page ${i} of ${totalPages}`, 283, 203, { align: 'right' });
+        }
+
+        const yyyy = now.getFullYear();
+        const mm = String(now.getMonth() + 1).padStart(2, '0');
+        const dd = String(now.getDate()).padStart(2, '0');
+        const filename = `RiceFlow_Customers_${yyyy}-${mm}-${dd}`;
+
+        doc.save(`${filename}.pdf`);
+        return true;
+      }
+
+
+      // Initial board rendering
+      renderCustomersBoard();
+
+      // Ensure fresh authoritative customer hydration runs
+      if (typeof initFirestoreSync === 'function') {
+        initFirestoreSync().then(() => {
+          renderCustomersBoard();
+        }).catch(() => {});
+      }
+
+      // Real-time synchronization listeners for cross-device updates
+      window.addEventListener('aurora-sync-event', (e) => {
+        if (e.detail && (e.detail.key === 'aurora-customers' || e.detail.key === 'aurora-users')) {
+          renderCustomersBoard();
+        }
+      });
+      window.addEventListener('aurora-customers-updated', () => {
+        renderCustomersBoard();
+      });
+    });
+  </script>
+</body>
+</html>

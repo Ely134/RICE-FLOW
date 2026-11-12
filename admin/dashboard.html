@@ -28,9 +28,9 @@
       };
       try {
         var d = document.documentElement;
-        var isDark = localStorage.getItem('aurora-dark-mode') === 'true';
-        d.classList.toggle('dark', isDark);
-        d.style.colorScheme = isDark ? 'dark' : 'light';
+        d.classList.remove('dark');
+        d.style.colorScheme = 'light';
+        if (typeof localStorage !== 'undefined') { try { localStorage.removeItem('aurora-dark-mode'); } catch(_) {} }
       } catch (e) {}
     })();
   </script>
@@ -39,26 +39,6 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Source+Sans+3:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400;1,600&display=swap" rel="stylesheet">
   <style id="riceflow-theme-init">
     html { background-color: #F0F4F9; color-scheme: light; }
-    html.dark { background-color: #0A1329 !important; color-scheme: dark; }
-    html.dark body,
-    html.dark #admin-layout-container,
-    html.dark #admin-main-content {
-      background-color: #0A1329;
-      color: #F0F6FC;
-    }
-    html.dark #auth-guard-loader {
-      background-color: #0A1329 !important;
-      color: #F0F6FC !important;
-    }
-    html.dark #admin-sidebar,
-    html.dark aside,
-    html.dark header,
-    html.dark .bg-white,
-    html.dark .bg-gray-50,
-    html.dark .bg-slate-50 {
-      background-color: #0E1B38;
-      color: #F0F6FC;
-    }
   </style>
   <link rel="stylesheet" href="../src/styles/index.css">
   <style id="auth-guard-style">body { visibility: hidden !important; }</style>
@@ -2835,6 +2815,77 @@
       }
     }
   </style>
+
+  <style id="riceflow-admin-responsive-repair">
+
+/* Targeted responsive repair: Admin Dashboard Inventory Analytics & Stock Needs */
+#admin-main-content, #admin-main-content * { min-width: 0; }
+#admin-main-content h1, #admin-main-content h2, #admin-main-content h3,
+#admin-main-content h4, #admin-main-content p, #admin-main-content label,
+#admin-main-content button, #admin-main-content th, #admin-main-content td {
+  overflow-wrap: normal !important; word-break: normal !important; hyphens: manual !important;
+}
+#inventory-analytics-section, #stock-replenishment-guide-section { min-width: 0 !important; overflow: hidden !important; }
+#dash-inv-legend { display: flex !important; flex-wrap: wrap !important; white-space: normal !important; gap: 8px 14px !important; }
+#dash-inv-chart-container { width: 100% !important; min-width: 0 !important; overflow: hidden !important; }
+#dash-inv-chart-container svg, #dash-inv-chart-container canvas { display: block; width: 100% !important; max-width: 100% !important; height: auto !important; }
+
+/* Contained horizontal scroll for Stock Needs list on mobile/tablet */
+#srg-dashboard-summary-list {
+  display: flex !important;
+  flex-direction: column !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  overflow-x: auto !important;
+  overflow-y: auto !important;
+  max-height: 240px !important;
+  -webkit-overflow-scrolling: touch !important;
+  overscroll-behavior-x: contain !important;
+}
+#srg-dashboard-summary-list .srg-dash-row,
+#srg-dashboard-summary-list > div {
+  min-width: 500px !important;
+  flex-shrink: 0 !important;
+  white-space: nowrap !important;
+}
+#srg-dashboard-summary-list .srg-dash-product-name,
+#srg-dashboard-summary-list .srg-dash-product-name * {
+  white-space: nowrap !important;
+  word-break: normal !important;
+  overflow-wrap: normal !important;
+}
+#srg-dashboard-summary-list .srg-dash-qty-cell,
+#srg-dashboard-summary-list .srg-dash-qty-cell * {
+  white-space: nowrap !important;
+  word-break: normal !important;
+  overflow-wrap: normal !important;
+}
+#srg-dashboard-summary-list .srg-dash-status-pill {
+  white-space: nowrap !important;
+  word-break: normal !important;
+  overflow-wrap: normal !important;
+}
+
+@media (max-width: 1024px) {
+  #admin-layout-container > #admin-right-workspace > header { min-height: 68px; height: auto; padding: 12px 16px; }
+  #admin-layout-container > #admin-right-workspace > header h2 { font-size: 21px !important; line-height: 1.25 !important; }
+  #admin-main-content { padding: 18px 16px !important; }
+  #inv-analytics-stock-needs-row { grid-template-columns: minmax(0, 1fr) !important; }
+}
+@media (max-width: 640px) {
+  #admin-main-content { padding: 14px 12px !important; }
+  #inventory-analytics-section, #stock-replenishment-guide-section { padding: 14px !important; min-height: 0 !important; }
+  #inventory-analytics-section > div:first-child,
+  #stock-replenishment-guide-section > div:first-child { align-items: flex-start !important; }
+  #dash-inv-legend { margin-bottom: 8px !important; font-size: 12px !important; }
+  #dash-inv-chart-container { min-height: 150px !important; }
+  #srg-dashboard-summary-list { max-height: 240px !important; overflow-x: auto !important; overflow-y: auto !important; }
+  #srg-dash-ai-note { align-items: flex-start !important; flex-wrap: wrap !important; gap: 8px !important; }
+  #srg-dash-ai-note a { margin-left: 0 !important; }
+}
+
+  </style>
 </head>
 <body class="bg-[#F0F4F9] min-h-screen">
   <div id="auth-guard-loader" class="fixed inset-0 bg-[#F0F4F9] z-[99999] flex flex-col items-center justify-center font-sans">
@@ -3126,7 +3177,7 @@
                 <!-- Body: Line Chart Only (Full Width) -->
                 <div class="flex-1 flex flex-col justify-between mt-3.5 min-h-0 w-full">
                   <!-- Legend row -->
-                  <div id="dash-inv-legend" class="flex items-center gap-5 sm:gap-6 text-[13.5px] font-medium text-[#000000] dark:text-[#D6E6F8] mb-2 shrink-0 flex-nowrap">
+                  <div id="dash-inv-legend" class="flex items-center gap-3 sm:gap-6 text-[13.5px] font-medium text-[#000000] dark:text-[#D6E6F8] mb-2 shrink-0 flex-wrap">
                     <span class="inline-flex items-center gap-2 text-[13.5px] font-medium text-[#000000] dark:text-[#D6E6F8]">
                       <span class="w-2.5 h-2.5 rounded-full shadow-xs shrink-0 bg-[#16A34A]" style="background-color: #16A34A;"></span> Added
                     </span>
@@ -3149,11 +3200,11 @@
             <!-- Right Column: Stock Needs Card (~55% width, visibly wider) -->
             <div class="flex flex-col h-full min-w-0">
               <!-- Stock Needs Card (Compact Analytics Card matching Reference) -->
-              <div id="stock-replenishment-guide-section" data-dashboard-href="stock-replenishment.html" tabindex="0" role="link" aria-label="Open stock replenishment guide" class="w-full bg-white dark:bg-[#0E1B38] p-5 sm:p-6 rounded-2xl border border-[#D6E3F0] dark:border-[#1E3563] shadow-xs flex flex-col justify-between h-full scroll-mt-6 min-h-[310px] sm:min-h-[335px]">
+              <div id="stock-replenishment-guide-section" data-dashboard-href="stock-replenishment.html" tabindex="0" role="link" aria-label="Open stock replenishment guide" class="w-full bg-white p-5 sm:p-6 rounded-2xl border border-[#D6E3F0] shadow-xs flex flex-col justify-between h-full scroll-mt-6 min-h-[310px] sm:min-h-[335px] overflow-hidden">
                 <!-- Top Area: Icon, Title, Subtitle, and View More → Button -->
-                <div class="flex items-center justify-between gap-3 pb-3 sm:pb-3.5 border-b border-[#E2EDF7] dark:border-[#1E3563] shrink-0">
+                <div class="flex items-center justify-between gap-3 pb-3 sm:pb-3.5 border-b border-[#E2EDF7] shrink-0">
                   <div class="flex items-center gap-2.5 min-w-0">
-                    <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800/60 text-[#1E6C02] dark:text-emerald-400 flex items-center justify-center shrink-0 shadow-2xs">
+                    <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-emerald-50 border border-emerald-200 text-[#1E6C02] flex items-center justify-center shrink-0 shadow-2xs">
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="w-4.5 h-4.5 sm:w-5 sm:h-5">
                         <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
                         <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
@@ -3162,15 +3213,15 @@
                     </div>
                     <div class="min-w-0">
                       <div class="flex items-center gap-2 flex-wrap">
-                        <h4 class="font-medium text-black dark:text-white text-base sm:text-[17px] tracking-normal leading-snug">Stock Needs</h4>
+                        <h4 class="font-bold text-black text-base sm:text-[17px] tracking-normal leading-snug">Stock Needs</h4>
                       </div>
-                      <p class="text-xs sm:text-[13px] text-black dark:text-white font-normal mt-1 leading-snug">Warehouse stock, available rice, and estimated sales</p>
+                      <p class="text-xs sm:text-[13px] text-gray-700 font-normal mt-1 leading-snug">Warehouse stock, available rice, and estimated sales</p>
                     </div>
                   </div>
                 </div>
 
-                <!-- Main Content: Horizontal Progress Bar Rows -->
-                <div id="srg-dashboard-summary-list" class="flex flex-col gap-2 py-1.5 overflow-y-auto replenish-table-scroll-container flex-1 min-h-0 mt-3 max-h-[220px] sm:max-h-[240px]">
+                <!-- Main Content: Horizontal Progress Bar Rows with contained horizontal scroll -->
+                <div id="srg-dashboard-summary-list" class="flex flex-col gap-2 py-1.5 overflow-x-auto overflow-y-auto w-full max-w-full replenish-table-scroll-container flex-1 min-h-0 mt-3 max-h-[220px] sm:max-h-[240px] scrollbar-thin">
                   <!-- Dynamically populated rows -->
                 </div>
 
@@ -4725,30 +4776,30 @@
                 : `<span class="text-black dark:text-white font-normal">Stock available</span>`;
 
               return `
-                <div class="flex items-center gap-3 sm:gap-4 py-2.5 px-2.5 hover:bg-slate-50/80 dark:hover:bg-slate-800/40 rounded-xl transition-all border-b border-slate-100/80 dark:border-slate-800/70 last:border-b-0">
+                <div class="srg-dash-row flex items-center gap-3 sm:gap-4 py-2.5 px-2.5 hover:bg-slate-50/80 rounded-xl transition-all border-b border-slate-100/80 last:border-b-0 min-w-[500px] whitespace-nowrap">
                   <!-- Product Name & Average Sacks Sold Subtitle -->
-                  <div class="w-36 sm:w-44 md:w-48 shrink-0 min-w-0" title="${pName}">
-                    <div class="srg-dash-product-name truncate text-[14px] font-normal text-black dark:text-white leading-tight">
+                  <div class="w-40 sm:w-48 shrink-0 min-w-[150px]" title="${pName}">
+                    <div class="srg-dash-product-name truncate text-[14px] font-semibold text-black leading-tight whitespace-nowrap">
                       ${pName}
                     </div>
-                    <div class="text-[11px] text-black dark:text-white font-normal truncate mt-0.5">
+                    <div class="text-[11px] text-gray-700 font-normal truncate mt-0.5 whitespace-nowrap">
                       ${r.dailySalesRate > 0 ? (Math.round(r.dailySalesRate * 100) / 100).toFixed(2) : '0.00'}/day · ${shortfallHtml}
                     </div>
                   </div>
 
                   <!-- Horizontal Progress Bar -->
-                  <div class="flex-1 min-w-[55px] sm:min-w-[70px] h-2 sm:h-2.5 rounded-full srg-progress-track bg-slate-100 dark:bg-slate-800/90 border border-slate-200/60 dark:border-slate-700/60 overflow-hidden">
+                  <div class="flex-1 min-w-[65px] h-2 sm:h-2.5 rounded-full srg-progress-track bg-slate-100 border border-slate-200/60 overflow-hidden">
                     <div class="h-full rounded-full ${barColorClass} transition-all duration-300" style="width: ${barPercent}%;"></div>
                   </div>
 
                   <!-- Available Quantity & Physical Stock Breakdown Tooltip -->
-                  <div class="w-16 sm:w-20 shrink-0 text-right font-mono tabular-nums text-xs sm:text-[13px] font-normal text-black dark:text-white tracking-normal" title="Stock in Warehouse: ${r.currentStock} sacks | Reserved for Customers: ${r.reservedStock} sacks | Available for New Orders: ${stockVal} sacks | Expected Sales: ${r.periodDemand} sacks | Extra Sacks Needed: ${shortfall} sacks">
-                    ${stockVal.toLocaleString('en-US')} <span class="text-[10px] font-sans font-normal text-black dark:text-white">available</span>
+                  <div class="srg-dash-qty-cell w-20 sm:w-24 shrink-0 text-right font-mono tabular-nums text-xs sm:text-[13px] font-bold text-black tracking-normal whitespace-nowrap" title="Stock in Warehouse: ${r.currentStock} sacks | Reserved for Customers: ${r.reservedStock} sacks | Available for New Orders: ${stockVal} sacks | Expected Sales: ${r.periodDemand} sacks | Extra Sacks Needed: ${shortfall} sacks">
+                    ${stockVal.toLocaleString('en-US')} <span class="text-[11px] font-sans font-medium text-gray-700">available</span>
                   </div>
 
                   <!-- Status Badge Pill with High-Contrast Text on Colored Background -->
-                  <div class="w-32 sm:w-36 shrink-0 text-right">
-                    <span class="srg-dash-status-pill inline-flex items-center justify-center px-2.5 py-0.5 rounded-full text-[12px] font-normal tracking-normal shadow-2xs whitespace-nowrap ${badgeClass}">
+                  <div class="w-32 sm:w-36 shrink-0 text-right whitespace-nowrap">
+                    <span class="srg-dash-status-pill inline-flex items-center justify-center px-2.5 py-1 rounded-full text-[12px] font-bold tracking-normal shadow-2xs whitespace-nowrap ${badgeClass}">
                       ${displayStatus}
                     </span>
                   </div>
@@ -5518,7 +5569,7 @@
           const yBot = padTop + plotH;
 
           invChartEl.innerHTML = `
-            <svg viewBox="0 0 ${width} ${height}" class="w-full h-full overflow-visible select-none">
+            <svg viewBox="0 0 ${width} ${height}" preserveAspectRatio="xMidYMid meet" class="w-full h-auto max-h-full overflow-hidden select-none">
               <defs>
                 <linearGradient id="grad-added" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="0%" stop-color="#16A34A" stop-opacity="0.32" />

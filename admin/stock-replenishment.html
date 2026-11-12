@@ -8,9 +8,9 @@
     (function() {
       try {
         var d = document.documentElement;
-        var isDark = localStorage.getItem('aurora-dark-mode') === 'true';
-        d.classList.toggle('dark', isDark);
-        d.style.colorScheme = isDark ? 'dark' : 'light';
+        d.classList.remove('dark');
+        d.style.colorScheme = 'light';
+        if (typeof localStorage !== 'undefined') { try { localStorage.removeItem('aurora-dark-mode'); } catch(_) {} }
       } catch (e) {}
     })();
   </script>
@@ -19,26 +19,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Source+Sans+3:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400;1,600&display=swap" rel="stylesheet">
   <style id="riceflow-theme-init">
     html { background-color: #F5F5F5; color-scheme: light; }
-    html.dark { background-color: #1F2937 !important; color-scheme: dark; }
-    html.dark body,
-    html.dark #admin-layout-container,
-    html.dark #admin-main-content {
-      background-color: #1F2937;
-      color: #F9FAFB;
-    }
-    html.dark #auth-guard-loader {
-      background-color: #1F2937 !important;
-      color: #F9FAFB !important;
-    }
-    html.dark #admin-sidebar,
-    html.dark aside,
-    html.dark header,
-    html.dark .bg-white,
-    html.dark .bg-gray-50,
-    html.dark .bg-slate-50 {
-      background-color: #111827;
-      color: #F9FAFB;
-    }
+    
   
     /* Clean Stock Needs 6-column layout: readable text, black figures, subtle row outlines */
     #admin-layout-container .srg-clean-table {
@@ -59,11 +40,7 @@
       background: transparent !important;
       border-bottom: 1px solid #E2E8F0 !important;
     }
-    html.dark #admin-layout-container .srg-clean-table thead th {
-      color: #F8FAFC !important;
-      background: transparent !important;
-      border-bottom: 1px solid #334155 !important;
-    }
+    
 
     /* Rice Varieties Stock Breakdown Table: Rectangular Outline Around Complete Rows */
     html:not(.dark) #admin-layout-container .srg-clean-table tbody tr.srg-row > td {
@@ -88,27 +65,7 @@
       border-radius: 10px !important;
     }
 
-    html.dark #admin-layout-container .srg-clean-table tbody tr.srg-row > td {
-      border-top: 1px solid #334155 !important;
-      border-bottom: 1px solid #334155 !important;
-      border-left: none !important;
-      border-right: none !important;
-      transition: border-color 0.15s ease;
-    }
-    html.dark #admin-layout-container .srg-clean-table tbody tr.srg-row > td:first-child {
-      border-left: 1px solid #334155 !important;
-      border-top-left-radius: 10px !important;
-      border-bottom-left-radius: 10px !important;
-    }
-    html.dark #admin-layout-container .srg-clean-table tbody tr.srg-row > td:last-child {
-      border-right: 1px solid #334155 !important;
-      border-top-right-radius: 10px !important;
-      border-bottom-right-radius: 10px !important;
-    }
-    html.dark #admin-layout-container .srg-clean-table tbody tr.srg-row > td:first-child:last-child {
-      border: 1px solid #334155 !important;
-      border-radius: 10px !important;
-    }
+    
 
     /* Clickable row pointer and transition */
     #admin-layout-container .srg-clean-table tbody tr.srg-row {
@@ -131,19 +88,7 @@
       filter: brightness(0.985);
     }
 
-    html.dark #admin-layout-container .srg-clean-table tbody tr.srg-row:hover > td {
-      border-top-color: #475569 !important;
-      border-bottom-color: #475569 !important;
-    }
-    html.dark #admin-layout-container .srg-clean-table tbody tr.srg-row:hover > td:first-child {
-      border-left-color: #475569 !important;
-    }
-    html.dark #admin-layout-container .srg-clean-table tbody tr.srg-row:hover > td:last-child {
-      border-right-color: #475569 !important;
-    }
-    html.dark #admin-layout-container .srg-clean-table tbody tr.srg-row:hover {
-      filter: brightness(1.08);
-    }
+    
 
     /* Accessible keyboard focus support */
     html:not(.dark) #admin-layout-container .srg-clean-table tbody tr.srg-row:focus-visible > td {
@@ -157,17 +102,7 @@
     html:not(.dark) #admin-layout-container .srg-clean-table tbody tr.srg-row:focus-visible > td:last-child {
       border-right-color: #1E6C02 !important;
     }
-    html.dark #admin-layout-container .srg-clean-table tbody tr.srg-row:focus-visible > td {
-      border-top-color: #4ADE80 !important;
-      border-bottom-color: #4ADE80 !important;
-      outline: none !important;
-    }
-    html.dark #admin-layout-container .srg-clean-table tbody tr.srg-row:focus-visible > td:first-child {
-      border-left-color: #4ADE80 !important;
-    }
-    html.dark #admin-layout-container .srg-clean-table tbody tr.srg-row:focus-visible > td:last-child {
-      border-right-color: #4ADE80 !important;
-    }
+    
 
     /* Soft Gradient Backgrounds for Each Row Based on Existing Stock Status */
     /* 1. Out of Stock (Critical Red) */
@@ -175,68 +110,49 @@
     html:not(.dark) #admin-layout-container .srg-row-critical > td {
       background: linear-gradient(145deg, #FEF2F2 0%, #FFFFFF 60%, #FFF5F5 100%) !important;
     }
-    html.dark #admin-layout-container .srg-row-critical,
-    html.dark #admin-layout-container .srg-row-critical > td {
-      background: linear-gradient(145deg, rgba(127, 29, 29, 0.22) 0%, rgba(17, 24, 39, 0.95) 60%, rgba(127, 29, 29, 0.14) 100%) !important;
-    }
+    
 
     /* 2. Low Stock (Amber-Orange Warning) */
     html:not(.dark) #admin-layout-container .srg-row-lowstock,
     html:not(.dark) #admin-layout-container .srg-row-lowstock > td {
       background: linear-gradient(145deg, #FFF7ED 0%, #FFFFFF 60%, #FFEDD5 100%) !important;
     }
-    html.dark #admin-layout-container .srg-row-lowstock,
-    html.dark #admin-layout-container .srg-row-lowstock > td {
-      background: linear-gradient(145deg, rgba(194, 65, 12, 0.20) 0%, rgba(17, 24, 39, 0.95) 60%, rgba(194, 65, 12, 0.12) 100%) !important;
-    }
+    
 
     /* 3. Stock Running Low (Amber Warning) */
     html:not(.dark) #admin-layout-container .srg-row-warning,
     html:not(.dark) #admin-layout-container .srg-row-warning > td {
       background: linear-gradient(145deg, #FFFBEB 0%, #FFFFFF 60%, #FEF3C7 100%) !important;
     }
-    html.dark #admin-layout-container .srg-row-warning,
-    html.dark #admin-layout-container .srg-row-warning > td {
-      background: linear-gradient(145deg, rgba(180, 83, 9, 0.20) 0%, rgba(17, 24, 39, 0.95) 60%, rgba(180, 83, 9, 0.12) 100%) !important;
-    }
+    
 
     /* 4. Stock Available / Enough Stock (Healthy Emerald) */
     html:not(.dark) #admin-layout-container .srg-row-healthy,
     html:not(.dark) #admin-layout-container .srg-row-healthy > td {
       background: linear-gradient(145deg, #ECFDF5 0%, #FFFFFF 60%, #D1FAE5 100%) !important;
     }
-    html.dark #admin-layout-container .srg-row-healthy,
-    html.dark #admin-layout-container .srg-row-healthy > td {
-      background: linear-gradient(145deg, rgba(6, 95, 70, 0.22) 0%, rgba(17, 24, 39, 0.95) 60%, rgba(6, 95, 70, 0.12) 100%) !important;
-    }
+    
 
     /* 5. No Recent Sales (Neutral Slate) */
     html:not(.dark) #admin-layout-container .srg-row-neutral,
     html:not(.dark) #admin-layout-container .srg-row-neutral > td {
       background: linear-gradient(145deg, #F8FAFC 0%, #FFFFFF 60%, #F1F5F9 100%) !important;
     }
-    html.dark #admin-layout-container .srg-row-neutral,
-    html.dark #admin-layout-container .srg-row-neutral > td {
-      background: linear-gradient(145deg, rgba(51, 65, 85, 0.25) 0%, rgba(17, 24, 39, 0.95) 60%, rgba(51, 65, 85, 0.15) 100%) !important;
-    }
+    
     #admin-layout-container .srg-clean-table .srg-product-name {
       font-size: 15.5px !important;
       line-height: 1.35 !important;
       font-weight: 600 !important;
       color: #0F172A !important;
     }
-    html.dark #admin-layout-container .srg-clean-table .srg-product-name {
-      color: #F8FAFC !important;
-    }
+    
     #admin-layout-container .srg-clean-table .srg-variety-tag {
       font-size: 13px !important;
       line-height: 1.3 !important;
       font-weight: 500 !important;
       color: #475569 !important;
     }
-    html.dark #admin-layout-container .srg-clean-table .srg-variety-tag {
-      color: #94A3B8 !important;
-    }
+    
     #admin-layout-container .srg-clean-table .srg-stock-num {
       font-size: 17px !important;
       line-height: 1.4 !important;
@@ -246,17 +162,13 @@
     #admin-layout-container .srg-clean-table .srg-stock-num:not(.srg-num-critical):not(.srg-num-warning):not(.srg-num-healthy) {
       color: #0F172A !important;
     }
-    html.dark #admin-layout-container .srg-clean-table .srg-stock-num:not(.srg-num-critical):not(.srg-num-warning):not(.srg-num-healthy) {
-      color: #F8FAFC !important;
-    }
+    
     #admin-layout-container .srg-clean-table .srg-unit-label {
       font-size: 13px !important;
       font-weight: 500 !important;
       color: #64748B !important;
     }
-    html.dark #admin-layout-container .srg-clean-table .srg-unit-label {
-      color: #94A3B8 !important;
-    }
+    
     #admin-layout-container .srg-clean-table .srg-row td {
       padding-top: 16px !important;
       padding-bottom: 16px !important;
@@ -269,11 +181,7 @@
       font-weight: 400 !important;
       margin: 0 !important;
     }
-    html.dark #admin-layout-container .srg-clean-table .srg-advice-text {
-      color: #F8FAFC !important;
-    }
-
-</style>
+  </style>
   <link rel="stylesheet" href="../src/styles/index.css">
   <style id="auth-guard-style">body { visibility: hidden !important; }</style>
   <style id="stock-replenishment-page-styles">

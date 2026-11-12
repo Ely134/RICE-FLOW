@@ -8,7 +8,7 @@
     (function() {
       try {
         var d = document.documentElement;
-        var isDark = localStorage.getItem('aurora-dark-mode') === 'true';
+        var isDark = false; // RiceFlow uses Light Mode only.
         d.classList.toggle('dark', isDark);
         d.style.colorScheme = isDark ? 'dark' : 'light';
       } catch (e) {}
@@ -478,8 +478,11 @@
                   <span class="font-bold text-gray-950 dark:text-white" id="subtotal-val">₱0.00</span>
                 </div>
                 <div class="flex justify-between items-center py-1">
-                  <span class="font-bold text-gray-900 dark:text-gray-100">Delivery Fee</span>
-                  <span class="font-bold text-gray-950 dark:text-white" id="delivery-val">₱80.00</span>
+                  <div class="flex flex-col">
+                    <span class="font-bold text-gray-900 dark:text-gray-100">Delivery Fee</span>
+                    <span id="delivery-fee-area-tag" class="text-[11px] font-normal text-emerald-700 dark:text-emerald-400 hidden"></span>
+                  </div>
+                  <span class="font-bold text-gray-950 dark:text-white" id="delivery-val">₱0.00</span>
                 </div>
                 <div class="border-t border-gray-150 dark:border-slate-800 pt-3 pb-1 flex justify-between items-center select-none">
                   <span class="font-bold text-gray-900 dark:text-gray-100 text-base sm:text-lg">Total</span>
@@ -508,6 +511,15 @@
                   <span id="summary-min-alert-title">Below Minimum Delivery Quantity</span>
                 </div>
                 <p id="summary-min-alert-desc" class="text-[11px] leading-snug"></p>
+              </div>
+
+              <!-- Delivery Fee Unconfirmed Warning Alert in Summary -->
+              <div id="summary-fee-unconfirmed-alert" class="hidden p-3.5 bg-rose-50 dark:bg-rose-950/40 border border-rose-300 dark:border-rose-800 rounded-2xl text-xs text-rose-900 dark:text-rose-200 space-y-1">
+                <div class="flex items-center gap-1.5 font-bold text-rose-900 dark:text-rose-200 text-xs">
+                  <span>⚠️</span>
+                  <span id="summary-fee-alert-title">Delivery Fee Needs Confirmation</span>
+                </div>
+                <p id="summary-fee-alert-desc" class="text-[11px] leading-snug">Your delivery address does not match any configured delivery area. Please select a supported delivery location or contact the store to confirm delivery rates before placing your reservation.</p>
               </div>
 
               <!-- Form Submit Trigger Button -->
@@ -674,7 +686,14 @@
       getReservationQueuePosition,
       getStoreSettings,
       evaluateDeliveryMinimum,
-      DEFAULT_DELIVERY_MINIMUM_SETTINGS
+      DEFAULT_DELIVERY_MINIMUM_SETTINGS,
+      evaluateDeliveryFee,
+      getOrderDeliveryFee,
+      DEFAULT_DELIVERY_FEE_SETTINGS,
+      assertCanPerformFirebaseWrite,
+      autoBindDraftPreservation,
+      clearFormDraft,
+      checkExistingOrderByReference
     } from './src/app/shared.js';
     import { 
       sendFirebasePhoneVerification, 
@@ -729,6 +748,16 @@
       const inpAddress = document.getElementById('inp-address');
       if (inpFullName) inpFullName.value = user.fullName || 'Demo User';
       if (inpPhone) inpPhone.value = user.phone || '+63 912 345 6789';
+
+      // Auto-bind form draft preservation (preserves unfinished work across connection drops / accidental tab closures)
+      autoBindDraftPreservation(
+        'order-form',
+        `reservation_draft_${productId}`,
+        () => null,
+        () => {
+          if (typeof refreshCalculations === 'function') refreshCalculations();
+        }
+      );
 
       const currentUserId = String(user?.id || user?.uid || user?.firebaseUid || '').trim();
       const currentUserEmail = String(user?.email || '').trim().toLowerCase();
@@ -916,41 +945,113 @@
         }
       }
 
+      // Helper to extract full address text and structured details for accurate area matching
+      function getActiveReservationAddressObj() {
+        const addrText = (addressInput ? addressInput.value : '') || (inpAddress ? inpAddress.value : '') || '';
+        const details = activeReservationAddress?.addressDetails || user?.addressDetails || null;
+        return {
+          address: addrText || activeReservationAddress?.address || user?.address || '',
+          fullAddress: addrText || activeReservationAddress?.address || user?.address || '',
+          city: details?.city || details?.cityMunicipality || '',
+          province: details?.province || '',
+          region: details?.region || '',
+          addressDetails: details
+        };
+      }
+
       // Recalculations function
       function refreshCalculations() {
         qtyVal.textContent = `x${quantity}`;
 
         const subtotal = product.price * quantity;
-        const deliveryFee = deliveryOption === 'delivery' ? 80 : 0;
-        const total = subtotal + deliveryFee;
+        
+        let deliveryFee = 0;
+        let isFeeMatched = true;
+        let matchedAreaName = null;
 
-        // GCash versus cash percentages sums
-        let amountToPay = 0;
-        if (paymentMethod === 'gcash') {
-          amountToPay = total;
-        } else if (paymentMethod === 'cash') {
-          amountToPay = total * 0.3;
+        if (deliveryOption === 'pickup') {
+          deliveryFee = 0;
+          isFeeMatched = true;
+          matchedAreaName = 'Store Pickup';
         } else {
-          amountToPay = 0;
+          const storeSettings = getStoreSettings();
+          const activeAddrObj = getActiveReservationAddressObj();
+          const feeResult = evaluateDeliveryFee(activeAddrObj, storeSettings);
+          if (feeResult.isMatched) {
+            deliveryFee = Number(feeResult.fee);
+            isFeeMatched = true;
+            matchedAreaName = feeResult.matchedAreaName;
+          } else {
+            deliveryFee = null;
+            isFeeMatched = false;
+            matchedAreaName = null;
+          }
         }
 
+        const feeAlert = document.getElementById('summary-fee-unconfirmed-alert');
+        const feeAreaTag = document.getElementById('delivery-fee-area-tag');
+
         subtotalValCol.textContent = `₱${subtotal.toLocaleString()}.00`;
-        deliveryValCol.textContent = `₱${deliveryFee.toLocaleString()}.00`;
-        totalValCol.textContent = `₱${total.toLocaleString()}.00`;
 
-        const remainingBalance = Math.max(0, total - amountToPay);
-        document.getElementById('paid-val').textContent = `₱${amountToPay.toLocaleString()}.00`;
-        document.getElementById('remaining-val').textContent = `₱${remainingBalance.toLocaleString()}.00`;
-        
-        lblPayAmount.textContent = paymentMethod === 'none' ? 'Amount Due Now: ₱0.00 (No Payment Required)' : `Amount to Pay: ₱${amountToPay.toLocaleString()}.00`;
-        lblSendAmount.textContent = `₱${amountToPay.toLocaleString()}.00`;
+        if (deliveryOption === 'delivery' && !isFeeMatched) {
+          deliveryValCol.textContent = 'Needs Confirmation';
+          deliveryValCol.className = 'font-bold text-xs text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/60 px-2.5 py-1 rounded-md border border-rose-200 dark:border-rose-800';
+          if (feeAreaTag) {
+            feeAreaTag.textContent = 'Unmatched area';
+            feeAreaTag.className = 'text-[11px] font-semibold text-rose-600 dark:text-rose-400';
+            feeAreaTag.classList.remove('hidden');
+          }
+          if (feeAlert) feeAlert.classList.remove('hidden');
 
-        if (paymentMethod === 'gcash') {
-          lblSendAmountDesc.textContent = 'FULL PAYMENT:';
-        } else if (paymentMethod === 'cash') {
-          lblSendAmountDesc.textContent = '30% DEPOSIT DUE VIA GCASH:';
+          totalValCol.textContent = subtotal > 0 ? `₱${subtotal.toLocaleString()}.00 + Delivery Fee` : `Needs Confirmation`;
+          document.getElementById('paid-val').textContent = 'Pending Fee Confirmation';
+          document.getElementById('remaining-val').textContent = 'Pending Fee Confirmation';
+
+          lblPayAmount.textContent = 'Delivery Fee Needs Confirmation';
+          lblSendAmount.textContent = 'Pending Fee';
+          lblSendAmountDesc.textContent = 'DELIVERY FEE CONFIRMATION REQUIRED:';
         } else {
-          lblSendAmountDesc.textContent = 'NO PAYMENT REQUIRED NOW:';
+          deliveryValCol.textContent = `₱${Number(deliveryFee).toLocaleString()}.00`;
+          deliveryValCol.className = 'font-bold text-gray-950 dark:text-white';
+          if (feeAreaTag) {
+            if (deliveryOption === 'delivery' && matchedAreaName) {
+              feeAreaTag.textContent = `Area: ${matchedAreaName} (₱${Number(deliveryFee).toLocaleString()}.00)`;
+              feeAreaTag.className = 'text-[11px] font-medium text-emerald-700 dark:text-emerald-400';
+              feeAreaTag.classList.remove('hidden');
+            } else {
+              feeAreaTag.classList.add('hidden');
+            }
+          }
+          if (feeAlert) feeAlert.classList.add('hidden');
+
+          const total = subtotal + deliveryFee;
+
+          // GCash versus cash percentages sums
+          let amountToPay = 0;
+          if (paymentMethod === 'gcash') {
+            amountToPay = total;
+          } else if (paymentMethod === 'cash') {
+            amountToPay = Math.round(total * 0.3 * 100) / 100;
+          } else {
+            amountToPay = 0;
+          }
+
+          totalValCol.textContent = `₱${total.toLocaleString()}.00`;
+
+          const remainingBalance = Math.max(0, total - amountToPay);
+          document.getElementById('paid-val').textContent = `₱${amountToPay.toLocaleString()}.00`;
+          document.getElementById('remaining-val').textContent = `₱${remainingBalance.toLocaleString()}.00`;
+          
+          lblPayAmount.textContent = paymentMethod === 'none' ? 'Amount Due Now: ₱0.00 (No Payment Required)' : `Amount to Pay: ₱${amountToPay.toLocaleString()}.00`;
+          lblSendAmount.textContent = `₱${amountToPay.toLocaleString()}.00`;
+
+          if (paymentMethod === 'gcash') {
+            lblSendAmountDesc.textContent = 'FULL PAYMENT:';
+          } else if (paymentMethod === 'cash') {
+            lblSendAmountDesc.textContent = '30% DEPOSIT DUE VIA GCASH:';
+          } else {
+            lblSendAmountDesc.textContent = 'NO PAYMENT REQUIRED NOW:';
+          }
         }
 
         selectedReviewList.innerHTML = `
@@ -1102,6 +1203,7 @@
         if (deliveryOption === 'delivery' && typeof updateDeliveryMinimumStatus === 'function') {
           updateDeliveryMinimumStatus();
         }
+        refreshCalculations();
       }
 
       function updateReservationChangeAddressLink() {
@@ -1130,11 +1232,17 @@
           saveReservationContextForGuide();
         });
       }
+      if (addressInput) {
+        addressInput.addEventListener('input', () => {
+          refreshCalculations();
+        });
+      }
       syncReservationAddressUI();
 
       window.addEventListener('aurora-sync-event', (e) => {
-        if (e.detail && (e.detail.key === 'delivery-minimum-settings' || e.detail.key === 'aurora-store-settings')) {
+        if (e.detail && (e.detail.key === 'delivery-minimum-settings' || e.detail.key === 'aurora-store-settings' || e.detail.key === 'settings-delivery-fee')) {
           updateDeliveryMinimumStatus();
+          refreshCalculations();
         }
       });
 
@@ -1652,10 +1760,25 @@
       }
 
       function validateReservationAndProceed() {
+        if (!assertCanPerformFirebaseWrite('submit a rice reservation')) {
+          return;
+        }
+
         // Check if address selected but not filled
         if (deliveryOption === 'delivery') {
           if (!addressInput.value.trim()) {
             showToast('Please type your delivery address!', 'error');
+            return;
+          }
+          const storeSettings = getStoreSettings();
+          const activeAddrObj = getActiveReservationAddressObj();
+          const feeResult = evaluateDeliveryFee(activeAddrObj, storeSettings);
+          if (!feeResult || !feeResult.isMatched) {
+            showToast('Your delivery address does not match any configured delivery area. Please select a supported delivery location or switch to Store Pickup.', 'error');
+            const feeAlert = document.getElementById('summary-fee-unconfirmed-alert');
+            if (feeAlert) {
+              feeAlert.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
             return;
           }
           const minDeliveryStatus = updateDeliveryMinimumStatus();
@@ -1701,13 +1824,34 @@
       });
 
       async function submitReservationToDB() {
+        if (!assertCanPerformFirebaseWrite('submit this reservation')) {
+          return false;
+        }
+
         if (isOutOfStock) {
           paymentMethod = 'none';
           paymentProofFile = null;
         }
 
         const subtotal = product.price * quantity;
-        const deliveryFee = deliveryOption === 'delivery' ? 80 : 0;
+        let deliveryFee = 0;
+        let matchedDeliveryArea = null;
+
+        if (deliveryOption === 'pickup') {
+          deliveryFee = 0;
+          matchedDeliveryArea = 'Store Pickup';
+        } else {
+          const storeSettings = getStoreSettings();
+          const activeAddrObj = getActiveReservationAddressObj();
+          const feeResult = evaluateDeliveryFee(activeAddrObj, storeSettings);
+          if (!feeResult || !feeResult.isMatched) {
+            showToast('Cannot submit reservation: Delivery fee needs confirmation for your address. Please select a supported location or switch to Store Pickup.', 'error');
+            return false;
+          }
+          deliveryFee = Number(feeResult.fee);
+          matchedDeliveryArea = feeResult.matchedAreaName || null;
+        }
+
         const total = subtotal + deliveryFee;
 
         let amountPaid = 0;
@@ -1792,6 +1936,8 @@
             isReservation: true
           }],
           total,
+          deliveryFee,
+          matchedDeliveryArea,
           status: hasPayment ? 'payment_verification' : 'pre-order',
           paymentMethod: paymentMethod,
           paymentType: paymentMethod === 'cash' ? 'deposit' : (paymentMethod === 'gcash' ? 'full' : 'none'),
@@ -1828,6 +1974,19 @@
           reservationRecord.estimatedFulfillmentDate = initialEst;
         } else {
           reservationRecord.estimatedFulfillmentDate = null;
+        }
+
+        // Prevent duplicate creation if an order with this reference was already committed
+        if (reservationRecord.referenceNumber) {
+          try {
+            const existing = await checkExistingOrderByReference(reservationRecord.referenceNumber);
+            if (existing) {
+              console.log('[RESERVATION] Existing reservation record detected with reference:', existing.id);
+              clearFormDraft(`reservation_draft_${productId}`);
+              showToast('This reservation has already been recorded.', 'info');
+              return true;
+            }
+          } catch (_) {}
         }
 
         // Add to database via existing addOrder flow
@@ -1913,6 +2072,7 @@
 
         // Remove from standard shopping cart if it was listed there
         clearCartItems([product.id]);
+        clearFormDraft(`reservation_draft_${productId}`);
 
         // Auto-save confirmed delivery address to customer profile for the current user (delivery orders only)
         if (deliveryOption === 'delivery' && editedAddress) {

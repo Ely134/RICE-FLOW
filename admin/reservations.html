@@ -8,34 +8,15 @@
     (function() {
       try {
         var d = document.documentElement;
-        var isDark = localStorage.getItem('aurora-dark-mode') === 'true';
-        d.classList.toggle('dark', isDark);
-        d.style.colorScheme = isDark ? 'dark' : 'light';
+        d.classList.remove('dark');
+        d.style.colorScheme = 'light';
+        if (typeof localStorage !== 'undefined') { try { localStorage.removeItem('aurora-dark-mode'); } catch(_) {} }
       } catch (e) {}
     })();
   </script>
   <style id="riceflow-theme-init">
     html { background-color: #F5F5F5; color-scheme: light; }
-    html.dark { background-color: #1F2937 !important; color-scheme: dark; }
-    html.dark body,
-    html.dark #admin-layout-container,
-    html.dark #admin-main-content {
-      background-color: #1F2937;
-      color: #F9FAFB;
-    }
-    html.dark #auth-guard-loader {
-      background-color: #1F2937 !important;
-      color: #F9FAFB !important;
-    }
-    html.dark #admin-sidebar,
-    html.dark aside,
-    html.dark header,
-    html.dark .bg-white,
-    html.dark .bg-gray-50,
-    html.dark .bg-slate-50 {
-      background-color: #111827;
-      color: #F9FAFB;
-    }
+    
   
       /* Review Payment-only layout: two independent vertical stacks, without cross-column row gaps. */
       #admin-layout-container .payment-review-layout { align-items: start; }
@@ -71,8 +52,7 @@
         #admin-layout-container .payment-review-left-card,
         #admin-layout-container .payment-review-right-card { grid-column: 1; grid-row: auto; }
       }
-
-</style>
+  </style>
   <link rel="stylesheet" href="../src/styles/index.css">
   <style>
     /* Scoped custom styling for the Reservation Queue Table horizontal scrollbars */
@@ -351,6 +331,24 @@
   </style>
   <style id="auth-guard-style">body { visibility: hidden !important; }</style>
 
+  <style id="riceflow-reservation-filter-mobile-fix">
+    /* Keep reservation status filters readable; scroll only this tab strip on narrow screens. */
+    #admin-layout-container .reservation-filter-scroll,
+    #admin-layout-container .w-full.lg\:w-auto.overflow-x-auto {
+      max-width: 100% !important; min-width: 0 !important; overflow-x: auto !important;
+      overflow-y: hidden !important; -webkit-overflow-scrolling: touch !important;
+      overscroll-behavior-x: contain !important;
+    }
+    #admin-layout-container .btn-filter-click {
+      flex: 0 0 auto !important; min-height: 40px !important; white-space: nowrap !important;
+      word-break: keep-all !important; overflow-wrap: normal !important;
+      padding-left: 14px !important; padding-right: 14px !important;
+    }
+    @media (max-width: 640px) {
+      #admin-layout-container .w-full.lg\:w-auto.overflow-x-auto { padding-bottom: 8px !important; }
+      #admin-layout-container .btn-filter-click { font-size: 12px !important; }
+    }
+  </style>
   <style id="reservation-table-visual-polish">
     /* UI-only layout correction. Keep the original Manage Reservation visual design intact. */
     #admin-layout-container #reservation-table-card,
@@ -542,6 +540,59 @@
     }
   </style>
 
+
+  <style id="riceflow-admin-responsive-repair">
+
+/* Targeted responsive repair: Admin Reservations */
+#admin-main-content, #admin-main-content * { min-width: 0; }
+#admin-main-content h1, #admin-main-content h2, #admin-main-content h3,
+#admin-main-content h4, #admin-main-content p, #admin-main-content label,
+#admin-main-content button, #admin-main-content th, #admin-main-content td {
+  overflow-wrap: normal !important; word-break: normal !important; hyphens: manual !important;
+}
+#admin-layout-container > #admin-right-workspace > header { gap: 12px; }
+
+/* Contained horizontal scroll area for table: prevents page spillover and stops column squeezing */
+#admin-layout-container #reservation-table-card {
+  width: 100% !important; max-width: 100% !important; min-width: 0 !important;
+}
+#admin-layout-container #reservation-table-container {
+  display: block !important; width: 100% !important; max-width: 100% !important;
+  min-width: 0 !important; overflow-x: auto !important; overflow-y: visible !important;
+  -webkit-overflow-scrolling: touch; overscroll-behavior-x: contain;
+}
+#admin-layout-container #reservation-queue-table {
+  width: 100% !important; min-width: 960px !important;
+  max-width: none !important; table-layout: auto !important;
+}
+#admin-layout-container #reservation-queue-table th,
+#admin-layout-container #reservation-queue-table td {
+  box-sizing: border-box !important; vertical-align: middle !important;
+}
+#admin-layout-container #reservation-queue-table th {
+  white-space: nowrap !important; word-break: normal !important; overflow-wrap: normal !important;
+}
+#admin-layout-container #reservation-queue-table td:nth-child(5) > div {
+  display: flex !important; flex-direction: row !important; flex-wrap: nowrap !important;
+  align-items: center !important; justify-content: center !important; gap: 8px !important;
+}
+#admin-layout-container #reservation-queue-table td:nth-child(5) button,
+#admin-layout-container #reservation-queue-table td:nth-child(5) a {
+  white-space: nowrap !important; flex-shrink: 0 !important;
+}
+#details-modal-box { width: min(100%, 1152px) !important; max-width: calc(100vw - 24px) !important; max-height: calc(100dvh - 24px) !important; overflow-y: auto !important; }
+@media (max-width: 1024px) {
+  #admin-layout-container > #admin-right-workspace > header { min-height: 68px; height: auto; padding: 12px 16px; }
+  #admin-layout-container > #admin-right-workspace > header h2 { font-size: 21px !important; line-height: 1.25 !important; }
+  #admin-main-content { padding: 18px 16px !important; }
+}
+@media (max-width: 760px) {
+  #admin-main-content { padding: 14px 12px !important; }
+  #reservation-queue-table th, #reservation-queue-table td { padding: 12px 10px !important; }
+  #details-modal-box { padding: 16px !important; }
+}
+
+  </style>
 </head>
 <body class="bg-[#F8F9FA] min-h-screen text-gray-800 antialiased">
   <div id="auth-guard-loader" class="fixed inset-0 bg-[#F5F5F5] z-[99999] flex flex-col items-center justify-center font-sans">
@@ -911,7 +962,8 @@
       addNotification,
       isReservationOrder,
       isReservationWaitingForReupload,
-      addInventoryHistory
+      addInventoryHistory,
+      getOrderDeliveryFee
     } from '../src/app/shared.js';
 
     document.addEventListener('DOMContentLoaded', async () => {
@@ -958,8 +1010,8 @@
       }
 
       function updateStatusFilterButtonsUI(activeFilter) {
-        const activeClass = "h-9 px-3.5 rounded-lg text-xs sm:text-[13px] font-black transition-all btn-filter-click active bg-white dark:bg-slate-900 text-[#1E6C02] dark:text-emerald-400 shadow-xs border border-gray-300/80 dark:border-slate-700 ring-1 ring-[#1E6C02]/20 cursor-pointer whitespace-nowrap";
-        const inactiveClass = "h-9 px-3.5 rounded-lg text-xs sm:text-[13px] font-bold text-gray-700 dark:text-gray-300 hover:text-gray-950 dark:hover:text-white hover:bg-gray-200/60 dark:hover:bg-slate-700/50 transition-all btn-filter-click border border-transparent cursor-pointer whitespace-nowrap";
+        const activeClass = "h-10 px-4 rounded-lg text-xs sm:text-[13px] font-bold transition-all btn-filter-click active bg-white text-[#1E6C02] shadow-xs border border-gray-300/80 ring-1 ring-[#1E6C02]/20 cursor-pointer whitespace-nowrap shrink-0";
+        const inactiveClass = "h-10 px-4 rounded-lg text-xs sm:text-[13px] font-bold text-gray-700 hover:text-gray-950 hover:bg-gray-200/60 transition-all btn-filter-click border border-transparent cursor-pointer whitespace-nowrap shrink-0";
 
         document.querySelectorAll('.btn-filter-click').forEach(b => {
           if (b.getAttribute('data-filter') === activeFilter) {
@@ -1648,28 +1700,22 @@
                 </div>
               </div>
 
-              <!-- Right: Segmented Status Filters -->
-              <div class="flex items-center gap-2 flex-wrap sm:flex-nowrap shrink-0 overflow-x-auto pb-1 lg:pb-0 scrollbar-none">
-                <span class="text-xs sm:text-[13px] font-black text-gray-600 dark:text-gray-400 uppercase tracking-wider shrink-0 flex items-center gap-1.5 hidden xl:inline-flex">
-                  <svg class="w-4 h-4 text-[#1E6C02] dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
-                    <path d="M22 3H2m0 0l7 9.18V19a1 1 0 00.5.87l4 2.5a1 1 0 001.5-.87v-11.3L22 3z" stroke-linecap="round" stroke-linejoin="round"></path>
-                  </svg>
-                  Status:
-                </span>
-                <div class="inline-flex bg-gray-100/90 dark:bg-slate-800/90 p-1 rounded-xl border border-gray-200/80 dark:border-slate-700/80 gap-1 overflow-x-auto max-w-full shrink-0">
-                  <button data-filter="all" class="h-9 px-3.5 rounded-lg text-xs sm:text-[13px] font-black transition-all btn-filter-click active bg-white dark:bg-slate-900 text-[#1E6C02] dark:text-emerald-400 shadow-xs border border-gray-300/80 dark:border-slate-700 ring-1 ring-[#1E6C02]/20 cursor-pointer whitespace-nowrap">
+              <!-- Right: Segmented Status Filters with Contained Horizontal Scroll -->
+              <div class="w-full lg:w-auto overflow-x-auto pb-1 lg:pb-0 scrollbar-thin shrink-0">
+                <div class="inline-flex bg-gray-100 p-1.5 rounded-xl border border-gray-200/90 gap-1.5 shrink-0 min-w-max items-center">
+                  <button data-filter="all" class="h-10 px-4 rounded-lg text-xs sm:text-[13px] font-bold transition-all btn-filter-click active bg-white text-[#1E6C02] shadow-xs border border-gray-300/80 ring-1 ring-[#1E6C02]/20 cursor-pointer whitespace-nowrap shrink-0">
                     All
                   </button>
-                  <button data-filter="waiting" class="h-9 px-3.5 rounded-lg text-xs sm:text-[13px] font-bold text-gray-700 dark:text-gray-300 hover:text-gray-950 dark:hover:text-white hover:bg-gray-200/60 dark:hover:bg-slate-700/50 transition-all btn-filter-click border border-transparent cursor-pointer whitespace-nowrap">
+                  <button data-filter="waiting" class="h-10 px-4 rounded-lg text-xs sm:text-[13px] font-bold text-gray-700 hover:text-gray-950 hover:bg-gray-200/60 transition-all btn-filter-click border border-transparent cursor-pointer whitespace-nowrap shrink-0">
                     Waiting
                   </button>
-                  <button data-filter="payment_verification" class="h-9 px-3.5 rounded-lg text-xs sm:text-[13px] font-bold text-gray-700 dark:text-gray-300 hover:text-gray-950 dark:hover:text-white hover:bg-gray-200/60 dark:hover:bg-slate-700/50 transition-all btn-filter-click border border-transparent cursor-pointer whitespace-nowrap">
+                  <button data-filter="payment_verification" class="h-10 px-4 rounded-lg text-xs sm:text-[13px] font-bold text-gray-700 hover:text-gray-950 hover:bg-gray-200/60 transition-all btn-filter-click border border-transparent cursor-pointer whitespace-nowrap shrink-0">
                     Payment Review
                   </button>
-                  <button data-filter="ready" class="h-9 px-3.5 rounded-lg text-xs sm:text-[13px] font-bold text-gray-700 dark:text-gray-300 hover:text-gray-950 dark:hover:text-white hover:bg-gray-200/60 dark:hover:bg-slate-700/50 transition-all btn-filter-click border border-transparent cursor-pointer whitespace-nowrap">
+                  <button data-filter="ready" class="h-10 px-4 rounded-lg text-xs sm:text-[13px] font-bold text-gray-700 hover:text-gray-950 hover:bg-gray-200/60 transition-all btn-filter-click border border-transparent cursor-pointer whitespace-nowrap shrink-0">
                     Ready
                   </button>
-                  <button data-filter="cancelled" class="h-9 px-3.5 rounded-lg text-xs sm:text-[13px] font-bold text-gray-700 dark:text-gray-300 hover:text-gray-950 dark:hover:text-white hover:bg-gray-200/60 dark:hover:bg-slate-700/50 transition-all btn-filter-click border border-transparent cursor-pointer whitespace-nowrap">
+                  <button data-filter="cancelled" class="h-10 px-4 rounded-lg text-xs sm:text-[13px] font-bold text-gray-700 hover:text-gray-950 hover:bg-gray-200/60 transition-all btn-filter-click border border-transparent cursor-pointer whitespace-nowrap shrink-0">
                     Cancelled
                   </button>
                 </div>
@@ -1680,15 +1726,15 @@
           <!-- RESERVATION QUEUE TABLE CARD -->
           <div id="reservation-table-card" class="bg-white dark:bg-[#111827] rounded-2xl border border-gray-200/90 dark:border-slate-800 shadow-xs relative">
             <!-- TABLE CONTAINER -->
-            <div id="reservation-table-container" class="rounded-b-2xl">
-              <table id="reservation-queue-table" class="w-full table-fixed text-left border-collapse">
+            <div id="reservation-table-container" class="overflow-x-auto w-full rounded-b-2xl scrollbar-thin">
+              <table id="reservation-queue-table" class="w-full text-left border-collapse min-w-[960px]">
                 <thead>
-                  <tr class="bg-gray-50/90 dark:bg-slate-800/80 border-b border-gray-200/90 dark:border-slate-800 text-[13px] sm:text-[14px] font-semibold text-gray-900 dark:text-gray-100 uppercase tracking-wider">
-                    <th class="py-3 px-3 w-[24%]">Customer</th>
-                    <th class="py-3 px-3 w-[23%]">Rice Variety</th>
-                    <th class="py-3 px-2 text-center w-[10%]">Quantity</th>
-                    <th class="py-3 px-3 w-[18%]">Status</th>
-                    <th class="py-3 px-2 text-center w-[25%]">Actions</th>
+                  <tr class="bg-gray-50/90 dark:bg-slate-800/80 border-b border-gray-200/90 dark:border-slate-800 text-xs sm:text-[13px] font-semibold text-gray-900 dark:text-gray-100 uppercase tracking-wider">
+                    <th class="py-3.5 px-4 min-w-[210px] whitespace-nowrap">Customer</th>
+                    <th class="py-3.5 px-4 min-w-[200px] whitespace-nowrap">Rice Variety</th>
+                    <th class="py-3.5 px-3 text-center min-w-[120px] whitespace-nowrap">Quantity</th>
+                    <th class="py-3.5 px-4 min-w-[200px] whitespace-nowrap">Status</th>
+                    <th class="py-3.5 px-4 text-center min-w-[230px] whitespace-nowrap">Actions</th>
                   </tr>
                 </thead>
                 <tbody id="queue-table-body" class="divide-y divide-gray-100 dark:divide-slate-800/80">
@@ -1875,7 +1921,40 @@
         const orders = getAllOrders().filter(o => isReservationOrder(o));
 
         function getQueuePosition(order) {
-          return getActiveWaitingQueuePosition(order, orders);
+          const dynamicPos = getActiveWaitingQueuePosition(order, orders);
+          if (dynamicPos) return dynamicPos;
+
+          if (order && typeof order.queuePosition === 'number' && order.queuePosition > 0) {
+            return order.queuePosition;
+          }
+          if (order && order.queuePosition && !isNaN(Number(order.queuePosition)) && Number(order.queuePosition) > 0) {
+            return Number(order.queuePosition);
+          }
+
+          const isReadyOrder = (order.status === 'ready_for_processing' || order.status === 'ready');
+          if (isReadyOrder) {
+            const pId = String(order.items?.[0]?.product?.id ?? order.items?.[0]?.productId ?? order.productId ?? '').trim();
+            let readyList = orders.filter(o => {
+              const st = String(o.status || '').toLowerCase().replace(/_/g, '-').trim();
+              return st === 'ready-for-processing' || st === 'ready';
+            });
+            if (pId) {
+              readyList = readyList.filter(o => {
+                const oPid = String(o.items?.[0]?.product?.id ?? o.items?.[0]?.productId ?? o.productId ?? '').trim();
+                return oPid === pId;
+              });
+            }
+            readyList.sort((a, b) => {
+              const tA = new Date(a.createdAt || a.dateCreated || a.date || 0).getTime();
+              const tB = new Date(b.createdAt || b.dateCreated || b.date || 0).getTime();
+              if (tA !== tB) return tA - tB;
+              return String(a.id || '').localeCompare(String(b.id || ''));
+            });
+            const idx = readyList.findIndex(o => String(o.id || '').toLowerCase().replace(/^#/, '') === String(order.id || '').toLowerCase().replace(/^#/, ''));
+            return idx !== -1 ? (idx + 1) : 1;
+          }
+
+          return null;
         }
 
         // Apply Search query, Status Filters, and Rice Variety Filter
@@ -2360,7 +2439,7 @@
             `;
           }
 
-          actionButtonHtml = `<div class="flex flex-wrap items-center justify-center gap-1.5">${actionButtonHtml}<button type="button" data-audit-id="${order.id}" class="btn-reservation-audit inline-flex items-center justify-center h-9 px-2.5 border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-950/50 text-amber-900 dark:text-amber-200 hover:bg-amber-100 dark:hover:bg-amber-900/60 text-xs font-bold rounded-lg cursor-pointer whitespace-nowrap" title="View reservation history and timeline">Audit Log</button></div>`;
+          actionButtonHtml = `<div class="flex items-center justify-center gap-2 flex-nowrap">${actionButtonHtml}<button type="button" data-audit-id="${order.id}" class="btn-reservation-audit inline-flex items-center justify-center h-9 px-3 border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-950/50 text-amber-900 dark:text-amber-200 hover:bg-amber-100 dark:hover:bg-amber-900/60 text-xs font-bold rounded-xl cursor-pointer whitespace-nowrap shrink-0 transition-colors shadow-2xs" title="View reservation history and timeline">Audit Log</button></div>`;
 
           const altRowClass = idx % 2 === 0 ? 'res-row-even' : 'res-row-odd';
 
@@ -2889,6 +2968,10 @@
                            order.isApproved === true || 
                            order.approvedByAdmin === true;
         const totalVal = Number(order.total || 0);
+        const resDeliveryFee = getOrderDeliveryFee(order);
+        const resSubtotal = (order.items && order.items.length > 0)
+          ? order.items.reduce((s, it) => s + ((it.product?.price ?? it.price ?? 0) * (it.quantity || 1)), 0)
+          : Math.max(0, totalVal - resDeliveryFee);
         const isFullPayment = order.paymentType === 'full' || 
                               order.paymentType === 'full_advance' || 
                               order.paymentOption === 'Full Payment' || 
@@ -3362,6 +3445,14 @@
                 ${(!isWaitingModal || order.paymentVerified) ? `
                 <div class="${isPaymentVerificationModal ? 'payment-review-right-card payment-review-right-row-2' : ''} bg-white border border-gray-200 p-6 rounded-2xl shadow-inner text-sm sm:text-base font-normal text-gray-950 space-y-4">
                   <h4 class="text-base font-semibold text-gray-950 tracking-wide border-b pb-2 flex items-center gap-1.5">📊 Reservation Payment</h4>
+                  <div class="flex justify-between items-center border-b pb-2 text-sm">
+                    <span class="text-gray-700 font-medium">Items Subtotal:</span>
+                    <span class="font-bold text-gray-950">₱${resSubtotal.toLocaleString()}.00</span>
+                  </div>
+                  <div class="flex justify-between items-center border-b pb-2 text-sm">
+                    <span class="text-gray-700 font-medium">Delivery Fee:</span>
+                    <span class="font-bold text-gray-950">${order.deliveryOption === 'pickup' ? '₱0.00 (Store Pickup)' : `₱${resDeliveryFee.toLocaleString()}.00${order.matchedDeliveryArea ? ` (${order.matchedDeliveryArea})` : ''}`}</span>
+                  </div>
                   <div class="flex justify-between items-center border-b pb-3">
                     <span class="text-gray-800 font-bold">Total Bill:</span>
                     <span class="font-black text-gray-950 text-base sm:text-lg">₱${totalVal.toLocaleString()}.00</span>

@@ -8,34 +8,14 @@
     (function() {
       try {
         var d = document.documentElement;
-        var isDark = localStorage.getItem('aurora-dark-mode') === 'true';
-        d.classList.toggle('dark', isDark);
-        d.style.colorScheme = isDark ? 'dark' : 'light';
+        d.classList.remove('dark');
+        d.style.colorScheme = 'light';
+        if (typeof localStorage !== 'undefined') { try { localStorage.removeItem('aurora-dark-mode'); } catch(_) {} }
       } catch (e) {}
     })();
   </script>
   <style id="riceflow-theme-init">
     html { background-color: #F5F5F5; color-scheme: light; }
-    html.dark { background-color: #1F2937 !important; color-scheme: dark; }
-    html.dark body,
-    html.dark #admin-layout-container,
-    html.dark #admin-main-content {
-      background-color: #1F2937;
-      color: #F9FAFB;
-    }
-    html.dark #auth-guard-loader {
-      background-color: #1F2937 !important;
-      color: #F9FAFB !important;
-    }
-    html.dark #admin-sidebar,
-    html.dark aside,
-    html.dark header,
-    html.dark .bg-white,
-    html.dark .bg-gray-50,
-    html.dark .bg-slate-50 {
-      background-color: #111827;
-      color: #F9FAFB;
-    }
   </style>
   <link rel="stylesheet" href="../src/styles/index.css">
   <style>
@@ -56,6 +36,44 @@
     }
   </style>
   <style id="auth-guard-style">body { visibility: hidden !important; }</style>
+
+  <style id="riceflow-admin-responsive-repair">
+
+/* Targeted responsive repair: Customer Inquiries */
+#admin-main-content, #admin-main-content * { min-width: 0; }
+#admin-main-content h1, #admin-main-content h2, #admin-main-content h3,
+#admin-main-content h4, #admin-main-content p, #admin-main-content label,
+#admin-main-content button, #admin-main-content th, #admin-main-content td {
+  overflow-wrap: normal !important; word-break: normal !important; hyphens: manual !important;
+}
+#admin-layout-container > #admin-right-workspace > header { gap: 12px; }
+#inquiries-table-scroll { max-width: 100%; overflow-x: auto; overflow-y: visible; -webkit-overflow-scrolling: touch; }
+#inquiries-table-scroll table { min-width: 780px !important; }
+#inquiry-detail-modal { padding: 12px !important; }
+#inquiry-detail-modal > div { width: min(100%, 672px) !important; max-width: calc(100vw - 24px) !important; max-height: calc(100dvh - 24px) !important; overflow: hidden !important; display: flex !important; flex-direction: column !important; }
+#modal-inquiry-subject { overflow-wrap: anywhere !important; word-break: normal !important; }
+@media (max-width: 1024px) {
+  #admin-layout-container > #admin-right-workspace > header { min-height: 68px; height: auto; padding: 12px 16px; }
+  #admin-layout-container > #admin-right-workspace > header h2 { font-size: 21px !important; line-height: 1.25 !important; }
+  #admin-main-content { padding: 18px 16px !important; }
+}
+@media (max-width: 640px) {
+  #admin-main-content { padding: 14px 12px !important; }
+  #admin-main-content .grid.grid-cols-1.sm\:grid-cols-4 { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 10px !important; }
+  #admin-main-content .grid.grid-cols-1.sm\:grid-cols-4 > div { padding: 12px !important; }
+  #admin-main-content .grid.grid-cols-1.sm\:grid-cols-4 > div span:first-child { font-size: 9px !important; letter-spacing: .04em !important; line-height: 1.35 !important; }
+  #admin-main-content .flex.flex-wrap.items-center.justify-between.gap-4.w-full { align-items: stretch !important; padding: 12px !important; gap: 12px !important; }
+  #admin-main-content #inp-search-inquiries { width: 100%; }
+  #inquiries-filter-bar { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 2px; }
+  #inquiries-filter-bar::-webkit-scrollbar { height: 4px; }
+  #inquiries-filter-bar button { white-space: nowrap !important; font-size: 11.5px !important; padding: 6px 10px !important; }
+  #inquiry-detail-modal #modal-inquiry-subject { font-size: 18px !important; line-height: 1.35 !important; }
+}
+@media (max-width: 360px) {
+  #admin-main-content .grid.grid-cols-1.sm\:grid-cols-4 { grid-template-columns: minmax(0, 1fr) !important; }
+}
+
+  </style>
 </head>
 <body class="bg-[#F5F5F5] min-h-screen">
   <div id="auth-guard-loader" class="fixed inset-0 bg-[#F5F5F5] z-[99999] flex flex-col items-center justify-center font-sans">
@@ -66,23 +84,24 @@
   <div id="admin-layout-container"></div>
 
   <!-- VIEW INQUIRY DETAILS DIALOG -->
-  <div id="inquiry-detail-modal" class="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center p-4 sm:p-6 hidden">
-    <div class="bg-white dark:bg-gray-900 rounded-2xl max-w-2xl w-full shadow-2xl p-6 sm:p-8 border border-gray-200 dark:border-gray-800 max-h-[90vh] overflow-y-auto animate-in fade-in zoom-in duration-200 text-gray-900 dark:text-gray-100 flex flex-col justify-between">
+  <div id="inquiry-detail-modal" class="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center p-3 sm:p-6 hidden">
+    <div class="bg-white dark:bg-gray-900 rounded-2xl max-w-2xl w-full shadow-2xl border border-gray-200 dark:border-gray-800 max-h-[92vh] flex flex-col overflow-hidden animate-in fade-in zoom-in duration-200 text-gray-900 dark:text-gray-100">
       
-      <div>
-        <!-- Modal Header -->
-        <div class="flex justify-between items-start pb-4 border-b border-gray-200 dark:border-gray-800">
-          <div>
-            <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100" id="modal-inquiry-subject">Inquiry Subject</h3>
-            <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 mt-1" id="modal-inquiry-date">Submitted on --</p>
-          </div>
-          <button id="close-inquiry-modal" class="text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100 p-1.5 rounded-lg transition-colors cursor-pointer" title="Close">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-5 h-5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-          </button>
+      <!-- Modal Pinned Header -->
+      <div class="shrink-0 flex justify-between items-start p-4 sm:p-6 border-b border-gray-200 dark:border-gray-800">
+        <div class="min-w-0 pr-3">
+          <h3 class="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 break-words" id="modal-inquiry-subject">Inquiry Subject</h3>
+          <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 mt-1" id="modal-inquiry-date">Submitted on --</p>
         </div>
+        <button id="close-inquiry-modal" class="text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100 p-1.5 rounded-lg transition-colors cursor-pointer shrink-0" title="Close">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-5 h-5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
 
+      <!-- Scrollable Modal Body -->
+      <div class="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 sm:space-y-5">
         <!-- Status Bar -->
-        <div class="mt-4 p-4 rounded-xl bg-gray-50 dark:bg-gray-800/70 border border-gray-200 dark:border-gray-700 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div class="p-3.5 sm:p-4 rounded-xl bg-gray-50 dark:bg-gray-800/70 border border-gray-200 dark:border-gray-700 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div class="flex items-center gap-2.5">
             <span class="text-xs font-bold uppercase tracking-wider text-gray-600 dark:text-gray-300">Current Status:</span>
             <div id="modal-status-badge-container"></div>
@@ -98,17 +117,17 @@
         </div>
 
         <!-- Customer Information Section -->
-        <div class="mt-6 space-y-4">
+        <div class="space-y-3 pt-2">
           <h4 class="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-gray-800 pb-1.5">Customer Information</h4>
           
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 text-sm">
             <div>
               <span class="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 block mb-0.5">Full Name</span>
               <span id="modal-customer-name" class="font-bold text-gray-900 dark:text-white text-base">--</span>
             </div>
             <div>
               <span class="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 block mb-0.5">Email Address</span>
-              <a id="modal-customer-email" href="#" class="font-semibold text-[#1E6C02] dark:text-emerald-400 hover:underline">--</a>
+              <a id="modal-customer-email" href="#" class="font-semibold text-[#1E6C02] dark:text-emerald-400 hover:underline break-all">--</a>
             </div>
             <div>
               <span class="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 block mb-0.5">Contact Number</span>
@@ -122,21 +141,21 @@
         </div>
 
         <!-- Full Message Section -->
-        <div class="mt-6 space-y-2">
+        <div class="space-y-2 pt-2">
           <h4 class="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-gray-800 pb-1.5">Full Message</h4>
-          <div id="modal-inquiry-message" class="p-4 rounded-xl bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 text-sm leading-relaxed text-gray-800 dark:text-gray-200 whitespace-pre-wrap font-sans">
+          <div id="modal-inquiry-message" class="p-3.5 sm:p-4 rounded-xl bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 text-sm leading-relaxed text-gray-800 dark:text-gray-200 whitespace-pre-wrap font-sans">
             --
           </div>
         </div>
       </div>
 
-      <!-- Modal Footer -->
-      <div class="flex items-center justify-between pt-6 border-t border-gray-200 dark:border-gray-800 mt-6">
-        <a id="modal-btn-reply-email" href="#" class="inline-flex items-center gap-2 px-4 py-2 bg-[#1E6C02] hover:bg-[#154E01] text-white text-xs font-bold uppercase tracking-wider rounded-xl transition-colors cursor-pointer">
+      <!-- Modal Pinned Footer -->
+      <div class="shrink-0 flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-2.5 p-4 sm:p-6 border-t border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900">
+        <a id="modal-btn-reply-email" href="#" class="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-[#1E6C02] hover:bg-[#154E01] text-white text-xs font-bold uppercase tracking-wider rounded-xl transition-colors cursor-pointer shadow-xs">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-4 h-4"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
           Reply via Email
         </a>
-        <button id="btn-inquiry-close-footer" class="px-5 py-2 bg-gray-200 hover:bg-gray-300 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200 text-xs font-bold uppercase tracking-wider rounded-xl cursor-pointer transition-colors">
+        <button id="btn-inquiry-close-footer" class="px-5 py-2.5 bg-gray-200 hover:bg-gray-300 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200 text-xs font-bold uppercase tracking-wider rounded-xl cursor-pointer transition-colors text-center">
           Close
         </button>
       </div>
@@ -336,32 +355,74 @@
               </div>
 
               <!-- Filter Selector & Refresh -->
-              <div class="flex items-center gap-2.5 flex-wrap">
-                <div class="flex items-center gap-1.5 bg-gray-100 dark:bg-gray-800 p-1 rounded-xl">
-                  <button data-filter="all" class="btn-filter-tab px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${statusFilter === 'all' ? 'bg-white dark:bg-gray-900 text-gray-950 dark:text-white shadow-xs' : 'text-gray-600 dark:text-gray-400 hover:text-gray-900'}">All (${cachedInquiries.length})</button>
-                  <button data-filter="unread" class="btn-filter-tab px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${statusFilter === 'unread' ? 'bg-white dark:bg-gray-900 text-amber-600 dark:text-amber-400 shadow-xs' : 'text-gray-600 dark:text-gray-400 hover:text-gray-900'}">Unread (${unreadCount})</button>
-                  <button data-filter="in progress" class="btn-filter-tab px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${statusFilter === 'in progress' ? 'bg-white dark:bg-gray-900 text-blue-600 dark:text-blue-400 shadow-xs' : 'text-gray-600 dark:text-gray-400 hover:text-gray-900'}">In Progress (${inProgressCount})</button>
-                  <button data-filter="resolved" class="btn-filter-tab px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${statusFilter === 'resolved' ? 'bg-white dark:bg-gray-900 text-[#1E6C02] dark:text-emerald-400 shadow-xs' : 'text-gray-600 dark:text-gray-400 hover:text-gray-900'}">Resolved (${resolvedCount})</button>
+              <div class="flex items-center gap-2.5 flex-wrap w-full sm:w-auto">
+                <div id="inquiries-filter-bar" class="flex items-center gap-1.5 overflow-x-auto p-1 bg-gray-100 dark:bg-gray-800 rounded-xl max-w-full scrollbar-none">
+                  <button data-filter="all" class="btn-filter-tab px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer whitespace-nowrap shrink-0 ${statusFilter === 'all' ? 'bg-white dark:bg-gray-900 text-gray-950 dark:text-white shadow-xs' : 'text-gray-600 dark:text-gray-400 hover:text-gray-900'}">All (${cachedInquiries.length})</button>
+                  <button data-filter="unread" class="btn-filter-tab px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer whitespace-nowrap shrink-0 ${statusFilter === 'unread' ? 'bg-white dark:bg-gray-900 text-amber-600 dark:text-amber-400 shadow-xs' : 'text-gray-600 dark:text-gray-400 hover:text-gray-900'}">Unread (${unreadCount})</button>
+                  <button data-filter="in progress" class="btn-filter-tab px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer whitespace-nowrap shrink-0 ${statusFilter === 'in progress' ? 'bg-white dark:bg-gray-900 text-blue-600 dark:text-blue-400 shadow-xs' : 'text-gray-600 dark:text-gray-400 hover:text-gray-900'}">In Progress (${inProgressCount})</button>
+                  <button data-filter="resolved" class="btn-filter-tab px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer whitespace-nowrap shrink-0 ${statusFilter === 'resolved' ? 'bg-white dark:bg-gray-900 text-[#1E6C02] dark:text-emerald-400 shadow-xs' : 'text-gray-600 dark:text-gray-400 hover:text-gray-900'}">Resolved (${resolvedCount})</button>
                 </div>
 
-                <button id="btn-refresh-inquiries" class="p-2.5 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-700 rounded-xl text-gray-600 dark:text-gray-300 cursor-pointer transition-colors" title="Reload from Firestore">
+                <button id="btn-refresh-inquiries" class="p-2.5 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-700 rounded-xl text-gray-600 dark:text-gray-300 cursor-pointer transition-colors shrink-0" title="Reload from Firestore">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-4 h-4"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
                 </button>
               </div>
             </div>
 
-            <!-- Inquiries Data Table -->
+            <!-- Inquiries Content Container -->
             <div class="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200/80 dark:border-gray-800 shadow-xs overflow-hidden">
-              <div id="inquiries-table-scroll" class="overflow-x-auto w-full">
-                <table class="w-full text-left border-collapse min-w-[700px]">
+              
+              <!-- Mobile Card List View (sm:hidden) -->
+              <div class="block sm:hidden divide-y divide-gray-100 dark:divide-gray-800">
+                ${filtered.length === 0 ? `
+                  <div class="py-12 px-4 text-center text-gray-500 dark:text-gray-400">
+                    <div class="flex flex-col items-center justify-center gap-2">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="w-10 h-10 text-gray-300 dark:text-gray-600"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                      <p class="font-bold text-gray-700 dark:text-gray-300 text-sm">No customer inquiries found</p>
+                      <p class="text-xs text-gray-500 dark:text-gray-400">${q || statusFilter !== 'all' ? 'Try adjusting your search query or filter.' : 'Inquiries submitted through the Contact Us page will appear here.'}</p>
+                    </div>
+                  </div>
+                ` : filtered.map(inq => {
+                  const isUnread = normalizeStatus(inq.status) === 'Unread';
+                  return `
+                    <div class="p-4 space-y-3 ${isUnread ? 'bg-amber-50/30 dark:bg-amber-950/10' : ''}" data-row-id="${inq.id}">
+                      <div class="flex items-start justify-between gap-2">
+                        <div class="flex items-center gap-2 min-w-0">
+                          ${isUnread ? `<span class="w-2.5 h-2.5 rounded-full bg-amber-500 shrink-0"></span>` : ''}
+                          <span class="text-gray-900 dark:text-white font-bold text-sm truncate">${inq.name || 'Anonymous'}</span>
+                        </div>
+                        <span class="text-[11px] text-gray-500 dark:text-gray-400 whitespace-nowrap shrink-0">${formatDate(inq.createdAt)}</span>
+                      </div>
+                      
+                      <div>
+                        <a href="mailto:${inq.email}" class="text-xs text-[#1E6C02] dark:text-emerald-400 font-semibold hover:underline block truncate">${inq.email || 'No email provided'}</a>
+                        <p class="text-xs font-bold text-gray-900 dark:text-gray-100 mt-1 line-clamp-1">${inq.subject || 'No Subject'}</p>
+                        ${inq.message ? `<p class="text-xs text-gray-600 dark:text-gray-400 mt-0.5 line-clamp-2">${inq.message}</p>` : ''}
+                      </div>
+
+                      <div class="flex items-center justify-between pt-1">
+                        <div>${renderStatusBadge(inq.status)}</div>
+                        <button class="btn-view-inquiry px-3 py-1.5 bg-[#1E6C02] hover:bg-[#154E01] text-white text-xs font-bold rounded-xl transition-all cursor-pointer inline-flex items-center gap-1.5 shadow-xs" data-id="${inq.id}">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-3.5 h-3.5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                          View Details
+                        </button>
+                      </div>
+                    </div>
+                  `;
+                }).join('')}
+              </div>
+
+              <!-- Desktop & Tablet Table View (hidden sm:block) -->
+              <div id="inquiries-table-scroll" class="hidden sm:block overflow-x-auto w-full scrollbar-thin">
+                <table class="w-full text-left border-collapse min-w-[780px]">
                   <thead>
                     <tr class="border-b border-gray-200 dark:border-gray-800 bg-gray-50/75 dark:bg-gray-800/50 text-[11px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                      <th class="py-3.5 px-5">Customer</th>
-                      <th class="py-3.5 px-5">Email</th>
-                      <th class="py-3.5 px-5">Subject</th>
-                      <th class="py-3.5 px-5">Date</th>
-                      <th class="py-3.5 px-5 text-center">Status</th>
-                      <th class="py-3.5 px-5 text-right">Action</th>
+                      <th class="py-3.5 px-5 whitespace-nowrap">Customer</th>
+                      <th class="py-3.5 px-5 whitespace-nowrap">Email</th>
+                      <th class="py-3.5 px-5 whitespace-nowrap">Subject</th>
+                      <th class="py-3.5 px-5 whitespace-nowrap">Date</th>
+                      <th class="py-3.5 px-5 text-center whitespace-nowrap">Status</th>
+                      <th class="py-3.5 px-5 text-right whitespace-nowrap">Action</th>
                     </tr>
                   </thead>
                   <tbody class="divide-y divide-gray-100 dark:divide-gray-800 text-sm">
@@ -382,11 +443,11 @@
                           <td class="py-4 px-5">
                             <div class="flex items-center gap-2.5">
                               ${isUnread ? `<span class="w-2 h-2 rounded-full bg-amber-500 shrink-0"></span>` : `<span class="w-2 h-2 rounded-full bg-transparent shrink-0"></span>`}
-                              <span class="text-gray-900 dark:text-white font-bold">${inq.name || 'Anonymous'}</span>
+                              <span class="text-gray-900 dark:text-white font-bold whitespace-nowrap">${inq.name || 'Anonymous'}</span>
                             </div>
                           </td>
                           <td class="py-4 px-5">
-                            <a href="mailto:${inq.email}" class="text-black dark:text-white hover:text-[#1E6C02] dark:hover:text-emerald-400 hover:underline text-xs font-bold">${inq.email || '--'}</a>
+                            <a href="mailto:${inq.email}" class="text-black dark:text-white hover:text-[#1E6C02] dark:hover:text-emerald-400 hover:underline text-xs font-bold whitespace-nowrap">${inq.email || '--'}</a>
                           </td>
                           <td class="py-4 px-5">
                             <span class="text-black dark:text-white line-clamp-1 max-w-[240px] font-medium">${inq.subject || 'No Subject'}</span>

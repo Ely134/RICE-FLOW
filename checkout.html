@@ -8,38 +8,15 @@
     (function() {
       try {
         var d = document.documentElement;
-        var isDark = localStorage.getItem('aurora-dark-mode') === 'true';
-        d.classList.toggle('dark', isDark);
-        d.style.colorScheme = isDark ? 'dark' : 'light';
+        d.classList.remove('dark');
+        d.style.colorScheme = 'light';
+        if (typeof localStorage !== 'undefined') { try { localStorage.removeItem('aurora-dark-mode'); } catch(_) {} }
       } catch (e) {}
     })();
   </script>
   <style id="riceflow-theme-init">
     html { background-color: #F5F5F5; color-scheme: light; }
     #navbar-container { min-height: 5rem; background-color: #FFFFFF; border-bottom: 1px solid #F3F4F6; }
-    html.dark { background-color: #0F172A !important; color-scheme: dark; }
-    html.dark body,
-    html.dark main,
-    html.dark section,
-    html.dark #navbar-container,
-    html.dark #footer-container {
-      background-color: #0F172A;
-      background-image: none;
-      color: #FFFFFF;
-    }
-    html.dark #auth-guard-loader {
-      background-color: #0F172A !important;
-      color: #FFFFFF !important;
-    }
-    html.dark #navbar-container {
-      border-bottom-color: rgba(255, 255, 255, 0.15);
-    }
-    html.dark .bg-white,
-    html.dark .bg-gray-50,
-    html.dark .bg-slate-50 {
-      background-color: #111827;
-      color: #FFFFFF;
-    }
   </style>
   <link rel="stylesheet" href="src/styles/index.css">
   <style id="auth-guard-style">body { visibility: hidden !important; }</style>
@@ -730,7 +707,11 @@
       evaluateDeliveryMinimum,
       DEFAULT_DELIVERY_MINIMUM_SETTINGS,
       evaluateDeliveryFee,
-      DEFAULT_DELIVERY_FEE_SETTINGS
+      DEFAULT_DELIVERY_FEE_SETTINGS,
+      assertCanPerformFirebaseWrite,
+      autoBindDraftPreservation,
+      clearFormDraft,
+      checkExistingOrderByReference
     } from './src/app/shared.js';
     import { 
       db,
@@ -2284,6 +2265,46 @@
         }, 150);
       }
 
+      // Automatically preserve unfinished checkout form data across connection drops or page refreshes
+      autoBindDraftPreservation(
+        'order-form',
+        'checkout_order',
+        () => ({
+          deliveryOption,
+          paymentMethod,
+          currentSelectedCoordinates,
+          isCoordinatesConfirmed,
+          confirmedAddressText,
+          addressVal: addressInput ? addressInput.value : '',
+          notesVal: document.getElementById('inp-notes') ? document.getElementById('inp-notes').value : ''
+        }),
+        (customState) => {
+          if (customState) {
+            if (customState.deliveryOption === 'pickup' && divPic) {
+              divPic.click();
+            } else if (customState.deliveryOption === 'delivery' && divDel) {
+              divDel.click();
+            }
+            if (customState.paymentMethod === 'cash' && divPmCash) {
+              divPmCash.click();
+            } else if (customState.paymentMethod === 'gcash' && divPmGcash) {
+              divPmGcash.click();
+            }
+            if (customState.addressVal && addressInput && !addressInput.value) {
+              addressInput.value = customState.addressVal;
+            }
+            const nEl = document.getElementById('inp-notes');
+            if (customState.notesVal && nEl && !nEl.value) {
+              nEl.value = customState.notesVal;
+            }
+            if (customState.currentSelectedCoordinates) {
+              currentSelectedCoordinates = customState.currentSelectedCoordinates;
+              isCoordinatesConfirmed = true;
+            }
+          }
+        }
+      );
+
       // Exit Confirmation Modal wiring
       document.body.addEventListener('click', (e) => {
         const anchor = e.target.closest('a');
@@ -2821,6 +2842,18 @@
 
         isSubmitting = true;
         const originalBtnText = btnSubmit ? btnSubmit.textContent : 'Submit Order';
+
+        // Prevent unsafe checkout submissions while offline
+        if (!assertCanPerformFirebaseWrite('submit this order')) {
+          isSubmitting = false;
+          orderSubmitted = false;
+          if (btnSubmit) {
+            btnSubmit.disabled = false;
+            btnSubmit.textContent = originalBtnText;
+          }
+          return;
+        }
+
         if (btnSubmit) {
           btnSubmit.disabled = true;
           btnSubmit.innerHTML = isFullReservation
@@ -2928,7 +2961,7 @@
           matchedDeliveryArea = 'Store Pickup';
         }
 
-        const total = isFullReservation ? resSubtotal : (subtotal + deliveryFee);
+        const total = isFullReservation ? (resSubtotal + deliveryFee) : (subtotal + deliveryFee);
 
         const amountPaid = isFullReservation ? 0 : (paymentMethod === 'gcash' ? total : total * 0.3);
         const remainingAmount = isFullReservation ? total : Math.max(0, total - amountPaid);
@@ -2949,8 +2982,8 @@
             paymentType: isFullReservation ? 'none' : (paymentMethod === 'gcash' ? 'full' : 'deposit'),
             amountPaid,
             remainingAmount,
-            deliveryFee: isFullReservation ? 0 : deliveryFee,
-            matchedDeliveryArea: isFullReservation ? null : matchedDeliveryArea,
+            deliveryFee: deliveryOption === 'delivery' ? deliveryFee : 0,
+            matchedDeliveryArea: deliveryOption === 'delivery' ? matchedDeliveryArea : 'Store Pickup',
             paymentProof: isFullReservation ? null : (paymentProofFile ? paymentProofFile.name : 'screenshot.png'),
             paymentProofDataUrl: isFullReservation ? '' : (downloadUrl || ''),
             paymentProofUrl: isFullReservation ? '' : (downloadUrl || ''),
@@ -3061,6 +3094,7 @@
         const outIds = checkoutItems.map(i => String(i.product?.id || i.productId || '').trim()).filter(Boolean);
         clearCartItems(outIds);
         sessionStorage.removeItem('riceflow-checkout-context');
+        clearFormDraft('checkout_order');
 
         // Transition Splash
         document.getElementById('checkout-form-container').classList.add('hidden');

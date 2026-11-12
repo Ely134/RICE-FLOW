@@ -1,6 +1,7 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
+  color-scheme: light;
   --font-size: 16px;
   --background: #ffffff;
   --foreground: oklch(0.145 0 0);
@@ -3177,4 +3178,154 @@ html.dark #success-splash a:not([class*="bg-[#1E6C02]"]):not([class*="bg-emerald
 #success-splash a.bg-\[\#1E6C02\]:hover {
   background-color: #145001 !important;
   color: #FFFFFF !important;
+}
+
+
+/* ==========================================================================
+   RICEFLOW RESPONSIVE LAYOUT LAYER
+   Additive overrides only: preserve existing colors, components and behavior.
+   ========================================================================== */
+
+html {
+  width: 100%;
+  min-width: 320px;
+  overflow-x: clip;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  width: 100%;
+  min-width: 320px;
+  max-width: 100%;
+  overflow-x: clip;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+img, video, canvas, iframe {
+  max-width: 100%;
+}
+
+svg {
+  max-width: 100%;
+}
+
+.flex > *, .grid > * {
+  min-width: 0;
+}
+
+.overflow-x-auto,
+.overflow-auto {
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+}
+
+table {
+  max-width: 100%;
+}
+
+input, select, textarea, button {
+  max-width: 100%;
+}
+
+@media (max-width: 1024px) {
+  /* Keep page content inside the available tablet viewport. */
+  .container {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  /* Allow wide data tables to scroll instead of stretching the page. */
+  .overflow-x-auto table,
+  .overflow-auto table {
+    min-width: 640px;
+  }
+
+  /* Keep dialogs and popovers within the visible screen. */
+  [role="dialog"],
+  dialog,
+  .modal,
+  [data-radix-dialog-content] {
+    max-width: calc(100vw - 2rem);
+    max-height: calc(100dvh - 2rem);
+    overflow-y: auto;
+  }
+}
+
+@media (max-width: 768px) {
+  html, body {
+    width: 100%;
+    overflow-x: clip;
+  }
+
+  /* Prevent long labels, addresses and product names from forcing overflow. */
+  h1, h2, h3, h4, p, label, a, button, th, td {
+    overflow-wrap: anywhere;
+  }
+
+  /* Forms remain usable on narrow touch screens. */
+  input, select, textarea {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  /* Make existing horizontal table wrappers usable on touch devices. */
+  .overflow-x-auto,
+  .overflow-auto {
+    max-width: 100%;
+    overflow-x: auto;
+  }
+
+  .overflow-x-auto table,
+  .overflow-auto table {
+    min-width: 600px;
+  }
+
+  /* Keep modal content and fixed panels inside the viewport. */
+  [role="dialog"],
+  dialog,
+  .modal,
+  [data-radix-dialog-content] {
+    width: calc(100vw - 1.5rem);
+    max-width: calc(100vw - 1.5rem);
+    max-height: calc(100dvh - 1.5rem);
+    overflow-y: auto;
+  }
+
+  /* Prevent fixed-width media and embedded content from widening pages. */
+  iframe, video, canvas {
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  /* Slightly tighter page gutters while retaining the existing design. */
+  .container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  /* Avoid iOS automatic zoom when a form field receives focus. */
+  input, select, textarea {
+    font-size: 16px;
+  }
+
+  /* Improve table readability without shrinking its contents excessively. */
+  .overflow-x-auto table,
+  .overflow-auto table {
+    min-width: 560px;
+  }
+
+  /* Keep action rows from forcing horizontal page scroll. */
+  .flex.flex-wrap {
+    min-width: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html:focus-within {
+    scroll-behavior: auto;
+  }
 }
